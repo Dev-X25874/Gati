@@ -1,6 +1,6 @@
 Document for CNN Accelerator on Vaaman
 
-(For any typos reach to yah / shreeyash for modifications)
+(For any typos reach to yash / shreeyash for modifications)
 
 What is Gati?
 

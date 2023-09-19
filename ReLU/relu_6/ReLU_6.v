@@ -17,7 +17,7 @@ module relu_6(
   reg[7:0]      out_reg = 8'd0;  //Internal reg to latch the output
     
 always @(posedge clk) begin
-  if (i_data[31:30] == 1)
+  if (i_data[31] == 1)
     out_reg <= 0;
   else if ((i_data > 0) && (i_data <= 6))
     out_reg <= i_data;

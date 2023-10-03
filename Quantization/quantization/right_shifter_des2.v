@@ -3,37 +3,54 @@
 // Design Name: Right shifter  
 // Module Name: right_shifter_des2
 // Project Name: CNN Acceleration- GATI
-// Description: It is a shifter which shifts the multiplied output eight times.  
+// Description: It is a shifter which shifts the multiplied output eight times.
+// Revision 1: Sept 29, 2023 - Added feature - The design was parametrised and
+//             the valid data was added.   
 //////////////////////////////////////////////////////////////////////////////////
 
 
 module right_shifter_des2(
   input            clk,
   input [35:0]     din_mul,
-  output [27:0]    dout_shifted
+  output[36:0]     dout_shifted,
+  input            data_valid
     );
+    reg r_data_valid;
+    reg [35:0] r_dout_shifted=36'd0;
     
-  reg[27:0]        rdout_shifted;
-  reg[34:0]        temp1=0;
-  reg[33:0]        temp2=0;
-  reg[32:0]        temp3=0;
-  reg[31:0]        temp4=0;
-  reg[30:0]        temp5=0;
-  reg[29:0]        temp6=0;
-  reg[28:0]        temp7=0;
-  
     always @ (posedge clk) begin
-      temp1 <= din_mul >> 1;
-      temp2 <= temp1 >> 1;
-      temp3 <= temp2 >> 1;
-      temp4 <= temp3 >> 1;
-      temp5 <= temp4 >> 1;
-      temp6 <= temp5 >> 1;
-      temp7 <= temp6 >> 1;
-      rdout_shifted <= temp7 >> 1;
+      if(data_valid ==1) begin
+        r_data_valid <= data_valid;
+        r_dout_shifted <=  din_mul >> 1;
+      end else begin
+        r_data_valid <= 0;
+        r_dout_shifted <= 0;
+      end
     end
-      assign dout_shifted = rdout_shifted;
+    assign dout_shifted = {r_data_valid,r_dout_shifted};
   endmodule
 
-    
-    
+module top_right_shifter#(parameter n_shift=8,
+                          parameter width = 36)(
+  input[width-1:0]   din_mul_top,
+  output[width-1:0]  dout_shifted_top,
+  input clk 
+);
+genvar i;
+  generate 
+    for(i = 0; i < n_shift; i = i + 1) begin : RIGHT_SHIFT
+     wire[35:0]  w_out; 
+      
+      if(i == 0) 
+        right_shifter_des2 right_shift(.clk(clk),.din_mul(din_mul_top),
+                                     .dout_shifted(w_out));
+      else if(i == n_shift - 1)
+        right_shifter_des2 right_shift(.clk(clk),.din_mul(RIGHT_SHIFT[i-1].w_out),
+                                     .dout_shifted(dout_shifted_top));
+      else
+        right_shifter_des2 right_shift(.clk(clk),.din_mul(RIGHT_SHIFT[i-1].w_out),
+                                     .dout_shifted(w_out));
+    end
+  endgenerate 
+endmodule   
+  

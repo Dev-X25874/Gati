@@ -6,36 +6,48 @@
 // Project Name: CNN Acceleration
 // Description: The first sub-block of im2col where,
 //              -- The input data will be getting its respective coordinate(i.e. rows and column) 
+// Revision 1 --> 12-10-2023 -- The code had few bugs like --  
+//                           -- The coordinate wasn't starting from (0,0) i.e. (row,column) 
+//                           -- The coordinate also wasn't ending with (224,224) i.e. (row,column)
+//                           -- The bit size during initialization was made correct
+//                           -- The comparison logic was fixed 
 //////////////////////////////////////////////////////////////////////////////////
 
 
 module index_2_coordinate_conv # (parameter WIDTH = 224) (
   input wire         clk,
-  output [8:0]       row,
-  output [8:0]       col,
+  output [7:0]       row,
+  output [7:0]       col,
   input [7:0]        data_i,
   input              rstn,
-  output [7:0]   data_o
+  output [7:0]       data_o
 
 );
 
-  reg [8:0]          curr_row=8'd1;
-  reg [8:0]          curr_col=8'd1;
+  reg [7:0]          curr_row=8'd0;
+  reg [7:0]          curr_col=8'd0;
   assign row = curr_row;
   assign col = curr_col;
 
-  always @(posedge clk) begin
-    if(!rstn) begin
-      curr_col <= 8'd0;
-      curr_row <= 8'd0;
-    end
-    else if (curr_col == WIDTH) begin 
-      curr_col <= 1;                  //curr_col is assigned to 1 if the curr_col exceeds the WIDTH
-      curr_row <= curr_row + 1;       // meanwhile the curr_row is incremented and goes to the next row
-    end else if (0 < curr_col < WIDTH) begin
-      curr_col <= curr_col + 1;       //curr_col is incremented and goes to the next col
-        end     
-     end    
-
+   always @(posedge clk) begin
+     if(!rstn) begin
+       curr_col <= 8'd0;
+       curr_row <= 8'd0;
+     end else if ( curr_row == WIDTH && curr_col == WIDTH ) begin
+       curr_row <= 0;
+       curr_col <= 0;
+     end
+     else if (curr_col == WIDTH) begin 
+       curr_col <= 0;                  //curr_col is assigned to 1 if the curr_col exceeds the WIDTH
+       curr_row <= curr_row + 1;       // meanwhile the curr_row is incremented and goes to the next row
+     end else if (curr_col >= 0 && curr_col <= WIDTH) begin
+       curr_col <= curr_col + 1;       //curr_col is incremented and goes to the next col
+       curr_row <= curr_row;
+     end 
+     else begin
+       curr_row <= 0;
+       curr_col <= 0;
+     end     
+   end
  assign data_o = data_i;
 endmodule

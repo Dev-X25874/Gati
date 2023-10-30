@@ -1,8 +1,17 @@
+//Set the value of x as per the required dimensions for systolic array
+`define CLOG2(x) \
+   (x <= 2) ? 1 : \
+   (x <= 4) ? 2 : \
+   (x <= 8) ? 3 : \
+   (x <= 16) ? 4 : \
+   (x <= 32) ? 5 : \
+   (x <= 64) ? 6 : \
+   -1
 module top_design #(
     parameter ROW = 9,
     parameter COL = 1,
     parameter W_DATA = 8,
-    parameter W_ADDR = (ROW * COL),
+    parameter W_ADDR = `CLOG2(TOTAL_BYTES),
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter TOTAL_BYTES = (ROW * COL)
 )(

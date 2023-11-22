@@ -7,17 +7,14 @@
 // Description: Index to coordinate conversion block is followed by valid squares block, here-
 //              -- If the below nine conditions are satisfied valid bits will go high and that gives the number of 
 //                 squares in which an element would be part of.  
-//              -- To optimize the code we are first performing the addition and subtraction operation followed by comparison operation
+//              -- To optimize the code we are first performing the addition and subtraction operation followed by 
+//                 comparison operation.
 //              -- The size of the kernel is 3*3 so we can expect each patch of the image to have 9 blocks/
 //                 coordinates enclosed within it and so the 9 various conditions. 
 //              -- The square is considered to be a valid one if the filter that is covering that patch of the image
 //                 is within the image boundary i.e. 224*224-matrix size.
+// Revision 2 --> 21-11-2023 -- Additional comments were added
 //////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
 
 
 module valid_squares_param #(
@@ -49,19 +46,39 @@ always @(posedge clk) begin
     row <= 9'd0;
     col <= 9'd0;
   end else begin
-  row1 <= curr_row + 1;  //
-  row2 <= curr_row + 2;
-  row3 <= curr_row - 1;
-  row4 <= curr_row - 2;
-  col1 <= curr_col + 1;
-  col2 <= curr_col + 2;
-  col3 <= curr_col - 1;
-  col4 <= curr_col - 2; 
-  row <= curr_row;
-  col <= curr_col;
+    row1 <= curr_row + 1;  //
+    row2 <= curr_row + 2;
+    row3 <= curr_row - 1;
+    row4 <= curr_row - 2;
+    col1 <= curr_col + 1;
+    col2 <= curr_col + 2;
+    col3 <= curr_col - 1;
+    col4 <= curr_col - 2; 
+    row <= curr_row;
+    col <= curr_col;
   end
- end  
- 
+ end 
+//######################################################################################### 
+/* -- Check If (x,y) is greater than 1 and if the input co-ordinate is bounded between (x,y) and (x+2,y+2).
+      If so valid[0] goes high.
+   -- Now from (x,y), go one row above i.e. (x-1,y) and check if input co-ordinate is bounded between 
+      (x-1,y) and (x+1,y+2). if so valid[1] goes high.
+   -- Now from (x,y) we go two rows above i.e. (x-2,y) and check if input co-ordinate is bounded between
+      (x-2,y) and (x,y+2). if so valid[2] goes high.
+   -- Then from (x,y) we go one column behind i.e. (x,y-1) and check if input co-ordinate is bounded between
+      (x,y-1) and (x+2,y+1). if so valid[3] goes high.
+   -- Then from (x,y-1) we go one row above i.e. (x-1,y-1) and check if input co-ordinate is bounded between
+      (x-1,y-1) and (x+1,y+1). if so valid[4] goes high.  
+   -- Then from (x,y-1) we go two rows above i.e. (x-2,y-1) and check if input co-ordinate is bounded between
+      (x-2,y-1) and (x,y+1). if so valid[5] goes high. 
+   -- Now from (x,y) we go two columns behind i.e. (x,y-2) and check if input co-ordinate is bounded between
+      (x,y-2) and (x+2,y). if so valid[6] goes high.  
+   -- Then from (x,y-2) we go one row above i.e. (x-1,y-2) and check if input co-ordinate is bounded between
+      (x-1,y-2) and (x+1,y). if so valid[7] goes high. 
+   -- Then from (x,y-2) we go two rows above i.e. (x-2,y-2) and check if input co-ordinate is bounded between
+      (x-2,y-2) and (x,y). if so valid[8] goes high. 
+*/
+//##########################################################################################
 always @(posedge clk) begin
   if(!rstn) begin
     valid_reg[0] <= 0;
@@ -131,5 +148,6 @@ always @(posedge clk) begin
    assign valid = valid_reg; 
    assign valid_sq_data_o = valid_sq_data_i;
 endmodule
+
 
 

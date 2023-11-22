@@ -1,17 +1,20 @@
-//Set the value of x as per the required dimensions for systolic array
-`define CLOG2(x) \
+/*`define CLOG2(x) \
    (x <= 2) ? 1 : \
    (x <= 4) ? 2 : \
    (x <= 8) ? 3 : \
    (x <= 16) ? 4 : \
    (x <= 32) ? 5 : \
    (x <= 64) ? 6 : \
-   -1
+   (x <= 144) ? 7 : \
+   (x <= 288) ? 8 : \
+   (x <= 576) ? 9  : \
+   -1*/
 module top_design #(
     parameter ROW = 9,
-    parameter COL = 1,
+    parameter COL = 4,
     parameter W_DATA = 8,
-    parameter W_ADDR = `CLOG2(TOTAL_BYTES),
+    //parameter W_ADDR = `CLOG2(TOTAL_BYTES),
+    parameter W_ADDR = 8,
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter TOTAL_BYTES = (ROW * COL)
 )(
@@ -22,21 +25,40 @@ module top_design #(
     input i_trigger_2,
     input i_rx_serial,
     output o_tx_serial_column,
-    output o_tx_serial_row
+    output o_tx_serial_row,
+    output out1,
+    output out2,
+    output [4:0] row_data_trigger_cnt
 );
+//reg [(W_ADDR * COL) : 0] value1 = {COL{8'd9}};
+//parameter VALUE2 = 1184274;
+//assign out2 = (VALUE2 == value1) ? 1'b1 : 1'b0;
 
 wire w_RX_DV;
 wire [W_DATA-1 : 0] w_RX_Byte;
 
 //clk = 100MHz, baud rate = 115200
 uart_rx#(
-    .CLOCKS_PER_BIT(50)
+    .CLOCKS_PER_BIT(37)
 ) uart_receiver (
     .i_Clock(i_clk),
     .i_RX_Serial(i_rx_serial),
     .o_RX_DV(w_RX_DV),
     .o_RX_Byte(w_RX_Byte)
 );
+/*
+   uart_tx #(
+.CLKS_PER_BIT(37)
+  ) rx_byte_dbg (
+   .i_Rst_L(1'b1),
+   .i_Clock(i_clk),
+   .i_TX_DV(w_RX_DV),
+   .i_TX_Byte(w_RX_Byte), 
+   .o_TX_Active(),
+   .o_TX_Serial(out1),
+   .o_TX_Done()
+   );
+*/
 wire select1;
 wire select2;
 assign select1 = ~i_sel_1;
@@ -70,11 +92,14 @@ i_fifo_design#(
     .i_trigger_2 (~i_trigger_2),
     .sa_select (select),
     .north_data (sa_weights),
-    .west_data (sa_data)
+    .west_data (sa_data),
+    .o_serial_debug_data_1(out1),
+    .o_serial_debug_data_2(out2),
+    .row_trigger_counter(row_data_trigger_cnt)
 );
 
-wire [(COL*32)-1:0] o_south_data;
-wire [(ROW*9)-1:0] o_east_data;
+wire [(COL * 32) - 1 : 0] o_south_data;
+wire [(ROW * 9) - 1 : 0] o_east_data;
 wire [COL-1:0] sel_out;
 
 wire [(COL * 32)-1 : 0] i_sa_north_data;
@@ -108,6 +133,9 @@ wire row_dv;
 wire [W_DATA-1:0] col_data_out;
 wire [W_DATA-1:0] row_data_out;   
 
+wire row_tx_dv;
+wire col_tx_dv;
+
 //fifo design for storing systolic array's outputs
 o_fifo_design#(
     .ROW(ROW),
@@ -123,15 +151,17 @@ o_fifo_design#(
     .o_row_data(row_data_out),
     .i_last_row_dv(col_wren_dv),
     .row_fifo_valid(row_dv),
-    .column_fifo_valid(column_dv)
+    .column_fifo_valid(column_dv),
+    .fifo_out_row_rden(row_tx_dv),
+    .fifo_out_col_rden(col_tx_dv)
 );
 
 uart_tx #(
-.CLKS_PER_BIT(50)
+.CLKS_PER_BIT(37)
   ) uart_column_transmitter (
    .i_Rst_L(1'b1),
    .i_Clock(i_clk),
-   .i_TX_DV(column_dv),
+   .i_TX_DV(col_tx_dv),
    .i_TX_Byte(col_data_out), 
    .o_TX_Active(),
    .o_TX_Serial(o_tx_serial_column),
@@ -139,11 +169,11 @@ uart_tx #(
    );
    
    uart_tx #(
-.CLKS_PER_BIT(50)
+.CLKS_PER_BIT(37)
   ) uart_row_transmitter (
    .i_Rst_L(1'b1),
    .i_Clock(i_clk),
-   .i_TX_DV(row_dv),
+   .i_TX_DV(row_tx_dv),
    .i_TX_Byte(row_data_out), 
    .o_TX_Active(),
    .o_TX_Serial(o_tx_serial_row),

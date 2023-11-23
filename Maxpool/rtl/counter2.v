@@ -25,7 +25,7 @@ module counter2(
   input rst,
   input datavalid, //valid data acknowledgment coming from thr prior module
   input [7:0] dynamic_threshold,  
-  output [0:0] sel, //toggles after 224 elements, each of 1 byte, have been received 
+  output [0:0] sel, //toggling depend upon the size of a matrix column(earlier one matrix column was assumed to have 0-224 elements each of size 1 byte, hence toggling of selectline was done after count 224).
   output [7:0] count
     );
   reg [7:0] counter=0;

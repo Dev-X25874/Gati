@@ -22,16 +22,16 @@
 
 module demux2(
   input [7:0] data_in,
-  input sel,
+  input sel, //gets toggled by counter2 module
   input clk,
   input rst,
-  input datavalid,
+  input datavalid, //valid data acknowledgment sent by the previous module
   output [8:0] fifo1,
   output [8:0] fifo2
     );
   reg [7:0] x=0;
-  assign fifo1 = (sel==1'b0)? {datavalid,x} : 9'b0_0000_0000;
-  assign fifo2 = (sel==1'b1)? {datavalid,x} : 9'b0_0000_0000;
+  assign fifo1 = (sel==1'b0)? {datavalid,x} : 9'b0_0000_0000; //first batch of 224 elements each of 1 bytes gets stored in fifo1
+  assign fifo2 = (sel==1'b1)? {datavalid,x} : 9'b0_0000_0000; //the second batch of 224 elements each of 1 byte gets stored in fifo2
 
   always @(posedge clk)begin
   x<=data_in;

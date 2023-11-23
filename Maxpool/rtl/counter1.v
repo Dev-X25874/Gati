@@ -23,7 +23,7 @@
 module counter1(
   input clk,
   input rst,
-  output [0:0] sel,
+  output [0:0] sel, //toggles at every posedge of the clock
   output [0:0] count
     );
   reg [0:0] counter=0;
@@ -33,7 +33,7 @@ module counter1(
   always @ (posedge clk)
   begin
     if(rst==1'b0) begin
-      counter <= 1'b0;
+      counter <= 1'b0; 
       toggle <= 1'b0;
     end
     else begin

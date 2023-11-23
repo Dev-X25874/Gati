@@ -9,7 +9,9 @@
 // Project Name: maxpool
 // Target Devices: 
 // Tool Versions: 
-// Description: top module has connections of the rest of blocks of the maxpool project.
+// Description: max-pooling operation: Maxpooling is a downsampling operation commonly employed in neural networks, especially convolutional neural networks (CNNs). It involves dividing an input feature map into non-overlapping regions, typically 2x2 or 3x3 grids(in VGG 16 's case:- 3x3 grid kernel), and selecting the maximum value from each region. The selected maximum values form a reduced-size output feature map, providing spatial dimensionality reduction. This operation helps in computational efficiency, translation invariance, and feature reduction by focusing on the most prominent features in the input data. Maxpooling is widely used in conjunction with convolutional layers to create hierarchical representations in deep learning models.
+//This design implements a multi-stage processing pipeline for max-pooling operations. The process begins with Counter1, which toggles the select line of Demux1 at every positive clock edge. Demux1 takes 1-byte inputs and sequentially assigns them to its outputs. These outputs are then processed by the Maxpool module, which compares the two values and outputs the maximum., 
+//Counter2 in the next stage, toggles the select line of Demux2 after every 224 elements (each 1 byte) have been received. Demux2 directs the incoming data to either FIFO1 or FIFO2, using the select line. These FIFOs have memory blocks, storing batches of 224 elements each. The outputs of FIFO1 and FIFO2 are then fed into a second Maxpool module, which performs max-pooling on the 1-byte data from each FIFO, producing the maximum of the two values as the final output.
 // 
 // Dependencies: 
 // 
@@ -18,13 +20,39 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+module top_gen#(
+    parameter N = 32
+)(
+input i_clk,
+input [(N * 8)-1 : 0] i_data,
+input i_rst,
+input [N-1 : 0] i_dv,
+output [(N * 8)-1 : 0] o_data,
+output [N-1 : 0] o_dv
+);
 
+genvar i;
+generate
+for(i = 0; i < N; i = i + 1)begin
+top dut_module(
+  .clk(i_clk),
+  .data_in(i_data[((N -i)*8)-1 -: 8]),
+  .rst(i_rst),
+  .datavalid(i_dv[i]),
+  .maxvalue_o(o_data[((N-i)*8)-1 -: 8]),
+  .datavalid_o(o_dv[i])
+);
+end
+endgenerate
+
+endmodule
 
 module top(
   input clk,
   input [7:0] data_in,
   input rst,
   input datavalid,
+  input [7:0] dynamic_threshold,
   output [7:0] maxvalue_o,
   output datavalid_o
     );
@@ -73,7 +101,8 @@ counter2 c2(
 .clk(clk),
 .rst(rst),
 .datavalid(maxpool_o[8]),
-.sel(selectline2)
+.sel(selectline2),
+.dynamic_threshold(dynamic_threshold)
 );
 
 demux2 dut2(

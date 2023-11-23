@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
@@ -22,20 +23,20 @@
 
 module demux1(
   input [7:0] din,
-  input sel,
+  input sel,   //counter1 toggles the select line 
   input clk,
-  input datavalid,
+  input datavalid, //this 'datavalid' is a valid data acknowledgement from the block prior to the maxpool block
   output [8:0] a,
   output [8:0] b,
   output reg [8:0] c=0
 );
   reg [7:0] x=0;
-  assign a = (sel==1'b0)? {datavalid, x} : 9'b000000000;
-  assign b = (sel==1'b1)? {datavalid, x} : 9'b000000000; 
+  assign a = (sel==1'b0)? {datavalid, x} : 9'b000000000;  
+  assign b = (sel==1'b1)? {datavalid, x} : 9'b000000000;  
 
   always @(posedge clk)
   begin
-  c <= a;
+  c <= a;  //the first input from the previous block gets assigned to a reg, hence waiting for the second input because the next module is maxpool. Maxpooling requires two input at the same time.
   x <= din;
   end
 

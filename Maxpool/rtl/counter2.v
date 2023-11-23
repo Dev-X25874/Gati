@@ -23,23 +23,25 @@
 module counter2(
   input clk,
   input rst,
-  input datavalid,
-  output [0:0] sel,
+  input datavalid, //valid data acknowledgment coming from thr prior module
+  input [7:0] dynamic_threshold,  
+  output [0:0] sel, //toggles after 224 elements, each of 1 byte, have been received 
   output [7:0] count
     );
   reg [7:0] counter=0;
   reg [0:0] toggle=0;
+  reg [7:0] threshold = 8'd0;
   assign sel = toggle;    
     
   always @ (posedge clk)
   begin
     if(rst==1'b0) begin
-      counter <= 8'b00000000;
+      counter <= 8'd0;
       toggle <= 1'b0;
     end
     else begin
       if(datavalid)begin
-        if(counter < 8'd224)begin
+        if(counter < threshold)begin
           toggle <= toggle;
           counter <= counter + 1;
          end
@@ -50,5 +52,13 @@ module counter2(
        end           
     end
   end
+  always @ (posedge clk) begin
+    if(rst == 1'b0) begin
+      threshold <= 8'b0;
+    end
+    else begin
+      threshold <= dynamic_threshold;
+    end
+  end  
   assign count = counter;   
 endmodule

@@ -9,7 +9,7 @@
 // Project Name: maxpool 
 // Target Devices: 
 // Tool Versions: 
-// Description: this maxpool block is used for maxpooling for the first as well as the second time. 
+// Description: The Maxpool module compares two 1-byte input values and outputs the maximum value. It takes two input bytes, determines the larger of the two, and assigns that value to the output variable. Essentially, it performs a max-pooling operation on the input bytes, selecting the maximum value for further processing. 
 // 
 // Dependencies: 
 // 
@@ -21,17 +21,17 @@
 
 module maxpool(
   input clk,
-  input datavalid,
+  input datavalid, // it is a valid data acknowledgment coming from a module before
   input [7:0] dina,
   input [7:0] dinb,
-  output reg [8:0] temp=0
+  output reg [8:0] temp=0 //the greater of the two inputs gets assigned to this variable.
     );
     
   always @(posedge clk)
   begin
     if(datavalid) begin
-      if(dina>dinb)begin
-        temp<= {datavalid,dina};
+      if(dina>dinb)begin  //compares two inputs of 1 byte each, at a time
+        temp<= {datavalid,dina}; 
       end
       else 
       begin

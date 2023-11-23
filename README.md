@@ -1,16 +1,77 @@
 # Gati
 
-Folders here should contain following: 
+## TODO
 
-1. rtl foldder 
-2. tb folder 
-3. project folder.
-
-RTL has the RTL design files, tb has test bench files and project should have
-the vivado .xpr file. Make sure that you dont upload the Waveform .wlf or .vcd
-file. 
+- documenting code - doxygen/rst
+- how git does version control (rant)
 
 # Contribution Guidelines
+
+## General rules
+
+1. Do *NOT* push code to the main branch
+2. Read this document thoroughly before writing code.
+3. Keep your lines under 80 columns (moreover, use an editor that automatically
+   clips a line longer than 80 columns). This is mandatory in text files like
+   README and documentation files.
+4. Use tools that allow you to automate your workflow. (see under for some
+   recommendations)
+
+
+## Writing Programs (Style Guide)
+
+### Coding Standard
+
+Consistent style across a project makes reading/maintaining a codebase easier. 
+We adopt [this](http://fpgacpu.ca/fpga/verilog.html) standard for verilog. 
+
+### Simulation
+
+There are two recommendations for simulation softwares:
+
+1. [verilator](https://verilator.org/)
+2. [iverilor](https://steveicarus.github.io/iverilog/)
+
+and for waveform viewers:
+
+1. [gtkwave](https://gtkwave.sourceforge.net/)
+
+All the above softwares can be installed in Ubuntu/Debian with:
+
+```
+sudo apt install iverilog verilator gtkwave
+```
+
+Refer to the guides present on the webpages of each program to learn more.
+
+### Linting 
+
+Further, it is recommended to use a
+[lint](https://en.wikipedia.org/wiki/Lint_(software)) software to check programs
+for common bugs that may occur. Verilator provides an option to lint programs:
+
+```
+verilator --top ${TOP_MODULE} --lint-only -Wall <source files>
+```
+
+### Formatting
+
+Poor indentation/formatting is an eye sore. It is recommended to use a text
+editor/environment that can automatically format your source files. For eg,
+VS Code or Vim. Moreover, formatting tools can be installed and used separately
+to the text editor. 
+
+The [verible](https://chipsalliance.github.io/verible) tools has a linter and
+a formatter.
+
+To install it, download the binaries from [their release
+page](https://github.com/chipsalliance/verible/releases).
+
+To use:
+
+```
+verible-verilog-format --inplace <source files>
+```
 
 ## Using Branches for Organized Development
 
@@ -170,7 +231,18 @@ project (and its sub-branches are the experimental branches).
 This nested branching approach allows organized development and can lead to
 better quality of code.
 
-### Cheatsheet
+## Commit message guidelines
+
+We adopt this
+[guideline](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53)
+for commit messages. 
+
+## Some Recommended Readings
+
+1. [How to ask questions the smart way](http://catb.org/~esr/faqs/smart-questions.html)
+2. [How To Become A Hacker](http://vadeker.net/articles/hacker-howto.html)
+
+## Cheatsheet
 
 ```
 git add
@@ -188,3 +260,8 @@ drop
 squash
 re-ordering commits
 ```
+
+## Links (for quick reference)
+
+1. [Verilog Standard](http://fpgacpu.ca/fpga/verilog.html)
+2. [Commit Message Guidelines](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53)

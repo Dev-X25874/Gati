@@ -10,7 +10,7 @@
 // Target Devices: 
 // Tool Versions: 
 // Description: This design implements a multi-stage processing pipeline for max-pooling operations. The process begins with Counter1, which toggles the select line of Demux1 at every positive clock edge. Demux1 takes 1-byte inputs and sequentially assigns them to its outputs. These outputs are then processed by the Maxpool module, which compares the two values and outputs the maximum., 
-//Counter2 toggles the select line of Demux2 after the final element of a matrix column,each element is of 1 byte, have been received. Demux2 directs the incoming data to either FIFO1 or FIFO2, using the select line. These FIFOs have memory blocks, storing batches of elements in each matrix column (the size of a matrix column can be varied). The outputs of FIFO1 and FIFO2 are then fed into a second Maxpool module, which performs max-pooling on the 1-byte data from each FIFO, producing the maximum of the two values as the final output.
+//Counter2 toggles the select line of Demux2 after the final element of a matrix column,each element is of 1 byte, has been received. Demux2 directs the incoming data to either FIFO1 or FIFO2, using the select line. These FIFOs have memory blocks, storing batches of elements in each matrix column (the size of a matrix column can be varied). The outputs of FIFO1 and FIFO2 are then fed into a second Maxpool module, which performs max-pooling on the 1-byte data from each FIFO, producing the maximum of the two values as the final output.
 // 
 // Dependencies: 
 // 

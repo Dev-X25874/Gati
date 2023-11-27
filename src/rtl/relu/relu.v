@@ -1,74 +1,44 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Design Name: Implementation of ReLU  
-// Module Name: relu
-// Project Name: CNN Acceleration. 
-// Description: This is a generic relu module incorporating the functionality
-//              of all relu variants.
-//             - If the clipping constant is 8, it clips the output at 8.
-//             - If the clipping constant is 6, it clips the output at 6.
-//             - If the clipping constant is 0 or any other number, it sends the 
-//               incoming input as an output.
-/////////////////////////////////////////////////////////////////////////////////
-`define CHECK_FREQ 1
 
-module relu 
-#(
-  parameter           WIDTH = 32,
-  parameter           CLIPPING_CONSTANT = 16, // can be 6/8/0 based on the req
-//  parameter           OPWIDTH = (CLIPPING_CONSTANT == 0) ? WIDTH-1: (CLIPPING_CONSTANT == 1) ? 0 : $clog2(CLIPPING_CONSTANT+1)-1
+/* relu - activation function
+ * returns: 0 if the i_data is negative
+ *          CLIP if i_data is greater than that
+ *          i_data otherwise
+
+ * in the ideal case, CLIP is the largest positive number
+ * of DATA_WIDTH, this makes relu behave as if no CLIP
+ * value was specified.
+ */ 
+
+module relu #(
+    parameter DATA_WIDTH = 32,
+    /* biggest possible signed DATA_WIDTH number */
+    parameter CLIP = {1'b0,{DATA_WIDTH-1{1'b1}}}
 )
 (
-  input [WIDTH-1:0]                i_data_w,
-  input                            clk,
-//  output [$clog2(CLIPPING_CONSTANT):0]         o_data,
-  output [WIDTH-1:0]               o_data,
-//  output [ (CLIPPING_CONSTANT == 0) ? [31:0] : (CLIPPING_CONSTANT == 1) ? [0:0] : [$clog2(CLIPPING_CONSTANT+1)-1:0]]  o_data;
-  input                            data_valid_w 
+    input clk,
+    input signed [DATA_WIDTH-1:0] i_data,
+    input i_valid,
+    output signed [DATA_WIDTH-1:0] o_data,
+    output o_valid
 );
 
+    reg signed [DATA_WIDTH-1:0] o_data_r = 0;
+    assign o_data = o_data_r;
 
- 
-  
-  reg [WIDTH-1:0]                       r_data_out = 0;  
-  reg                                   r_data_valid = 0;
-  
-  reg [WIDTH-1:0]                       i_data = 0;
-  reg                                   data_valid = 0;
- 
-`undef CHECK_FREQ 
- `ifdef CHECK_FREQ
-  always @(posedge clk) begin
-    i_data <= i_data_w;
-    data_valid <= data_valid_w;    
-  end
-  `endif
+    reg o_valid_r = 0;
+    assign o_valid = o_valid_r;
 
-  always @(posedge clk) begin
-    if (CLIPPING_CONSTANT != 0) begin
-      if (data_valid) begin
-        if ((i_data >= 0) && (i_data <= CLIPPING_CONSTANT)) begin
-          r_data_out <= i_data;
-          r_data_valid <= data_valid;
-        end else if ( i_data > CLIPPING_CONSTANT) begin
-          r_data_out <= CLIPPING_CONSTANT;
-          r_data_valid <= data_valid;
-        end 
-      end else begin
-        r_data_out <= 0;
-        r_data_valid <= 0;
-      end 
-    end else begin
-      if (data_valid) begin
-        r_data_out <= i_data;
-        r_data_valid <= data_valid;
-      end else begin
-        r_data_out <= 0;
-        r_data_valid <= 0;
-      end
+    always @(posedge clk) begin
+        if (i_valid) begin
+            if (i_data > CLIP) begin
+                o_data_r <= CLIP;
+            end else if (i_data[DATA_WIDTH-1] == 1) begin
+                o_data_r <= 0;
+            end else begin
+                o_data_r <= i_data;
+            end
+        end
+        o_valid_r <= i_valid;
     end
-  end
-   
-  assign o_data = {r_data_valid,r_data_out}; 
-  
 endmodule

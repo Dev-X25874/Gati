@@ -30,7 +30,7 @@ module counter2(
     );
   reg [7:0] counter=0;
   reg [0:0] toggle=0;
-  reg [7:0] threshold = 8'd0;
+
   assign sel = toggle;    
     
   always @ (posedge clk)
@@ -41,7 +41,7 @@ module counter2(
     end
     else begin
       if(datavalid)begin
-        if(counter < threshold)begin
+        if(counter < dynamic_threshold)begin
           toggle <= toggle;
           counter <= counter + 1;
          end
@@ -52,13 +52,7 @@ module counter2(
        end           
     end
   end
-  always @ (posedge clk) begin
-    if(rst == 1'b0) begin
-      threshold <= 8'b0;
-    end
-    else begin
-      threshold <= dynamic_threshold;
-    end
-  end  
-  assign count = counter;   
+
+  assign count = counter; 
+  
 endmodule

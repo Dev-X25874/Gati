@@ -59,6 +59,8 @@ If we had 64 different 3x3x3 kernels, the output would be (224x224x64).
    :width: 70%
    :align: center
 
+.. _quantization:
+
 Quantization
 ************
 
@@ -262,6 +264,8 @@ The value of B impacts the precision of the final result.
 
 .. TODO
    B value and how it co-relates to overflowing.
+
+.. _im2col_coordgen:
 
 Im2Col
 ******

@@ -250,6 +250,7 @@ Memory Layout Of DRAM
 
 .. TODO
    write more about this
+   describe the images
 
 When finalizing the memory layout factor in all the values that are to
 be stored in the DRAM.
@@ -262,10 +263,26 @@ be stored in the DRAM.
 6. intermediate channel outputs
 7. layer outputs
 
-(shreeyash: add few examples formats for 4,5,6,7. images from your book
-also would do.)
+Here's a Bird's eye view picture of the entire CNN architecture:
 
-for other queries: shreeyash
+.. image:: _static/birdseyearch.jpg
+   :width: 70%
+   :align: center
+
+Here's the memory layout for Input, Weights, Biases and intermediate channel
+outputs:
+
+.. image:: _static/memlayout1.jpg
+   :width: 70%
+   :align: center
+
+.. image:: _static/memlayout2.jpg
+   :width: 70%
+   :align: center
+
+.. image:: _static/memlayout3.jpg
+   :width: 70%
+   :align: center
 
 Configuration Block
 *******************
@@ -1037,15 +1054,16 @@ data right away.
 
 .. note::
 
-  1. The cycle difference between the first im2col column
-  entering row FIFO and the cycle when the first column from FIFOs is
-  pushed into SA is referred to as the “cold start time” in this context.
-  We must acknowledge that the data is biased because of im2col’s design.
-  Therefore, it takes 450 cycles for us to reach the point where every row
-  is available, each containing at least one element, and is therefore
-  prepared for pushing into the SA.
-  
-  2. See :ref:`bounding_squares` im2col architecture for more understanding on this 450 cycle latency.
+  1. The cycle difference between the first im2col column entering row FIFO and
+     the cycle when the first column from FIFOs is pushed into SA is referred
+     to as the “cold start time” in this context.  We must acknowledge that
+     the data is biased because of im2col’s design.  Therefore, it takes 450
+     cycles for us to reach the point where every row is available, each
+     containing at least one element, and is therefore prepared for pushing
+     into the SA.
+
+  2. See :ref:`bounding_squares` im2col architecture for more understanding on
+     this 450 cycle latency.
 
 T3 Start Weight Block
 =====================
@@ -1126,3 +1144,6 @@ already been completed by the time the final partial sums from SA
 arrive. Final accumulation happens shortly after the DRAM controller
 receives the output psum of the final channel from SA. These psum
 deposits can now be used as input to the next layer.
+
+.. bibliography::
+

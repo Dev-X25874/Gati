@@ -22,7 +22,7 @@ Vaaman-CNN brings Convolutional Neural Network acceleration to Vaaman. This site
    :glob:
    :maxdepth: 1
 
-   Get To Know Gati <end>
+   Get To Know Gati <gati>
    General <general>
 
 Indices and tables

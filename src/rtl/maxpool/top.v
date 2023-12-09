@@ -114,7 +114,7 @@ demux2 dut2(
 .fifo2(demux2_o2)
 );
 
-fifo_valid1 #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
+fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
 .clk(clk),
 .rst_n(rst),
 .we(demux2_o1[8]),
@@ -128,7 +128,7 @@ fifo_valid1 #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
 );
 
 
-fifo_valid2 #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut4(
+fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut4(
 .clk(clk),
 .rst_n(rst),
 .we(demux2_o2[8]),

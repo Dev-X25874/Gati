@@ -376,14 +376,13 @@ configuration block instructs to switch weight stationary to output
 stationary. exploring other dataflows (e.g. row stationary) for
 convolution layers is a future work.
 
-For fully connected layers we use only one row of all available rows.
-outputs at each column are accumulated to previous value. This can be
-visualized as 1-D systolic array where the input are moved horizontally
-and each column receives a weight. you may notice from fully connected
-layers that a weight is only used once. Thus having 1-D (1-row x
-N-columns) systolic array is sufficient; as inputs are reused across
-weights, they are passed horizontally, while weights are not used more
-than once, they are passed vertically.
+For fully connected (FC) layers, only one row of SA is used for computation.
+The outputs at each column are accumulated to previous value. This can be
+visualized as 1-D SA where the input moves horizontally and each column 
+receives a weight. It can be noticed that, in FC layers a weight is only 
+used once. Thus having 1-D (1-row x N-columns) SA is sufficient; as 
+inputs are reused across weights, they are passed horizontally, 
+while weights are not used more than once, they are passed vertically.
 
 for other queries: roshni, shwet, shreeyash.
 
@@ -393,8 +392,11 @@ Output Block
 1. opFIFO set1: FIFOs at immediate output of SA.
 2. Adder **trees** between compute engines
 3. opFIFO set2: FIFOs to stage DRAM reads (these are the partial sums of
-   previous layers)
-4. adder tree between results of previous adder tree and staged data in
+   previous layers) or 
+   
+   True dual port RAM: To stage DRAM reads (partial sums of previous
+   layers) and the inputs for fully connected (FC) layer.
+4. adder stage between results of previous adder tree and staged data in
    set2.
 5. delay registers
 6. crossbar and configuration design.
@@ -414,12 +416,20 @@ set1 has 56 addition operators.
 **opFIFO set2**: these FIFOS stage the accumulations of partial sums
 (previous 8 channels) reads from DRAM to be added with accumulations of
 current 8 channels. opFIFO set2 has 32 FIFOs to accommodate DRAM read.
+(or)
 
-**Adder Tree Set2**: is responsible for add **opFIFO set2** data with
-results from **adder tree set1** before forwarding to the delay
-registers block. size of adder tree set2 is similar to adder tree set1.
-adder tree set2 accepts input from opFIFO set2 (8 elements at a time)
-and output of adder tree set1 (also 8 elements).
+**True dual port (TDP) RAM**: This memory is virtually divided into two parts,
+wherein one part (say, port A) is reserved for staging the accumulations of 
+partial sums (previous 8 channels) read from DRAM and added with accumulations of
+current 8 channels. The another part (say, port B) of the memory stores the input 
+data for computation of FC layer and read sequentially to feed the SA. There are 
+32 TDP RAM blocks to accomodate DRAM reads and FC inputs.
+
+**Adder Stage**: It performs element wise addition on **opFIFO set2** data 
+and results from **adder tree set1** before forwarding to the delay registers 
+block. The number of adders present in this stage are equal to number of 
+columns in SA engine (8 in this case). This stage  accepts input from 
+opFIFO set2 (8 elements at a time) and output of adder tree set1 (also 8 elements).
 
 **Delay Registers Block**: these registers align incoming data so that
 crossbar enables transformation of data into row-major format required
@@ -467,6 +477,11 @@ future), first 4 bytes of 32 bytes DRAM read should consist of engine 1
 data; byte 5 to byte 8 should have engine 2 data and likewise bytes for
 other engines are available in above manner. This data rearrangement is
 enabled by crossbar and Delay Registers.
+
+On the other hand, if data reordering is not required (such as partial sums
+of a layer and FC computaional data) then configuration settings for crossbar
+are provided such that it should pass the data to the ouput in the same format 
+as it receives. 
 
 .. note::
 
@@ -918,6 +933,21 @@ already been completed by the time the final partial sums from SA
 arrive. Final accumulation happens shortly after the DRAM controller
 receives the output psum of the final channel from SA. These psum
 deposits can now be used as input to the next layer.
+
+Data flow for FC layer
+**********************
+Upon finishing the computation of last convolution layer, the output of maxpool
+layer is the valid data that is to be used as input to FC layer. This data is stored
+in TDP RAM (via port B) such that first 8 channels data are stored in 8 TDP RAMs and 
+next 8 channels data are stored in another subsequent 8 TDP RAMs and so on. This is 
+repeated in round-robin fashion till all the layer ouputs gets stored.
+
+After storing all the valid FC data inputs in TDP RAMs, each TDP RAM is read sequentially
+and fed to SA (operating in 1-D mode as discussed in above sections) whose outputs are 
+accumulated at the end of each SA column of 8 engines. This accumulated results are further
+applied to a 256-bit register wherein, it provides 8 bytes in a cycle to the quantizer.
+These results are again stored back in TDP RAMs which are read when next FC layer begins.
+Finally, the last FC layer results are stored in DRAM as 32-byte bursts. 
 
 .. bibliography::
 

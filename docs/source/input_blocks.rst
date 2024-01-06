@@ -1,12 +1,63 @@
 .. _input_blocks:
 
-Inputs (im2col)
-###############
+Input Blocks
+############
+
+Im2col
+******
+
+Systolic arrays arranged in a regular square (or rectangular) grid are matmul
+(or gemm) machines. I.e. they can perform matrix multiplications. Convolution on
+the other hand is a dot-product based operation. Ergo, it is not possible to
+take a 3x3 kernel, for example, and a 3x3 section of a input (as one would in
+convolution), feed it to the systolic array and expect the correct result. 
+
+**There is a need for a transformation that would allow us to carry out a
+convolution operation on a matmul engine. This transformation is im2col**
+
+.. image:: _static/Im2Col_cs231n.png
+   :width: 100%
+   :align: center
+
+The above image shows the im2col operation for a input of 3 channels, size 4x4
+with a 2x2 kernel to the left. The expanded matrix is made of columns of 4
+(2*2), and are the elements from the input matrix where the 2x2 kernel lands and
+slides. Thus, the expanded matrix has 9 columns as the kernel has 9 unique
+sliding locations. The number of rows is decided by the size of the kernel and
+the number of channels. In this case, `2 * 2 * 3`, gives 12 which is the total
+number of rows in the complete expanded matrix for all channels.
+
+Explicit im2col
+===============
+
+There are two glaring problems with im2col:
+
+1. It requires time (increasing the latency of computation)
+2. It requires space (which implies the use of secondary storage, DRAM, for
+   example)
+
+Since, systolic arrays cannot be used directly to carry out convolution, im2col
+is a necessary evil.
+
+The naïve way to carry out im2col is design a block on the FPGA that does it
+explitcy, stores the entire expanded matrix somewhere and feed it back to the
+array. This design can be made slightly more optimal than it sounds by
+pipelining the process. The biggest drawback here is that the entire input has
+been expanded even though the systolic array can only consume some of it at a
+time. 
+
+This leads us to want an algorithm that dynamically expands its inputs.
+It shall only expand as much data as needed. This tackles both the time and
+space problem that explicit algorithm creates. This is the so-called implicit
+im2col algorithm.
+
+Two people in the design team serendipitously invented two algorithms for
+implicitly carrying out im2col transformation, here they are:
 
 .. _bounding_squares:
 
 Bounding Squares Algorithm
-**************************
+==========================
 
 .. sectionauthor:: Yaswanth Tavva (@yswntht)
 
@@ -20,7 +71,7 @@ The bounding squares algorithm is thus:
    the input data will be getting its respective coordinate (i.e. rows
    and column).
 
-2. valid_sqaures_param: Index to coordinate conversion block is followed
+2. valid_squares_param: Index to coordinate conversion block is followed
    by valid squares block, here if the below nine conditions are
    satisfied valid bits will go high and that gives the number of
    squares in which an element would be part of. The size of the kernel
@@ -70,63 +121,10 @@ FIFOs have at least one element; only then input FIFOset at each engine
 will be issued a read. The data is then pushed into the engine for
 convolution operation.
 
-for other queries: chaya, praveen, shreeyash
-
 Coordgen Algorithm
-******************
+==================
 
 .. sectionauthor:: Shreeyash Pandey (@bojle)
-
-.. TODO
-   reorganize
-
-Systolic arrays arranged in a regular square (or rectangular) grid are matmul
-(or gemm) machines. I.e. they can perform matrix multiplications. Convolution on
-the other hand is a dot-product based operation. Ergo, it is not possible to
-take a 3x3 kernel, for example, and a 3x3 section of a input (as one would in
-convolution), feed it to the systolic array and expect the correct result. 
-
-**There is a need for a transformation that would allow us to carry out a
-convolution operation on a matmul engine. This transformation is im2col**
-
-.. image:: _static/Im2Col_cs231n.png
-   :width: 100%
-   :align: center
-
-The above image shows the im2col operation for a input of 3 channels, size 4x4
-with a 2x2 kernel to the left. The expanded matrix is made of columns of 4
-(2*2), and are the elements from the input matrix where the 2x2 kernel lands and
-slides. Thus, the expanded matrix has 9 columns as the kernel has 9 unique
-sliding locations. The number of rows is decided by the size of the kernel and
-the number of channels. In this case, `2 * 2 * 3`, gives 12 which is the total
-number of rows in the complete expanded matrix for all channels.
-
-Explicit im2col
-===============
-
-There are two glaring problems with im2col:
-
-1. It requires time (increasing the latency of computation)
-2. It requires space (which implies the use of secondary storage, DRAM, for
-   example)
-
-Since, systolic arrays cannot be used directly to carry out convolution, im2col
-is a necessary evil.
-
-The naïve way to carry out im2col is design a block on the FPGA that does it
-explitcy, stores the entire expanded matrix somewhere and feed it back to the
-array. This design can be made slightly more optimal than it sounds by
-pipelining the process. The biggest drawback here is that the entire input has
-been expanded even though the systolic array can only consume some of it at a
-time. 
-
-This leads us to want an algorithm that dynamically expands its inputs.
-It shall only expand as much data as needed. This tackles both the time and
-space problem that explicit algorithm creates. This is the so-called implicit
-im2col algorithm.
-
-Implicit im2col
-===============
 
 Consider a convolution of 4x4 input with a 2x2 kernel. We require 4 inputs to be
 generated at a timestep. For the first timestep, the inputs required are values 
@@ -145,10 +143,8 @@ is followed by the arrays made of:
 and so on. The numbers inside the brackets are co-ordinates indexing a matrix and are
 replaced by their values. 
 
-**Definitions**:
-
-.. TODO
-    better representation for these definitions
+Definitions
+-----------
 
 .. code::
 
@@ -163,7 +159,8 @@ replaced by their values.
     
     lsle: last slide last element all elements of the last column
 
-**The Algorithm**:
+The Algorithm
+---------------
 
 .. code::
 
@@ -182,7 +179,8 @@ replaced by their values.
          }
      }
 
-**Explanation**:
+Explanation
+------------
 
 1. Start with two buffers 'previous' and 'current' of co-ordinates (x,y)
 2. iterate over current buffer.
@@ -227,7 +225,15 @@ Weights
 
 Request weights from DRAM in the available bandwidth of DRAM. weight
 FIFOset has 64 FIFOs.On a DRAM read request, the incoming 32 bytes are
-evenly distributed amoung first 32 FIFOs, one byte for one FIFO. second
-read request is distributed among rest 32 FIFOs.
+evenly distributed amoung first 32 FIFOs, one byte for one FIFO. Second
+read request is distributed among rest 32 FIFOs. 
 
-for other queries: shreeyash
+Loading weights happens scarecly in CNN. As there are FIFOs storing weights,
+one can pre-fetch a lot in background. Thus, the weight block ends up not being
+a big contributor to stall penalties.
+
+Bias
+****
+
+Biases are scalar values that are added to the Ofmap of a layer. These are
+runtime constants that must be loaded into the block from the DRAM.

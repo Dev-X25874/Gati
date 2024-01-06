@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'vaaman-cnn'
+project = 'Gati'
 copyright = '2023, Vicharak LLP'
 author = 'Shreeyash Pandey'
 

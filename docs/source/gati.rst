@@ -1,272 +1,16 @@
-.. _end:
-
-Get to know Gati.
-#################
-
-.. sectionauthor:: Yaswanth Tavva (@yswntht)
-
-This is the an incremental document and is subjected to revisions. At
-the point of reading this document, do check with @akshar001 if this
-continues to be the latest interpretation of Gati architecture.
+Gati
+####
 
 .. toctree::
     :hidden:
 
     input_blocks
+    sa
+    quantization
 
 .. contents:: Table of Contents
    :local:
    :depth: 3
-
-
-Common Definitions
-******************
-
-Row Major Ordering
-------------------
-Row-major ordering is a linear memory storage
-approach where elements of a multidimensional array are stored in
-consecutive memory locations row by row. In this arrangement, the first
-row’s elements are stored contiguously, followed by the second row, and
-so on. For example, in 224x224x3 (image with three channels), all rows of
-channel 1 are followed by rows of channels 2 and so on. Consider a three
-channel image as shown in the following figure (From :cite:`im2col_zhou2021`):
-
-.. image:: _static/3channel-image.png
-   :width: 50%
-   :align: center
-
-Row major ordering for this image would look something like this: 
-
-.. image:: _static/chw.png
-   :width: 50%
-   :align: center
-
-Following is the pattern:
-
-.. code::
-
-  (e1,1-c1),(e1,2-c1),…(e1,224-c1),…(e224,224-c1),
-  (e1,1-c2),(e1,2-c2),…(e1,224-c2),…(e224,224-c2),
-  (e1,1-c3),(e1,2-c3),…(e1,224-c3),…(e224,224-c3)
-
-Channel First Layout
---------------------
-Channel-first layout, often referred to as
-“NHWC” (Number of images, Height, Width, Channels), is a data
-arrangement format commonly used in deep learning frameworks,
-particularly for convolution neural networks (CNNs). In this layout, the
-channels (e.g., color channels in an image) are the innermost dimension,
-followed by width and height. For example, 224x224x3 (image with three
-channels), element1 of all channels are next to each other, till last
-element of row of all channels. Likewise for all rows. 
-
-Channel first for the image from the above section is arranged as shown
-in the following figure:
-
-.. image:: _static/hwc.png
-   :width: 50%
-   :align: center
-
-Following is the pattern:
-
-.. code::
-
-  (e1,1-c1), (e1,1-c2), (e1,1-c3), … (e1,224-c1), (e1,224-c2),
-  (e1,224-c3), (e2,1-c1), (e2,1-c2), (e2,1-c3), ………(e224,224-c1),
-  (e224,224-c2), (e224,224-c3).
-
-IFMaps, OFMaps and Kernels
---------------------------
-
-A 2D Convolution is a repeated application of a relatively smaller matrix (a
-kernel) over a larger input feature map (IFMap or Image). 
-
-The kernel is *slid* across the input in a manner shown below:
-
-.. image:: _static/no_padding_no_strides.gif
-   :width: 50%
-   :align: center
-
-The kernel in the above diagram is 3x3 in size and its being slid on an input
-the size of 4x4. The output (or OFMap), thus generated, is 2x2 in size. 
-
-Thus, an IFMap (input filter map) is the matrix on which a Kernel is being
-applied and an OFMap (output filter map) is the result of that operation.
-
-A 1D array is called an array, vector or a list. If its 2D, its called a Matrix
-and its its N-Dimensional, its called a tensor. 
-
-IFMaps, OFMaps and Kernels, all three are tensors. Therefore, convolution is an
-operation on tensors. 
-
-.. _nchw:
-
-NCHW and friends 
-----------------
-
-A 1D array is stored in memory in a linear fashion, how should a 2D array be stored?  
-
-The C language stores a 2D array in row-major order i.e. all rows stored one-after another.
-
-Take VGG16 :cite:`simonyan2015deep` for example. The size of the input (image
-in this case, with three channels) to the first layer is (224,224,3). To
-convolve with a tensor of this size, we use a (3x3x3). Thus,::
-
-    (224x224x3) X (3x3x3) = (OHxOWx1)
-
-Here, OH and OW are given by:::
-
-    OH = (IH - KH + 2*P)/S + 1
-    OW = (OW - KW + 2*P)/S + 1
-
-If we had 64 different 3x3x3 kernels, the output would be (224x224x64).
-
-.. image:: _static/channel-first.svg
-   :width: 70%
-   :align: center
-
-
-Systolic Array
----------------
-A `systolic array <https://en.wikipedia.org/wiki/Systolic_array>`_ is a parallel
-computing architecture that organizes processing units in a regular grid,
-resembling a matrix. Data flows through the array in a systolic fashion, where
-computations are performed in a pipeline manner. This design enhances throughput
-and efficiency, commonly applied in tasks like matrix multiplication and signal
-processing in parallel computing systems. In version1, we consider 9x8 arrays of
-8 units. Each of 9x8 is referred as an **engine**.
-
-Partial Sums
----------------
-A partial sum refers to the accumulated total of a subset of a series or
-sequence. It represents the sum of a specific range or portion of elements
-within a larger set.
-
-Weight Stationary Data Flow
-----------------------------
-Weight stationary data flow is a computing paradigm in neural network
-accelerators where weights are stored in a stationary manner, allowing parallel
-processing of data across multiple computing units. This architecture enhances
-efficiency by minimizing data movement during neural network inference,
-optimizing for tasks like convolution operations in deep learning.
-
-Systolic Dataflow
------------------
-Systolic dataflow and weight-stationary dataflow are related but distinct
-concepts. In systolic dataflow. processing units arranged in a grid perform
-computations in a pipeline manner. Data is “pumped” through the array
-bidirectionally (top-to-down and left-to-right), and each processing unit
-processes a portion of the data as it passes through. In case of weight
-stationary, weights are pre-loaded to the systolic array first and during
-operation, data is only “pumped” left-to-right. In both cases, partial sums are
-moved vertically down and final sum is available at the lower most processing
-unit. **In other words**, in weight stationary, inputs are shared, while in
-systolic dataflow, both inputs and weights are shared. Chapter 5 of
-:cite:`sze2020` contains in-depth explanations of different dataflows.
-
-INT8 quantization
-------------------
-Integer 8 (INT8) quantization is a data compression technique that represents
-numerical values using 8-bit integers. This reduces the precision of the
-original data but significantly decreases storage requirements and computational
-complexity. *Gati currently assumes that activations and weights are INT8
-quantized*. See :ref:`quantization` for more information.
-
-Clipping
---------
-If the output surpasses this limit, the function replaces
-it with the predefined maximum value. we see this operator in MobileNet.
-Thus be sure to revisit in future.
-
-.. seealso::
-
-  `Efficient Processing of Deep Neural Networks - Sze
-  <https://link.springer.com/book/10.1007/978-3-031-01766-7>`_
-
-  `Digital Design: Principles and Practices - Wakerly
-  <https://www.amazon.com/Digital-Design-Principles-Practices-Book/dp/0131863894>`_
-
-
-Neural Networks Prerequisites
-**************************************
-
-“Thoroughly” read (i.e. spend time reading, studying, digging deep into a text)
-book-chapters 1 and 2 from :cite:`sze2020`. So, these are must-read before
-moving to next chapters of this document.
-
-VGG16
------
-
-VGG16 :cite:`simonyan2015deep`, short for Visual Geometry Group 16-layer, is a
-convolution neural network (CNN) architecture designed for image classification.
-Developed by the Visual Geometry Group at the University of Oxford, VGG16 is
-known for its simplicity and effectiveness. It gained prominence as a
-participant in the ImageNet Large Scale Visual Recognition Challenge (ILSVRC) in
-2014.
-
-The architecture comprises of 16 layers, including 13 **convolution layers** and
-3 **fully connected layers**. The convolution layers have small 3x3 filters, and
-the network’s depth stems from stacking multiple convolution layers. 2x2
-Max-pooling layers are utilized for down-sampling and introducing translation
-in-variance. VGG16’s architecture remains consistent in terms of filter size
-(3x3 stride 1) and max-pooling spatial resolution (2x2 stride 2) until the fully
-connected layers.
-
-Here’s a breakdown of VGG16’s architecture:
-
-1. Input Layer:Accepts input images of size 224x224 pixels with three
-   color channels (RGB). Note the only the first layer input is
-   mentioned in terms of RGB. As as we go deeper in the network, we
-   simply refer as channels. For examples layer two’s input is
-   224x224x64. i.e., input has a 64 dimension channel.
-
-2. Convolutional Blocks (Block 1 to Block 5): VGG16 has five convolution
-   blocks. Each block comprises one or more convolution layers, followed
-   by a max-pooling layer.
-
-   The convolution layers use 3x3 filters, and the number of filters
-   increases with the depth of the network. The max-pooling layers have
-   2x2 filters and a stride of 2, reducing spatial dimensions.
-
-3. Fully Connected Layers: After the convolution blocks, VGG16 has three
-   fully connected layers for high-level feature representation. The
-   fully connected layers have 4096 neurons each, leading to a large
-   number of parameters.
-
-4. Activation Function: Rectified Linear Unit (ReLU) activation
-   functions are applied after each convolution and fully connected
-   layer, introducing non-linearity.
-
-5. Softmax Output Layer: The last layer is a softmax output layer with
-   1000 neurons, corresponding to the 1000 classes in the ImageNet
-   dataset.
-
-VGG16’s architecture (our focus) has inspired subsequent CNN designs,
-including deeper variants like VGG19. While VGG16 achieved strong
-performance in image classification, it has limitations such as a large
-number of parameters, which can lead to overfitting, and computational
-demands. Nevertheless, it remains valuable for benchmarking and as a
-pre-trained model for transfer learning in various computer vision
-applications.
-
-Memory Layout Of DRAM
-*********************
-
-.. TODO
-   write more about this
-   describe the images
-
-When finalizing the memory layout factor in all the values that are to
-be stored in the DRAM.
-
-1. configurations
-2. biases
-3. values of batch normalization (not required for VGG16)
-4. input feature maps for N images
-5. weights for convolution layers and fully connected layers
-6. intermediate channel outputs
-7. layer outputs
 
 Here's a Bird's eye view picture of the entire CNN architecture:
 
@@ -274,66 +18,52 @@ Here's a Bird's eye view picture of the entire CNN architecture:
    :width: 70%
    :align: center
 
-Here's the memory layout for Input, Weights, Biases and intermediate channel
-outputs:
+Following sections describe what each block in the image above does.
 
-.. image:: _static/memlayout1.jpg
-   :width: 70%
-   :align: center
+ONNX
+****
 
-.. image:: _static/memlayout2.jpg
-   :width: 70%
-   :align: center
+:term:`ONNX` involves reading the model file on the CPU, transforming (eg, from
+:term:`Row Major Order (NCHW)` to :term:`Channel First Layout (NHWC)`), optimizing (eg, operator fusion), reading images
+from the user and trasmitting it to the FPGA. This process happens exclusively
+on the CPU (:term:`RK3399`).
 
-.. image:: _static/memlayout3.jpg
-   :width: 70%
-   :align: center
+Drmlib/MIPI
+***********
 
-Configuration Block
-*******************
+This is a set of lower level linux drivers that transmit data via :term:`MIPI`
+to the FPGA.
 
-.. sectionauthor:: Shreeyash Pandey (@bojle)
+DRAM Controller
+***************
 
-.. TODO
-   write more about this
+Can be seen as two entities:
 
-.. csv-table:: Configuration For Convolution Block
-  :header: "Conv", "Opcode", "IW", "IH", "OW", "OH", "IC", "KN", "KW", "KH", "Stride", "Padding", "Dram Address", "Total"
+1. DRAM Controller (LOW):
+   This is ML agnostic (i.e. has no idea what channels, kernels, ifmap,
+   iterations etc.) are. This is the part that directly communicates with the
+   AXI interface provided by :term:`Trion120`.
 
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
+2. DRAM Controller (HIGH):
+   This understands ML. Schedules requests to the LOW controller with addresses
+   and corresponding data buffers, manages addresses (increment, decrement
+   etc.), handles pre-fetching and scheduling of requests.
 
+Input Blocks
+************
 
-.. csv-table:: Configuration For Tail Block
-  :header: "TailBlock","Opcode","BNChannels","BNAddress","ReluClip","QuantScale","QuantShift","PoolType","PoolParam", "Width","Height","Stride","Padding","Total"
+The input block includes the blocks that read (in most cases) from the DRAM
+and bring data to the Systolic array. This includes:
 
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
+1. Inputs
+2. Weights
+3. Biases
+4. Partial Sums (Accumulants)
 
-.. csv-table:: Configuration For Fully Connected Block
-  :header: "FC","Opcode","WeightRows","WeightCols","InputRows","DropoutConstant","Address","Total"
+Please see :ref:`input_blocks` for more information.
 
-  "Bits","4","16","16","16","8","32","92"
-
-Configuration block stores required configurations for each layers and
-programs input, output, and tail blocks ahead of time so that they can
-immediately switch to new settings after completion of the current layer
-and start processing next layer. 
-
-Each table above shows a config packet of 128 bits. Understand these
-packets as instructions where the instruction width is 128. None of the
-above configs currently take all 128 bits, this is not a problem, these
-least significant remaining bits can be assumed to be reserved.
-
-Gati Architecture
-*****************
-
-.. sectionauthor:: Shreeyash Pandey (@bojle)
-
-.. TODO:
-   add images here
-
-At this point we believe that you have covered sufficient background on
-CNNs and various assumptions we made throughout. we thus freely use the
-technical keywords without elaborating them in detail.
+Systolic Array
+**************
 
 Gati currently assumes to have 8 units 9x8 weight stationary systolic
 array. Each of these units is called a compute engine. A compute engine
@@ -353,41 +83,20 @@ perform operations like downsampling (e.g. maxpooling); in some cases
 (transform to row-major format). Finally, the data is staged in FIFOs to
 be written back to DRAM.
 
-Input Blocks 
-------------
-
-The input block includes the blocks that read (in most cases) from the DRAM
-and bring data to the Systolic array. This includes:
-
-1. Inputs
-2. Weights
-3. Biases
-4. Partial Sums (Accumulants)
-
-Please see :ref:`input_blocks` for more information.
-
-Systolic Array
---------------
-
-**Systolic Array** here is combination of one or many compute engines.
+Systolic Array here is combination of one or many compute engines.
 current version of SA assumes a weight stationary Processing element for
 convolution layers and output stationary for fully connected layers.
 configuration block instructs to switch weight stationary to output
 stationary. exploring other dataflows (e.g. row stationary) for
 convolution layers is a future work.
 
-For fully connected (FC) layers, only one row of SA is used for computation.
-The outputs at each column are accumulated to previous value. This can be
-visualized as 1-D SA where the input moves horizontally and each column 
-receives a weight. It can be noticed that, in FC layers a weight is only 
-used once. Thus having 1-D (1-row x N-columns) SA is sufficient; as 
-inputs are reused across weights, they are passed horizontally, 
-while weights are not used more than once, they are passed vertically.
-
-for other queries: roshni, shwet, shreeyash.
+Refer to :ref:`sa` for more info.
 
 Output Block
-------------
+************
+
+.. TODO
+   a good diagram here would be very nice
 
 1. opFIFO set1: FIFOs at immediate output of SA.
 2. Adder **trees** between compute engines
@@ -409,7 +118,7 @@ set1 has 64 FIFOs. one FIFO for each column.
 **Adder Tree Set1**: the number of adder tree in set1 is equal to number
 of columns in each compute engine. adder tree is log N complexity, where
 N is number of inputs. stage 1 of each adder tree is capable of
-``ceil (compute engines / 2)`` additions. in our case with 8 compute
+``ceil(compute engines / 2)`` additions. in our case with 8 compute
 engines, each adder tree in stage 1 has 4 addition operations. in total
 set1 has 56 addition operators.
 
@@ -498,266 +207,129 @@ registers it takes 7 cycles to collect 32 bytes of data, 11 cycles to
 collect 64 bytes of data. so only after 7 cycles (11 cycles) a DRAM
 write (burst 2) can be issued.
 
-for other queries: shreeyash
-
-Timeline and burst analysis
----------------------------
-
-Number of buffer registers available at each compute engine decides the
-dram bandwidth. With 16 buffers (128 registers) at each engine we have
-16 cycles. With 32 buffers we have 32 cycles dram available. however,
-these available cycles (16 or 32) has to be smartly distributed between
-blocks that access the dram. Our current version considers a
-**fixed-weighted** distribution on DRAM allotment to each of the above
-blocks that accesses the DRAM. However, in future revisions this could
-be extended to **on-demand-dynamic** allotment of DRAM access to these
-blocks.
-
-1. In the current version, with 16 buffer variant, for every 16 cycles:
-   im2col block accesses 4 cycle burst, an equal number of cycles to
-   dram read by opFIFO set2 - 4 cycle burst, 2 cycle burst write of
-   opFIFO set3 to DRAM. Left 6 cycles can be allocated to weight block
-   or other block that requires DRAM access.
-
-2. In the current version, with 32 buffer variant, for every 32 cycles:
-   im2col block accesses 8 cycle burst, an equal number of cycles to
-   dram read by opFIFO set2 - 8 cycle burst, 4 cycle burst write of
-   opFIFO set3 to DRAM. Left 12 cycles can be allocated to weight block
-   or other block (mipi) that requires DRAM access.
-
-for other queries: shreeyash
-
-Performance
------------
-
-Our latest performance estimates of imagenet on VGG16 achieve approx
-300ms/frame for 9x8 x8 considering 100 MHz. 260ms is spent on first 13
-convolution layers and 30ms of rest 40ms is spent on first fully
-connected layer with 100MB of weights. our baseline jetson nano 2GB
-achieves 130ms operating at 900 MHz.
-
-for other queries: shreeyash
-
 Tail Blocks
------------
+***********
 
 .. TODO:
    These sections
 
+BatchNorm
+=========
+
+:term:`BatchNorm` is a weighted (4 different weights: mean, var, alpha and beta) block just like
+the Bias block except the weights are tensors equal in dimension to the previous
+layer. Batchnorm requires a multiplication and a division of input (x) with
+constants.  This type of operation can usually be fused into previous
+convolution layers thus reducing the need for a hard-implementation. For eg, an
+Ofmap of size (96,7,7) would need a batchnorm of dimension (96, 4).
+
+
 ReLU
 ====
 
-.. _quantization:
+:term:`Relu` is a simple conditional activation function.
+
+Bias
+====
+
+Bias is scalar addition operation of a constant with incoming value. 
 
 Quantization
 ============
 
-.. TODO
-   contents:
-    intro
-    calibrated s (how to pick scales)
-    fast division/multiplication (on fpga)
-    doing better (partial/ QAT)
+:term:`Quantization` is needed because partial sums from the SA are the result
+of MAC of multiple 8-bit elements which results in a number that does not
+fit in 8 bits. This block makes a PS of larger bit-width fit in 8 bits. 
 
-Quantization is a techinique of re-encoding information, albeit in a smaller
-bit-width. It substantially reduces the size and bandwidth requirements of a NN
-model by ~4x. As floating point operations are expensive in general, it is
-desirable to have integers, especially 8bit integers that encode the same
-information as their traditional Float32 counterparts. As it turns out, neural
-networks are resilient to minor turbulence in activations and give similar
-accuracies in smaller bit-widths as they would with greater range of precision.
-The only decidable variable here then is how we quantize our numbers.
+Refer to :ref:`quantization` for more info.
 
-To quantize a Float32 number :code:`x`, we need to *scale* it down to what Int8
-can fit. This is achieved by calculating a **scale** variable. The scale
-can be calculated thusly:
+Pooling Network
+***************
 
-.. math::
-   :label: scale_simple
-   
-   s = \frac{2^b-1}{\beta-\alpha}
+Pool Movement
+=============
 
-Where, :math:`\beta` and :math:`\alpha` are the upper and lower limits of source
-bit-field—in our case, Float32. :math:`b` is the number of bits in the
-destination bit-field, which is 8 for Int8.
+:term:`Pooling` can be understood as two tasks: movement and action.
+The movement has parameters: window size, stride and padding that dictate how
+big the kernel is and how it should be moved across the Ifmap. Action is
+what has to be done to the values in the kernel. Commonly found actions
+are Max and Average which gives the name of two popular pool layers: maxpool and
+average pool.
 
-Equation :eq:`scale_simple` now becomes:
+Following image shows the pooling network on the left:
 
-.. math::
-   :label: scale_final
-   
-   s = \frac{255}{\beta-\alpha}
+.. image:: _static/pooling-network.jpg
+   :width: 80%
+   :align: center
 
-Now, the quantization function can be defined as:
+The action block can be replaced by any action while leaving the movement
+(everything other than action) untouched. 
 
-.. TODO
-   introduce affine quantization and why it has been left out
+Assume a pool of window size (KW, KH), stride (S) and padding (P). Movement works thusly:
 
-.. math::
-   :label: quantize_simple
+1. Input I (a scalar value) arrives out from the output fifo 2 into the action
+   block.
 
-    x_q = quantize(x, s) = clip(round(x * s), -127, 127)
+2. The action block (discussed later) emits another scale value (after some
+   cycles) and stores into F1.
 
-:math:`round` is a round-to-nearest function, and :math:`clip` clamps its inputs
-between -127 and 127. Rounding can affect quantization, this can be
-explored further (See Section 3, :cite:`gupta2015`).
+3. Once an entire row has been processed, F1 should be filled with some elements
+   and F2 should be empty.
 
-Similarly, the de-quantize function becomes:
+4. For second and all subsequent rows (till KH), values from action are sent
+   to F2
 
-.. math::
-   :label: dequantize_simple
+5. Once a value enters F2, one value from both fifos F1 and F2 (in the diagram,
+   the values a1 and b1) are sent to the second action block which runs the
+   action on it.
 
-    x = dequantize(x_q, s) = x_q / s
+6. Value from this action block is written back into F1 if the current row is
+   not the last row, else it is sent out from the pooling network.
 
-What remains now is calculating :math:`s`, which in-turn requires :math:`\beta`
-and :math:`\alpha`. This is explained in the following sections.
+Pool Actions
+============
 
-Heuristics for scale selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Max
+---
 
-From the previous sections, :math:`\alpha` and :math:`\beta` need not be
-approximated from the entire Float32 space, as activations and weights tend not
-to encompass the entire Float32 space, as demostrated by this plot:
+The max operation takes max b/w two values at a time and stores it 
+in a register to use the same value for next comparison. Initially,
+the value of reg would be 0. This operation is carried out KW times,
+then the value of reg is emitted out of the Max (action) block.
 
-.. TODO
-   add plot for weight distribution
+Average
+-------
 
-Therefore, the min and max values need to be ascertained dynamically from the
-set of values that we have at hand.
-
-The *granularity* at which this is done is described. :cite:`Wu et. al.<wu2020>`,  recommends
-the following: 
-
-* Use *symmetric per-channel scale quantization* for weights
-* Use *per-tensor* scale quantization for activations/inputs.
-
-Here, per-channel and per-tensor imply the granularity of quantization. Former
-means that each channel (in a n-channel convolution) has a unique scale value
-and the latter, each tensor (made of many channels) has one unique scale value.
-Intuitively, per-tensor is coarser than per-channel granularity.
-
-Efficiency Concerns
-^^^^^^^^^^^^^^^^^^^
-
-Calculating max and min values dynamically is computationally expensive. They
-need to be computed statically or *offline*. For weigths, this is
-straightforward, as they are computed once during trained and used statically
-during inference. Moreover, we know a-priori, what their values will be. 
-
-For activations/inputs, for which, the min-max values can be anything, there is
-a need for approximation through *calibration*. Calibration is the techinique of
-taking a sample dataset, and calculating scale values for it. These new-found
-scale values are fixed just like the weights of neural networks when they are
-deployed.
-
-To improve the efficiency further, instead of defering scale-compute to compile
-time from runtime, we can take it further and compute scale-values for popular
-datasets in advance and store them at a server or distribute along with other
-fixed-parameter files.
-
-Relative Entropy
-^^^^^^^^^^^^^^^^^
-
-Quantization is re-encoding of information. The ideal scale-values have the
-least loss of informationwhen converting from one size to other. A metric to
-measure loss of information is *Relative Entropy* or `KL Divergence
-<https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence>`_.
-
-KL Divergence measures how one probability distribution is differnce from a
-second, reference distribution. It is describes as such:
-
-.. math::
-   :label: eq:kl_divergence
-
-    D_{KL}(P \Vert Q) = \sum_{i \in N}{P(i) * \log{\frac{P(i)}{Q(i)}}}
-
-Here, :math:`N` is the total number of quantized distributions. :math:`P` is
-Int8 distribution (or expected probabilities) and :math:`Q` is the reference
-probabilities i.e. the Float32 space.
+Average b/w N elements requires division by N (a variable) which is not very
+convenient on the FPGA. Average of a N element array can be cheaply calculated
+by calculating average of 2 values at a time then averaging these averages. This
+results in a tree like structure (as represented in lower right corner of the
+image). Moreover, division by 2 is simply a right shift by 1.
 
 .. TODO
-   better formatting for algorithm
+   add running_averag script to vaaman-vgg-benchmarks
 
-**The Algorithm**:
+Consider a window size of 6. We need to take 4 averages to calculate an average
+of 6 elements. Average block works thusly:
 
-For each Layer (per-tensor):
+1. Avg of i1 and i2 is calculated (a1) and push to a fifo. In subsequent
+   cycles, average of i3 and i4 is calculated (a2) and also pushed to the fifo. 
 
-* Collect histograms of activations.
-* Generate many quantized distributions with different saturation values
-  (min/max)
-* Pick the scale and min/max value which has minimum :math:`D_{KL}`.
+2. If the fifo has 2 values, average b/w the two is taken and pushed in the
+   fifo. 
 
-See :cite:`nvidia_tensorrt2017` for a detailed exposition.
+3. This is done till there is only one value left in the fifo. This is the
+   average.
 
-Floating Point Multiplication/Division on FPGA
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+For a odd-numbered window size, say 5, nothing changes except we only have to
+take one less average. The extra element is pushed as is in the fifo.
 
-The scale value is a floating-point number, ergo, the quantization operation is
-a multiplication of a floating point number with a Int32 (with dequantization being a float division).
+Right shift by 2 of a integer divides it but gets rid of the decimal part (.5)
+which may cause a loss in precision. Empirical evaluation shows that the loss
+occured is 0.5 to 1.0% of the original which should be acceptable.
 
-Floating point operations are costly on the FPGA. There is a need for a
-transformation of the numbers so that a :math:`Float32 x Int32` can be
-approximated to a :math:`Int32 x Int32`. In other words, float operations need
-to be converted to cheaper integer based operations such as integer
-multiplication and bit shifting.  An intuition for the idea is in order.
-
-If we were to multiply this with a significantly big integer, its
-fractional part would become greater. If this is followed by a round operation,
-what we would have is an integer which encapsulates many digits from the
-original float. How many depends on the big number that we multiplied it with.
-
-.. math::
-
-   round(0.7653764212 * 10^6) = round(765376.4212) = 765376
-
-The resulting integer is an encapsulation of our floating point number.
-Multiplying this with the other integer results in an integer via integer
-multiplication. As we had brought in a multiplication (of the big number), we
-need to reverse this by a following division with the same big number. Whatever
-is the result now, is our approximated :math:`Float32 x Int32` operation carried
-out via a :math:`Int32 x Int32`.
-
-Formally, Consider a float :math:`X_e` (:math:`e` stands for :math:`exact`) multiplied
-with an integer :math:`I`. 
-
-.. math::
-
-   P = X_e * I
-
-:math:`P` can also be written as:
-
-.. math::
-
-   P = \frac{X_e * B * I}{B}
-
-Here, :math:`B` is a big integer (preferably a power of 2, for eg, :math:`2^{16}`).
-:math:`X_e * B` is the fixed multiplied :math:`FM`. Intuitively, :math:`FM` can
-be understood as new scaling value in our integer world. 
-
-To cut the chase short, perform :math:`FM = X_e * B` on CPU, send (:math:`FM`,
-:math:`B`) to the FPGA. On the FPGA, perform :math:`FM * I` as a
-:math:`Int32xInt32` operation, followed by a right shift of :math:`2^B` to
-reverse the multiplication.
-
-The value of B impacts the precision of the final result. 
-
-.. seealso::
-
-    `Quantization - Intel Distiller Project <https://intellabs.github.io/distiller/quantization.html>`_
-
-    `Gemmlowp - Google <https://github.com/google/gemmlowp/blob/master/doc/low-precision.md>`_
-
-.. TODO
-   B value and how it co-relates to overflowing.
-
-Dropout
-========
-
-.. TODO:
-   this
-
-Maxpooling
-==========
+Concrete Example of a Pool (Maxpool)
+====================================
 
 You may notice that maxpooling in VGG16 is with 2x2
 kernel and stride 2. Consider a 224x224 matrix. First maxpooling is
@@ -770,47 +342,103 @@ to solve maxpooling operation for incoming elements in row-major and
 at the same time we should preserve pipelineing that enables high
 throughput. To achieve this, maxpooling is done in three steps:
 
-   -  Phase1 comparison. compares two elements at a time and outputs the
-      greater element. e.g. cycle1 compares elements 1 and 2. cycle 2
-      compares elements 3 and 4. *be sure not to compare elements 2 and
-      3 in cycle 2*.
-   -  FIFO1 to stage results from phase1. back to our example matrix,
-      224x224. In row1, we have 112 comparisons. so, the FIFO stores 112
-      values. so head of the FIFO points to greater value in elements 1
-      and 2. second FIFO index points to greater value in elements 3 and
-      4 and likewise till elements 223, 224.
-   -  We then start row2. Here perform phase1 comparison. But now we do
-      not push the result to FIFO instead push to phase2 comparison.
-   -  phase2 comparison. compares two elements at a time and outputs the
-      greater element. operand one is element that is read from FIFO1
-      and operand two is result from phase1 comparision. the final
-      result of maxpooling operation is obtained after phase2. you may
-      visualize that odd rows are first pushed to FIFO while the even
-      rows are directly forwarded to phase2 comparison.
+1. Phase1 comparison. compares two elements at a time and outputs the greater
+   element. e.g. cycle1 compares elements 1 and 2. cycle 2 compares elements 3
+   and 4. *be sure not to compare elements 2 and 3 in cycle 2*.  
 
-   All the above three steps constitute hardware for maxpooling block.
-   **total maxpooling blocks is equal to number of columns in one
-   compute engine**.
+2. FIFO1 to stage results from phase1. back to our example matrix, 224x224. In
+   row1, we have 112 comparisons. so, the FIFO stores 112 values. so head of
+   the FIFO points to greater value in elements 1 and 2. second FIFO index
+   points to greater value in elements 3 and 4 and likewise till elements 223,
+   224.  
+   
+3. We then start row2. Here perform phase1 comparison. But now we do not push
+   the result to FIFO instead push to phase2 comparison.  
+   
+5. Phase2 comparison.  compares two elements at a time and outputs the greater
+   element. operand one is element that is read from FIFO1 and operand two is
+   result from phase1 comparision. the final result of maxpooling operation is
+   obtained after phase2. you may visualize that odd rows are first pushed to
+   FIFO while the even rows are directly forwarded to phase2 comparison.
 
-Batch Normalization
-====================
 
-.. TODO:
-   this
+Memory Layout Of DRAM
+*********************
 
-Bus
----
+.. TODO
 
-This block is work in progress and is lead by Praveen. Details will be
-updated as they are available.
+.. note::
 
-Typically, a bus is a medium of communication between different hardware
-blocks. The block that initiates a request is called *master*, and
-*slave* responds. E.g. a compute engine that processes the data does one
-read request to memory to bring the inputs and one write request to
-writeback the processed data. memory here is the slave.
+   This is block is still under development. Will likely undergo drastic
+   reforms.
 
-for other queries: praveen
+When finalizing the memory layout factor in all the values that are to
+be stored in the DRAM.
+
+1. configurations
+2. biases
+3. values of batch normalization (not required for VGG16)
+4. input feature maps for N images
+5. weights for convolution layers and fully connected layers
+6. intermediate channel outputs
+7. layer outputs
+
+
+Here's the memory layout for Input, Weights, Biases and intermediate channel
+outputs:
+
+.. image:: _static/memlayout1.jpg
+   :width: 70%
+   :align: center
+
+.. image:: _static/memlayout2.jpg
+   :width: 70%
+   :align: center
+
+.. image:: _static/memlayout3.jpg
+   :width: 70%
+   :align: center
+
+Configuration Block
+*******************
+
+.. TODO
+
+.. sectionauthor:: Shreeyash Pandey (@bojle)
+
+.. note::
+
+   This is block is still under development. Will likely undergo drastic
+   reforms.
+
+
+.. csv-table:: Configuration For Convolution Block
+  :header: "Conv", "Opcode", "IW", "IH", "OW", "OH", "IC", "KN", "KW", "KH", "Stride", "Padding", "Dram Address", "Total"
+
+  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
+
+
+.. csv-table:: Configuration For Tail Block
+  :header: "TailBlock","Opcode","BNChannels","BNAddress","ReluClip","QuantScale","QuantShift","PoolType","PoolParam", "Width","Height","Stride","Padding","Total"
+
+  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
+
+.. csv-table:: Configuration For Fully Connected Block
+  :header: "FC","Opcode","WeightRows","WeightCols","InputRows","DropoutConstant","Address","Total"
+
+  "Bits","4","16","16","16","8","32","92"
+
+Configuration block stores required configurations for each layers and
+programs input, output, and tail blocks ahead of time so that they can
+immediately switch to new settings after completion of the current layer
+and start processing next layer. 
+
+Each table above shows a config packet of 128 bits. Understand these
+packets as instructions where the instruction width is 128. None of the
+above configs currently take all 128 bits, this is not a problem, these
+least significant remaining bits can be assumed to be reserved.
+
+.. sectionauthor:: Shreeyash Pandey (@bojle)
 
 End to end flow for a given layer 
 *********************************
@@ -819,8 +447,8 @@ End to end flow for a given layer
 
   This flow abstracts microarchitecture details
 
-T1 - Default State
-------------------
+Default State
+==================
 
 What is the default state?
 
@@ -829,8 +457,8 @@ been initialized. i.e., DRAM contains the input images, weights, and
 configurations required for input/ output, and tail blocks. The weight
 and im2col FIFOs are both empty.
 
-T2 Start im2col Block
----------------------
+Start im2col Block
+=====================
 
 Our im2col profile analysis revealed that it has a ~450 cycle cold start
 time. So, this takes precedence over the weight block. However, this is
@@ -854,8 +482,8 @@ data right away.
   2. See :ref:`bounding_squares` im2col architecture for more understanding on
      this 450 cycle latency.
 
-T3 Start Weight Block
----------------------
+Start Weight Block
+=====================
 
 We handle requests from the weight block after the memory controller
 responds to an im2col request. A burst read request can be sent at first
@@ -868,8 +496,8 @@ requests to handle by memory controller. At this point, weight block can
 accept any external commands to push data to SA once 288 elements are
 available.
 
-T4 Message Passing Between Im2col And Weight Blocks
----------------------------------------------------
+Message Passing Between Im2col And Weight Blocks
+===================================================
 
 Before delving into the explanation of message passing, it is important
 to keep in mind that while all other blocks can initiate data requests,
@@ -909,8 +537,8 @@ weight block and incoming configurations from configuration block. Other
 approach is to have a centralized control that decodes the configuration
 and manages weight and im2col blocks.
 
-T5 Accumulating the output partial sums.
-----------------------------------------
+Accumulating the output partial sums.
+========================================
 
 For each SA flash, we iterate a channel once in our current data flow.
 The output FIFO has the partial sums and convolution outputs, which are
@@ -933,21 +561,3 @@ already been completed by the time the final partial sums from SA
 arrive. Final accumulation happens shortly after the DRAM controller
 receives the output psum of the final channel from SA. These psum
 deposits can now be used as input to the next layer.
-
-Data flow for FC layer
-**********************
-Upon finishing the computation of last convolution layer, the output of maxpool
-layer is the valid data that is to be used as input to FC layer. This data is stored
-in TDP RAM (via port B) such that first 8 channels data are stored in 8 TDP RAMs and 
-next 8 channels data are stored in another subsequent 8 TDP RAMs and so on. This is 
-repeated in round-robin fashion till all the layer ouputs gets stored.
-
-After storing all the valid FC data inputs in TDP RAMs, each TDP RAM is read sequentially
-and fed to SA (operating in 1-D mode as discussed in above sections) whose outputs are 
-accumulated at the end of each SA column of 8 engines. This accumulated results are further
-applied to a 256-bit register wherein, it provides 8 bytes in a cycle to the quantizer.
-These results are again stored back in TDP RAMs which are read when next FC layer begins.
-Finally, the last FC layer results are stored in DRAM as 32-byte bursts. 
-
-.. bibliography::
-

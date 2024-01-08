@@ -4,29 +4,30 @@
    contain the root `toctree` directive.
 
 
-Welcome to vaaman-cnn's documentation!
+Welcome to Gati's documentation!
 ======================================
 
-Vaaman-CNN brings Convolutional Neural Network acceleration to Vaaman. This site serves as an internal document of the underlying architecture.
+Gati brings Convolutional Neural Network acceleration to Vaaman. This site
+serves as an internal document of the underlying architecture.
 
 .. TODO
-   CONTENT ORDER
-   introduce terms
-   introduce layouts
-   conv example
-   4x1 systolic array
-   conv example -> systolic array
-   bias and relu
+
+   Overview (prerequisites, doc organization)
+
+   TOC
+      Goals
+      Terms
+      Architecture
 
 .. toctree::
    :glob:
-   :maxdepth: 1
+   :maxdepth: 3
 
+   Overview <overview>
    Introduction <introduction>
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   DNN Networks <networks>
+   Gati - The Architecture <gati>
+   Analysis <analysis>
+   Bus <bus>
+   General <general>
+   References <references>

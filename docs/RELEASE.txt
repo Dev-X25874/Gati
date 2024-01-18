@@ -1,0 +1,7 @@
+0.1
+  - cleaned and re-ordered pages
+  - definition glossary
+  - pooling network
+
+0.2
+  - operator support list

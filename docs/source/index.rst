@@ -26,6 +26,7 @@ serves as an internal document of the underlying architecture.
    Overview <overview>
    Introduction <introduction>
    DNN Networks <networks>
+   Operator Support <operator_support>
    Gati - The Architecture <gati>
    Analysis <analysis>
    Bus <bus>

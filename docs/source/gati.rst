@@ -404,29 +404,12 @@ Configuration Block
 
 .. TODO
 
-.. sectionauthor:: Shreeyash Pandey (@bojle)
-
 .. note::
 
    This is block is still under development. Will likely undergo drastic
    reforms.
 
-
-.. csv-table:: Configuration For Convolution Block
-  :header: "Conv", "Opcode", "IW", "IH", "OW", "OH", "IC", "KN", "KW", "KH", "Stride", "Padding", "Dram Address", "Total"
-
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
-
-
-.. csv-table:: Configuration For Tail Block
-  :header: "TailBlock","Opcode","BNChannels","BNAddress","ReluClip","QuantScale","QuantShift","PoolType","PoolParam", "Width","Height","Stride","Padding","Total"
-
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
-
-.. csv-table:: Configuration For Fully Connected Block
-  :header: "FC","Opcode","WeightRows","WeightCols","InputRows","DropoutConstant","Address","Total"
-
-  "Bits","4","16","16","16","8","32","92"
+.. include:: instructions/inst.rst
 
 Configuration block stores required configurations for each layers and
 programs input, output, and tail blocks ahead of time so that they can

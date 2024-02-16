@@ -1,0 +1,7 @@
+FC:'h04
+OPCODE:4
+WeightRows:16
+WeightCols:16
+InputRows:16
+DropoutConstant:8
+Address:32

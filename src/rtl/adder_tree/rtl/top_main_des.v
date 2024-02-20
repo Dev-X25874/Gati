@@ -7,23 +7,28 @@ module top_main_des_gen #(parameter DATA_OUT_WIDTH = 20, parameter DESIGN_NO = 8
     input [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] second_sa6_out,
     input [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] first_sa7_out,
     input [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] second_sa8_out,
-    input [DESIGN_NO-1 : 0]valid,
     input clk,
     input rst,
-    output[DESIGN_NO-1 : 0] empty,
-    output[DESIGN_NO-1 : 0] re_en,
-    output [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] dout
+    input [DESIGN_NO-1 : 0] valid_in_ad1,
+    input [DESIGN_NO-1 : 0] valid_in_ad2,
+    input [DESIGN_NO-1 : 0] valid_in_ad3,
+    input [DESIGN_NO-1 : 0] valid_in_ad4,
+    output [DESIGN_NO-1 : 0] valid_out,
+    output [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] result_final
 );
 
 genvar i;
 generate
   for(i = 0; i < DESIGN_NO; i = i+1) begin
-    top_main_des #(.DATA_OUT_WIDTH(DATA_OUT_WIDTH)) top_main_des(
+    top_main_des #(.DATA_OUT_WIDTH(DATA_OUT_WIDTH), .DESIGN_NO(DESIGN_NO)) top_main_des(
             .clk(clk),
             .rst(rst),
-            .valid(valid[i]),
-            .re_en(re_en[i]),
-            .empty(empty[i]),
+            .valid_in_ad1(valid_in_ad1[i]),
+            .valid_in_ad2(valid_in_ad2[i]),
+            .valid_in_ad3(valid_in_ad3[i]),
+            .valid_in_ad4(valid_in_ad4[i]),
+            .valid_out(valid_out[i]),
+            .result_final(result_final[((DESIGN_NO-i)*DATA_OUT_WIDTH)-1 -: DATA_OUT_WIDTH]),
             .first_sa1_out(first_sa1_out[((DESIGN_NO-i)*DATA_OUT_WIDTH)-1 -: DATA_OUT_WIDTH]),
             .second_sa2_out(second_sa2_out[((DESIGN_NO-i)*DATA_OUT_WIDTH)-1 -: DATA_OUT_WIDTH]),
             .first_sa3_out(first_sa3_out[((DESIGN_NO-i)*DATA_OUT_WIDTH)-1 -: DATA_OUT_WIDTH]),
@@ -47,18 +52,16 @@ module top_main_des #(parameter DATA_OUT_WIDTH = 20, parameter DESIGN_NO = 8)(
     input [DATA_OUT_WIDTH-1 :0] second_sa6_out,
     input [DATA_OUT_WIDTH-1 :0] first_sa7_out,
     input [DATA_OUT_WIDTH-1 :0] second_sa8_out,
-    input valid,
     input clk,
     input rst,
-    output empty,
-    output re_en,
-    output [DATA_OUT_WIDTH-1 :0] dout
+    input valid_in_ad1,
+    input valid_in_ad2,
+    input valid_in_ad3,
+    input valid_in_ad4,
+    output valid_out,
+    output [DATA_OUT_WIDTH-1 :0] result_final
   );
 
-wire va1;
-wire va2;
-wire va3;
-wire va4;
 wire v_fi;
 wire [DATA_OUT_WIDTH-1 :0] sa1_sa2;
 wire [DATA_OUT_WIDTH-1 :0] sa3_sa4;
@@ -78,7 +81,7 @@ adder ad1(
     .first_k(first_sa1_out[17:0]),
     .second_k(second_sa2_out[17:0]),
     .result(sa1_sa2),
-    .valid_in(va1)
+    .valid_in(valid_in_ad1)
 );
 
 adder ad2(
@@ -87,7 +90,7 @@ adder ad2(
     .first_k(first_sa3_out[17:0]),
     .second_k(second_sa4_out[17:0]),
     .result(sa3_sa4),
-    .valid_in(va2),
+    .valid_in(valid_in_ad2),
     .valid(sub_va1)
 );
 
@@ -97,7 +100,7 @@ adder ad3(
     .first_k(first_sa5_out[17:0]),
     .second_k(second_sa6_out[17:0]),
     .result(sa5_sa6),
-    .valid_in(va3)
+    .valid_in(valid_in_ad3)
 );
 
 adder ad4(
@@ -106,7 +109,7 @@ adder ad4(
     .first_k(first_sa7_out[17:0]),
     .second_k(second_sa8_out[17:0]),
     .result(sa7_sa8),
-    .valid_in(va4),
+    .valid_in(valid_in_ad4),
     .valid(sub_va2)
 );
 
@@ -134,22 +137,9 @@ adder ad7(
     .rst(rst),
     .first_k(sub_add1),
     .second_k(sub_add2),
-    .valid(valid_tx),
+    .valid(valid_out),
     .result(result_final),
     .valid_in(v_fi)
-);
-
-fifo_valid #(.DATA_WIDTH(20), .ADDR_WIDTH(10)) fifo(
-    .clk(clk),
-    .rst_n(rst),
-    .we(valid_tx),
-    .re(re_en),
-    .data_in(result_final),
-    .occupants(),
-    .full(),
-    .empty(empty),
-    .data_out(dout),
-    .data_valid()
 );
 
 endmodule

@@ -72,23 +72,23 @@ wire [DATA_OUT_WIDTH-1 :0] sub_add2;
 wire sub_va1;
 wire sub_va2;
 wire valid_tx;
-wire [DATA_OUT_WIDTH-1 :0] result_final;
 
 
 adder ad1(
     .clk(clk),
     .rst(rst),
-    .first_k(first_sa1_out[17:0]),
-    .second_k(second_sa2_out[17:0]),
+    .first_k(first_sa1_out),
+    .second_k(second_sa2_out),
     .result(sa1_sa2),
-    .valid_in(valid_in_ad1)
+    .valid_in(valid_in_ad1),
+    .valid()
 );
 
 adder ad2(
     .clk(clk),
     .rst(rst),
-    .first_k(first_sa3_out[17:0]),
-    .second_k(second_sa4_out[17:0]),
+    .first_k(first_sa3_out),
+    .second_k(second_sa4_out),
     .result(sa3_sa4),
     .valid_in(valid_in_ad2),
     .valid(sub_va1)
@@ -97,17 +97,18 @@ adder ad2(
 adder ad3(
     .clk(clk),
     .rst(rst),
-    .first_k(first_sa5_out[17:0]),
-    .second_k(second_sa6_out[17:0]),
+    .first_k(first_sa5_out),
+    .second_k(second_sa6_out),
     .result(sa5_sa6),
-    .valid_in(valid_in_ad3)
+    .valid_in(valid_in_ad3),
+    .valid()
 );
 
 adder ad4(
     .clk(clk),
     .rst(rst),
-    .first_k(first_sa7_out[17:0]),
-    .second_k(second_sa8_out[17:0]),
+    .first_k(first_sa7_out),
+    .second_k(second_sa8_out),
     .result(sa7_sa8),
     .valid_in(valid_in_ad4),
     .valid(sub_va2)
@@ -119,7 +120,8 @@ adder ad5(
     .first_k(sa1_sa2),
     .second_k(sa3_sa4),
     .result(sub_add1),
-    .valid_in(sub_va1)
+    .valid_in(sub_va1),
+    .valid()
 );
 
 adder ad6(

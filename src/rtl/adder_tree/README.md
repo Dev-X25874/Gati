@@ -29,15 +29,19 @@ The testing design includes several modules to verify the functionality of the a
 
 2. **Input Data Transmission**: The Python script transmits input data, byte by byte, which are received by the Receiver module.
 
-3. **Controller_gen Activation**: Upon receiving input data, the Receiver module outputs 8-bit segments sequentially to the Controller_gen module. The Controller_gen module controls the write and read enable signals for an array of FIFOs(writes into the FIFOs sequentially while read from them when they have three or more elements each).
+3. **Controller_gen Activation**: Upon receiving input data, the Receiver module outputs 8-bit segments sequentially to the Controller_gen module. The Controller_gen module controls the write and read enable signals for an array of FIFOs(writes into the FIFOs sequentially while reading from them when they have three or more elements each).
 
 4. **FIFO Array Operations**: The FIFO array, consisting of 8 FIFOs, receives data segments from the Controller_gen module. The data segments are stored in the FIFOs in sequential order, with each FIFO storing one segment.
+![image](https://github.com/vicharak-in/Gati/assets/114066925/0b5b0cb5-e256-4795-ad4f-b06118e78836)
 
-5. **Main Design Generation**: The Main Design (Generate Block) creates 8 instances of the main design, each containing a controller, FIFO array, adder blocks, and a final FIFO. These instances operate concurrently to process data segments from the FIFO array. The controller concatenate 3 bytes together to make 24 bits and stores it into FIFOs sequentially and the data is read from them once all the fifos have 24 bit element, each. After that the adder blocks operates as stated above, producing a final output(max of 20 bits) which further get stored into a FIFO.
+5. **Main Design Generation**: The Main Design (Generate Block) creates 8 instances of the main design, each containing a controller, FIFO array, adder blocks, and a final FIFO. These instances operate concurrently to process data segments from the FIFO array. The controller concatenates 3 bytes together to make 24 bits and stores it into FIFOs sequentially and the data is read from them once all the fifos have 24-bit elements, each. After that the adder blocks operate as stated above, producing a final output(max of 20 bits) which further gets stored into a FIFO.
+![image](https://github.com/vicharak-in/Gati/assets/114066925/bb7663dc-0c1a-4999-9b9c-242654469e99)
 
-8. **Data Transmission for Verification**: The Controller_after_main_design module manages the transmission of data from the final array of FIFOs of generate block of main design to a singular FIFO to the UART transmitter. It ensures that all final results of 8 instances are transmitted for verification.
+6. **Data Transmission for Verification**: The Controller_after_main_design module manages the transmission of data from the final array of FIFOs of generate block of the main design to a singular FIFO to the UART transmitter. It ensures that all final results of 8 instances are transmitted for verification.
 
-9. **UART Transmission**: The UART transmitter sends the transmitted data for verification via another controller. This controller reads from the final singular FIFO at every done bit of the transmitter, breaks the 20 bits of output into 3 packets of 1 byte, each. The data can be monitored and analyzed to ensure that the adder tree block operates correctly and produces the expected results.
+7. **UART Transmission**: The UART transmitter sends the transmitted data for verification via another controller. This controller reads from the final singular FIFO at every done bit of the transmitter, breaks the 20 bits of output into 3 packets of 1 byte, each. The data can be monitored and analyzed to ensure that the adder tree block operates correctly and produces the expected results.
+![image](https://github.com/vicharak-in/Gati/assets/114066925/8912ac87-cdde-42d3-8704-78f24c900898)
+![image](https://github.com/vicharak-in/Gati/assets/114066925/ea77e9ad-f15b-4585-a650-0589ff829ef0)
 
 ## Conclusion
 

@@ -1,3 +1,4 @@
+
 `timescale 1ns / 1ps
 
 /* relu - activation function
@@ -52,4 +53,38 @@ module relu #(
         o_valid_r <= 0;
         end
     end
+endmodule
+
+module top_relu_gen#(
+    parameter                        N = 8,
+    parameter                        DATA_WIDTH = 32,
+    parameter                        CLIP_WIDTH = 8
+)(
+
+    input                               top_clk,
+    input  [N*DATA_WIDTH-1:0]           top_i_data,
+    input  [N-1:0]                      top_i_valid,
+    output [N*DATA_WIDTH-1:0]           top_o_data,
+    output [N-1:0]                      top_o_valid,
+    input  [N*CLIP_WIDTH-1:0]           top_i_clip
+    
+
+);
+generate 
+    genvar i;
+    for (i = 0; i < N ; i = i + 1) begin: RELU_INST
+        relu #(
+        .DATA_WIDTH(DATA_WIDTH),
+        .CLIP_WIDTH      (CLIP_WIDTH)	
+)
+        top_relu_inst (
+        .clk     (top_clk),
+        .i_data  (top_i_data[i*DATA_WIDTH+:DATA_WIDTH]),
+        .i_valid (top_i_valid[i]),
+        .o_data  (top_o_data[i*DATA_WIDTH+:DATA_WIDTH]),
+        .o_valid (top_o_valid[i]),
+        .i_clip  (top_i_clip[i*CLIP_WIDTH+:CLIP_WIDTH])
+);
+    end
+endgenerate
 endmodule

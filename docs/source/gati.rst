@@ -7,6 +7,7 @@ Gati
     input_blocks
     sa
     quantization
+    dram
 
 .. contents:: Table of Contents
    :local:
@@ -362,71 +363,40 @@ throughput. To achieve this, maxpooling is done in three steps:
    FIFO while the even rows are directly forwarded to phase2 comparison.
 
 
-Memory Layout Of DRAM
-*********************
+DRAM
+****
 
 .. TODO
+   add an image depicting the complete layout of memory
 
-.. note::
+In the current setting Vaaman's FPGA (:term:`Trion120`) has a discrete DRAM
+attached to it. This is not shared with the CPU (:term:`RK3399`). DRAM is used
+to store different types of data in different layouts. These include:
 
-   This is block is still under development. Will likely undergo drastic
-   reforms.
+1. Inputs (images)
+2. Outputs (what becomes the inputs to next layers)
+3. Weights
+4. Accumulants (partial sums b/w iterations that are not yet outputs)
 
-When finalizing the memory layout factor in all the values that are to
-be stored in the DRAM.
+The architecture substantially affects the layout of the DRAM. So, one layout
+would not work for every model. Weights are read-only i.e. once written in the
+DRAM at the beginning of the computation, they are only read by the FPGA, never
+written to. Therefore weight data can be transposed in expected order by the
+CPU, and sent to the FPGA. Inputs/Outputs are read/write, therefore
+transpositions on them happens once, at the start, on CPU and later by the FPGA.
 
-1. configurations
-2. biases
-3. values of batch normalization (not required for VGG16)
-4. input feature maps for N images
-5. weights for convolution layers and fully connected layers
-6. intermediate channel outputs
-7. layer outputs
-
-
-Here's the memory layout for Input, Weights, Biases and intermediate channel
-outputs:
-
-.. image:: _static/memlayout1.jpg
-   :width: 70%
-   :align: center
-
-.. image:: _static/memlayout2.jpg
-   :width: 70%
-   :align: center
-
-.. image:: _static/memlayout3.jpg
-   :width: 70%
-   :align: center
+For concrete details on the layout and access pattern, see :ref:`ddr_layout_and_access`.
 
 Configuration Block
 *******************
 
 .. TODO
 
-.. sectionauthor:: Shreeyash Pandey (@bojle)
-
 .. note::
 
-   This is block is still under development. Will likely undergo drastic
-   reforms.
+   This is block is still under development.
 
-
-.. csv-table:: Configuration For Convolution Block
-  :header: "Conv", "Opcode", "IW", "IH", "OW", "OH", "IC", "KN", "KW", "KH", "Stride", "Padding", "Dram Address", "Total"
-
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
-
-
-.. csv-table:: Configuration For Tail Block
-  :header: "TailBlock","Opcode","BNChannels","BNAddress","ReluClip","QuantScale","QuantShift","PoolType","PoolParam", "Width","Height","Stride","Padding","Total"
-
-  "Bits","4","10","10","10","10","10","10","4","4","3","3","32","110"
-
-.. csv-table:: Configuration For Fully Connected Block
-  :header: "FC","Opcode","WeightRows","WeightCols","InputRows","DropoutConstant","Address","Total"
-
-  "Bits","4","16","16","16","8","32","92"
+.. include:: instructions/inst.rst
 
 Configuration block stores required configurations for each layers and
 programs input, output, and tail blocks ahead of time so that they can
@@ -439,6 +409,8 @@ above configs currently take all 128 bits, this is not a problem, these
 least significant remaining bits can be assumed to be reserved.
 
 .. sectionauthor:: Shreeyash Pandey (@bojle)
+
+.. _end_to_end_flow:
 
 End to end flow for a given layer 
 *********************************

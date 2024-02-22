@@ -1,0 +1,9 @@
+0.1
+  - cleaned and re-ordered pages
+  - definition glossary
+  - pooling network
+
+0.2
+  - operator support list
+  - DDR layout and access pattern
+  - updated config (instructions)

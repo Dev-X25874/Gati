@@ -1,0 +1,13 @@
+TailBlock:'h01
+Opcode:4
+BNChannels:10
+BNAddress:32
+BIASAddr:32
+ActType:4
+QuantScale:16
+QuantShift:5
+PoolType:3
+PoolWidth:4
+PoolHeight:4
+PoolStride:4
+PoolPadding:4

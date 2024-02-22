@@ -30,12 +30,13 @@
 	`define Opcode 3:0
 	`define BNChannels 13:4
 	`define BNAddress 45:14
-	`define ActType 49:46
-	`define QuantScale 65:50
-	`define QuantShift 70:66
-	`define PoolType 73:71
-	`define PoolWidth 77:74
-	`define PoolHeight 81:78
-	`define PoolStride 85:82
-	`define PoolPadding 89:86
+	`define BIASAddr 77:46
+	`define ActType 81:78
+	`define QuantScale 97:82
+	`define QuantShift 102:98
+	`define PoolType 105:103
+	`define PoolWidth 109:106
+	`define PoolHeight 113:110
+	`define PoolStride 117:114
+	`define PoolPadding 121:118
 

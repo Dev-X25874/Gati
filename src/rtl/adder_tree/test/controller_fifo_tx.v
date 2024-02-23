@@ -1,4 +1,4 @@
-module controller_fifo_tx #(parameter DATA_WIDTH = 9,
+module controller_fifo_tx #(parameter DATA_WIDTH = 20,
                         parameter UART_WIDTH = 8)(
     input                           clk,
     input [DATA_WIDTH-1:0]          i_fifo_data,

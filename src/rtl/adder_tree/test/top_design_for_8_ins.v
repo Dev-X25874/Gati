@@ -1,6 +1,6 @@
-module top_design_for_8_ins #(parameter FIFO_NO = 8, parameter ADDR_WIDTH = 8, 
+module top_design_for_8_ins #(parameter FIFO_NO = 8, parameter ADDR_WIDTH = 9, 
                               parameter DATA_WIDTH = 8, parameter DESIGN_NO = 8,
-                              parameter DATA_OUT_width = 20) (
+                              parameter DATA_OUT_WIDTH = 20) (
     input din,
     input clk,
     input rst,
@@ -10,7 +10,7 @@ module top_design_for_8_ins #(parameter FIFO_NO = 8, parameter ADDR_WIDTH = 8,
 wire [DATA_WIDTH-1:0] fifo_in;
 wire con_valid;
 wire [FIFO_NO-1:0] empty;
-wire [((ADDR_WIDTH+1)*N_FIFO)-1:0] occupants;
+wire [((ADDR_WIDTH*FIFO_NO)-1):0] occupants;
 wire we_fsm;
 wire [FIFO_NO-1 : 0] re_en;
 wire [FIFO_NO-1 : 0] wr_en;
@@ -20,6 +20,7 @@ wire [DESIGN_NO-1:0] read_enable;
 wire [DESIGN_NO-1:0] empty_flag;
 wire write_enable;
 wire [(DESIGN_NO * DATA_OUT_WIDTH)-1:0] data_out;
+wire [DATA_OUT_WIDTH-1:0] data_out_final_fifo;
 wire re_tx;
 wire [DATA_OUT_WIDTH-1:0] data_tx_con;
 wire empty_con_tx;
@@ -36,18 +37,18 @@ rx rx(
 
 controller_gen controller_gen(
     .i_clk(clk),
-    .i-rx_valid(con_valid),
+    .i_rx_valid(con_valid),
     .i_fifo_empty(empty),
     .i_fifo_occupants(occupants),
-    .o_fifo_wren(we_fsm),
+    .o_fifo_wren(wr_en),
     .o_fifo_rden(re_en)
 );
 
-fsm fsm(
-    .i_clk(clk),
-    .i_enable(we_fsm),
-    .o_fifo_wren(wr_en)
-);
+// fsm fsm(
+//     .i_clk(clk),
+//     .i_enable(we_fsm),
+//     .o_fifo_wren(wr_en)
+// );
 
 top_fifo_gen fifo_gen(
     .clk(clk),
@@ -66,7 +67,7 @@ top_for_8_ins_gen main_design_gen(
     .clk(clk),
     .rst(rst),
     .valid(datavalid),
-    .ren_en(read_enable),
+    .re_en(read_enable),
     .din(fifo_data_out),
     .dout(data_out),
     .empty(empty_flag)
@@ -74,17 +75,18 @@ top_for_8_ins_gen main_design_gen(
 );
 
 controller_after_main_design_gen con_after_main_des(
-    .clk(clk),
-    .rst(rst),
-    .empty(empty_flag),
-    .re_en(read_enable),
-    .wr_en(write_enable)
+    .i_clk(clk),
+    .i_data(data_out),
+    .i_fifo_empty(empty_flag),
+    .o_data(data_out_final_fifo),
+    .wr_en_final_fifo(write_enable),
+    .o_read_enable(read_enable)
 );
 
-fifo_valid fifo_tx(
+fifo_valid #(.DATA_WIDTH(20), .ADDR_WIDTH(10)) fifo_tx(
     .clk(clk),
     .rst_n(rst),
-    .data_in(data_out),
+    .data_in(data_out_final_fifo),
     .we(write_enable),
     .re(re_tx),
     .data_out(data_tx_con),
@@ -94,8 +96,8 @@ fifo_valid fifo_tx(
     .data_valid()
 );
 
-controller_fifo_tx fifo_tx_con(
-    .clk(),
+controller_fifo_tx #(.DATA_WIDTH(20)) fifo_tx_con(
+    .clk(clk),
     .i_fifo_data(data_tx_con),
     .i_empty_flag(empty_con_tx),
     .o_data(data_tx),

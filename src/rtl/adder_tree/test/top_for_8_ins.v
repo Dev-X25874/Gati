@@ -2,7 +2,7 @@ module top_for_8_ins_gen #(parameter DATA_IN_WIDTH = 8, parameter DATA_OUT_WIDTH
     input clk,
     input rst,
     input [(DESIGN_NO-1) : 0] valid,
-    input [DESIGN_NO-1:0] re_en
+    input [DESIGN_NO-1:0] re_en,
     input [(DESIGN_NO * DATA_IN_WIDTH)-1:0] din,
     output [(DESIGN_NO * DATA_OUT_WIDTH)-1:0] dout,
     output [(DESIGN_NO-1) :0] empty
@@ -30,7 +30,7 @@ module top_for_8_ins #(parameter DATA_IN_WIDTH = 8, parameter DATA_OUT_WIDTH = 2
     input [DATA_IN_WIDTH-1:0] din,
     input valid,
     input re_en,
-    output [DATA_OUT_WIDTH-1:0] dout
+    output [DATA_OUT_WIDTH-1:0] dout,
     output empty
 );
 

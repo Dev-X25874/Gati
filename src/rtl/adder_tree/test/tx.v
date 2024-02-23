@@ -1,5 +1,5 @@
 module tx 
-  #(parameter CLKS_PER_BIT = 12)
+  #(parameter CLKS_PER_BIT = 50)
   (
    input       i_Rst_L,
    input       i_Clock,

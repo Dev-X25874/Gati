@@ -4,7 +4,7 @@ This document presents the design of configuration block that reads the instruct
 various blocks in the architecture.
 
 .. note:: This is an incremental document and subjected to change with the model. In this entire document, the
-   term 'block' refers to the computaional unit that recieves the instruction and respond when it's done.
+   term 'block' refers to the computational unit that recieves the instruction and respond when it's done.
 
 The below figure shows the architecture for configuration block wherein, it comprises, an instruction Queue of 
 data width 256-bit wherein the instructions read from DDR gets stored in and applied to the various blocks when required.
@@ -41,9 +41,9 @@ Here, the top row shows the instruction field and bottom row shows the status. "
 
   "1","0","1","0"
 
-Here, '1' denotes that the acknowledgment is recieved to indicate the corresponding instruction execution is finished. On the other hand, '0'
-indicates either acknowledgment not recieved or instruction not sent. To know the exact status, this can be chekced inline with the 
-"Previous Sent Regsiter".
+Here, '1' denotes that the acknowledgment is pending which indicates that the block not yet finishes the computation. On the other hand, '0'
+indicates either acknowledgment is recieved (corresponding instruction execution is finished) or instruction not sent. To know the exact status, 
+this can be chekced inline with the "Previous Sent Regsiter".
 
 Note that the size of these registers depends upon the number of unique instructions used in the model (excluding `START` instruction).
 

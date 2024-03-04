@@ -3,7 +3,7 @@ module data_valid_append#(
 )(
     input [W_DATA-1:0] i_data,
     input i_data_valid,
-    output [8:0] o_data
+    output [W_DATA:0] o_data
 );
 
 assign o_data = {i_data_valid, i_data};

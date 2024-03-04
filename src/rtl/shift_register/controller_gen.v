@@ -18,7 +18,7 @@ generate
             .valid_intermediate_result(valid_intermediate_result),
             .intermediate_result(intermediate_result[(((no_of_designs-i)*32)-1) -: 32]),
             .quantized_result(quantized_result[(((no_of_designs-i)*8)-1) -: 8]),
-            .valid_out(valid_out[i]),
+            .valid_out(valid_out),
             .sel(sel[i])
         );
     end

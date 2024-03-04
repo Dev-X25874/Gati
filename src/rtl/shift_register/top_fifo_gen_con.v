@@ -1,4 +1,4 @@
-module top_fifo_gen #(parameter FIFO_NO = 4, 
+module top_fifo_gen_con #(parameter FIFO_NO = 4, 
                     parameter DATA_WIDTH = 32, 
                     parameter ADDR_WIDTH = 9)
                     (
@@ -7,7 +7,7 @@ module top_fifo_gen #(parameter FIFO_NO = 4,
     input rst_n,
     input [FIFO_NO-1:0] we,
     input [FIFO_NO-1:0] re,
-    input [(FIFO_NO * DATA_WIDTH)-1:0] data_in,
+    input [(DATA_WIDTH)-1:0] data_in,
     output [((ADDR_WIDTH * FIFO_NO)-1):0] occupants,
     output [FIFO_NO-1:0] full,
     output [FIFO_NO-1:0] empty,
@@ -24,7 +24,7 @@ generate
             .rst_n(rst_n),
             .we(we[i]),
             .re(re[i]),
-            .data_in(data_in[(i*DATA_WIDTH) +: DATA_WIDTH]),
+            .data_in(data_in),
             .occupants(occupants[(i*ADDR_WIDTH) +: ADDR_WIDTH]),
             .full(),
             .empty(empty[i]),

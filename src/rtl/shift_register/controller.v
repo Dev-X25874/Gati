@@ -9,12 +9,12 @@ module controller #(parameter no_of_blocks = 4) (
 );
 
 reg [1:0] state = 0;
-reg [5:0] count = 0;
+reg [14:0] count = 0;
 
 always @(posedge clk) begin
     case(state)
     0: begin
-        intermediate_result <= 0;
+        intermediate_result <= intermediate_result;
         quantized_result <= 0;
         valid_out <= 0;
         sel <= 0;
@@ -22,7 +22,7 @@ always @(posedge clk) begin
     end
     1: begin
         if(valid_intermediate_result) begin
-            if(count < 4) begin
+            if(count < 3) begin
                 intermediate_result[32-(count*8)-1 -:8] <= din;
                 count <= count + 1;
                 valid_out <= 0;
@@ -33,17 +33,17 @@ always @(posedge clk) begin
                 count <= 0;
                 valid_out <= 1;
                 sel <= 0;
-                state <= 2;
+                state <= 0;
             end
         end
     end
-    2: begin
+   /* 2: begin
         intermediate_result <= intermediate_result;
         count <= 0;
         valid_out <= 0;
         sel <= sel;
         state <= 0;
-    end
+    end*/
     endcase
 end
 

@@ -58,6 +58,6 @@ The management of processed output data through FIFOs constitutes the final phas
 
 For a visual representation of the connection setup of controllers and FIFOs within the systolic array, refer to the following diagram:
 
-  <img src="src/rtl/asa/test/images/systolic_array.jpg" alt="output matrix" width="700" height="400">
+  <img src="/test/images/systolic_array.jpg" alt="systolic array engine" width="700" height="400">
 
 *Note: The description and diagram depicts a single systolic array engine. In the design, four systolic array engines run in parallel with identical connections.*

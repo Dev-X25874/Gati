@@ -30,7 +30,7 @@ To ensure the precision of the design output, additional Python logic in the scr
 
 1. The illustration below depicts how the input matrix from the script integrates with the systolic array (SA) design:
 
-    ![Matrix Data Flow](src/rtl/asa/test/images/matrix.png)
+    ![Matrix Data Flow](/images/matrix.png)
 2. The "out_data.txt" file captures the output of convolutions performed on matrices sent through the script. Each row in the text file represents the convolution results of the corresponding weights column with each row of the input image matrix. Byte by byte, the text file records these convolution outputs.
 
     - The first byte in each row corresponds to the convolution output of the weights in the first column with the first row of the input image.
@@ -44,10 +44,10 @@ To ensure the precision of the design output, additional Python logic in the scr
 
 Serial Output of Partial Sums from SA Design:
 
-![Partial sums otuput](src/rtl/asa/test/images/psum_output.png)
+![Partial sums otuput](/images/psum_output.png)
 
 Each engine has one fifo that stores partial sum output coming from that engine and sends it to the UART transmitter. The output of this fifo is shown in the above image. These outputs are compared with the outputs stored in "out_data.txt" file to ensure the accuracy of the design.
 
-![Serial otuput](src/rtl/asa/test/images/serial_output.png)
+![Serial otuput](/images/serial_output.png)
 
 A controller converts the 19 bits of output partial sums coming from the last fifo and sends them in 8 bits one by one to the UART transmitter. This is done because the UART transmitter works with 8 bits of data. In the image given above, we compare the corresponding hex values of outputs obtained serially with the hex values of output coming from the last fifo, which is connected with the UART transmitter.

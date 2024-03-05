@@ -24,11 +24,11 @@ generate
             .rst_n(rst_n),
             .we(we[i]),
             .re(re[i]),
-            .data_in(data_in[(i*DATA_WIDTH) +: DATA_WIDTH]),
-            .occupants(occupants[(i*ADDR_WIDTH) +: ADDR_WIDTH]),
+            .data_in(data_in[((FIFO_NO-i)*DATA_WIDTH)-1 -: DATA_WIDTH]),
+            .occupants(occupants[((FIFO_NO-i)*ADDR_WIDTH)-1 -: ADDR_WIDTH]),
             .full(),
             .empty(empty[i]),
-            .data_out(data_out[(i*DATA_WIDTH) +: DATA_WIDTH]),
+            .data_out(data_out[((FIFO_NO-i)*DATA_WIDTH)-1 -: DATA_WIDTH]),
             .data_valid(data_valid[i])
         );
     end

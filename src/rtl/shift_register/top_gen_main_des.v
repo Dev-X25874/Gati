@@ -13,13 +13,13 @@ genvar i;
 generate 
     for(i = 0; i < no_of_designs; i = i + 1) begin
         top_gen top_gen(
-            .intermediate_result(intermediate_result[(((no_of_blocksi)*32)-1) -: 32]),
-            .quantized_result_in(quantized_result_in[(((no_of_blocksi)*8)-1) -: 8]),
+            .intermediate_result(intermediate_result[(((no_of_designs-i)*32)-1) -: 32]),
+            .quantized_result_in(quantized_result_in[(((no_of_designs-i)*8)-1) -: 8]),
             .sel(sel[i]),
             .valid_intermediate_result(valid_intermediate_result[i]),
             .clk(clk),
             .valid_out_final(valid_out_final[i]),
-            .data_out(data_out[(((no_of_blocks-i)*32)-1) -: 32])
+            .data_out(data_out[(((no_of_designs-i)*32)-1) -: 32])
         );
     end
 endgenerate

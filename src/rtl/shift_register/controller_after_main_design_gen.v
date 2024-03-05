@@ -21,7 +21,7 @@ always @(posedge i_clk)begin
         0: begin
             cnt <= 0;
             wr_en_final_fifo <= 0;
-            if(i_fifo_empty == 8'b0000_0000)begin
+            if(i_fifo_empty == 4'b0000)begin
                 state <= 1;
                 rden <= {COL{1'b1}};
             end

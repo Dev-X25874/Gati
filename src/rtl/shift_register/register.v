@@ -29,7 +29,7 @@ always @(posedge clk) begin
         end
     end
     else begin
-        dout <= 0;
+        dout <= dout;
         valid_out <= 0;
     end
 end

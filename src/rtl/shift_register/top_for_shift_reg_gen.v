@@ -18,7 +18,7 @@ wire [(no_of_designs * 32)-1 : 0] fifo_in_gen;
 wire [(no_of_designs - 1) : 0] read_enable;
 wire write_enable;
 wire [(no_of_designs - 1) : 0] empty_flag;
-wire [31:0] data_out_fifo_gen;
+wire [(no_of_designs * 32)-1 :0] data_out_fifo_gen;
 wire [31:0] data_in_final_fifo;
 wire re_tx;
 wire [31:0] data_out_final_fifo;

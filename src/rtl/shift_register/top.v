@@ -19,7 +19,7 @@ generate
                 .intermediate_result(intermediate_result[7:0]),
                 .quantized_result(quantized_result_in),
                 .sel(sel),
-                .valid(valid),
+                .valid(valid_intermediate_result),
                 .clk(clk),
                 .valid_out(valid_out[0]),
                 .data_out(data_out[31:24])
@@ -30,7 +30,7 @@ generate
             .intermediate_result(intermediate_result[(((no_of_blocks-i)*8)-1) -: 8]),
             .quantized_result(data_out[((no_of_blocks-(i-1))*8)-1 -: 8]),
             .sel(sel),
-            .valid(valid),
+            .valid(valid_intermediate_result),
             .clk(clk),
             .valid_out(valid_out[i]),
             .data_out(data_out[(((no_of_blocks-i)*8)-1) -: 8])

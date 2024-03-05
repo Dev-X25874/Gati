@@ -58,7 +58,7 @@ module controller_fifo_tx #(parameter DATA_WIDTH = 32,
 
         4 : begin
             if (i_trans_done_tx2)begin
-                r_o_data <= {4'd0,i_fifo_data[23:16]};
+                r_o_data <= i_fifo_data[23:16];
                 r_o_valid_tx2 <= 1'b1;
                 p_state <= 5;
             end
@@ -70,7 +70,7 @@ module controller_fifo_tx #(parameter DATA_WIDTH = 32,
 
         5: begin
             if (i_trans_done_tx2)begin
-                r_o_data <= {4'd0,i_fifo_data[31:24]};
+                r_o_data <= i_fifo_data[31:24];
                 r_o_valid_tx2 <= 1'b1;
                 p_state <= 6;
             end

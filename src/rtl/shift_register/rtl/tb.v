@@ -40,7 +40,7 @@ initial begin
 #10 quantized_result_in = 8'd189;    
 #10 quantized_result_in = 8'd191;
 #10 quantized_result_in = 8'd193;
-#20 quantized_result_in = 8'd195;
+#10 quantized_result_in = 8'd195;
 #10 quantized_result_in = 8'd198;
 #10 quantized_result_in = 8'd202;
 #10 quantized_result_in = 8'd205;

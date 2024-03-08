@@ -17,9 +17,9 @@ always @(posedge clk) begin
             valid_out <= 1;
         end
         else begin
-            if(count == 4) begin
+            if(count == 3) begin
                 valid_out <= 1;
-                dout <= dout;
+                dout <= din;
                 count <= 0;
             end 
             else begin
@@ -30,7 +30,7 @@ always @(posedge clk) begin
         end
     end
     else begin
-        dout <= dout;
+        dout <= 0;
         valid_out <= 0;
     end
 end

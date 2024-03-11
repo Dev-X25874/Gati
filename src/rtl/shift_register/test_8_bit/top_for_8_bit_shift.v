@@ -28,6 +28,7 @@ wire done_tx;
 wire re_tx;
 wire dv;
 wire [7:0] data_tx;
+wire [31:0] data_out_final_fifo;
 
 rx rx(
     .clk(clk),
@@ -100,25 +101,27 @@ controller_after_main_design_gen controller_after_main_design_gen(
     .o_read_enable(read_enable)
 );
 
-fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_tx(
+fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(9)) fifo_tx(
     .clk(clk),
     .rst_n(rst),
     .data_in(data_in_final_fifo),
     .we(write_enable),
     .re(re_tx),
-    .data_out(data_tx),
+    .data_out(data_out_final_fifo),
     .occupants(),
     .empty(empty_con_tx),
     .full(),
     .data_valid()
 );
 
-fifo_re_controller fifo_re_con(
-    .i_clk(clk),
-    .i_fifo_empty(empty_con_tx),
-    .i_tx_done(done_tx),
-    .o_fifo_read_enable(re_tx),
-    .o_tx_data_valid(dv)
+controller_fifo_tx #(.DATA_WIDTH(32)) fifo_tx_con(
+    .clk(clk),
+    .i_fifo_data(data_out_final_fifo),
+    .i_empty_flag(empty_con_tx),
+    .o_data(data_tx),
+    .rd_en(re_tx),
+    .o_valid_tx2(dv),
+    .i_trans_done_tx2(done_tx)
 );
 
 tx tx(

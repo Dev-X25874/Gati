@@ -54,7 +54,7 @@ controller_gen_rd_wn con_rd_wn(
     .o_fifo_rden(rn)
 );
 
-top_fifo_gen_con #(.FIFO_NO(4), .DATA_WIDTH(8), .ADDR_WIDTH(6)) top_fifo_gen_con(
+top_fifo_gen_con top_fifo_gen_con(
     .clk(clk),
     .rst_n(rst),
     .we(wr),
@@ -78,7 +78,7 @@ top_gen_main_des top_gen_main_des(
     .data_out(fifo_in_gen)
 );
 
-top_fifo_gen #(.FIFO_NO(4), .DATA_WIDTH(32), .ADDR_WIDTH(9)) top_fifo_gen_maindes(
+top_fifo_gen top_fifo_gen_maindes(
     .clk(clk),
     .rst_n(rst),
     .we(we_gen),

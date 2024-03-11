@@ -1,5 +1,5 @@
 module top_fifo_gen_con #(parameter FIFO_NO = 4, 
-                    parameter DATA_WIDTH = 32, 
+                    parameter DATA_WIDTH = 8, 
                     parameter ADDR_WIDTH = 9)
                     (
 

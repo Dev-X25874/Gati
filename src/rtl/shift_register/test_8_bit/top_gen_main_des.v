@@ -1,7 +1,7 @@
 module top_gen_main_des #(parameter no_of_designs = 4, parameter no_of_blocks = 4) (
     input [(no_of_designs * 32)-1 : 0] intermediate_result,
     input [(no_of_designs * 8)-1 : 0] quantized_result_in,
-    input [(no_of_designs)-1 : 0] sel,
+    input sel,
     input [(no_of_designs)-1 : 0] valid_intermediate_result,
     input [(no_of_designs)-1 : 0] valid_quantized_result,
     input clk,
@@ -16,7 +16,7 @@ generate
         top_gen top_gen(
             .intermediate_result(intermediate_result[(((no_of_designs-i)*32)-1) -: 32]),
             .quantized_result_in(quantized_result_in[(((no_of_designs-i)*8)-1) -: 8]),
-            .sel(sel[i]),
+            .sel(sel),
             .valid_intermediate_result(valid_intermediate_result[i]),
             .valid_quantized_result(valid_quantized_result[i]),
             .clk(clk),

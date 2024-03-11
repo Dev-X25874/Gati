@@ -1,6 +1,6 @@
 module controller_after_main_design_gen#(
-    parameter COL = 4,
-    parameter W_DATA = 32
+    parameter COL = 8,
+    parameter W_DATA = 20
 )(
     input i_clk,
     input [((W_DATA) * COL) -1:0] i_data,

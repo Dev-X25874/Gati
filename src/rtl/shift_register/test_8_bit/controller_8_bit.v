@@ -15,14 +15,15 @@ always @(posedge clk) begin
         //intermediate_result <= intermediate_result;
         quantized_result <= quantized_result;
         valid_out <= 0;
-        sel <= 0;
+        sel <= sel;
         state <= 1;
     end
     1: begin
         if(valid_quantized_result) begin
             quantized_result <= din;
             valid_out <= 1;
-            sel <= 1;
+            sel <= 1'b1;
+            state <= 0;
         end
     end
     endcase

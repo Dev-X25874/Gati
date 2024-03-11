@@ -17,7 +17,7 @@ generate
     for(i = 0; i < no_of_blocks; i = i + 1) begin
         if(i == 0) begin
             top top(
-                .intermediate_result(intermediate_result[7:0]),
+                .intermediate_result(intermediate_result[31:24]),
                 .quantized_result(quantized_result_in),
                 .sel(sel),
                 .valid_intermediate_result(valid_intermediate_result),

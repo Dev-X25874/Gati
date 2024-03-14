@@ -2,6 +2,7 @@ module top_for_shift_reg_gen #(parameter no_of_designs = 4, parameter N_FIFO = 4
     input din,
     input clk,
     input rst,
+    input select_line,
     output dout
 );
 
@@ -9,11 +10,11 @@ wire [7:0] d_out;
 wire rx_valid;
 wire [(32)-1 : 0] thirty_two_result;
 wire [(no_of_designs * 32)-1 : 0] thirty_two_result_fifo;
-wire [(no_of_designs * 8)-1 : 0] eight_result;
+wire [(8)-1 : 0] eight_result;
 wire valid_con;
 wire [(no_of_designs - 1) : 0] valid_con_fifo_int;
 wire [(no_of_designs - 1) : 0] valid_con_fifo_quan;
-wire select_line;
+//wire select_line;
 wire [(no_of_designs - 1) : 0] we_gen;
 wire [(no_of_designs * 32)-1 : 0] fifo_in_gen;
 wire [(no_of_designs - 1) : 0] read_enable;
@@ -28,6 +29,8 @@ wire [7:0] data_tx;
 wire dv;
 wire done_tx;
 wire [N_FIFO-1:0] empty;
+wire [N_FIFO-1:0] empty_1;
+wire [N_FIFO-1:0] empty_2;
 wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants;
 wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants_1;
 wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants_2;
@@ -52,7 +55,17 @@ rx rx(
     .sel(select_line)
 );*/
 
-controller_common controller_common(
+/*controller_common controller_common(
+    .clk(clk),
+    .din(d_out),
+    .rx_valid(rx_valid),
+    .sel(select_line),
+    .intermediate_result(thirty_two_result),
+    .quantized_result(eight_result),
+    .valid_out(valid_con)
+);*/
+
+controller_common_data controller_common_data(
     .clk(clk),
     .din(d_out),
     .rx_valid(rx_valid),
@@ -65,7 +78,7 @@ controller_common controller_common(
 controller_gen_rd_wn con_rd_wn(
     .i_clk(clk),
     .i_rx_valid(valid_con),
-    .i_fifo_empty(),
+    .i_fifo_empty(empty),
     .i_fifo_occupants(occupants),
     .o_fifo_wren(wr),
     .o_fifo_rden(rn)
@@ -79,12 +92,12 @@ top_fifo_gen_con top_fifo_gen_con_int(
     .data_in(thirty_two_result),
     .occupants(occupants_1),
     .full(),
-    .empty(),
+    .empty(empty_1),
     .data_out(thirty_two_result_fifo),
     .data_valid(valid_con_fifo_int)
 );
 
-top_fifo_gen_con top_fifo_gen_con_quan(
+top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .clk(clk),
     .rst_n(rst),
     .we(wr),
@@ -92,7 +105,7 @@ top_fifo_gen_con top_fifo_gen_con_quan(
     .data_in(eight_result),
     .occupants(occupants_2),
     .full(),
-    .empty(),
+    .empty(empty_2),
     .data_out(eight_result_fifo),
     .data_valid(valid_con_fifo_quan)
 );
@@ -164,7 +177,10 @@ tx tx(
 );
 
 
-assign occupants_1 = occupants;
-assign occupants_2 = occupants;
+
+
+assign occupants = select_line? occupants_2 : occupants_1;
+
+assign empty = select_line? empty_2 : empty_1;
 
 endmodule

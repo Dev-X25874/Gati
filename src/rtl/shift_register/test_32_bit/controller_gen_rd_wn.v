@@ -32,17 +32,17 @@ always @(posedge i_clk) begin
 end
 
 always @(posedge i_clk) begin
-    //if(~i_fifo_empty) begin
-        if(i_fifo_occupants >= {N_FIFO{9'd1}}) begin
+    if(~i_fifo_empty) begin
+        if(i_fifo_occupants == {N_FIFO{9'd16}}) begin
             o_fifo_rden <= 4'b1111;
         end
         else begin
-            o_fifo_rden <= 4'b0000;
+            o_fifo_rden <= o_fifo_rden;
         end
-    //end
-    // else begin
-    //     o_fifo_rden <= 8'b0000_0000;
-    // end
+    end
+     else begin
+         o_fifo_rden <= 4'b0000;
+    end
 end
 
 endmodule

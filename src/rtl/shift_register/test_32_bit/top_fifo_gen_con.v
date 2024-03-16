@@ -18,18 +18,18 @@ module top_fifo_gen_con #(parameter FIFO_NO = 4,
 genvar i;
 generate
     for (i = 0; i < FIFO_NO; i = i + 1) begin
-        fifo_valid #(.DATA_WIDTH(DATA_WIDTH), .ADDR_WIDTH(ADDR_WIDTH))
+        fifo_ip #(.DATA_WIDTH(DATA_WIDTH))
         fifo_gen(
-            .clk(clk),
-            .rst_n(rst_n),
-            .we(we[i]),
-            .re(re[i]),
-            .data_in(data_in),
-            .occupants(occupants[((FIFO_NO-i)*ADDR_WIDTH)-1 -: ADDR_WIDTH]),
-            .full(),
-            .empty(empty[i]),
-            .data_out(data_out[((FIFO_NO-i)*DATA_WIDTH)-1 -: DATA_WIDTH]),
-            .data_valid(data_valid[i])
+            .clk_i(clk),
+            .a_rst_i(~rst_n),
+            .wr_en_i(we[i]),
+            .rd_en_i(re[i]),
+            .wdata(data_in),
+            .datacount_o(occupants[((FIFO_NO-i)*ADDR_WIDTH)-1 -: ADDR_WIDTH]),
+            .full_o(),
+            .empty_o(empty[i]),
+            .rdata(data_out[((FIFO_NO-i)*DATA_WIDTH)-1 -: DATA_WIDTH]),
+            .o_valid(data_valid[i])
         );
     end
     endgenerate

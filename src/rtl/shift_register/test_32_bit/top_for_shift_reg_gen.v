@@ -35,7 +35,11 @@ wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants;
 wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants_1;
 wire [((ADDR_WIDTH*N_FIFO)-1):0] occupants_2;
 wire [N_FIFO-1:0] wr;
+wire [N_FIFO-1:0] wr1;
+wire [N_FIFO-1:0] wr2;
 wire [N_FIFO-1:0] rn;
+wire [N_FIFO-1:0] rn1;
+wire [N_FIFO-1:0] rn2;
 wire [(no_of_designs * 8)-1 : 0] eight_result_fifo;
 
 rx rx(
@@ -87,8 +91,8 @@ controller_gen_rd_wn con_rd_wn(
 top_fifo_gen_con top_fifo_gen_con_int(
     .clk(clk),
     .rst_n(rst),
-    .we(wr),
-    .re(rn),
+    .we(wr1),
+    .re(rn1),
     .data_in(thirty_two_result),
     .occupants(occupants_1),
     .full(),
@@ -100,8 +104,8 @@ top_fifo_gen_con top_fifo_gen_con_int(
 top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .clk(clk),
     .rst_n(rst),
-    .we(wr),
-    .re(rn),
+    .we(wr1),
+    .re(rn1),
     .data_in(eight_result),
     .occupants(occupants_2),
     .full(),
@@ -182,5 +186,8 @@ tx tx(
 assign occupants = select_line? occupants_2 : occupants_1;
 
 assign empty = select_line? empty_2 : empty_1;
+
+assign {wr1 , wr2} = select_line? {0 , wr} : {wr , 0};
+assign {rn1 , rn2} = select_line? {0 , rn} : {rn , 0};
 
 endmodule

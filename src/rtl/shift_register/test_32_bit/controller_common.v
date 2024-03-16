@@ -7,11 +7,12 @@ module controller_common(
     output reg [7:0] quantized_result = 0,
     output reg valid_out = 0
 );
-reg [1:0] state = 0;
+reg [2:0] state = 0;
 reg [4:0] count = 0;
-parameter IDLE = 2'b00;
-parameter SEL = 2'b01;
-parameter DATA = 2'b11;
+parameter IDLE = 3'b000;
+parameter SEL = 3'b001;
+parameter DATA = 3'b011;
+parameter WAIT = 3'b111;
 
 always @(posedge clk) begin
     case(state)
@@ -31,6 +32,8 @@ always @(posedge clk) begin
             sel <= din[0];
             valid_out <= 0;
             state <= DATA;
+            quantized_result <= quantized_result;
+            intermediate_result <= intermediate_result;
     end
     DATA: begin
         if(sel) begin
@@ -46,7 +49,50 @@ always @(posedge clk) begin
             end
         end
         else begin
-            if(count < 4) begin
+            if(rx_valid) begin
+                if(count < 4) begin
+                    intermediate_result[32-(count*8)-1 -:8] <= din;
+                    count <= count + 1;
+                    valid_out <= 0;
+                    state <= DATA; 
+                end
+                else begin
+                    intermediate_result[32-(count*8)-1 -:8] <= din;
+                    count <= 0;
+                    valid_out <= 1;
+                    state <= SEL;
+                end
+            end
+            else begin
+                intermediate_result <= intermediate_result;
+                state <= DATA;
+                valid_out <= 0;
+                count <= count;
+                end
+            end
+    end
+    /*WAIT: begin
+        valid_out <= 0;
+        state <= IDLE;
+    end*/
+    endcase
+end
+
+endmodule
+
+
+
+
+
+
+
+
+
+
+
+
+
+ /* if(count < 4) begin
                 if(rx_valid) begin
                     intermediate_result[32-(count*8)-1 -:8] <= din;
                     count <= count + 1;
@@ -74,9 +120,4 @@ always @(posedge clk) begin
                     state <= DATA;
                 end
             end
-        end
-    end
-    endcase
-end
-
-endmodule
+        end*/

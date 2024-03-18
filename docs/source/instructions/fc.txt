@@ -1,7 +1,11 @@
 FC:'h04
-OPCODE:4
+Opcode:4
 WeightRows:16
 WeightCols:16
 InputRows:16
 DropoutConstant:8
 Address:32
+Flatten:1
+ImageDim:20
+ImageEndAddr:32
+FCBias:32

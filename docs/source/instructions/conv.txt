@@ -11,3 +11,5 @@ KH:4
 STRIDE:4
 PAD:3
 INPUT_ADDRESS:32
+ChannelItr:12
+KernelItr:12

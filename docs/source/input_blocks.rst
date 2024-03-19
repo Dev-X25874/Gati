@@ -76,39 +76,37 @@ The bounding squares algorithm is thus:
    satisfied valid bits will go high and that gives the number of
    squares in which an element would be part of. The size of the kernel
    is 3*3 so we can expect each patch of the image to have 9
-   {blocks|coordinates} enclosed within it and so the 9 various
+   blocks/coordinates enclosed within it and so the 9 various
    conditions. The square is considered to be a valid one if the filter
    that is covering that patch of the image is within the image boundary
    i.e. 224x224-matrix size.
 
-   -  Consider We have Image in [X-Y Plane] Traversing from left to right
-   -  Given Input Coordinate (x,y) is greater than 1 and if the input co-ordinate is
+   -  Check If (x,y) is greater than 1 and if the input co-ordinate is
       bounded between (x,y) and (x+2,y+2). If so valid[0] goes high.
-   -  Given Input Coordinate (x,y), we go one column behind i.e. (x,y-1) and check if
-      (x,y) is bounded between (x,y-1) and (x+2,y+1). if so
-      valid[1] goes high. 
-   -  Given Input Coordinate (x,y) we go two columns behind i.e. (x,y-2) and check if
-      (x,y) is bounded between (x,y-2) and (x+2,y). if so
-      valid[2] goes high. 
-   -  Given Input Coordinate (x,y), go one row above i.e. (x-1,y) and check if (x,y) is bounded between (x-1,y) and (x+1,y+2). if so
-      valid[3] goes high. 
-   -  Given Input Coordinate (x,y), we go one row above i.e. (x-1,y-1) and check if
-      (x,y) is bounded between (x-1,y-1) and (x+1,y+1). if
-      so valid[4] goes high. 
-   -  Given Input Coordinate (x,y), we go one row above i.e. (x-1,y-2) and check if
-      (x,y) is bounded between (x-1,y-2) and (x+1,y). if so
-      valid[5] goes high. 
-   -  Given Input Coordinate (x,y), we go two rows above i.e. (x-2,y) and check if
-      (x,y) is bounded between (x-2,y) and (x,y+2). if so
-      valid[6] goes high. 
-   -  Given Input Coordinate (x,y), we go two rows above i.e. (x-2,y-1) and check if
-     (x,y) is bounded between (x-2,y-1) and (x,y+1). if so
-      valid[7] goes high. 
-   -  Given Input Coordinate (x,y),we go two rows above i.e. (x-2,y-2) and check if
-      (x,y) is bounded between (x-2,y-2) and (x,y). if so
-      valid[8] goes high. 
-      
-      Here Number of conditions changes as we increase/Descrease the kernel size 
+   -  Now from (x,y), go one row above i.e. (x-1,y) and check if input
+      co-ordinate is bounded between (x-1,y) and (x+1,y+2). if so
+      valid[1] goes high.
+   -  Now from (x,y) we go two rows above i.e. (x-2,y) and check if
+      input co-ordinate is bounded between (x-2,y) and (x,y+2). if so
+      valid[2] goes high.
+   -  Then from (x,y) we go one column behind i.e. (x,y-1) and check if
+      input co-ordinate is bounded between (x,y-1) and (x+2,y+1). if so
+      valid[3] goes high.
+   -  Then from (x,y-1) we go one row above i.e. (x-1,y-1) and check if
+      input co-ordinate is bounded between (x-1,y-1) and (x+1,y+1). if
+      so valid[4] goes high.
+   -  Then from (x,y-1) we go two rows above i.e. (x-2,y-1) and check if
+      input co-ordinate is bounded between (x-2,y-1) and (x,y+1). if so
+      valid[5] goes high.
+   -  Now from (x,y) we go two columns behind i.e. (x,y-2) and check if
+      input co-ordinate is bounded between (x,y-2) and (x+2,y). if so
+      valid[6] goes high.
+   -  Then from (x,y-2) we go one row above i.e. (x-1,y-2) and check if
+      input co-ordinate is bounded between (x-1,y-2) and (x+1,y). if so
+      valid[7] goes high.
+   -  Then from (x,y-2) we go two rows above i.e. (x-2,y-2) and check if
+      input co-ordinate is bounded between (x-2,y-2) and (x,y). if so
+      valid[8] goes high.
 
 3. Valid Rows: The last sub-block of the module, here the nine rows are
    assigned with constant values form 1 to 9 when the patch of the image

@@ -2,19 +2,36 @@ module OP_CONV #(parameter op_code_width = 4,
             parameter CNT = (data_out/data_in),
             parameter data_in = 8,
             parameter data_out = 256)(
-    input [(data_in)-1 : 0] din,
-    input sel,
-    input write,
-    input done,
-    output 
-    output valid,
-    output ready
-);
-reg [255:0] data_instruction = 0;
-reg [1:0] state = 0;
-parameter IDLE = 2'b00;
-parameter REGISTER = 2'b01;
-parameter CONCAT = 2'b11;
+                input [(data_in)-1 : 0] din,
+                input sel,
+                input write,
+                input done,
+                input clk,
+                output reg [3:0] opcode = 0,
+                output reg [9:0] IW = 0,
+                output reg [9:0] IH = 0,
+                output reg [9:0] OW = 0,
+                output reg [9:0] OH = 0,
+                output reg [9:0] IC = 0,
+                output reg [9:0] KN = 0,
+                output reg [13:0] KW = 0,
+                output reg [3:0] KH = 0,
+                output reg [3:0] STRIDE = 0,
+                output reg [2:0] PAD = 0,
+                output reg [31:0] INPUT_ADDRESS = 0,
+                output reg [11:0] channelItr = 0,
+                output reg [11:0] kernelItr = 0,
+                output reg valid = 0,
+                output reg ready = 0,
+                output reg [144:0] dout = 0
+            );
+reg [(data_out)-1 : 0] data_instruction = 0;
+reg [2:0] state = 0;
+reg [17:0] count = 0;
+parameter IDLE = 3'b000;
+parameter REGISTER = 3'b001;
+parameter CONCAT = 3'b011;
+parameter OUTPUT_CHECK = 3'b101;
 
 always @(posedge clk) begin
     case(state)
@@ -22,6 +39,20 @@ always @(posedge clk) begin
         dout_instruction <= 0;
         valid <= 0;
         ready <= 0;
+        opcode = 0;
+        IW <= 0;
+        IH <= 0;
+        OW <= 0;
+        OH <= 0;
+        IC <= 0;
+        KN <= 0;
+        KW <= 0;
+        KH <= 0;
+        STRIDE <= 0;
+        PAD <= 0;
+        INPUT_ADDRESS <= 0;
+        channelItr <= 0;
+        kernelItr <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -58,7 +89,12 @@ always @(posedge clk) begin
             channelItr <= data_instruction[122:111];
             kernelItr <= data_instruction[134:123];
             valid <= 1'b1;
+            state <= OUTPUT_CHECK;
         end
+    end
+    OUTPUT_CHECK: begin
+        dout <= {opcode, IW, IH, OW, OH, IC, KN, KW, KH, STRIDE, PAD, INPUT_ADDRESS, channelItr, kernelItr};
+        state <= IDLE;
     end
     endcase
 end

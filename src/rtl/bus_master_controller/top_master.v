@@ -1,4 +1,4 @@
-module top #(parameter op_code_width = 4, 
+module top_master #(parameter op_code_width = 4, 
             parameter CNT = (data_in/data_out),
             parameter data_in = 256,
             parameter data_out = 8) (

@@ -53,7 +53,7 @@ always @(posedge clk) begin
                 state <= DATA;
                 valid_out <= 0;
                 count <= count;
-                end
+            end
             end
     end
     endcase

@@ -104,8 +104,8 @@ top_fifo_gen_con top_fifo_gen_con_int(
 top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .clk(clk),
     .rst_n(rst),
-    .we(wr1),
-    .re(rn1),
+    .we(wr2),
+    .re(rn2),
     .data_in(eight_result),
     .occupants(occupants_2),
     .full(),
@@ -187,7 +187,12 @@ assign occupants = select_line? occupants_2 : occupants_1;
 
 assign empty = select_line? empty_2 : empty_1;
 
-assign {wr1 , wr2} = select_line? {0 , wr} : {wr , 0};
-assign {rn1 , rn2} = select_line? {0 , rn} : {rn , 0};
+//assign {wr1 , wr2} = select_line? {0 , wr} : {wr , 0};
+//assign {rn1 , rn2} = select_line? {0 , rn} : {rn , 0};
+
+assign wr1 = select_line? 0 : wr;
+assign wr2 = select_line? wr : 0;
+assign rn1 = select_line? 0 : rn;
+assign rn2 = select_line? rn : 0;
 
 endmodule

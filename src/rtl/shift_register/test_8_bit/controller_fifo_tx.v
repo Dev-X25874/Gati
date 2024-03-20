@@ -79,7 +79,7 @@ module controller_fifo_tx #(parameter DATA_WIDTH = 32,
                 p_state <= 5;
             end
         end
-
+        
         6: begin
             if(i_trans_done_tx2) begin
                 p_state <= 0;

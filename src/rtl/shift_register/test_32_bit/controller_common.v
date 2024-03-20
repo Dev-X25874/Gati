@@ -18,7 +18,7 @@ always @(posedge clk) begin
     case(state)
     IDLE: begin
         valid_out <= 0;
-        quantized_result <= 0;
+        quantized_result <= quantized_result;
         intermediate_result <= 0;
         sel <= sel;
         if(rx_valid) begin
@@ -35,12 +35,18 @@ always @(posedge clk) begin
             quantized_result <= quantized_result;
             intermediate_result <= intermediate_result;
     end
+    WAIT: begin
+        quantized_result <= quantized_result;
+        valid_out <= 0;
+        sel <= sel;
+        state <= DATA;
+    end
     DATA: begin
         if(sel) begin
             if(rx_valid) begin
                 quantized_result <= din;
                 valid_out <= 1'b1;
-                state <= IDLE;
+                state <= WAIT;
             end
             else begin
                 quantized_result <= quantized_result;

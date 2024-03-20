@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< HEAD
 <efx:project name="test_32_bit" description="" last_change_date="Fri March 15 2024 18:38:12" location="/home/vansh/Documents/git/Gati/src/rtl/shift_register/test_32_bit" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+=======
+<efx:project name="test_32_bit" description="" last_change_date="Tue March 19 2024 09:10:08" location="/home/vansh/Documents/git/Gati/src/rtl/shift_register/test_32_bit" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+>>>>>>> a6be464 (to shift register)
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>

@@ -114,7 +114,7 @@ fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(9)) fifo_tx(
     .data_valid()
 );
 
-controller_fifo_tx #(.DATA_WIDTH(32)) fifo_tx_con(
+controller_fifo_tx fifo_tx_con(
     .clk(clk),
     .i_fifo_data(data_out_final_fifo),
     .i_empty_flag(empty_con_tx),

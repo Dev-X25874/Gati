@@ -1,4 +1,6 @@
-//generate array of fifo ip
+/*
+    Generates fifo N_SA times.
+*/
 module mul_fifo#(
     parameter W_DATA = 8,
     parameter N_SA = 4,
@@ -19,7 +21,8 @@ genvar i;
 generate
     for(i = 0; i < N_SA; i = i + 1)begin
         
-        sync_fifo #(.W_DATA(W_DATA))weight_fifo(
+        sync_fifo #(.W_DATA(W_DATA)
+        )fifo_inst(
             .full_o(),
             .empty_o(o_empty[i]),
             .clk_i(i_clk),

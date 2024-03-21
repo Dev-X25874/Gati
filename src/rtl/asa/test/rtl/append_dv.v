@@ -1,6 +1,7 @@
 /*
     Appends data valid bit with the data before sending it 
-    into rows or columns of systolic array.
+    into rows or columns of systolic array. This will help to get 
+    correct data valid signal for partial sums.
 */
 module append_dv#(
     parameter N_DIMENSION = 8,  //number of rows or columns
@@ -13,13 +14,10 @@ module append_dv#(
 genvar i;
 generate
     for(i = 0; i < N_DIMENSION; i = i +1) begin : DV_APPEND_GEN
-        data_valid_append#(
-            .W_DATA(W_DATA)
-        ) row_fifo (
-            .i_data (i_data[((W_DATA * (N_DIMENSION -i )) -1) -: W_DATA]),
-            .i_data_valid(i_data_valid[i]),
-            .o_data (o_data[(((W_DATA + 1) * (N_DIMENSION - i)) -1) -: (W_DATA + 1)])
-        );
+        assign o_data[(((W_DATA + 1) * (N_DIMENSION - i)) -1) -: (W_DATA + 1)] = {
+            i_data_valid[i],
+            i_data[((W_DATA * (N_DIMENSION -i )) -1) -: W_DATA]
+        };
     end
 endgenerate
 

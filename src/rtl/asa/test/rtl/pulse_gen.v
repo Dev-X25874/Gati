@@ -1,5 +1,5 @@
-//Gives output of one cycle of incoming trigger signal
-module one_cycle(
+ //Gives out one pulse when trigger is applied
+module pulse_gen(
     input a,
     input rst,
     input clk,

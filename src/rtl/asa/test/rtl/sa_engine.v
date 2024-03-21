@@ -1,192 +1,227 @@
-//top module for single sa engine
+/*
+    Uart-to-uart flow of a single SA engine
+*/
 module sa_engine#(
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter COL = 4,
+    parameter COL = (DSP_COL + BOOTH_COL),  //TODO: Passing this parameter
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter N_SA = 2,
-    parameter RAM_DEPTH = (1 << W_ADDR)
+    parameter RAM_DEPTH = (1 << W_ADDR),
+    parameter DSP_COL = 2,
+    parameter BOOTH_COL = 2
 )(
     input i_clk,
     input s_clk,
     input i_rst,
     input i_trigger_1,
     input i_trigger_2,
-    input [W_DATA-1 : 0] i_north_data,
-    input [COL-1 : 0] i_north_wren,
-    input [W_DATA-1 : 0] i_west_data,
-    input [ROW-1 : 0] i_west_wren,
-    input [COL-1 : 0] i_south_array_rden,
-    output [(W_PSUM * COL)-1 : 0] out_partial_sums,
-    output [COL-1 : 0] south_empty,
-    output [COL-1 : 0] south_data_valid
+    input [W_DATA-1 : 0] i_weight_fifo_array_data,
+    input [COL-1 : 0] i_weight_fifo_array_write_en,
+    input [W_DATA-1 : 0] i_image_fifo_array_data,
+    input [ROW-1 : 0] i_image_fifo_array_wren,
+    input [COL-1 : 0] i_psum_ff_array_read_en,
+    output [(W_PSUM * COL)-1 : 0] o_psum_ff_array_partial_sums,
+    output [COL-1 : 0] o_psum_ff_array_empty,
+    output [COL-1 : 0] o_psum_ff_array_dv
 );
 
-wire [COL-1 : 0] north_rden;
-wire [COL-1 : 0] north_dv;
-wire [COL-1 : 0] north_empty;
-wire [(COL * W_DATA)-1 : 0] north_data;
-wire [((W_ADDR + 1) * COL)-1 : 0] north_occupants;
+wire [COL-1 : 0] read_rden_ctrl_weight_ff_array;
+wire [COL-1 : 0] dv_weight_ff_array_append_dv;
+wire [COL-1 : 0] empty_weight_ff_array_rden_ctrl;
+wire [(COL * W_DATA)-1 : 0] data_weight_ff_array_append_dv;
+wire [((W_ADDR + 1) * COL)-1 : 0] occ_weight_ff_array_rden_ctrl;
 
-fifo_north#(
-    .COL(COL),
-    .ROW(ROW),
+/*
+    Each fifo in this array stores its corrosponding column's weights
+    before loading it into PE blocks 
+*/
+fifo_array#(
+    .DIMENSION(COL),
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
     .RAM_DEPTH(RAM_DEPTH)
-) north_fifo_array (
+) sa_engine_weight_fifo_array (
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_data(i_north_data),
-    .i_read_enable(north_rden),
-    .i_write_enable(i_north_wren),
-    .o_data(north_data),
-    .o_fifo_empty(north_empty),
+    .i_data(i_weight_fifo_array_data),
+    .i_read_enable(read_rden_ctrl_weight_ff_array),
+    .i_write_enable(i_weight_fifo_array_write_en),
+    .o_data(data_weight_ff_array_append_dv),
+    .o_fifo_empty(empty_weight_ff_array_rden_ctrl),
     .o_fifo_full(),
-    .o_fifo_dv(north_dv),
-    .o_occupants(north_occupants)
+    .o_fifo_dv(dv_weight_ff_array_append_dv),
+    .o_occupants(occ_weight_ff_array_rden_ctrl)
 );
 
-wire [(COL * (W_DATA + 1))-1 : 0] o_north_data;
+wire [(COL * (W_DATA + 1))-1 : 0] weights_append_dv_cdc;
 
+//Appends data valid with weights before sending it into PE blocks
 append_dv#(
-    .N_DIMENSION(COL),  //number of rows or columns
+    .N_DIMENSION(COL),
     .W_DATA(W_DATA)
-)north_array_dv(
-    .i_data(north_data),
-    .i_data_valid(north_dv),
-    .o_data(o_north_data)
+)weight_fifo_array_dv(
+    .i_data(data_weight_ff_array_append_dv),
+    .i_data_valid(dv_weight_ff_array_append_dv),
+    .o_data(weights_append_dv_cdc)
 );
 
-internal_north_rden#(
+//Control read enable signal of uart_rx_weight_fifo
+weight_fifo_aray_rden#(
    .COL(COL),
    .ROW(ROW),
    .W_ADDR(W_ADDR),
    .W_DATA(W_DATA)
-) fifo_north_array_controller (
+) weight_fifo_array_rden_ctrl (
    .i_clk(i_clk),
    .i_rst(i_rst),
    .i_trigger(i_trigger_1),
-   .i_fifo_empty(north_empty),
-   .o_fifo_read_enable(north_rden),
-   .i_fifo_occupants(north_occupants)
+   .i_fifo_empty(empty_weight_ff_array_rden_ctrl),
+   .o_fifo_read_enable(read_rden_ctrl_weight_ff_array),
+   .i_fifo_occupants(occ_weight_ff_array_rden_ctrl)
 );
 
-wire [ROW-1 : 0] west_rden;
-wire [ROW-1 : 0] west_empty;
-wire[(ROW * W_DATA)-1 : 0] west_data;
-wire [ROW-1:0] west_dv;
-wire [(((W_ADDR + 1) * ROW) -1): 0] o_west_occupants;
+wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
+wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
+wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
+wire [ROW-1:0] dv_image_ff_array_append_dv;
+wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
 
-fifo_west#(
-    .ROW(ROW),
+/*
+    Each fifo in this array stores its corrosponding row's image 
+    before sending it to delay registers
+*/
+fifo_array#(
+    .DIMENSION(ROW),
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
     .RAM_DEPTH(RAM_DEPTH)
-) west_fifo_array (
+) sa_engine_image_fifo_array (
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_data(i_west_data),
-    .i_write_enable(i_west_wren),
-    .i_read_enable(west_rden),
-    .o_data(west_data),
-    .o_fifo_empty(west_empty),
+    .i_data(i_image_fifo_array_data),
+    .i_write_enable(i_image_fifo_array_wren),
+    .i_read_enable(read_rden_ctrl_image_ff_array),
+    .o_data(data_image_ff_array_append_dv),
+    .o_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_fifo_full(),
-    .o_fifo_data_valid(west_dv),
-    .o_occupants(o_west_occupants)
+    .o_fifo_data_valid(dv_image_ff_array_append_dv),
+    .o_occupants(occ_image_ff_array_rden_ctrl)
 );
 
+//Appends data valid signal with image before sending it to delay registers
 append_dv#(
-    .N_DIMENSION(ROW),  //number of rows or columns
+    .N_DIMENSION(ROW),
     .W_DATA(W_DATA)
-)west_array_dv(
-    .i_data(west_data),
-    .i_data_valid(west_dv),
-    .o_data(o_west_data)
+) image_fifo_array_dv (
+    .i_data(data_image_ff_array_append_dv),
+    .i_data_valid(dv_image_ff_array_append_dv),
+    .o_data(image_append_dv_cdc)
 );
 
-wire [((W_DATA + 1) * ROW)-1 : 0] o_west_data;
+wire [((W_DATA + 1) * ROW)-1 : 0] image_append_dv_cdc;
 
-internal_west_rden#(
+//Control read enable signal of uart_rx_image_fifo
+image_fifo_array_rden#(
     .ROW(ROW),
     .W_ADDR(W_ADDR),
     .W_DATA(W_DATA)
-) fifo_west_array_controller (
+) image_fifo_array_rden_ctrl (
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_occupants(o_west_occupants),
+    .i_occupants(occ_image_ff_array_rden_ctrl),
     .i_trigger(i_trigger_2),
-    .i_fifo_empty(west_empty),
-    .o_read_enable(west_rden)
+    .i_fifo_empty(empty_image_ff_array_rden_ctrl),
+    .o_read_enable(read_rden_ctrl_image_ff_array)
 );
 
-//synchronizers for CDC
-(* async_reg = "true" *) reg [(COL * (W_DATA + 1))-1 : 0] x1=0,x2=0;
-(* async_reg = "true" *) reg [(ROW * (W_DATA + 1))-1 : 0] y1=0,y2=0;
+//synchronizers for CDC, receives weights and image from weight & image fifo array respectively
+(* async_reg = "true" *) reg [(COL * (W_DATA + 1))-1 : 0] weight_reg = 0;
+(* async_reg = "true" *) reg [(COL * (W_DATA + 1))-1 : 0] weights_cdc_sa = 0;
+(* async_reg = "true" *) reg [(ROW * (W_DATA + 1))-1 : 0] image_reg = 0;
+(* async_reg = "true" *) reg [(ROW * (W_DATA + 1))-1 : 0] image_cdc_sa = 0;
 always @(posedge s_clk)
 begin 
-    x1<=o_north_data;
-    x2<=x1;
+    weight_reg <= weights_append_dv_cdc;
+    weights_cdc_sa <= weight_reg;
     
-    y1<=o_west_data;
-    y2<=y1;
+    image_reg <= image_append_dv_cdc;
+    image_cdc_sa <= image_reg;
 end
 
-wire [(ROW * (W_DATA + 1))-1 : 0] temp;
-wire sa_last_row_dv;
-wire  [((W_PSUM + 1) * COL)-1 : 0] out_south_data;
+wire [(ROW * (W_DATA + 1)) - 1 : 0] image_delay_reg_dsp_pe;
 
-systolic_array#(
+//Provides delay to image before loading it into PE grid
+delay_reg #(
     .ROW(ROW),
-    .COL(COL/2),
-    .TOTAL_BYTES((ROW * (COL/2))),
-    .W_DATA(W_DATA),
-    .W_PSUM(W_PSUM)
-) systolic_array_top(
+    .W_DATA(W_DATA)
+) sa_image_delay_registers (
     .in_clk(s_clk),
     .i_rst(i_rst),
-    .in_north(x2[((COL) * (W_DATA+1))-1 : ((COL/2) * (W_DATA + 1))]),
-    .in_west(y2),
-    .out_east(temp),
-    .out_south(out_south_data[((COL) * (W_PSUM + 1))-1 : ((COL/2) * (W_PSUM + 1))])
+    .in_west(image_cdc_sa),
+    .pe_grid_image(image_delay_reg_dsp_pe)
 );
 
+wire [(ROW * (W_DATA + 1))-1 : 0] image_dsp_pe_booth_pe;
+wire  [((W_PSUM + 1) * COL)-1 : 0] partial_sums_sa_cdc;
+//PE grid using DSP blocks as multipliers
+dsp_pe_grid#(
+    .COL(DSP_COL),
+    .ROW(ROW),
+    .W_DATA(W_DATA),
+    .W_PSUM(W_PSUM)
+) dsp_sa_block (
+    .i_clk(s_clk),
+    .i_rst(i_rst),
+    .i_weight(weights_cdc_sa[((COL) * (W_DATA+1))-1 : ((DSP_COL) * (W_DATA + 1))]),
+    .in_data(image_delay_reg_dsp_pe),
+    .o_partial_sum(partial_sums_sa_cdc[((COL) * (W_PSUM + 1))-1 : ((DSP_COL) * (W_PSUM + 1))]),
+    .o_data(image_dsp_pe_booth_pe) 
+);
+
+//PE grid using booth algorithm for multiplication
 booth_pe_grid#(
-    .COL(COL/2),
+    .COL(BOOTH_COL),
     .ROW(ROW),
     .W_DATA(W_DATA),
     .W_PSUM(W_PSUM)
 ) booth_sa_block (
     .i_clk(s_clk),
     .i_rst(i_rst),
-    .i_weight(x2[((COL/2) * (W_DATA + 1))-1 : 0]),
-    .in_data(temp),
-    .o_partial_sum(out_south_data[((COL/2) * (W_PSUM + 1))-1 : 0]),
+    .i_weight(weights_cdc_sa[((BOOTH_COL) * (W_DATA + 1))-1 : 0]),
+    .in_data(image_dsp_pe_booth_pe),
+    .o_partial_sum(partial_sums_sa_cdc[((BOOTH_COL) * (W_PSUM + 1))-1 : 0]),
     .o_data() 
 );
-
-(* async_reg = "true" *) reg [(COL * (W_PSUM + 1))-1 : 0] b1=0,b2=0;
+//synchronizers for CDC, receive partial sums from PE grid
+(* async_reg = "true" *) reg [(COL * (W_PSUM + 1))-1 : 0] psum_reg = 0;
+(* async_reg = "true" *) reg [(COL * (W_PSUM + 1))-1 : 0] partial_sums_cdc_seperate_dv = 0;
 
 always@(posedge i_clk)
 begin 
-    b1<=out_south_data;
-    b2<=b1;
+    psum_reg <= partial_sums_sa_cdc;
+    partial_sums_cdc_seperate_dv <= psum_reg;
 end
 
-wire [(COL * W_PSUM)-1 : 0] o_p_sum;
-wire [COL-1 : 0] o_ps_data_valid;
+wire [(COL * W_PSUM)-1 : 0] psum_seperate_dv_psum_ff_array;
+wire [COL-1 : 0] dv_seperate_dv_psum_ff_array;
 
-rem_dv_array#(
+//Seperated data valid signal from partial sums output coming out of each column of PE grid
+seperate_psum_dv#(
     .COL(COL),
     .W_PSUM(W_PSUM)
 ) partial_sum_dv (
-    .in_data(b2),
-    .out_data(o_p_sum),
-    .out_data_valid(o_ps_data_valid)
+    .in_data(partial_sums_cdc_seperate_dv),
+    .out_data(psum_seperate_dv_psum_ff_array),
+    .out_data_valid(dv_seperate_dv_psum_ff_array)
 );
 
-fifo_south#(
+/*
+    Each fifo in this array stores its corrosponding column's partial sums after
+    receiving it from PE blocks 
+*/
+psum_fifo_array#(
     .COL(COL),
     .W_DATA(W_PSUM),
     .W_ADDR(W_ADDR),
@@ -194,12 +229,12 @@ fifo_south#(
 ) partial_sum_array (
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_data(o_p_sum),
-    .i_write_enable(o_ps_data_valid),
-    .i_read_enable(i_south_array_rden),
-    .o_data(out_partial_sums),
-    .o_fifo_empty(south_empty),
-    .o_data_valid(south_data_valid)
+    .i_data(psum_seperate_dv_psum_ff_array),
+    .i_write_enable(dv_seperate_dv_psum_ff_array),
+    .i_read_enable(i_psum_ff_array_read_en),
+    .o_data(o_psum_ff_array_partial_sums),
+    .o_fifo_empty(o_psum_ff_array_empty),
+    .o_data_valid(o_psum_ff_array_dv)
 );
 
 endmodule

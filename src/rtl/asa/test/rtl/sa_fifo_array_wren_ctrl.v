@@ -1,5 +1,5 @@
 //controls the write enable signal of internal(inside the engine) north and west fifo array
-module external_sa_input_ctrl#(
+module sa_fifo_array_wren_ctrl#(
     parameter N_SA = 2,
     parameter W_DATA = 8
 )(

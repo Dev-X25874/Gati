@@ -1,5 +1,8 @@
-//Load image from internal west fifo array into pe grid
-module internal_west_rden#(
+/*
+    When each fifo in the array has a data, 
+    the read enable signal of image fifo array is asserted.
+*/
+module image_fifo_array_rden#(
     parameter ROW = 9,
     parameter W_DATA = 8,
     parameter W_ADDR = 8

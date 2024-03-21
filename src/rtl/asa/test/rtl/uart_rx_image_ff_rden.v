@@ -1,5 +1,10 @@
-//controls read enable signal of external(before the SA engine) west fifo array
-module external_west_rden#(
+/*
+    This fsm controls the read enable signal of uart rx image fifo array.
+    The read enable signal is only asserted when each fifo in array has atleast 
+    20 numbers of occupants. Hence, 20 number of image bytes 
+    are streamed at once from all the fifo in array to delay registers.
+*/
+module uart_rx_image_ff_rden#(
     parameter N_SA = 2,
     parameter W_ADDR = 8    
 )(
@@ -21,7 +26,11 @@ end else begin
     case (state)
         0:begin
             if(i_fifo_empty == 0)begin
-                if(i_fifo_occupants >= {N_SA{9'd180}})begin     //input image matrix is 9x20
+                /*
+                    20 from each row is streamed at once because input image matrix is 9x20, 
+                    this can be changed as per required image dimension
+                */
+                if(i_fifo_occupants >= {N_SA{9'd180}})begin
                     rden <= {N_SA{1'b1}};
                     state <= 1;
                 end

@@ -1,8 +1,8 @@
 module top#(
-    parameter N_SA = 8,
+    parameter N_SA = 4,
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter COL = 8,
+    parameter COL = 4,
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1 << W_ADDR)

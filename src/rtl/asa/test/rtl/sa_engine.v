@@ -9,8 +9,8 @@ module sa_engine#(
     parameter W_PSUM = 19,
     parameter N_SA = 2,
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter DSP_COL = 4,
-    parameter BOOTH_COL = 4
+    parameter DSP_COL = 2,
+    parameter BOOTH_COL = 2
 )(
     input i_clk,
     input s_clk,

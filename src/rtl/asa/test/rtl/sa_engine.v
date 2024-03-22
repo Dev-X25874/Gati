@@ -9,14 +9,13 @@ module sa_engine#(
     parameter W_PSUM = 19,
     parameter N_SA = 2,
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter DSP_COL = 2,
-    parameter BOOTH_COL = 2
+    parameter DSP_COL = 4,
+    parameter BOOTH_COL = 4
 )(
     input i_clk,
     input s_clk,
     input i_rst,
     input i_trigger_1,
-    input i_trigger_2,
     input [W_DATA-1 : 0] i_weight_fifo_array_data,
     input [COL-1 : 0] i_weight_fifo_array_write_en,
     input [W_DATA-1 : 0] i_image_fifo_array_data,
@@ -67,6 +66,8 @@ append_dv#(
     .o_data(weights_append_dv_cdc)
 );
 
+wire enb_weight_rden_ctrl_image_rden_ctrl;
+
 //Control read enable signal of uart_rx_weight_fifo
 weight_fifo_aray_rden#(
    .COL(COL),
@@ -77,6 +78,7 @@ weight_fifo_aray_rden#(
    .i_clk(i_clk),
    .i_rst(i_rst),
    .i_trigger(i_trigger_1),
+   .image_read_ctrl_enable(enb_weight_rden_ctrl_image_rden_ctrl),
    .i_fifo_empty(empty_weight_ff_array_rden_ctrl),
    .o_fifo_read_enable(read_rden_ctrl_weight_ff_array),
    .i_fifo_occupants(occ_weight_ff_array_rden_ctrl)
@@ -106,7 +108,7 @@ fifo_array#(
     .o_data(data_image_ff_array_append_dv),
     .o_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_fifo_full(),
-    .o_fifo_data_valid(dv_image_ff_array_append_dv),
+    .o_fifo_dv(dv_image_ff_array_append_dv),
     .o_occupants(occ_image_ff_array_rden_ctrl)
 );
 
@@ -131,7 +133,7 @@ image_fifo_array_rden#(
     .i_clk(i_clk),
     .i_rst(i_rst),
     .i_occupants(occ_image_ff_array_rden_ctrl),
-    .i_trigger(i_trigger_2),
+    .i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
 );
@@ -174,26 +176,44 @@ dsp_pe_grid#(
 ) dsp_sa_block (
     .i_clk(s_clk),
     .i_rst(i_rst),
-    .i_weight(weights_cdc_sa[((COL) * (W_DATA+1))-1 : ((DSP_COL) * (W_DATA + 1))]),
+    .i_weight(weights_cdc_sa[((COL) * (W_DATA+1))-1 : ((COL - DSP_COL) * (W_DATA + 1))]),
     .in_data(image_delay_reg_dsp_pe),
-    .o_partial_sum(partial_sums_sa_cdc[((COL) * (W_PSUM + 1))-1 : ((DSP_COL) * (W_PSUM + 1))]),
+    .o_partial_sum(partial_sums_sa_cdc[((COL) * (W_PSUM + 1))-1 : ((COL - DSP_COL) * (W_PSUM + 1))]),
     .o_data(image_dsp_pe_booth_pe) 
 );
 
-//PE grid using booth algorithm for multiplication
-booth_pe_grid#(
-    .COL(BOOTH_COL),
-    .ROW(ROW),
-    .W_DATA(W_DATA),
-    .W_PSUM(W_PSUM)
-) booth_sa_block (
-    .i_clk(s_clk),
-    .i_rst(i_rst),
-    .i_weight(weights_cdc_sa[((BOOTH_COL) * (W_DATA + 1))-1 : 0]),
-    .in_data(image_dsp_pe_booth_pe),
-    .o_partial_sum(partial_sums_sa_cdc[((BOOTH_COL) * (W_PSUM + 1))-1 : 0]),
-    .o_data() 
-);
+generate
+    if(BOOTH_COL > 0)begin
+    booth_pe_grid#(
+        .COL(BOOTH_COL),
+        .ROW(ROW),
+        .W_DATA(W_DATA),
+        .W_PSUM(W_PSUM)
+    ) booth_sa_block (
+        .i_clk(s_clk),
+        .i_rst(i_rst),
+        .i_weight(weights_cdc_sa[((BOOTH_COL) * (W_DATA + 1))-1 : 0]),
+        .in_data(image_dsp_pe_booth_pe),
+        .o_partial_sum(partial_sums_sa_cdc[((BOOTH_COL) * (W_PSUM + 1))-1 : 0]),
+        .o_data() 
+    );
+    end else begin
+    booth_pe_grid#(
+        .COL(BOOTH_COL),
+        .ROW(ROW),
+        .W_DATA(W_DATA),
+        .W_PSUM(W_PSUM)
+    ) booth_sa_block (
+        .i_clk(),
+        .i_rst(),
+        .i_weight(),
+        .in_data(),
+        .o_partial_sum(),
+        .o_data() 
+    );    
+    end
+endgenerate
+
 //synchronizers for CDC, receive partial sums from PE grid
 (* async_reg = "true" *) reg [(COL * (W_PSUM + 1))-1 : 0] psum_reg = 0;
 (* async_reg = "true" *) reg [(COL * (W_PSUM + 1))-1 : 0] partial_sums_cdc_seperate_dv = 0;

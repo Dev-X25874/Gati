@@ -13,9 +13,9 @@ module uart_rx#(
 genvar i;
 generate
     for (i = 0; i < N_SA; i = i + 1) begin
-        uart_rx
-		#(.CLOCKS_PER_BIT(50))receiver
-		(
+        rx#(
+			.CLOCKS_PER_BIT(50)
+		)receiver(
 			.i_Clock(i_clk),
             .i_Rst(i_rst),
 			.i_RX_Serial(i_rx_serial[i]),

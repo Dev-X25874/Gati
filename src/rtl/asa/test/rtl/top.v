@@ -1,19 +1,17 @@
-// Make sure about we put a documentation on every kind of modules block.
 module top#(
-    parameter N_SA = 4,
+    parameter N_SA = 8,
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter COL = 4,
+    parameter COL = 8,
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1 << W_ADDR)
 )(
     input i_clk,
     input s_clk,
-    input i_rst,
+    input in_rst,
     input [N_SA-1 : 0] i_rx_serial,
     input i_trigger_1,
-    input i_trigger_2,
     input i_weight_ff_sel,
     input i_image_ff_sel,
     output [N_SA-1 : 0] o_tx_serial
@@ -26,14 +24,13 @@ module top#(
     However, the inversion of these inputs should be removed if these signals are mapped to any other GPIOs.
 */
 wire weight_ff_sel;
-assign sel1 = ~i_weight_ff_sel;
+assign weight_ff_sel = ~i_weight_ff_sel;
 wire image_ff_sel;
-assign sel2 = ~i_image_ff_sel;
+assign image_ff_sel = ~i_image_ff_sel;
 wire trigg1;
-wire trigg2;
 assign trigg1 = ~i_trigger_1;
-assign trigg2 = ~i_trigger_2;
-
+wire i_rst;
+assign i_rst = ~in_rst;
 wire [N_SA-1 : 0] rx_dv;
 wire [(N_SA * W_DATA)-1 : 0] rx_byte;
 
@@ -226,7 +223,6 @@ mul_engines#(
     .s_clk(s_clk),
     .i_rst(i_rst),
     .i_trigger_1(trigg1),
-    .i_trigger_2(trigg2),
     .i_weight_fifo_array_data(data_weight_wren_ctrl_sa),
     .i_weight_fifo_array_write_en(engine_north_ff_wren),
     .i_image_fifo_array_data(data_image_wren_ctrl_sa),

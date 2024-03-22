@@ -23,7 +23,8 @@ genvar i;
 generate
     for(i = 0; i < COL; i = i + 1)begin
         sync_fifo #(
-            .W_DATA(W_DATA)
+            .W_DATA(W_DATA),
+            .W_ADDR(W_ADDR)
         ) psum_fifo (
             .full_o(),
             .empty_o(o_fifo_empty[i]),

@@ -21,7 +21,9 @@ genvar i;
 generate
     for(i = 0; i < N_SA; i = i + 1)begin
         
-        sync_fifo #(.W_DATA(W_DATA)
+        sync_fifo #(
+            .W_DATA(W_DATA),
+            .W_ADDR(W_ADDR)
         )fifo_inst(
             .full_o(),
             .empty_o(o_empty[i]),

@@ -68,8 +68,8 @@ always @(posedge i_clk) begin
                     data[counter - 1] <= 0;
             end
         end else begin
-            counter <= counter;
-            data <= data;
+            counter <= 0;
+            data <= 0;
         end
     end
 end

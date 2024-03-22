@@ -1,6 +1,6 @@
 /*
-    Delay of two clock cycle is applied to data valid signal of partial sum 
-    becase the multiplied output coming from booth algorithm has delay of two clock cycle
+    The data valid signal of partial sum is delayed by two clock cycles because 
+    the multiplied output coming from booth algorithm has delay of two clock cycle
 */
 module booth_top_pe_block#(
 	parameter W_DATA = 8, 

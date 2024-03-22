@@ -1,7 +1,7 @@
 /*
     Multiplied output from booth is coming delayed by two clock cycles.
     In order to get all the output from dsp and booth pe blocks together, 
-    delay is applied to the multiplied output and data valid of partial sum.
+    so the multiplied output and data valid of partial sum are delayed by two cycles.
 */
 //Processing elements for first row in PE grid
 module dsp_top_pe_block#(

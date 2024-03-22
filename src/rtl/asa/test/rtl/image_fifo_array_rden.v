@@ -27,16 +27,21 @@ always @(posedge i_clk)begin
     end else begin
         case (state)
             0: begin
+                if(i_trigger)begin
+                    state <= 1;
+                end
+            end
+            1: begin
                 if(i_fifo_empty == 0)begin
-                        rden <= {ROW{1'b1}};
-                        state <= 1;
+                    rden <= {ROW{1'b1}};
+                    state <= 1;
                 end else begin
                     rden <= {ROW{1'b0}};
                     state <= 0;
                 end
             end 
 
-            1: begin
+            2: begin
                 rden <= 0;
                 state <= 0;
             end

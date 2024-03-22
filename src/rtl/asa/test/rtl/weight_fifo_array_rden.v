@@ -18,7 +18,8 @@ module weight_fifo_aray_rden#(
    input i_trigger,
    input [COL-1:0] i_fifo_empty,
    output [COL-1:0] o_fifo_read_enable,
-   input [((W_ADDR + 1) * COL)-1 : 0] i_fifo_occupants
+   input [((W_ADDR + 1) * COL)-1 : 0] i_fifo_occupants,
+   output image_read_ctrl_enable
 );
 
 /*
@@ -42,9 +43,9 @@ reg [COL-1:0] rden = 0;
 reg [2:0] state = 0;
 reg sel = 0;
 reg [($clog2(COL * 32))-1 : 0] counter = 0;
-reg [((W_ADDR+1) * COL) -1 : 0] replicated_value = 0;
-
+reg read_img = 0;
 assign o_fifo_read_enable = rden;
+assign image_read_ctrl_enable = read_img;
 
 always @(posedge i_clk)begin
     if(i_rst)begin
@@ -54,6 +55,7 @@ always @(posedge i_clk)begin
     end else begin
         case(state)
             0: begin
+                read_img <= 1'b0;
                 if(w_trigger) begin
                     if(i_fifo_empty == 0)begin
                         //Checking for number of occupants in each fifo in array to be atleast equal to ROW
@@ -70,6 +72,7 @@ always @(posedge i_clk)begin
                     rden <= 0;
                     counter <= 0;
                     state <= 0;
+                    read_img <= 1'b1;
                 end 
                 else 
                 begin

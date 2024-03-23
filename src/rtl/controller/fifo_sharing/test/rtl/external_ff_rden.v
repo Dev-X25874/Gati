@@ -20,24 +20,32 @@ if(i_rst)begin
     rden <= 0;
     state <= 0;
 end else begin
-    case (state)
-    0:begin
-        if(i_fifo_empty == 0)begin
-            if(i_fifo_occupants >= {N_SA{9'd64}})begin
-                rden <= {N_SA{1'b1}};
-                state <= 1;
-            end
+    if(i_fifo_empty == 0)begin
+        if(i_fifo_occupants >= {N_SA{9'd64}})begin
+            rden <= {N_SA{1'b1}};
         end
-    end 
-
-    1: begin
-        if(i_fifo_occupants == 0)begin
-            state <= 0;
-            rden <= {N_SA{1'b0}};
-        end
+    end else begin
+        rden <= {N_SA{1'b0}};
     end
-    default: state <= 0;
-endcase 
+
+//     case (state)
+//     0:begin
+//         if(i_fifo_empty == 0)begin
+//             if(i_fifo_occupants >= {N_SA{9'd64}})begin
+//                 rden <= {N_SA{1'b1}};
+//                 state <= 1;
+//             end
+//         end
+//     end 
+
+//     1: begin
+//         if(i_fifo_occupants == 0)begin
+//             state <= 0;
+//             rden <= {N_SA{1'b0}};
+//         end
+//     end
+//     default: state <= 0;
+// endcase 
 end
 end
 endmodule

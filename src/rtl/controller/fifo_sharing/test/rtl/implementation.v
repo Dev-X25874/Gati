@@ -101,7 +101,7 @@ top#(
 )(
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_iteration_status(i_iteration_status),
+    .i_start(i_start),
     .i_opcode(i_opcode),
     .i_sel_3(),
     .i_sel_4(),

@@ -8,7 +8,7 @@ module top#(
 )(
     input i_clk,
     input i_rst,
-    input i_iteration_status,
+    input i_start,
     input [3:0] i_opcode,
     input [4:0] i_sel_3,
     input [5:0] i_sel_4,
@@ -107,10 +107,10 @@ rden_controller#(
     .ROW(1),
     .W_FC_CNT(15),
     .W_ADDR(W_ADDR)
-)fc_north_rden_controller(
+)fc_weight_ff_array_rden(
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_trigger(i_iteration_status),
+    .i_trigger(i_start),
     .i_sel1(mux_sel1),
     .i_north_empty(fc_empty),
     // .i_west_empty(),
@@ -125,22 +125,47 @@ wire [COL-1 : 0] o_fc_rden;
 wire [(COL/2)-1 : 0] o_sa_rden;
 
 //convolution layer controller
+// internal_north_rden#(
+//    .COL(COL/2),
+//    .ROW(9),
+//    .W_ADDR(W_ADDR),
+//    .W_DATA(W_DATA)
+// ) internal_north_rden_inst(
+//    .i_clk(i_clk),
+//    .i_rst(i_rst),
+//    .i_trigger(i_iteration_status),
+//    .i_sel1(mux_sel1),
+//    .o_sel2(mux_sel2),
+//    .i_fifo_empty(sa_empty),
+//    .o_fifo_read_enable(o_sa_rden),
+//    .i_fifo_occupants(sa_occ)
+// );
+
 internal_north_rden#(
-   .COL(COL/2),
-   .ROW(9),
-   .W_ADDR(W_ADDR),
-   .W_DATA(W_DATA)
-) internal_north_rden_inst(
-   .i_clk(i_clk),
-   .i_rst(i_rst),
-   .i_trigger(i_iteration_status),
-   .i_sel1(mux_sel1),
-   .o_sel2(mux_sel2),
-   .i_fifo_empty(sa_empty),
-   .o_fifo_read_enable(o_sa_rden),
-   .i_fifo_occupants(sa_occ)
+    .COL(COL/2),
+    .W_ADDR(W_ADDR),
+    .ROW(9)
+)sa_weight_ff_array_rden(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_start(i_start),
+    .i_done(w_done),
+    .i_layer_done(w_layer_done),
+    .i_sel_1(mux_sel1),
+    .i_fifo_empty(sa_empty),
+    .i_fifo_occupants(sa_occ),
+    .o_fifo_read_enable(o_sa_rden),
+    .o_sel(mux_sel2)
 );
 
+wire w_layer_done;
+wire w_done;
+counters test_signals(
+    .i_clk(i_clk),
+    .i_start(i_start),
+    .o_layer_done(w_layer_done),
+    .o_done(w_done)
+);
 
 rden_mux#(
     .COL(COL)

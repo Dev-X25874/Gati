@@ -1,5 +1,10 @@
-//Processing elements (PE) of first row in SA
-module top_pe_block#(
+/*
+    Multiplied output from booth is coming delayed by two clock cycles.
+    In order to get all the output from dsp and booth pe blocks together, 
+    so the multiplied output and data valid of partial sum are delayed by two cycles.
+*/
+//Processing elements for first row in PE grid
+module dsp_top_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
 )(  input i_clk,
@@ -13,10 +18,9 @@ module top_pe_block#(
 //Width for appending msb to mul_reg for addition in case of signed number
 localparam W_APPEND = (W_PSUM - (2*W_DATA));
 
-reg [W_DATA - 1:0] wb = 0;           //register store weight
-reg [W_PSUM - 1:0] psum_buff = 0;   //register store partial sum
-reg w_dv = 0;
-reg ps_dv_delay = 0;
+reg [W_DATA - 1:0] wb = 0;           //register to store weight
+reg [W_PSUM - 1:0] psum_buff = 0;    //register to store partial sum
+reg w_dv = 0;         
 reg [1:0] ps_dv = 0;
 reg [(2 * W_DATA)-1 : 0] mul_out=0;
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
@@ -34,15 +38,13 @@ always @(posedge i_clk) begin
     if(i_rst)begin
         ps_dv[0] <= 0;
         ps_dv[1] <= 0;
-        ps_dv_delay <= 0;
     end else begin
         ps_dv[0] <= (i_data[W_DATA] & w_dv);
         ps_dv[1] <= ps_dv[0];    
-        ps_dv_delay <= ps_dv[1];
     end
 end
 
-assign o_p_sum[W_PSUM] = ps_dv_delay;
+assign o_p_sum[W_PSUM] = ps_dv[1];
 assign o_p_sum[W_PSUM-1 : 0] = psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}};
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
@@ -67,8 +69,8 @@ end
 
 endmodule
 
-//Middle pe blocks
-module pe_block#(
+//Processing elements for rest of the rows in the grid
+module dsp_middle_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
 )(
@@ -91,7 +93,6 @@ reg w_dv = 0;
 reg [1:0] ps_dv = 0;
 reg [(2 * W_DATA)-1:0] mul_out = 0;
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
-reg ps_dv_delay = 0;
 
 always @(posedge i_clk) begin
     if(i_rst)begin
@@ -104,7 +105,7 @@ always @(posedge i_clk) begin
 end
 
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});   //32 bit computed output
-assign o_p_sum[W_PSUM] = ps_dv_delay;
+assign o_p_sum[W_PSUM] = ps_dv[1];
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
 
@@ -112,11 +113,9 @@ always @(posedge i_clk) begin
     if(i_rst)begin
         ps_dv[0] <= 0;
         ps_dv[1] <= 0;
-        ps_dv_delay <= 0;
     end else begin
         ps_dv[0] <= (i_data[W_DATA] & w_dv);
         ps_dv[1] <= ps_dv[0];
-        ps_dv_delay <= ps_dv[1];
     end
 end
 
@@ -139,8 +138,8 @@ always @(posedge i_clk) begin
 end
 endmodule
 
-//Bottom pe block
-module bottom_pe_block#(
+//Processing elements for last row in the grid
+module dsp_bottom_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
 )(
@@ -160,7 +159,6 @@ reg [W_DATA - 1:0] wb = 0;           //register store weight
 reg [W_PSUM - 1:0] psum_buff = 0;   //register store partial sum
 reg w_dv = 0;
 reg [1:0] ps_dv = 0;
-reg ps_dv_delay= 0;
 reg [(2 * W_DATA)-1:0] mul_out = 0;
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
 
@@ -178,17 +176,15 @@ always @(posedge i_clk) begin
     if(i_rst)begin
         ps_dv[0] <= 0;
         ps_dv[1] <= 0;
-        ps_dv_delay <= 0;
     end else begin
         ps_dv[0] <= (i_data[W_DATA] & w_dv);
         ps_dv[1] <= ps_dv[0];
-        ps_dv_delay <= ps_dv[1];
     end
 end
 
 assign o_data = i_data;
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});   //32 bit computed output
-assign o_p_sum[W_PSUM] = ps_dv_delay;
+assign o_p_sum[W_PSUM] = ps_dv[1];
 
 always @(posedge i_clk) begin
     if(i_rst)begin

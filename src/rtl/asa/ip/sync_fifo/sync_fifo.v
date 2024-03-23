@@ -47,7 +47,8 @@
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module sync_fifo #(
-    parameter W_DATA = 8
+    parameter W_DATA = 8,
+    parameter W_ADDR = 8
 )(
 output full_o,
 output empty_o,
@@ -75,7 +76,7 @@ output o_valid
 .PROG_EMPTY_NEGATE (2),
 .OPTIONAL_FLAGS (0),
 .PIPELINE_REG (1),
-.DEPTH (512),
+.DEPTH (1 << W_ADDR),
 .FAMILY ("TRION"),
 .ASYM_WIDTH_RATIO (4),
 .BYPASS_RESET_SYNC (1),

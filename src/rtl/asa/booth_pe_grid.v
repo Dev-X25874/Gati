@@ -1,4 +1,7 @@
-//Array of PE blocks
+/*
+    Generates a grid of processing elements, wherein all the PE blocks
+    uses LUTs used by booth algorithm for multiplication. 
+*/
 module booth_pe_grid#(
     parameter COL = 4,
     parameter ROW = 9,
@@ -24,7 +27,6 @@ generate
             
             if(COL > 2)begin
                 if (i == 0 && j == 0) begin//1 
-                //according to the position of pe block with respect to rows and columns the counter and wait values are assigned by the equation.
                 booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),

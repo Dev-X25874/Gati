@@ -29,7 +29,7 @@ parameter OUTPUT_CHECK = 3'b101;
 always @(posedge clk) begin
     case(state)
     IDLE: begin
-        dout_instruction <= 0;
+        data_instruction <= 0;
         valid <= 0;
         ready <= 0;
         opcode <= 0;

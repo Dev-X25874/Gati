@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="sa" description="" last_change="1711112979" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="sa" description="" last_change="1711435560" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
@@ -16,7 +16,6 @@
         <efx:design_file name="rtl/uart_tx.v" version="default" library="default"/>
         <efx:design_file name="rtl/top_booth.v" version="default" library="default"/>
         <efx:design_file name="rtl/booth_pe_grid.v" version="default" library="default"/>
-        <efx:design_file name="rtl/sa_engine.v" version="default" library="default"/>
         <efx:design_file name="rtl/booth_partial_product.v" version="default" library="default"/>
         <efx:design_file name="rtl/append_dv.v" version="default" library="default"/>
         <efx:design_file name="rtl/uart_rx.v" version="default" library="default"/>
@@ -37,6 +36,8 @@
         <efx:design_file name="rtl/mul_engines.v" version="default" library="default"/>
         <efx:design_file name="rtl/dsp_pe_blocks.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_fifo_array_wren_gen.v" version="default" library="default"/>
+        <efx:design_file name="rtl/sa_engine_dsp.v" version="default" library="default"/>
+        <efx:design_file name="rtl/sa_engine_booth.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

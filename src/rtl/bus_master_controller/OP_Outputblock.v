@@ -45,12 +45,12 @@ always @(posedge clk) begin
             ready <= 1'b1;
             if(write) begin
                 if(count < (CNT-1)) begin
-                    data_instruction[data_in-(count*8)-1 -:8] <= din;
+                    data_instruction[data_out-(count*8)-1 -:8] <= din;
                     count <= count + 1;
                     state <= REGISTER;
                 end
                 else begin
-                    data_instruction[data_in-(count*8)-1 -:8] <= din;
+                    data_instruction[data_out-(count*8)-1 -:8] <= din;
                     count <= 0;
                     state <= CONCAT;
                 end
@@ -70,7 +70,7 @@ always @(posedge clk) begin
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {opcode, accumulantaddr, outputaddr, channelItr, kernelItr, imagedim};
+        dout <= {imagedim,kernelItr,channelItr,outputaddr,accumulantaddr,opcode};
         state <= IDLE;
     end
     endcase

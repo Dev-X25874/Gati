@@ -15,37 +15,49 @@ reg [1:0] state = 0;
 always @(posedge clk) begin
     case(state)
     0: begin
-        opcode <= 0;
-        dout <= 0;
+        opcode <= opcode;
+        dout <= dout;
         state <= 1;
+        dout_valid <= 0;
     end
     1: begin
         if(rx_valid) begin
             if(count_opcode < 3) begin
-                opcode <= din[8-(count_opcode*8)-1 -:8];
+                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
                 count_opcode <= count_opcode + 1;
                 state <= 1;
             end
             else begin
-                opcode <= din[8-(count_opcode*8)-1 -:8];
+                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
                 count_opcode <= 0;
                 state <= 2;
             end
         end
+        else begin
+            opcode <= opcode;
+            count_opcode <= count_opcode;
+            state <= 1;
+        end
     end
     2: begin
         if(rx_valid) begin
-            if(count_instruction < 255) begin
-                dout <= din[8-(count_instruction*8)-1 -:8];
+            if(count_instruction < 32) begin
+                dout[data_in-(count_instruction*8)-1 -:8] <= din;
                 count_instruction <= count_instruction + 1;
                 state <= 2;
             end
             else begin
-               dout <= din[8-(count_instruction*8)-1 -:8];
+               dout[data_in-(count_instruction*8)-1 -:8] <= din;
                count_instruction <= 0;
                dout_valid <= 1'b1;
                state <= 0; 
             end
+        end
+        else begin
+            dout <= dout;
+            count_instruction <= count_instruction;
+            state <= 2;
+            dout_valid <= 0;
         end
     end
     endcase

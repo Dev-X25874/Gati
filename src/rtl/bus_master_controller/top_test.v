@@ -74,7 +74,7 @@ fifo_valid #(.DATA_WIDTH(180), .ADDR_WIDTH(9)) fifo_tx(
     .data_valid(valid_fifo_tx)
 );
 
-controller_fifo_tx controller_fifo_tx(
+controller_tx controller_tx(
     .clk(clk),
     .i_rst(rst),
     .i_fifo_data(dout_fifo_tx),

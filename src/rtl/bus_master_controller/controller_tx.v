@@ -1,5 +1,5 @@
 //send 19 bits of partial suns in 3 bytes to the uart trasnsmitter
-module controller_fifo_tx #(
+module controller_tx #(
     parameter DATA_WIDTH = 180,
     parameter UART_WIDTH = 8,
     parameter cnt = DATA_WIDTH/UART_WIDTH

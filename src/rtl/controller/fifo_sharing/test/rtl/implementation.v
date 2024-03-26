@@ -3,13 +3,13 @@ module implementation#(
     parameter W_ADDR = 8,
     parameter COL = 8,
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter N_SA_CNV = 4,
+    parameter N_SA_CNV = 2,
     parameter N_SA_FC = 1
 )( 
     input i_clk,
     input i_rx_serial,
     input in_rst,
-    input in_iteration_status, 
+    input in_start, 
     input i_opcode_sel,
     output sa_dv,
     output fc_dv,
@@ -18,8 +18,8 @@ module implementation#(
     output mux1_select
 );
 
-wire i_iteration_status;
-assign i_iteration_status = ~in_iteration_status;
+wire i_start;
+assign i_start = ~in_start;
 
 wire i_rst;
 assign i_rst = ~in_rst;
@@ -103,8 +103,8 @@ top#(
     .i_rst(i_rst),
     .i_start(i_start),
     .i_opcode(i_opcode),
-    .i_sel_3(),
-    .i_sel_4(),
+  //  .i_sel_3(),
+   // .i_sel_4(),
     .i_north_data(north_data),
     .i_north_wren(north_wren),
     .sa_data(sa_data),

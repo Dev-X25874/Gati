@@ -50,7 +50,7 @@ always @(posedge i_clk) begin
 
             1: begin
                 if(i_sel_1)begin
-                    if((i_fifo_empty == 0) && (i_fifo_occupants == {COL{S_ROW}}))begin
+                    if((i_fifo_empty == 0) && (i_fifo_occupants >= {COL{S_ROW}}))begin
                         rden <= {COL{1'b1}};
                         state <= 2;
                     end

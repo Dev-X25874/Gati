@@ -83,6 +83,7 @@ always @(posedge clk) begin
     end
     OUTPUT_CHECK: begin
         dout <= {FCbias,imageendaddr,imagedim,flatten,address,dropoutconstant,inputrows,weightcols,weightrows,opcode};
+        valid <= 1'b1;
         state <= IDLE;
     end
     endcase

@@ -6,9 +6,9 @@ module top_master #(parameter op_code_width = 4,
     input start,
     input clk,
     input [(op_code_width)-1 : 0] op_code,
-    input [(1<<op_code_width)-1 : 0] ready_in,
+    input [(op_code_width)-1 : 0] ready_in,
     output [(data_out)-1 : 0] dout,
-    output [(1<<op_code_width)-1 : 0] sel,
+    output [(op_code_width)-1 : 0] sel,
     output write,
     output done
 );

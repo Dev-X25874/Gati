@@ -72,6 +72,7 @@ always @(posedge clk) begin
     OUTPUT_CHECK: begin
         dout <= {imagedim,kernelItr,channelItr,outputaddr,accumulantaddr,opcode};
         state <= IDLE;
+        valid <= 1'b1;
     end
     endcase
 end

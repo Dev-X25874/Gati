@@ -25,7 +25,7 @@ module controller_tx #(
 
 
     always @(posedge clk) begin
-        if(i_rst)begin
+        if(i_rst == 0)begin
             p_state <= 0;
             r_rd_en <= 0;
             r_o_valid_tx2 <= 0;

@@ -90,6 +90,7 @@ always @(posedge clk) begin
     OUTPUT_CHECK: begin
         dout <= {poolpadding,poolstride,poolheight,poolwidth,pooltype,quantshift,quantscale,acttype,BIASaddr,BNaddress,BNchannels,opcode};
         state <= IDLE;
+        valid <= 1'b1;
     end
     endcase
 end

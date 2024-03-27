@@ -22,6 +22,7 @@ wire [179:0] dout_fifo_tx;
 wire [7:0] tx_din;
 wire dv;
 wire empty_tx;
+wire done_tx;
 
 rx rx(
     .clk(clk),
@@ -82,7 +83,7 @@ controller_tx controller_tx(
     .o_data(tx_din),
     .rd_en(re),             
     .o_valid_tx2(dv),
-    .i_trans_done_tx2()
+    .i_trans_done_tx2(done_tx)
 );
 
 tx tx(

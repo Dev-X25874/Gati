@@ -12,8 +12,8 @@ module external_sa_input_ctrl#(
 );
 
 reg [COL-1 : 0] wren = 0;
-reg [W_DATA-1 : 0] data = 0;
-assign o_data = data;
+// reg [W_DATA-1 : 0] data = 0;
+assign o_data = i_data_valid ? i_data : 0;
 assign o_wren = wren;
 
 always @(*) begin
@@ -27,10 +27,10 @@ always @(*) begin
         end
     end
 end
-
+/*
 always @(posedge i_clk) begin
     if(i_rst)begin
-        
+        data <= 0;
     end else begin
         if(i_data_valid)begin
             data <= i_data;
@@ -38,5 +38,5 @@ always @(posedge i_clk) begin
             data <= data;
         end
     end
-end
+end*/
 endmodule

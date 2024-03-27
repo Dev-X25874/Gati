@@ -18,7 +18,7 @@ module internal_north_rden#(
 localparam S_ROW = ROW[8:0];
 
 reg [2:0] state = 0;
-reg [$clog2(COL)-1 : 0] counter = 0;
+reg [4:0] counter = 0;
 reg sel = 1;
 reg [COL-1 : 0] rden = 0;
 
@@ -65,7 +65,6 @@ always @(posedge i_clk) begin
                     sel <= sel;
                 end else begin
                     counter <= counter + 1;
-                    state <= 1;
                 end
             end
 

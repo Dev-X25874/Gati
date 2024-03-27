@@ -121,7 +121,6 @@ initial begin
     rd_en_i   = 1'b0;
     wdata     = 'h0;
     waddr     = 'd0;
-    raddr     = 'd0;
     dynamic_a = {};
     dynamic_b = {};
 end
@@ -158,16 +157,6 @@ initial begin
             end
         end
     end
-end
-
-initial begin
-	forever begin
-		@(posedge rd_clk_i) begin
-		    if (rd_en_i && ~empty_o) begin
-		    	raddr <= raddr + 1;
-		    end
-		end
-	end
 end
 
 initial begin

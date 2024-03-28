@@ -24,10 +24,10 @@ always @(posedge i_clk)begin
             1'b1: begin //Convolution layer
                 case (i_sel_2)
                     1'b0:begin  //32-17 fifo set
-                        north_rden <= {i_sa_rden, 4'd0};
+                        north_rden <= {i_sa_rden, {COL/2{1'b0}}};
                     end
                     1'b1: begin //16-1 fifo set
-                        north_rden <= {4'd0, i_sa_rden};
+                        north_rden <= {{COL/2{1'b0}}, i_sa_rden};
                     end 
                 endcase
             end

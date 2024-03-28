@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="fifo_sharing_controller" description="" last_change_date="Wed March 27 2024 14:23:33" location="/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/fifo_sharing/test" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="fifo_sharing_controller" description="" last_change_date="Thu March 28 2024 14:51:19" location="/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/fifo_sharing/test" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="implementation"/>
+        <efx:top_module name="top"/>
         <efx:design_file name="rtl/north_array_wren.v" version="default" library="default"/>
         <efx:design_file name="rtl/booth_top.v" version="default" library="default"/>
         <efx:design_file name="rtl/external_sa_input_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/top.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_mux.v" version="default" library="default"/>
         <efx:design_file name="rtl/one_cycle.v" version="default" library="default"/>
         <efx:design_file name="rtl/fc_block.v" version="default" library="default"/>
@@ -26,7 +25,6 @@
         <efx:design_file name="rtl/internal_west_rden.v" version="default" library="default"/>
         <efx:design_file name="rtl/append_dv.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_engine.v" version="default" library="default"/>
-        <efx:design_file name="rtl/implementation.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_booth_pe_grid.v" version="default" library="default"/>
         <efx:design_file name="rtl/fc_booth_pe_grid.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_pe_grid.v" version="default" library="default"/>
@@ -52,6 +50,8 @@
         <efx:design_file name="rtl/uart_tx.v" version="default" library="default"/>
         <efx:design_file name="rtl/fc_pe_grid.v" version="default" library="default"/>
         <efx:design_file name="rtl/fifo_north.v" version="default" library="default"/>
+        <efx:design_file name="rtl/block.v" version="default" library="default"/>
+        <efx:design_file name="rtl/top.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

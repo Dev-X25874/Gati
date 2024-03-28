@@ -69,16 +69,19 @@ always @(posedge i_clk) begin
             end
 
             3: begin
+                if(i_done)begin
+                    state <= 4;
+                    sel <= ~sel;
+                end
+            end
+
+            4: begin
                 if(i_layer_done)begin
-                    if(i_done)begin
-                        state <= 0;
-                        sel <= 1'b1;
-                    end
+                    state <= 0;
+                    sel <= 1'b1;
                 end else begin
-                    if(i_done) begin
-                       sel <= ~sel;
-                       state <= 1; 
-                    end
+                    state <= 1;
+                    sel <= sel;
                 end
             end
 

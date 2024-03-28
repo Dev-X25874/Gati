@@ -1,203 +1,116 @@
 module top#(
-    parameter COL = 16,
     parameter W_DATA = 8,
-    parameter W_ADDR = 8,
+    parameter W_ADDR = 9,
+    parameter COL = 32,
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter N_SA_CNV = 4,
     parameter N_SA_FC = 1
-)(
+)( 
     input i_clk,
-    input i_rst,
-    input i_start,
-    input [3:0] i_opcode,
-   // input [4:0] i_sel_3,
-   // input [5:0] i_sel_4,
-    // input [(COL * W_DATA)-1 : 0] i_north_data,
-    input [W_DATA-1 : 0] i_north_data,
-    input [COL-1 : 0] i_north_wren,
-    // output [W_DATA : 0] o_data_fc,
-    // output [W_DATA : 0] o_data_sa
-    output [(N_SA_CNV * ((COL / 2) * (W_DATA + 1)))-1 : 0] sa_data,
-    output [(N_SA_FC * (COL * (W_DATA + 1)))-1 : 0] fc_data,
-    output sa_dv,
-    output fc_dv,
-    output mux1_select
+    input i_rx_serial,
+    input in_rst,
+    input in_start, 
+    input i_opcode_sel,
+    output [(COL * (W_DATA + 1))-1 : 0] o_weight_ff_data
 );
 
-wire [(COL * W_DATA)-1 : 0] north_data;
-wire [COL-1 : 0] north_empty;
-wire [(COL * (W_ADDR + 1))-1 : 0] north_occ;
-wire [COL-1 : 0] north_fifo_read_enable;
-wire [COL-1 : 0] north_dv;
-fifo_north#(
-    .COL(COL),
+wire i_start;
+assign i_start = ~in_start;
+
+wire i_rst;
+assign i_rst = ~in_rst;
+wire rx_dv;
+wire [W_DATA-1 : 0]rx_byte;
+
+wire [3:0] i_opcode;
+assign i_opcode = (i_opcode_sel) ? 4'b1111 : 4'b0000; 
+uart_rx#(
+    .CLOCKS_PER_BIT(50)
+)receiver(
+    .i_Clock(i_clk),
+    .i_Rst(i_rst),
+    .i_RX_Serial(i_rx_serial),
+    .o_RX_DV(rx_dv),
+    .o_RX_Byte(rx_byte)
+);
+
+wire o_empty;
+wire [W_ADDR : 0] o_occupants;
+wire o_valid;
+wire [W_DATA-1 : 0] o_data;
+sync_fifo #(
     .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
-)north_fifo_array(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_data(i_north_data),
-    .i_read_enable(north_fifo_read_enable),
-    .i_write_enable(i_north_wren),
-    .o_data(north_data),
-    .o_fifo_empty(north_empty),
-    .o_fifo_full(),
-    .o_fifo_dv(north_dv),
-    .o_occupants(north_occ)
-);
-
-wire [(COL * (W_DATA + 1))-1 : 0] north_array_data;
-append_dv#(
-    .N_DIMENSION(COL),  //number of rows or columns
-    .W_DATA(W_DATA)
-) append_data_valid (  
-    .i_data(north_data),
-    .i_data_valid(north_dv),
-    .o_data(north_array_data)
-);
-
-// wire mux1_select;
-assign mux1_select = mux_sel1;
-wire mux_sel1;
-controller mux_ctrl(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_opcode(i_opcode),
-    // .i_layer_iteration(i_iteration_status), //1 -> Conv done, 0 -> Conv incomplete
-    .o_sel1(mux_sel1)
-    // .o_sel2(mux_sel2)
-);
-
-wire [(N_SA_FC * (COL * (W_DATA + 1)))-1 : 0] fc_data;
-wire [(N_SA_FC * COL)-1 : 0] fc_empty;
-wire [(N_SA_FC * (COL * (W_ADDR + 1)))-1 : 0] fc_occ;
-wire [(N_SA_CNV * ((COL/2) / N_SA_CNV))-1 : 0] sa_empty;
-wire [(N_SA_CNV * (((COL/2) / N_SA_CNV) * (W_ADDR + 1)))-1 : 0] sa_occ;
-wire [(N_SA_CNV * ((COL / 2) * (W_DATA + 1)))-1 : 0] sa_data;
-
-mux#(
-    .COL(COL),
-    .W_DATA(W_DATA),
-    .N_SA_FC(N_SA_FC),  //Number of engine in fully connected
-    .N_SA_CNV(N_SA_CNV),  //Number of engines in convolution layer
     .W_ADDR(W_ADDR)
-)ctrl_mux(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_sel1(mux_sel1),
-    .i_sel2(mux_sel2),
-    .i_data(north_array_data),
-    .i_empty(north_empty),
-    .i_occupants(north_occ),
-    .o_fc_data(fc_data),
-    .o_fc_occ(fc_occ),
-    .o_fc_empty(fc_empty),
-    .o_sa_data(sa_data),
-    .o_sa_empty(sa_empty),
-    .o_sa_occ(sa_occ),
-    .fc_data_valid(fc_dv),
-    .sa_data_valid(sa_dv)
+)external_input_fifo(
+    .prog_full_o(),
+    .full_o(),
+    .empty_o(o_empty),
+    .clk_i(i_clk),
+    .wr_en_i(rx_dv),
+    .rd_en_i(o_rden),
+    .wdata(rx_byte),
+    .datacount_o(o_occupants),
+    .rst_busy(),
+    .rdata(o_data),
+    .a_rst_i(i_rst),
+    .o_valid(o_valid)
 );
 
-//Fully connected layer controller
-wire mux_sel2;
-rden_controller#(
-    .COL(COL),
-    .ROW(1),
-    .W_FC_CNT(15),
-    .W_ADDR(W_ADDR)
-)fc_weight_ff_array_rden(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_trigger(i_start),
-    .i_sel1(mux_sel1),
-    .i_north_empty(fc_empty),
-    // .i_west_empty(),
-    .i_north_occ(fc_occ),
-    // .i_west_occ(),
-    .i_img_dim(15'd10),
-    .o_north_rden(o_fc_rden)
-    // .o_west_rden()
-);
+wire o_rden;
 
-wire [COL-1 : 0] o_fc_rden;
-wire [(COL/2)-1 : 0] o_sa_rden;
-
-//convolution layer controller
-// internal_north_rden#(
-//    .COL(COL/2),
-//    .ROW(9),
-//    .W_ADDR(W_ADDR),
-//    .W_DATA(W_DATA)
-// ) internal_north_rden_inst(
-//    .i_clk(i_clk),
-//    .i_rst(i_rst),
-//    .i_trigger(i_iteration_status),
-//    .i_sel1(mux_sel1),
-//    .o_sel2(mux_sel2),
-//    .i_fifo_empty(sa_empty),
-//    .o_fifo_read_enable(o_sa_rden),
-//    .i_fifo_occupants(sa_occ)
-// );
-
-internal_north_rden#(
-    .COL(COL/2),
+external_ff_rden#(
+    .N_SA(1),
     .W_ADDR(W_ADDR),
-    .ROW(9)
-)sa_weight_ff_array_rden(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_start(i_start),
-    .i_done(w_done),
-    .i_layer_done(w_layer_done),
-    .i_sel_1(mux_sel1),
-    .i_fifo_empty(sa_empty),
-    .i_fifo_occupants(sa_occ),
-    .o_fifo_read_enable(o_sa_rden),
-    .o_sel(mux_sel2)
-);
-
-wire w_layer_done;
-wire w_done;
-counters test_signals(
-    .i_clk(i_clk),
-    .i_start(i_start),
-    .o_layer_done(w_layer_done),
-    .o_done(w_done)
-);
-
-rden_mux#(
     .COL(COL)
-) rden_mux_ctrl(
+)external_fifo_rden(
     .i_clk(i_clk),
     .i_rst(i_rst),
-    .i_fc_rden(o_fc_rden),
-    .i_sa_rden(o_sa_rden),
-    .i_sel_1(mux_sel1),
-    .i_sel_2(mux_sel2),
-    .o_north_rden(north_fifo_read_enable)
+    .i_fifo_empty(o_empty),
+    .i_fifo_occupants(o_occupants),
+    .o_fifo_read_enable(o_rden)
 );
-/*
-//Checking resources
-sa_mux#(
+
+wire [W_DATA-1 : 0] north_data;
+wire north_wren_ctrl_enb;
+external_sa_input_ctrl#(
+    .W_DATA(W_DATA),
+    .COL(COL)
+)north_array_wren_ctrl_enb(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_data_valid(o_valid),
+    .i_data(o_data),
+    .o_data(north_data),
+    .o_wren(north_wren_ctrl_enb)
+);
+
+wire [COL-1 : 0] north_wren;
+north_array_wren#(
     .COL(COL),
-    .W_DATA(W_DATA)
-)sa_data_mux(
-    .i_data(sa_data),
-    .i_sel(i_sel_3),
-    .o_data(o_data_sa)
+    .N_SA(1)
+) weight_ff_wren (
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_enb(north_wren_ctrl_enb),
+    .o_wren(north_wren)
 );
 
-fc_mux#(
+// wire [(COL * (W_DATA + 1))-1 : 0] o_weight_ff_data;
+
+block#(
     .COL(COL),
-    .W_DATA(W_DATA)
-)fc_data_mux(
-    .i_data(fc_data),
-    .i_sel(i_sel_4),
-    .o_data(o_data_fc)
+    .W_DATA(W_DATA),
+    .W_ADDR(W_ADDR),
+    .RAM_DEPTH(RAM_DEPTH),
+    .N_SA_CNV(N_SA_CNV),
+    .N_SA_FC(N_SA_FC)
+)controller_inst(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_start(i_start),
+    .i_opcode(i_opcode),
+    .i_north_data(north_data),
+    .i_north_wren(north_wren),
+    .north_array_data(o_weight_ff_data)
 );
-*/
-
-
 endmodule

@@ -7,12 +7,13 @@ module counters(
 
 reg [4:0] count3 = 0;
 reg [4:0] count2 = 0;
-reg [4:0] count1 = 0;
+reg [9:0] count1 = 0;
 reg done = 0;
 reg layer_done = 0;
 reg [1:0] state = 0;
 assign o_done = done;
-assign o_layer_done = layer_done;
+// assign o_layer_done = layer_done;
+assign o_layer_done = (count3 == 2);
 
 wire w_start;
 one_cycle start_pulse(
@@ -29,7 +30,7 @@ always @(posedge i_clk) begin
             count2 <= 0;
             count1 <= 0;
             done <= 1'b0;
-            layer_done <= 1'b0;
+            // layer_done <= 1'b0;
             if(w_start)begin
                 state <= 1;
             end
@@ -41,13 +42,15 @@ always @(posedge i_clk) begin
                 count2 <= 0;
                 count1 <= 0;
                 state <= 0;
-                layer_done <= 1'b1;
+                // layer_done <= 1'b1;
+                done <= 0;
             end else begin
-                if(count2 == 3)begin
+                if(count2 == 4)begin
                     count3 <= count3 + 1;
                     count2 <= 0;
+                    done <= 0;
                 end else begin
-                    if(count1 == 20)begin
+                    if(count1 == 30)begin
                         count2 <= count2 + 1;
                         count1 <= 0;
                         done <= 1'b1;

@@ -21,7 +21,7 @@ if(i_rst)begin
     state <= 0;
 end else begin
     if(i_fifo_empty == 0)begin
-        if(i_fifo_occupants >= {N_SA{9'd64}})begin
+        if(i_fifo_occupants >= {N_SA{9'd288}})begin
             rden <= {N_SA{1'b1}};
         end
     end else begin

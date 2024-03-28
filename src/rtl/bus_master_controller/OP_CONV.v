@@ -21,7 +21,7 @@ module OP_CONV #(parameter op_code_width = 4,
                 output reg [31:0] INPUT_ADDRESS = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
-                output valid,
+                output reg valid = 0,
                 output reg ready = 0,
                 output reg [144:0] dout = 0
             );
@@ -32,13 +32,13 @@ parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011;
 parameter OUTPUT_CHECK = 3'b101;
-assign valid = done;
+//assign valid = done;
 
 always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-       // valid <= 0;
+        valid <= 0;
         ready <= 0;
         opcode = 0;
         IW <= 0;
@@ -89,13 +89,13 @@ always @(posedge clk) begin
             INPUT_ADDRESS <= data_instruction[110:79];
             channelItr <= data_instruction[122:111];
             kernelItr <= data_instruction[134:123];
-            //valid <= 1'b1;
+            valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
         dout <= {kernelItr, channelItr, INPUT_ADDRESS, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode};
-        //valid <= 1'b1;
+        valid <= 1'b1;
         state <= IDLE;
     end
     endcase

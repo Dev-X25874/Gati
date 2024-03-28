@@ -2,7 +2,7 @@
 module controller_tx #(
     parameter DATA_WIDTH = 180,
     parameter UART_WIDTH = 8,
-    parameter cnt = DATA_WIDTH/UART_WIDTH
+    parameter cnt = 23
 )(  input clk,
     input i_rst,
     input [DATA_WIDTH-1:0] i_fifo_data,
@@ -21,7 +21,8 @@ module controller_tx #(
 
     assign rd_en = r_rd_en;
     assign o_valid_tx2 = r_o_valid_tx2;  
-    assign o_data = r_o_data;
+    //assign o_data = r_o_data;
+    assign o_data = i_fifo_data_reg[7:0];
 
 
     always @(posedge clk) begin
@@ -56,10 +57,31 @@ module controller_tx #(
             end
 
             3 : begin
+                /*if(i_trans_done_tx2)begin
+                    if(count < (cnt-1)) begin
+                        i_fifo_data_reg <= {i_fifo_data_reg[7:0], i_fifo_data_reg[179:8]}; 
+                        r_o_valid_tx2 <= 1;
+                        p_state <= 3;
+                        count <= count + 1;
+                    end
+                    else begin
+                        i_fifo_data_reg <= {i_fifo_data_reg[7:0], i_fifo_data_reg[179:8]}; 
+                        count <= 0;
+                        r_o_valid_tx2 <= 0; 
+                        p_state <= 4;
+                    end
+                end
+                else begin
+                    r_o_valid_tx2 <= 0; 
+                    p_state <= 3;
+                    count <= count;
+                    i_fifo_data_reg <= i_fifo_data_reg;
+                end
+                end*/
+
                 if(count < (cnt-1)) begin
                     if (i_trans_done_tx2) begin
                         i_fifo_data_reg <= {i_fifo_data_reg[7:0], i_fifo_data_reg[179:8]}; 
-                        r_o_data <= i_fifo_data_reg[7:0];
                         r_o_valid_tx2 <= 1;
                         p_state <= 3;
                         count <= count + 1;
@@ -75,7 +97,7 @@ module controller_tx #(
                     r_o_valid_tx2 <= 0; 
                     p_state <= 4;
                 end
-            end
+                end
 
 /*            4 : begin
                 if (i_trans_done_tx2) begin

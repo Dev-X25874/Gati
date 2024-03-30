@@ -1,0 +1,85 @@
+$date
+	Sat Mar 30 10:30:44 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1s
+$end
+$scope module onehot $end
+$var wire 3 ! b [2:0] $end
+$var reg 4 " a [3:0] $end
+$scope module dut $end
+$var wire 4 # onehot [3:0] $end
+$var wire 3 $ bin [2:0] $end
+$scope begin jl[0] $end
+$var wire 4 % tmp_mask [3:0] $end
+$scope begin il[0] $end
+$upscope $end
+$scope begin il[1] $end
+$upscope $end
+$scope begin il[2] $end
+$upscope $end
+$scope begin il[3] $end
+$upscope $end
+$upscope $end
+$scope begin jl[1] $end
+$var wire 4 & tmp_mask [3:0] $end
+$scope begin il[0] $end
+$upscope $end
+$scope begin il[1] $end
+$upscope $end
+$scope begin il[2] $end
+$upscope $end
+$scope begin il[3] $end
+$upscope $end
+$upscope $end
+$scope begin jl[2] $end
+$var wire 4 ' tmp_mask [3:0] $end
+$scope begin il[0] $end
+$upscope $end
+$scope begin il[1] $end
+$upscope $end
+$scope begin il[2] $end
+$upscope $end
+$scope begin il[3] $end
+$upscope $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 '
+b1100 &
+b1010 %
+b0xx $
+bx #
+bx "
+b0xx !
+$end
+#10
+b0 !
+b0 $
+b0 "
+b0 #
+#20
+b1 "
+b1 #
+#30
+b1 !
+b1 $
+b10 "
+b10 #
+#40
+b10 !
+b10 $
+b100 "
+b100 #
+#50
+b11 !
+b11 $
+b1000 "
+b1000 #
+#60

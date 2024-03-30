@@ -24,7 +24,7 @@
         "WRITE_MODE_B": "\"READ_FIRST\"",
         "OUTPUT_REG_A": "0",
         "OUTPUT_REG_B": "0",
-        "MEMORY_TYPE": "\"SP_RAM\"",
+        "MEMORY_TYPE": "\"SDP_RAM\"",
         "BYTEENA_ENABLE": "0",
         "BYTEENA_POLARITY": "1",
         "BYTEENB_POLARITY": "1",
@@ -81,10 +81,10 @@
     "output": {
         "external_script_script": [],
         "external_source_source": [
-            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram_tmpl.v",
-            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram.v",
             "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram_tmpl.vhd",
-            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram_define.vh"
+            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram_define.vh",
+            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram_tmpl.v",
+            "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/bram.v"
         ],
         "external_example_example": [
             "/home/roshni/Documents/vicharak-github/gati_controller/src/rtl/controller/sa_fc_flattening/test/ip/bram/Ti60F225_devkit/debug_profile.wizard.json",
@@ -145,5 +145,5 @@
         ]
     },
     "sw_version": "2023.2.307",
-    "generated_date": "2024-03-29T04:41:32.376427"
+    "generated_date": "2024-03-30T11:02:36.725770"
 }

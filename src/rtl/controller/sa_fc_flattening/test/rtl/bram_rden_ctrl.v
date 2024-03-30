@@ -1,178 +1,208 @@
-module bram_rden_ctrl#(
+/*
+    image dimension is 7x7x16 = 784
+    counting 7 0's for each bank, after every 49 elements in a bank, 7x16 = 112
+    784 + 112 = 896 (total elements for first set of kernals)
+*/
+module bram_rden_controller#(
+    parameter W_KERNAL_CNT = 16,
+    parameter W_IMG_DIM = 20,
+    parameter W_IMG_ROWS = 16,
+    parameter N_BRAM = 8,
     parameter N_BANK = 4,
-    parameter BRAM_BANK_FF = 8
+    parameter W_ADDR = 9
 )(
     input clk,
     input rst,
     input w_done,
-    input iteration_done,   //accumulator data valid
+    input accumulator_valid,
     input flatten,
-    input [3:0] image_height,
-    input [3:0] image_width,
-    input [14:0] image_dimension,
-    output [(N_BANK * BRAM_BANK_FF)-1 : 0] read_enable,
+    input [W_KERNAL_CNT-1 : 0] kernal_count, //4096
+    input [(N_BANK * N_BRAM)-1 : 0] weight_ff_array_empty,  //common weight fifo array for sa and fc
+    input [W_IMG_DIM-1 : 0] image_dimension,   //7
+    input [W_IMG_ROWS-1 : 0] image_rows, //7x7x16
+    output [(N_BANK * N_BRAM)-1 : 0] o_read_enable,
     output o_done,
-    output [N_BANK-1 : 0] bank_enable
+    output [(N_BANK * (W_ADDR + 1))-1 : 0] o_bank_address
 );
-
-//Assert read enable on one bram at a time, one by one 
-reg [3:0] rden_counter = 0;         //here, counts from 1 to 8
-//increment address after reading an element from all bram in a bank
-reg [4:0] addr_counter = 0;         //here, counts from 1 to 8  //TODO: Counts till 7 or 8?
-//counts all the elements of one image stored in a bank
-reg [8:0] element_counter = 0;      //here, counts from 1 to 49 for 7x7 image dimension
-//counts number of times this image is iterated all over again for remaining set of kernals
-reg [9:0] kernal_counter = 0;       //here,for 4096 neurons, counts from 1 to 128
-//counts number of banks enables
-reg [3:0] bank_en_counter = 0;
-
-reg [1:0] bank_en_state = 0;
-reg [1:0] rden_state = 0;
+reg [1:0] state = 0;
+reg [(N_BANK * N_BRAM)-1 : 0] rden = 0;
 reg done = 0;
-reg [N_BANK-1 : 0] bank_en = 0;
-reg [(N_BANK * BRAM_BANK_FF)-1 : 0] rden = 0;
-assign read_enable = rden;
-assign bank_enable = bank_en;
+reg [N_BANK-1 : 0]bank_en = 0;
+reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
 assign o_done = done;
+assign o_read_enable = rden;
+assign o_bank_address = addr;
 
-//To assert bank enable signal
+reg [W_KERNAL_CNT-1 : 0]    r_kernal_count = 0;
+reg [W_IMG_ROWS-1 : 0]      r_image_rows = 0;
+
+always @(posedge clk) begin
+    r_kernal_count <= kernal_count;
+    r_image_rows <= image_rows;
+end
+
+//count number of elements in a bank, 1-49
+reg [5:0] element_counter = 0;
+//count number of reads in one row of a bank, 1-8
+reg [2:0] rden_counter = 0;
+//holds value of an address to be incremented in a bank, 1-7/8
+reg [4:0] addr_counter = 0;
+//counts number of banks, 1-4 
+reg [1:0] bank_counter = 0;
+//counts how many times does shifting of bank enable signal need to be done, for flatten = 0 counts is 1-28, for flatten = 1 counts is 1-4
+reg [15:0] bank_shift_counter = 0;
+//counts how many times the image will be used again for different sets of kernals, 1 - 128
+reg [15:0] kernal_counter = 0;
+
+//Asserts bank enable signal and handles address incrementation
 always @(posedge clk) begin
     if(rst)begin
         bank_en <= 0;
-        bank_en_counter <= 0;
+        addr <= 0;
+        bank_shift_counter <= 0;
+        bank_counter <= 0;
+        element_counter <= 0;
     end else begin
-        case (flatten)
+       case(flatten)
             1'b0:begin
-                case (bank_en_state)    //TODO: Check iteration done (accumulator valid) condition
+                case (state)
                     0:begin
-                        if(w_done)begin
-                            bank_en_state <= 1;
-                        end
+                        done <= 0;
+                        bank_en <= 0;
+                        element_counter <= 0;
+                        bank_counter <= 0;
+                        bank_shift_counter <= 0;
+                        kernal_counter <= 0;
+                       if(w_done)begin
+                        state <= 1;
+                       end 
                     end
-
                     1: begin
-                        if(kernal_counter == 0)begin
-                            if(bank_en_counter == N_BANK-1)begin
-                                bank_en_counter <= 0;
-                                kernal_counter <= kernal_counter + 1;
-                            end else begin
-                                if(element_counter == 9'd8)begin
-                                    bank_en <= 1'b0;
-                                    bank_en_counter <= bank_en_counter + 1;
-                                end else begin
-                                    bank_en <= 1'b1;
-                                    element_counter <= element_counter + 1;
-                                end
-                            end
-                            bank_en[bank_en_counter] <= 1;
-                            bank_en[bank_en_counter-1] <= 0;
-                        end else begin
-                            if(kernal_counter == 10'128)begin
-                                state <= 0;
-                                done <= 1'b1;
-                            end else begin
-                                if(bank_en_counter == N_BANK-1)begin
-                                    bank_en_counter <= 0;
-                                    kernal_counter <= kernal_counter + 1;
-                                end else begin
-                                    if(element_counter == 9'd8)begin
-                                        bank_en <= 1'b0;
-                                        bank_en_counter <= bank_en_counter + 1;
+                        if(~weight_ff_array_empty)begin
+                            if(kernal_counter < (r_kernal_count >> 5))begin
+                                if(bank_shift_counter < (r_image_rows >> 5))begin   //need to keep shifting bank enable signal for 28 times
+                                    if(bank_counter == N_BANK-1)begin
+                                        bank_counter <= 0;
+                                        bank_shift_counter <= bank_shift_counter + 1;
+                                        addr_counter <= addr_counter + 1;
                                     end else begin
-                                        bank_en <= 1'b1;
-                                        element_counter <= element_counter + 1;
+                                        if(element_counter == (N_BRAM-1))begin
+                                            bank_counter <= bank_counter + 1; 
+                                            element_counter <= 0;
+                                            //values of address remains same
+                                            addr_counter <= addr_counter;
+                                            //sliding the address window for different bank, but with same address value
+                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                        end else begin
+                                            element_counter <= element_counter + 1;
+                                            bank_counter <= bank_counter;
+                                        end
                                     end
+                                    bank_en[bank_counter] <= 1;
+                                    bank_en[bank_counter-1] <= 0;
+                                    bank_shift_counter <= bank_shift_counter;
+                                end else begin
+                                    state <= 2;
                                 end
-                                bank_en[bank_en_counter] <= 1;
-                                bank_en[bank_en_counter-1] <= 0;
+                            end else begin
+                                done <= 1'b1;
+                                state <= 0;
                             end
                         end
                     end
+                    2: begin
+                        if(accumulator_valid)begin
+                            bank_shift_counter <= 0;
+                            kernal_counter <= kernal_counter + 1;
+                            state <= 1;
+                        end else begin
+                            bank_shift_counter <= bank_shift_counter;
+                        end
+                    end
+                    default: state <= 0;
                 endcase
             end
-
-            1'b1:begin
-                case (bank_en_state)    //TODO: Check iteration done (accumulator valid) condition
+            1'b1: begin
+                case (state)
                     0:begin
-                        if(w_done)begin
-                            bank_en_state <= 1;
-                        end
+                        done <= 0;
+                        bank_en <= 0;
+                        element_counter <= 0;
+                        bank_counter <= 0;
+                        bank_shift_counter <= 0;
+                        kernal_counter <= 0;
+                    if(w_done)begin
+                        state <= 1;
+                    end 
                     end
-
                     1: begin
-                        if(kernal_counter == 0)begin
-                            if(bank_en_counter == N_BANK-1)begin
-                                bank_en_counter <= 0;
-                                kernal_counter <= kernal_counter + 1;
-                            end else begin
-                                if(element_counter == (image_height * image_width))begin
-                                    bank_en <= 1'b0;
-                                    bank_en_counter <= bank_en_counter + 1;
-                                end else begin
-                                    bank_en <= 1'b1;
-                                    element_counter <= element_counter + 1;
-                                end
-                            end
-                            bank_en[bank_en_counter] <= 1;
-                            bank_en[bank_en_counter-1] <= 0;
-                        end else begin
-                            if(kernal_counter == 10'128)begin
-                                state <= 0;
-                                done <= 1'b1;
-                            end else begin
-                                if(bank_en_counter == N_BANK-1)begin
-                                    bank_en_counter <= 0;
-                                    kernal_counter <= kernal_counter + 1;
-                                end else begin
-                                    if(element_counter == (image_height * image_width))begin
-                                        bank_en <= 1'b0;
-                                        bank_en_counter <= bank_en_counter + 1;
+                        if(~weight_ff_array_empty)begin
+                            if(kernal_counter < (r_kernal_count >> 5))begin
+                                if(bank_shift_counter < 4)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
+                                    if(bank_counter == N_BANK-1)begin
+                                        bank_counter <= 0;
+                                        bank_shift_counter <= bank_shift_counter + 1;
                                     end else begin
-                                        bank_en <= 1'b1;
-                                        element_counter <= element_counter + 1;
+                                        if(element_counter == (image_dimension-1))begin
+                                            bank_counter <= bank_counter + 1;
+                                            element_counter <= 0;
+                                            addr[((W_ADDR + 1) * (bank_counter))-1 -: (W_ADDR + 1)] <= addr_counter + 1;
+                                        end else begin
+                                            element_counter <= element_counter + 1;
+                                            bank_counter <= bank_counter;
+                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            if(rden_counter == N_BRAM-1)begin
+                                                addr_counter <= addr_counter + 1;
+                                            end else begin
+                                                addr_counter <= addr_counter;
+                                            end
+                                        end
                                     end
+                                    bank_en[bank_counter] <= 1;
+                                    bank_en[bank_counter-1] <= 0;
+                                    bank_shift_counter <= bank_shift_counter;
+                                end else begin
+                                    state <= 2;
                                 end
-                                bank_en[bank_en_counter] <= 1;
-                                bank_en[bank_en_counter-1] <= 0;
+                            end else begin
+                                done <= 1'b1;
+                                state <= 0;
                             end
                         end
                     end
+                    2: begin
+                        if(accumulator_valid)begin
+                            bank_shift_counter <= 0;
+                            kernal_counter <= kernal_counter + 1;
+                            state <= 1;
+                        end else begin
+                            bank_shift_counter <= bank_shift_counter;
+                        end
+                    end
+                    default: state <= 0;
                 endcase
             end
-        endcase
+       endcase 
     end
 end
 
-//To assert read enable signal
+//assert read enable signal of one bram in a bank at a time
 always @(posedge clk) begin
-    if(rst)begin
+    if (rst) begin
+        rden_counter <= 0;
         rden <= 0;
-    end begin
-        case (rden_state)
-            0:begin
-                if(w_done)begin
-                    state <= 1;
-                end
-            end
-            1: begin
-                if(bank_en != 0)begin   //One hot to binary converter and send address part accordingly
-                    if(addr_counter == 5'd8)begin
-                        addr_counter <= addr_counter;
-                        rden <= 0;
-                    end else begin
-                        if(rden_counter == 4'd7)begin
-                            rden_counter <= 0;
-                            addr_counter <= addr_counter + 1;
-                        end else
-                            rden_counter <= rden_counter + 1;
-                        
-                        rden[rden_counter] <= 1;
-                        rden[rden_counter-1] <= 0;
-                    end
-                end
-            end
-        endcase
+    end else begin
+        if(bank_en != 0)begin
+            if(rden_counter == N_BRAM-1)
+                rden_counter <= 0;
+            else
+                rden_counter <= rden_counter + 1;
+            rden[rden_counter] <= 1;
+            rden[rden_counter-1] <= 1;
+        end else begin
+            rden_counter <= rden_counter;
+        end
     end
 end
-    
+
 endmodule

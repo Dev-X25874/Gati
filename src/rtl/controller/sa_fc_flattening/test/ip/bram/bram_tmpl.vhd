@@ -41,9 +41,10 @@ COMPONENT bram is
 PORT (
 re : in std_logic;
 we : in std_logic;
-addr : in std_logic_vector(9 downto 0);
+waddr : in std_logic_vector(9 downto 0);
 wdata_a : in std_logic_vector(7 downto 0);
-rdata_a : out std_logic_vector(7 downto 0);
+rdata_b : out std_logic_vector(7 downto 0);
+raddr : in std_logic_vector(9 downto 0);
 clk : in std_logic);
 END COMPONENT;
 ---------------------- End COMPONENT Declaration ------------
@@ -53,8 +54,9 @@ u_bram : bram
 PORT MAP (
 re => re,
 we => we,
-addr => addr,
+waddr => waddr,
 wdata_a => wdata_a,
-rdata_a => rdata_a,
+rdata_b => rdata_b,
+raddr => raddr,
 clk => clk);
 ------------------------ End INSTANTIATION Template ---------

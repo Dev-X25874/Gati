@@ -1,15 +1,26 @@
 module top#(
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
-    parameter N_FIFO = 32
+    parameter N_FIFO = 32,
+    parameter N_BRAM = 8, //number of brams in one bank
+    parameter N_BANK = 4, //total number of bram banks
+    parameter W_KERNAL_CNT = 16,
+    parameter W_IMG_DIM = 20,
+    parameter W_IMG_ROWS = 16
 )(
     input clk,
     input rst,
     input rx_serial,
     input flatten,
     input start,
-    input [N_FIFO-1 : 0] bram_rden,
-    output [(N_FIFO * (W_ADDR + 1))-1 : 0] bram_data
+    input i_acc_valid,
+    input [W_KERNAL_CNT-1 : 0] i_kernal_count,
+    input [N_FIFO-1 : 0] i_weight_ff_array_empty,
+    input [W_IMG_DIM-1 : 0] i_img_dim,
+    input [W_IMG_ROWS-1 : 0] i_img_rows,
+    output o_done_rden_ctrl,
+    output [W_DATA-1 : 0] o_data_mux,
+    output o_data_valid
 );
 
 wire rx_dv;
@@ -123,15 +134,26 @@ weight_fifo_array_rden#(
 block#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
-    .N_FIFO(N_FIFO)
-)integration_inst(
+    .N_FIFO(N_FIFO),
+    .N_BRAM(N_BRAM), //number of brams in one bank
+    .N_BANK(N_BANK), //total number of bram banks
+    .W_KERNAL_CNT(W_KERNAL_CNT),
+    .W_IMG_DIM(W_IMG_DIM),
+    .W_IMG_ROWS(W_IMG_ROWS)
+)integration_block(
     .clk(clk),
     .rst(rst),
     .flatten(flatten),
     .start(start),
+    .i_acc_valid(i_acc_valid),
+    .i_kernal_count(i_kernal_count),
+    .i_weight_ff_array_empty(i_weight_ff_array_empty),
+    .i_img_dim(i_img_dim),
+    .i_img_rows(i_img_rows),
     .i_data(weight_ff_array_data_out),
-    .bram_array_rden(bram_rden),
-    .bram_array_data_out(bram_data)
+    .o_done_rden_ctrl(o_done_rden_ctrl),
+    .o_data_mux(o_data_mux),
+    .o_data_valid(o_data_valid)
 );
 
 endmodule

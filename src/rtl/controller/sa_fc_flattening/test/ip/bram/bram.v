@@ -43,20 +43,24 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _0ecbab582dd94f6295635f2b78a8f78d
+`define IP_UUID _7c0d7f9817ba4fe1a0a3c59325725d60
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
-module bram (
+module bram#(
+	parameter W_DATA = 8,
+	parameter W_ADDR = 9
+)(
 input re,
 input we,
-input [9:0] addr,
-input [7:0] wdata_a,
-output [7:0] rdata_a,
+input [W_ADDR:0] waddr,
+input [W_DATA-1:0] wdata_a,
+output [W_DATA-1:0] rdata_b,
+input [W_ADDR:0] raddr,
 input clk
 );
 `IP_MODULE_NAME(efx_bram) #(
-.ADDR_WIDTH_A (10),
-.ADDR_WIDTH_B (10),
+.ADDR_WIDTH_A (W_ADDR + 1),
+.ADDR_WIDTH_B (W_ADDR + 1),
 .RESET_A_ENABLE (1),
 .RESET_B_ENABLE (1),
 .RSTA_POLARITY (1),
@@ -67,8 +71,8 @@ input clk
 .WRITE_MODE_B ("READ_FIRST"),
 .OUTPUT_REG_A (0),
 .OUTPUT_REG_B (0),
-.MEMORY_TYPE ("SP_RAM"),
-.GROUP_DATA_WIDTH_B (8),
+.MEMORY_TYPE ("SDP_RAM"),
+.GROUP_DATA_WIDTH_B (W_DATA),
 .BYTEENA_ENABLE (0),
 .BYTEENB_ENABLE (0),
 .BYTEENA_POLARITY (1),
@@ -77,12 +81,12 @@ input clk
 .BYTEEN_WIDTH_B (1),
 .BYTEEN_ENABLE (0),
 .BYTEEN_POLARITY (1),
-.GROUP_DATA_WIDTH (8),
+.GROUP_DATA_WIDTH (W_DATA),
 .BYTEEN_WIDTH (1),
 .WIDTH_RATIO (4),
-.GROUP_DATA_WIDTH_A (8),
-.DATA_WIDTH_A (8),
-.DATA_WIDTH_B (8),
+.GROUP_DATA_WIDTH_A (W_DATA),
+.DATA_WIDTH_A (W_DATA),
+.DATA_WIDTH_B (W_DATA),
 .ADDREN_ENABLE (1),
 .ADDREN_POLARITY (1),
 .CLK_MODE (1),
@@ -127,9 +131,10 @@ input clk
 ) u_efx_bram(
 .re ( re ),
 .we ( we ),
-.addr ( addr ),
+.waddr ( waddr ),
 .wdata_a ( wdata_a ),
-.rdata_a ( rdata_a ),
+.rdata_b ( rdata_b ),
+.raddr ( raddr ),
 .clk ( clk )
 );
 
@@ -1590,7 +1595,7 @@ endmodule
 //           _____       
 //          / _______    Copyright (C) 2013-2022 Efinix Inc. All rights reserved.
 //         / /       \   
-//        / /  ..    /   `IP_MODULE_NAME(efx_single_port_ram).v
+//        / /  ..    /   tb_top.v
 //       / / .'     /    
 //    __/ /.'      /     Description:
 //   __   \       /    
@@ -1603,42 +1608,52 @@ endmodule
 //
 // *******************************
 
-module `IP_MODULE_NAME(efx_single_port_ram) (
+module `IP_MODULE_NAME(efx_simple_dual_port_ram) (
 	//Trion and Titanium ports
 	clk,		// clock input for one clock mode
-	addr, 		// address input
 
+	
+	wclk, 		// Write clock input for two clock mode
 	wclke,		// Write clock-enable input
-	byteen,		// Byteen input 
-	we, 		// Write-enable input
-	wdata_a,	// Write data input
-	re, 		// Read-enable input
-	rdata_a, 	// Read data output     
+    byteen,		// Byteen input 
+    we, 		// Write-enable input
+    waddr, 		// Write address input
+    wdata_a,	// Write data input PortA
+  
+	rclk, 		// Read clock input	for two clock mode
+    re, 		// Read-enable input
+    raddr, 		// Read address input
+    rdata_b, 	// Read data output PortB   
      
 	//Titanium extra ports
 	reset,		 // reset	
-	addren	     // address enable
- );
+	waddren,	 // write address enable
+	raddren		 // read address enable
+);
 
 //`include "bram_decompose.vh"
 
 //Trion and Titanium parameters 
 parameter CLK_POLARITY  = 1'b1; 		//clk polarity;  0:falling edge; 1:rising edge
 
+parameter WCLK_POLARITY  = 1'b1; 		//wclk polarity;  0:falling edge; 1:rising edge
 parameter WCLKE_POLARITY = 1'b1; 		//wclke polarity; 0:active low; 1:active high
 parameter WE_POLARITY	 = 1'b1; 		//we polarity;    0:active low; 1:active high
 
+parameter RCLK_POLARITY  = 1'b1; 		// rclk polarity; 0:falling edge; 1:rising edge
 parameter RE_POLARITY    = 1'b1; 		// re polarity;	  0:active low  ; 1:active high
 parameter OUTPUT_REG     = 1'b0; 		// Output register enable; 1:add pipe-line read register
 
 parameter BYTEEN_POLARITY = 1'b1;		//byteen polarity;    0:active low; 1:active high   
 
 //Port Enable  
-parameter WCLKE_ENABLE 		= 1'b1; 	//1: Enable  the port for wclke pin  ; 0: disable 
+parameter CLK_MODE			= 2;		//1: ONE CLK Mode; CLK pin will provide the clock source to the memory
+										//2: TWO CLK Mode; wclk pin will provide the clock source for write operation ; rclk pin will provide the clock source for read operation
+parameter WCLKE_ENABLE 		= 1'b1; 	//1: Enalbe the port for wclke pin  ; 0: dislable 
 
-parameter WE_ENABLE 		= 1'b1;		//1: Enable  the port for WE pin ; 0: disable 
-parameter RE_ENABLE 		= 1'b1;		//1: Enable  the port for RE pin ; 0: disable 
-parameter BYTEEN_ENABLE 	= 1'b1;		//1: Enable  the port for Byteen pins ; 0: disable 
+parameter WE_ENABLE 		= 1'b1;		//1: Enable the port for WE pin ; 0: disable 
+parameter RE_ENABLE 		= 1'b1;		//1: Enable the port for RE pin ; 0: disable 
+parameter BYTEEN_ENABLE 	= 1'b1;		//1: Enable the port for Byteen pins ; 0: disable 
 
 //Titanium extra paramters 
 parameter RST_POLARITY 	    = 1'b1;    	// rst polarity
@@ -1648,41 +1663,49 @@ parameter RESET_RAM 	    = "ASYNC"; 	// reset mode on ram;  "NONE": RST signals 
 parameter RESET_OUTREG 	    = "ASYNC"; 	// reset mode on output register
 										//					   "NONE": RST signals does not affect the RAM output register		
 										//					  "ASYNC": RAM output register resets asynchronously to RCLK.
-parameter ADDREN_POLARITY  = 1'b1;    	// addren polarity
+parameter WADDREN_POLARITY  = 1'b1;    	// waddren polarity
+parameter RADDREN_POLARITY  = 1'b1;     // raddren polarity
 
 
 //Port Enable  
-parameter RESET_ENABLE 		= 1'b1;		//1: Enable  the port for reset pin  ; 0: disable 
+parameter RESET_ENABLE 		= 1'b1;		//1: Enable the port for reset pin  ; 0: disable 
 	
-parameter ADDREN_ENABLE 	= 1'b1;		//1: Enable  the port for addren pin  ; 0: disable 
+parameter WADDREN_ENABLE 	= 1'b1;		//1: Enable the port for waddren pin  ; 0: disable 
+parameter RADDREN_ENABLE 	= 1;		//1: Enable the port for raddren pin  ; 0: disable 
 
-parameter WRITE_MODE        = "READ_FIRST";
+parameter WRITE_MODE            = "READ_FIRST";
 
 parameter DATA_WIDTH_A          = 16;
-parameter ADDR_WIDTH_A          = 4;
+parameter DATA_WIDTH_B          = 16;
+parameter ADDR_WIDTH_A          = 3;
+parameter ADDR_WIDTH_B          = 3;
 parameter BYTEEN_WIDTH          = 2;
 parameter FAMILY                = "TITANIUM";
 
-
 //Trion and Titanium ports
 input clk;
-input [ADDR_WIDTH_A-1:0] addr;
 
+input wclk;
 input wclke;
 input [BYTEEN_WIDTH-1:0] byteen;
 input we;
+input [ADDR_WIDTH_A-1:0] waddr;
 input [DATA_WIDTH_A-1:0] wdata_a;
 
-input re; 
-output [DATA_WIDTH_A-1:0] rdata_a;
+input rclk; 
+input re;
+input [ADDR_WIDTH_B-1:0] raddr;
+output [DATA_WIDTH_B-1:0] rdata_b;
 
 //Titanium extra ports
 input reset;	
-input addren;
+input waddren;
+input raddren;
 
 //localparam WRITE_MODE  	 = DECOMPOSE_WRITE_MODE;  // 				  "READ_FIRST" 	:Old memory content is read. (default)
-											//			  	  "WRITE_FIRST" :Write data is passed to the read port.
-											//				  "READ_UNKNOWN": Read and writes are unsynchronized, therefore, the results of the address can conflict.
+													  //			  	  "WRITE_FIRST" :Write data is passed to the read port.
+													  //				  "READ_UNKNOWN": Read and writes are unsynchronized, therefore, the results of the address can conflict.
+
 
 wire w_wclk;
 wire w_rclk;
@@ -1691,64 +1714,73 @@ wire [BYTEEN_WIDTH-1:0] w_byteen;
 wire w_we;
 wire w_re;
 wire w_reset;
-wire w_addren;
+wire w_waddren;
+wire w_raddren;
 
+assign w_wclk = (CLK_MODE==2) ? wclk : clk;
+assign w_rclk = (CLK_MODE==2) ? rclk : clk;
 assign w_wclke = (WCLKE_ENABLE==1) ? wclke : WCLKE_POLARITY;
-assign w_byteen= (BYTEEN_ENABLE==1) 	? byteen : {BYTEEN_WIDTH{BYTEEN_POLARITY}};
+assign w_byteen= (BYTEEN_ENABLE==1) ? byteen : {BYTEEN_WIDTH{BYTEEN_POLARITY}};
 assign w_we   = (WE_ENABLE==1)  ? we : WE_POLARITY;
 assign w_re   = (RE_ENABLE==1)  ? re : RE_POLARITY;
 
 //Titanium extra ports
 assign w_reset   = (RESET_ENABLE==1)  ? reset   : (RST_POLARITY==1'b1) ? 1'b0: 1'b1;
-assign w_addren = (ADDREN_ENABLE==1)? addren : ADDREN_POLARITY;
+assign w_waddren = (WADDREN_ENABLE==1)? waddren : WADDREN_POLARITY;
+assign w_raddren = (RADDREN_ENABLE==1)? raddren : RADDREN_POLARITY;
+
+
+localparam WCLK_POLARITY_LC = (CLK_MODE==2) ? WCLK_POLARITY : CLK_POLARITY;
+localparam RCLK_POLARITY_LC = (CLK_MODE==2) ? RCLK_POLARITY : CLK_POLARITY;
+
+
 
  	`IP_MODULE_NAME(bram_wrapper_mwm) #(
-		//.FAMILY(FAMILY),
 		//Trion and Titanium parameters 
-		.WCLK_POLARITY(CLK_POLARITY), 	
+		.WCLK_POLARITY(WCLK_POLARITY_LC), 	
 		.WCLKE_POLARITY(WCLKE_POLARITY),
 		.WE_POLARITY(WE_POLARITY), 		
 		.WRITE_MODE(WRITE_MODE),		
 				
-		.RCLK_POLARITY(CLK_POLARITY), 	
+		.RCLK_POLARITY(RCLK_POLARITY_LC), 	
 		.RE_POLARITY(RE_POLARITY), 		
 		.OUTPUT_REG(OUTPUT_REG),		
 		
 		.BYTEEN_POLARITY(BYTEEN_POLARITY),
 		
+		.DATA_WIDTH_A(DATA_WIDTH_A),
+		.DATA_WIDTH_B(DATA_WIDTH_B),
+		.ADDR_WIDTH_A(ADDR_WIDTH_A),
+		.ADDR_WIDTH_B(ADDR_WIDTH_B),
+		.BYTEEN_WIDTH(BYTEEN_WIDTH),
+		.FAMILY(FAMILY),
+		
 		//Titanium extra paramters 
 		.RST_POLARITY(RST_POLARITY),   	
 		.RESET_RAM(RESET_RAM), 			
 		.RESET_OUTREG(RESET_OUTREG), 	
-		.WADDREN_POLARITY(ADDREN_POLARITY),
-		.RADDREN_POLARITY(ADDREN_POLARITY), 
-		
-		.DATA_WIDTH_A(DATA_WIDTH_A),
-		.DATA_WIDTH_B(DATA_WIDTH_A),
-		.ADDR_WIDTH_A(ADDR_WIDTH_A),
-		.ADDR_WIDTH_B(ADDR_WIDTH_A),
-		.BYTEEN_WIDTH(BYTEEN_WIDTH),
-		.FAMILY(FAMILY)
+		.WADDREN_POLARITY(WADDREN_POLARITY),
+		.RADDREN_POLARITY(RADDREN_POLARITY)
 		
 	) brams (
-		.wclk(clk), 
+		.wclk(w_wclk), 
 		.wclke(w_wclke),
 		.we(w_we), 
 		.byteen(w_byteen),
         
-        .waddr(addr), 
+        .waddr(waddr), 
 		.wdata(wdata_a),
           
-		.rclk(clk), 
+		.rclk(w_rclk), 
 		.re(w_re), 
-		.raddr(addr), 
-		.rdata(rdata_a),
+		.raddr(raddr), 
+		.rdata(rdata_b),
 		      
         
 		//Titanium extra ports
 		.reset(w_reset), 	// reset	
-		.waddren(w_addren), // write address enable
-		.raddren(w_addren)  // read address enable	
+		.waddren(w_waddren), // write address enable
+		.raddren(w_raddren)  // read address enable	
 	);
  
  

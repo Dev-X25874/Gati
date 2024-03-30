@@ -1,15 +1,16 @@
 module bram_bank_array#(
     parameter N_BANK = 4,       //number of banks of bram
-    parameter BRAM_BANK_FF = 8, //total brams in one bank
+    parameter N_BRAM = 8, //total brams in one bank
     parameter W_ADDR = 9,       //bram address width
     parameter W_DATA = 8        //bram data width
 )(
     input clk,
-    input [(N_BANK * BRAM_BANK_FF)-1 : 0] we,
-    input [(BRAM_BANK_FF * N_BANK)-1 : 0] re,
-    input [((W_DATA * BRAM_BANK_FF) * N_BANK)-1 : 0] i_data,
-    input [((BRAM_BANK_FF * (W_ADDR + 1)) * N_BANK)-1 : 0] i_address,
-    output [((W_DATA * BRAM_BANK_FF) * N_BANK)-1 : 0] o_data
+    input [(N_BANK * N_BRAM)-1 : 0] we,
+    input [(N_BANK * N_BRAM)-1 : 0] re,
+    input [((W_DATA * N_BRAM) * N_BANK)-1 : 0] i_data,
+    input [((W_ADDR + 1) * N_BANK)-1 : 0] w_addr,
+    input [((W_ADDR + 1) * N_BANK)-1 : 0] r_addr,
+    output [((W_DATA * N_BRAM) * N_BANK)-1 : 0] o_data
 );
 
 genvar i;
@@ -18,15 +19,16 @@ generate
         bram_array#(
             .W_DATA(W_DATA),
             .W_ADDR(W_ADDR),
-            .BRAM_BANK_FF(BRAM_BANK_FF)  //number of brams in one bank
-        ) bram_bank(
+            .N_BRAM(N_BRAM)  //number of brams in one bank
+        )bank_inst(
             .clk(clk),
-            .we(we[(BRAM_BANK_FF * (N_BANK - i))-1 -: BRAM_BANK_FF]),
-            .re(re[(BRAM_BANK_FF * (N_BANK - i))-1 -: BRAM_BANK_FF]),
-            .i_data(i_data[((BRAM_BANK_FF * W_DATA) * (N_BANK - i)) -: (BRAM_BANK_FF * W_DATA)]),
-            .i_addr(i_address[((BRAM_BANK_FF * (W_ADDR + 1)) * (N_BANK - i))-1 -: (BRAM_BANK_FF * (W_ADDR + 1))]),
-            .o_data(o_data[((BRAM_BANK_FF * W_DATA) * (N_BANK - i)) -: (BRAM_BANK_FF * W_DATA)])
-        ); 
+            .we(we[(N_BRAM * (N_BANK - i))-1 -: (N_BRAM)]),
+            .re(re[(N_BRAM * (N_BANK - i))-1 -: (N_BRAM)]),
+            .i_data(i_data[((W_DATA * N_BRAM) * (N_BANK - i))-1 -: (N_BRAM * W_DATA)]),
+            .w_addr(w_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
+            .r_addr(r_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
+            .o_data(o_data[((W_DATA * N_BRAM) * (N_BANK - i))-1 -: (N_BRAM * W_DATA)])
+        );
     end
 endgenerate
     
@@ -35,25 +37,27 @@ endmodule
 module bram_array#(
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
-    parameter BRAM_BANK_FF = 8  //number of brams in one bank
+    parameter N_BRAM = 8  //number of brams in one bank
 )(
     input clk,
-    input [BRAM_BANK_FF-1 : 0] we,
-    input [BRAM_BANK_FF-1 : 0] re,
-    input [(W_DATA * BRAM_BANK_FF)-1 : 0] i_data,
-    input [(BRAM_BANK_FF * (W_ADDR + 1))-1 : 0] i_addr,
-    output [(BRAM_BANK_FF * W_DATA)-1 : 0] o_data
+    input [N_BRAM-1 : 0] we,
+    input [N_BRAM-1 : 0] re,
+    input [(W_DATA * N_BRAM)-1 : 0] i_data,
+    input [(W_ADDR + 1)-1 : 0] w_addr,
+    input [(W_ADDR + 1)-1 : 0] r_addr,
+    output [(N_BRAM * W_DATA)-1 : 0] o_data
 );
 
 genvar i;
 generate
-    for (i = 0; i < BRAM_BANK_FF; i = i + 1) begin
+    for (i = 0; i < N_BRAM; i = i + 1) begin
         bram bram_wrapper(
             .re(re[i]),
             .we(we[i]),
-            .addr(i_addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)]),
-            .wdata_a(i_data[(W_DATA * (BRAM_BANK_FF - i))-1 -: W_DATA]),
-            .rdata_a(o_data[(W_DATA * (BRAM_BANK_FF - i))-1 -: W_DATA]),
+            .waddr(w_addr),
+            .raddr(r_addr),
+            .wdata_a(i_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
+            .rdata_b(o_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
             .clk(clk)
         );
     end

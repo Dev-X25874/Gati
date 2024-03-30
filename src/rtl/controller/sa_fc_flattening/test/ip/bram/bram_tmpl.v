@@ -40,8 +40,9 @@
 bram u_bram(
 .re ( re ),
 .we ( we ),
-.addr ( addr ),
+.waddr ( waddr ),
 .wdata_a ( wdata_a ),
-.rdata_a ( rdata_a ),
+.rdata_b ( rdata_b ),
+.raddr ( raddr ),
 .clk ( clk )
 );

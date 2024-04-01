@@ -1,7 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
  
 module Port_ctrl_gen #(
-    parameter NUM_PORTS = 4
+    parameter NUM_PORTS = 4,
+    parameter PORT_ID = {4'd0, 4'd1, 4'd2, 4'd3}
 ) (
     input    clk,
     input    rst, 
@@ -24,7 +25,7 @@ module Port_ctrl_gen #(
   generate
     for (i = 0; i < NUM_PORTS; i = i + 1) begin
       Port_controller #(
-        .PORT_ID_VALUE (i) ,
+        .PORT_ID_VALUE (PORT_ID[(4 * (NUM_PORTS - i))-1 -: 4]) ,
         .ADDR_SEGMENTS (4)
       ) Port_controller_inst (
         .clk(clk),
@@ -44,10 +45,10 @@ module Port_ctrl_gen #(
     end
   endgenerate
   
+
     //  assign combined_out = {out_address, out_burst_len, out_enable_rw, out_enable_rw};
 
 endmodule
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

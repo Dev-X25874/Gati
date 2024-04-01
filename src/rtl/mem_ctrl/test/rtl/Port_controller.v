@@ -1,7 +1,7 @@
 
 module Port_controller #(
   parameter ADDR_SEGMENTS = 4,
-  parameter PORT_ID_VALUE = 4'b0000 
+  parameter PORT_ID_VALUE = 0
 )(
   input              clk,          // Clock signal
   input              rst,          // Reset signal  
@@ -25,20 +25,18 @@ module Port_controller #(
   
   // Define state register
   reg [1:0] state = 0;
+  wire [3:0] port_id_temp;
   
+  assign port_id_temp = PORT_ID_VALUE ;
   // Registers for storing data
   reg [31:0] address_reg = 0;
   reg [3:0]  burst_len_reg = 0;
   reg        enable_rw_reg = 0;
-  reg [3:0]  port_id_reg = 0;
-  reg [2:0]  address_transmit_counter = 0;
-  reg [7:0]  addr_segment [ADDR_SEGMENTS - 1:0];
   
   // Separate always block for handling address and valid signal
   always @(posedge clk) begin
     if (!rst) begin
       address_reg <= 0;
-    //  address_transmit_counter <= 0;
       //o_valid <= 0;
     end 
     else begin
@@ -55,7 +53,7 @@ module Port_controller #(
       state <= IDLE;
       burst_len_reg <= 0;
       enable_rw_reg <= 0;
-      port_id_reg <= PORT_ID_VALUE;
+    //  port_id_reg <= port_id_temp;
       combined_out <= 0;
     end 
     else begin 
@@ -63,10 +61,13 @@ module Port_controller #(
         IDLE: begin 
           if (valid) begin
             state <= TRANSMIT_ADDRESS;
-            burst_len_reg <= in_burst_len;
+            burst_len_reg <= 0;
             enable_rw_reg <= in_enable_rw;
             o_valid <= 0 ;
           end
+          
+          else 
+            o_valid <= 0 ;
         end
         TRANSMIT_ADDRESS: begin 
           if (last) begin
@@ -78,7 +79,9 @@ module Port_controller #(
         
         WAIT_DATA : begin 
             o_valid <= 1'b1 ;
-            combined_out <= {address_reg, burst_len_reg, port_id_reg, enable_rw_reg};
+            burst_len_reg <= in_burst_len;
+            combined_out <= {address_reg, burst_len_reg, port_id_temp, enable_rw_reg};
+           // combined_out <= {enable_rw_reg, port_id_temp, burst_len_reg, address_reg};
             state <= IDLE ;
         end
       endcase
@@ -89,6 +92,6 @@ module Port_controller #(
   assign out_address = address_reg;
   assign out_burst_len = burst_len_reg;
   assign out_enable_rw = enable_rw_reg;
-  assign port_id = port_id_reg;
+  assign port_id = port_id_temp ;
 
 endmodule

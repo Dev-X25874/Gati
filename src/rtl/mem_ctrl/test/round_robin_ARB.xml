@@ -15,11 +15,11 @@
         <efx:design_file name="rtl/fifo_valid.v" version="default" library="default"/>
         <efx:design_file name="rtl/memory_valid.v" version="default" library="default"/>
         <efx:design_file name="rtl/Req_Manager.v" version="default" library="default"/>
-        <efx:design_file name="Wr_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="WR_ID_Manager.v" version="default" library="default"/>
-        <efx:design_file name="onehot_to_bin.v" version="default" library="default"/>
-        <efx:design_file name="Rd_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="Axi4FullDeplex.v" version="default" library="default"/>
+        <efx:design_file name="rtl/Wr_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="rtl/WR_ID_Manager.v" version="default" library="default"/>
+        <efx:design_file name="rtl/onehot_to_bin.v" version="default" library="default"/>
+        <efx:design_file name="rtl/Rd_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="rtl/Axi4FullDeplex.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

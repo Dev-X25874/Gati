@@ -35,17 +35,17 @@ always @(posedge i_clk) begin
 end
 
 always @(posedge i_clk) begin
-    //if(~i_fifo_empty) begin
-        if(i_fifo_occupants >= {N_FIFO{9'd3}}) begin
+    if(~i_fifo_empty) begin
+        if(i_fifo_occupants >= {N_FIFO{9'd16}}) begin //as occupancy in each fifo reaches 16, the read enable of them get high at once
             o_fifo_rden <= 8'b1111_1111; //all fifos read enable get high together
         end
         else begin
             o_fifo_rden <= 8'b0000_0000;
         end
-    //end
-    // else begin
-    //     o_fifo_rden <= 8'b0000_0000;
-    // end
+    end
+    else begin
+        o_fifo_rden <= 8'b0000_0000;
+    end
 end
 
 endmodule

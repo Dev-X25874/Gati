@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="sa_fc_flattening" description="" last_change="1711805870" sw_version="2023.2.307" last_run_state="pass" last_run_flow="syn" config_result_in_sync="true" design_ood="sync" place_ood="" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="flattening" description="" last_change="1712065542" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="rden"/>
-        <efx:design_file name="rtl/rx_fifo_rden_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/uart_rx.v" version="default" library="default"/>
-        <efx:design_file name="rtl/weight_fifo_array.v" version="default" library="default"/>
-        <efx:design_file name="rtl/weight_fifo_array_rden.v" version="default" library="default"/>
-        <efx:design_file name="rtl/weight_fifo_array_wren.v" version="default" library="default"/>
-        <efx:design_file name="rtl/top.v" version="default" library="default"/>
-        <efx:design_file name="rtl/weight_fifo_array_data.v" version="default" library="default"/>
+        <efx:top_module name="top"/>
+        <efx:design_file name="rtl/onehot_tb.v" version="default" library="default"/>
         <efx:design_file name="rtl/bram_wren_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/flattening_controller.v" version="default" library="default"/>
-        <efx:design_file name="rtl/block.v" version="default" library="default"/>
-        <efx:design_file name="rtl/one_pulse.v" version="default" library="default"/>
-        <efx:design_file name="rtl/bram_bank_array.v" version="default" library="default"/>
-        <efx:design_file name="rtl/output_mux.v" version="default" library="default"/>
-        <efx:design_file name="rtl/bram_rden_ctrl.v" version="default" library="default"/>
         <efx:design_file name="rtl/onehot_to_bin.v" version="default" library="default"/>
-        <efx:design_file name="rtl/rden.v" version="default" library="default"/>
+        <efx:design_file name="rtl/uart_rx.v" version="default" library="default"/>
+        <efx:design_file name="rtl/bram_rden_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="rtl/flattening_controller.v" version="default" library="default"/>
+        <efx:design_file name="rtl/output_mux.v" version="default" library="default"/>
+        <efx:design_file name="rtl/rx_fifo_rden_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="rtl/weight_fifo_array_wren.v" version="default" library="default"/>
+        <efx:design_file name="rtl/weight_fifo_array_data.v" version="default" library="default"/>
+        <efx:design_file name="rtl/bram_bank_array.v" version="default" library="default"/>
+        <efx:design_file name="rtl/one_pulse.v" version="default" library="default"/>
+        <efx:design_file name="rtl/weight_fifo_array_rden.v" version="default" library="default"/>
+        <efx:design_file name="rtl/weight_fifo_array.v" version="default" library="default"/>
+        <efx:design_file name="rtl/block.v" version="default" library="default"/>
+        <efx:design_file name="rtl/top.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
+        <efx:sdc_file name="const.sdc"/>
         <efx:inter_file name=""/>
     </efx:constraint_info>
     <efx:sim_info/>
@@ -102,6 +103,6 @@
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
         <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
-        <efx:param name="profile" value="NONE" value_type="e_string"/>
+        <efx:param name="profile" value="debug_profile.wizard.json" value_type="e_string"/>
     </efx:debugger>
 </efx:project>

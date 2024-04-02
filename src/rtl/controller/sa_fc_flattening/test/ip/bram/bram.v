@@ -43,12 +43,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _7c0d7f9817ba4fe1a0a3c59325725d60
+`define IP_UUID _72ad42ed9aaa4fd494896a9b62b3c247
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module bram#(
-	parameter W_DATA = 8,
-	parameter W_ADDR = 9
+parameter W_DATA = 8,
+parameter W_ADDR = 9
 )(
 input re,
 input we,
@@ -59,8 +59,8 @@ input [W_ADDR:0] raddr,
 input clk
 );
 `IP_MODULE_NAME(efx_bram) #(
-.ADDR_WIDTH_A (W_ADDR + 1),
-.ADDR_WIDTH_B (W_ADDR + 1),
+.ADDR_WIDTH_A (10),
+.ADDR_WIDTH_B (10),
 .RESET_A_ENABLE (1),
 .RESET_B_ENABLE (1),
 .RSTA_POLARITY (1),
@@ -72,7 +72,7 @@ input clk
 .OUTPUT_REG_A (0),
 .OUTPUT_REG_B (0),
 .MEMORY_TYPE ("SDP_RAM"),
-.GROUP_DATA_WIDTH_B (W_DATA),
+.GROUP_DATA_WIDTH_B (8),
 .BYTEENA_ENABLE (0),
 .BYTEENB_ENABLE (0),
 .BYTEENA_POLARITY (1),
@@ -81,12 +81,12 @@ input clk
 .BYTEEN_WIDTH_B (1),
 .BYTEEN_ENABLE (0),
 .BYTEEN_POLARITY (1),
-.GROUP_DATA_WIDTH (W_DATA),
+.GROUP_DATA_WIDTH (8),
 .BYTEEN_WIDTH (1),
 .WIDTH_RATIO (4),
-.GROUP_DATA_WIDTH_A (W_DATA),
-.DATA_WIDTH_A (W_DATA),
-.DATA_WIDTH_B (W_DATA),
+.GROUP_DATA_WIDTH_A (8),
+.DATA_WIDTH_A (8),
+.DATA_WIDTH_B (8),
 .ADDREN_ENABLE (1),
 .ADDREN_POLARITY (1),
 .CLK_MODE (1),

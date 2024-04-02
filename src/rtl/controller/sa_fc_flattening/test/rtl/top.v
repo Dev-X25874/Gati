@@ -9,19 +9,28 @@ module top#(
     parameter W_IMG_ROWS = 16
 )(
     input clk,
-    input rst,
+    input i_rst,
     input rx_serial,
-    input flatten,
-    input start,
-    input i_acc_valid,
-    input [W_KERNAL_CNT-1 : 0] i_kernal_count,
+    input i_flattening,
+    input i_start,
+    input i_accumulator_valid,
     input [N_FIFO-1 : 0] i_weight_ff_array_empty,
     input [W_IMG_DIM-1 : 0] i_img_dim,
-    input [W_IMG_ROWS-1 : 0] i_img_rows,
     output o_done_rden_ctrl,
     output [W_DATA-1 : 0] o_data_mux,
     output o_data_valid
 );
+
+//TODO: Invert all single bit input signals.
+wire rst;
+wire start;
+wire flatten;
+wire i_acc_valid;
+
+assign rst = ~i_rst;
+assign start = ~i_start;
+assign flatten = ~i_flattening;
+assign i_acc_valid = ~ i_accumulator_valid;
 
 wire rx_dv;
 wire [W_DATA-1 : 0] rx_byte;
@@ -102,6 +111,7 @@ wire [(N_FIFO * W_DATA)-1 : 0] weight_ff_array_data_out;
 wire [N_FIFO-1 : 0] weight_ff_array_rden;
 wire [N_FIFO-1 : 0] weight_ff_array_empty;
 wire [(N_FIFO * (W_ADDR+1))-1 : 0] weight_ff_array_occ;
+wire [(N_BANK * N_BRAM)-1 : 0] valid_weight_ff_array_flattening_ctrl;
 //each fifo in this array stores an element of each channel
 weight_fifo_array#(
     .W_DATA(W_DATA),
@@ -116,7 +126,7 @@ weight_fifo_array#(
     .o_data(weight_ff_array_data_out),
     .o_occupants(weight_ff_array_occ),
     .o_empty(weight_ff_array_empty),
-    .o_valid()
+    .o_valid(valid_weight_ff_array_flattening_ctrl)
 );
 
 //asserts read enable signal of weight fifo array
@@ -134,7 +144,6 @@ weight_fifo_array_rden#(
 block#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
-    .N_FIFO(N_FIFO),
     .N_BRAM(N_BRAM), //number of brams in one bank
     .N_BANK(N_BANK), //total number of bram banks
     .W_KERNAL_CNT(W_KERNAL_CNT),
@@ -145,11 +154,10 @@ block#(
     .rst(rst),
     .flatten(flatten),
     .start(start),
+    .i_valid(valid_weight_ff_array_flattening_ctrl),
     .i_acc_valid(i_acc_valid),
-    .i_kernal_count(i_kernal_count),
     .i_weight_ff_array_empty(i_weight_ff_array_empty),
     .i_img_dim(i_img_dim),
-    .i_img_rows(i_img_rows),
     .i_data(weight_ff_array_data_out),
     .o_done_rden_ctrl(o_done_rden_ctrl),
     .o_data_mux(o_data_mux),

@@ -14,7 +14,8 @@ reg dv = 0;
 reg [W_DATA-1 : 0] data = 0;
 assign o_data = data;
 assign data_valid = dv;
-
+localparam BIN_WIDTH = $clog2(N_BANK * N_BRAM);
+wire [BIN_WIDTH-1 : 0] bin;
 onehot_to_bin#(
     .ONEHOT_WIDTH(N_BANK * N_BRAM)
 )onehot_to_binary(
@@ -27,7 +28,7 @@ always @(posedge clk) begin
         data <= 0;
     end else begin
             if(i_rden!=0)begin
-                data <= i_data[(W_DATA * (bin + 1))-1 -: W_DATA];
+                data <= i_data[((W_DATA) * (bin + 1))-1 -: W_DATA];
                 dv <= 1'b1;
             end else begin
                 data <= data;

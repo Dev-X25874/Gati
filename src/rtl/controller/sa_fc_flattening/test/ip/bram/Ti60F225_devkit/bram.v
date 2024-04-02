@@ -43,7 +43,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _7c0d7f9817ba4fe1a0a3c59325725d60
+`define IP_UUID _72ad42ed9aaa4fd494896a9b62b3c247
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module bram (

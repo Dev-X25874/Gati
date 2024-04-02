@@ -43,12 +43,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _36b7090453db4244a805cf1af7941525
+`define IP_UUID _a809ad5398984fc49e1794153baf1d27
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module fifo#(
-    parameter W_DATA = 8,
-    parameter W_ADDR = 8
+parameter W_DATA = 8,
+parameter W_ADDR = 9
 )(
 output prog_full_o,
 output full_o,
@@ -56,10 +56,10 @@ output empty_o,
 input clk_i,
 input wr_en_i,
 input rd_en_i,
-input [W_DATA-1 : 0] wdata,
+input [W_DATA-1:0] wdata,
 output [W_ADDR:0] datacount_o,
 output rst_busy,
-output [W_DATA-1 : 0] rdata,
+output [W_DATA-1:0] rdata,
 input a_rst_i,
 output o_valid
 );
@@ -77,7 +77,7 @@ output o_valid
 .PROG_EMPTY_NEGATE (2),
 .OPTIONAL_FLAGS (0),
 .PIPELINE_REG (1),
-.DEPTH (1<< W_ADDR),
+.DEPTH (1 << W_ADDR),
 .FAMILY ("TRION"),
 .ASYM_WIDTH_RATIO (4),
 .BYPASS_RESET_SYNC (0),
@@ -93,8 +93,8 @@ output o_valid
 .datacount_o ( datacount_o ),
 .rst_busy ( rst_busy ),
 .rdata ( rdata ),
-.rd_valid_o ( o_valid ),
-.a_rst_i ( a_rst_i )
+.a_rst_i ( a_rst_i ),
+.rd_valid_o(o_valid)
 );
 
 endmodule

@@ -20,18 +20,20 @@ module bram_rden_controller#(
     input [(N_BANK * N_BRAM)-1 : 0] weight_ff_array_empty,  //common weight fifo array for sa and fc
     input [W_IMG_DIM-1 : 0] image_dimension,   //7
     input [W_IMG_ROWS-1 : 0] image_rows, //7x7x16
-    output [(N_BANK * N_BRAM)-1 : 0] o_read_enable,
+    output [N_BRAM-1 : 0] o_read_enable,
     output o_done,
-    output [(N_BANK * (W_ADDR + 1))-1 : 0] o_bank_address
+    output [(N_BANK * (W_ADDR + 1))-1 : 0] o_bank_address,
+    output [N_BANK-1 : 0] o_bank_enable
 );
 reg [1:0] state = 0;
-reg [(N_BANK * N_BRAM)-1 : 0] rden = 0;
+reg [N_BRAM-1 : 0] rden = 0;
 reg done = 0;
 reg [N_BANK-1 : 0]bank_en = 0;
 reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
 assign o_done = done;
 assign o_read_enable = rden;
 assign o_bank_address = addr;
+assign o_bank_enable = bank_en;
 
 reg [W_KERNAL_CNT-1 : 0]    r_kernal_count = 0;
 reg [W_IMG_ROWS-1 : 0]      r_image_rows = 0;

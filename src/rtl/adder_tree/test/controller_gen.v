@@ -1,3 +1,6 @@
+//this module to control the read and write enable of the 8 fifos generated. 
+//write enable of the fifos get high in the squential matter while read enable of all fifos get enabled at once.
+
 module controller_gen#(
     parameter N_FIFO = 8, parameter DATA_WIDTH = 8, parameter ADDR_WIDTH = 9
 )(
@@ -14,8 +17,8 @@ always @(posedge i_clk) begin
     if(counter < N_FIFO) begin
         if(i_rx_valid) begin
             //o_fifo_wren <= 1'b1;
-            o_fifo_wren[counter] <= 1'b1;
-            o_fifo_wren[counter-1] <= 1'b0;
+            o_fifo_wren[counter] <= 1'b1; //write enable of the fifos gets high in the sequential order
+            o_fifo_wren[counter-1] <= 1'b0; //simultaneously the write enable of the last fifo gets low 
             counter <= counter + 1;
         end else begin
             //o_fifo_wren <= 1'b0;
@@ -34,7 +37,7 @@ end
 always @(posedge i_clk) begin
     //if(~i_fifo_empty) begin
         if(i_fifo_occupants >= {N_FIFO{9'd3}}) begin
-            o_fifo_rden <= 8'b1111_1111;
+            o_fifo_rden <= 8'b1111_1111; //all fifos read enable get high together
         end
         else begin
             o_fifo_rden <= 8'b0000_0000;

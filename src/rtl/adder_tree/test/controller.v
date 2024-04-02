@@ -1,3 +1,5 @@
+//this module is to concatenate the 8 bits of data into 24 bits to thereby store them into fifos, mimicing engines
+
 module controller(
     input clk,
     input [7:0] d_in,

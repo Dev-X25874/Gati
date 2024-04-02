@@ -1,3 +1,6 @@
+//this module takes data from 8 fifos and submit into a singular fifo
+
+
 module controller_after_main_design_gen#(
     parameter COL = 8,
     parameter W_DATA = 20

@@ -1,3 +1,5 @@
+//this top module is to connect the design with uart
+
 module top_design_for_8_ins #(parameter FIFO_NO = 8, parameter ADDR_WIDTH = 9, 
                               parameter DATA_WIDTH = 8, parameter DESIGN_NO = 8,
                               parameter DATA_OUT_WIDTH = 20) (

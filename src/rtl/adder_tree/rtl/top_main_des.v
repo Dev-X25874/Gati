@@ -1,3 +1,6 @@
+//top module that connects adder blocks in tree like structure in order to get the adder tree architecture working
+//gen block generates the adder tree module 8 times in order to satisfy the main architecture
+
 module top_main_des_gen #(parameter DATA_OUT_WIDTH = 20, parameter DESIGN_NO = 8)(
     input [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] first_sa1_out,
     input [(DESIGN_NO * DATA_OUT_WIDTH)-1 :0] second_sa2_out,

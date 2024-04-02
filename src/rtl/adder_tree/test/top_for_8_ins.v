@@ -1,3 +1,6 @@
+//this module is to generate 8 blocks of the adder tree along with fifos(mimicing the engines) and a controller(takes in 8 bits of data and concatenates into 24 bits and submit into each fifo)
+
+
 module top_for_8_ins_gen #(parameter DATA_IN_WIDTH = 8, parameter DATA_OUT_WIDTH = 20, parameter DESIGN_NO = 8) (
     input clk,
     input rst,

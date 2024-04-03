@@ -53,7 +53,7 @@ bram_wren_ctrl#(
     .rst(rst),
     .start(start),
     .data_valid(flattened_data_valid),
-    .image_dim(15'd896),
+    .image_dim(20'd784),
     .i_data(flattened_data),
     .write_done(wren_done_bram_we_ctrl_bram_re_ctrl),
     .write_enable(wren_ctrl_bram_array),

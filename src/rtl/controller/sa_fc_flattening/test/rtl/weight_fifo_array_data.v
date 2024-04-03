@@ -17,10 +17,10 @@ module weight_fifo_array_data#(
 
 reg enb = 0;
 reg [W_DATA-1 : 0] data = 0;
-assign o_data = data;
 assign o_enable = enb;
+assign o_data = data;
 
-always @(posedge clk) begin
+always @(*) begin
     if(rst)begin
         enb <= 1'b0;
     end else begin

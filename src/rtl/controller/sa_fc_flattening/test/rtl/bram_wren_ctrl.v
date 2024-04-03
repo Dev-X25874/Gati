@@ -11,7 +11,7 @@ module bram_wren_ctrl#(
     input rst,
     input start,
     input data_valid,
-    input [14:0] image_dim,
+    input [19:0] image_dim,
     input [((N_BANK * N_BRAM) * W_DATA)-1 : 0] i_data,
     output write_done,
     output [(N_BANK * N_BRAM)-1 : 0] write_enable,

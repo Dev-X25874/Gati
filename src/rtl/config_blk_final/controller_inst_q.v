@@ -9,18 +9,10 @@ module controller_inst_q(
   reg [255:0]internal_reg=0;
   always@(posedge clkin)
   begin
-    if(sel)
+    if(sel && valid)
     begin
-      if(valid)
-      begin
-//        internal_reg<=i_instruction_data;
         o_instruction<=i_instruction_data;
         o_instruction_valid<=1;
-      end
-      else
-        begin
-          o_instruction_valid<=0;
-        end
     end
     else
       begin

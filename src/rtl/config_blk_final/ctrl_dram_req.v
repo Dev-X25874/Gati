@@ -85,21 +85,54 @@ module ctrl_dram_req #(
       end
       4'd3:
       begin
-        if((internal_reg_stop-(burst_len<<5))>internal_reg_start)
+        if(((internal_reg_stop-((burst_len+1)<<5))>internal_reg_start)) //changed burst_len =>burst_len+1
         begin
-          internal_reg_start<=internal_reg_start+(burst_len_reg<<5);
+          if(status)begin
+          internal_reg_start<=internal_reg_start+32'h10000;   //+//32'h10000; //((burst_len_reg+1)<<5);//for testing
           state<=4'd2;
+          end
+          else begin
+            state<=4'd1;
+          end
         end
         else
         begin
-          burst_len_reg=(global_reg_address_stop-internal_reg_start)>>5;
-          state<=4'd4;
+          burst_len_reg<=(global_reg_address_stop-internal_reg_start)>>5;
+          state<=4'd5;
         end
       end
       4'd4:
       begin
         burst_len_reg<=8'd0;
         state<=4'd0;
+      end
+      4'd5:begin
+        o_address_reg<=internal_reg_stop[addr_w-counter1-1-:8];
+        counter1<=counter1+8;
+        dv<=1'b1;
+        read_req_reg<=1'b1;
+        if(counter1==24)
+        begin
+          last_reg<=1'b1;
+        end
+        else
+        begin
+          last_reg<=1'b0;
+        end
+
+        if(counter1<32)
+        begin
+          state<=4'd5;
+        end
+        else
+        begin
+          state<=4'd4;
+          dv<=1'b0;
+          read_req_reg<=1'b0;
+          last_reg<=1'b0;
+          o_address_reg<=8'd0;
+          counter1<=6'd0;
+        end
       end
       default: begin
         read_req_reg<=1'b0;

@@ -1,3 +1,5 @@
+//this is the top module for testing 4 instances of shift register block along with the uart interface
+
 module top_for_shift_reg_gen #(parameter no_of_designs = 4, parameter N_FIFO = 4, parameter ADDR_WIDTH = 9) (
     input din,
     input clk,
@@ -59,16 +61,6 @@ rx rx(
     .sel(select_line)
 );*/
 
-/*controller_common controller_common(
-    .clk(clk),
-    .din(d_out),
-    .rx_valid(rx_valid),
-    .sel(select_line),
-    .intermediate_result(thirty_two_result),
-    .quantized_result(eight_result),
-    .valid_out(valid_con)
-);*/
-
 controller_common_data controller_common_data(
     .clk(clk),
     .din(d_out),
@@ -100,6 +92,8 @@ top_fifo_gen_con top_fifo_gen_con_int(
     .data_out(thirty_two_result_fifo),
     .data_valid(valid_con_fifo_int)
 );
+
+//this is to generate fifo arrays for storing in the 8 bits in order to test the main design; it mimics for quantized result input
 
 top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .clk(clk),
@@ -183,12 +177,15 @@ tx tx(
 
 
 
-assign occupants = select_line? occupants_2 : occupants_1;
+assign occupants = select_line? occupants_2 : occupants_1; //module controller_gen_rd_wn get assigned occupancy from the fifo incharge(either the one storing in intermediate result or quantized result), according to the select line chosen
 
-assign empty = select_line? empty_2 : empty_1;
+assign empty = select_line? empty_2 : empty_1; //module controller_gen_rd_wn get assigned empty from the fifo incharge(either the one storing in intermediate result or quantized result), according to the select line chosen
+
 
 //assign {wr1 , wr2} = select_line? {0 , wr} : {wr , 0};
 //assign {rn1 , rn2} = select_line? {0 , rn} : {rn , 0};
+
+//module controller_gen_rd_wn assigns read and write enable to the fifo incharge(either the one storing in intermediate result or quantized result), according to the select line chosen
 
 assign wr1 = select_line? 0 : wr;
 assign wr2 = select_line? wr : 0;

@@ -1,3 +1,6 @@
+//this controller module either concatenates the 8 bits of data coming from uart into intermediate result or passes on the 8 bits one at a time as quantized result according to the select line chosen. 
+//this module is for the checking the functionality of the design using a uart
+
 module controller_common_data(
     input clk,
     input [7:0] din,

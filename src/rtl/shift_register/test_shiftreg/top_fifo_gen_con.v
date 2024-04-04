@@ -1,3 +1,5 @@
+//this is to generate fifo arrays for storing in the 32 bits in order to test the main design; it mimics for intermediate result input
+
 module top_fifo_gen_con #(parameter FIFO_NO = 4, 
                     parameter DATA_WIDTH = 32, 
                     parameter ADDR_WIDTH = 9)
@@ -7,7 +9,7 @@ module top_fifo_gen_con #(parameter FIFO_NO = 4,
     input rst_n,
     input [FIFO_NO-1:0] we,
     input [FIFO_NO-1:0] re,
-    input [(DATA_WIDTH)-1:0] data_in,
+    input [(DATA_WIDTH)-1:0] data_in, //
     output [((ADDR_WIDTH * FIFO_NO)-1):0] occupants,
     output [FIFO_NO-1:0] full,
     output [FIFO_NO-1:0] empty,

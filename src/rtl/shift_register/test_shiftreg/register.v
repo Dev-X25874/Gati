@@ -1,3 +1,5 @@
+//this module assigns the input data to the output according to the type of valid  
+
 module register(
     input [7:0] din,
     input valid_intermediate_result,

@@ -1,4 +1,5 @@
-//send 19 bits of partial suns in 3 bytes to the uart trasnsmitter
+//send bits incoming from the fifo before in a byte package to the uart trasnsmitter, one by one
+
 module controller_fifo_tx #(
     parameter DATA_WIDTH = 32,
     parameter UART_WIDTH = 8

@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<efx:project name="test_32_bit" description="" last_change_date="Fri March 15 2024 18:38:12" location="/home/vansh/Documents/git/Gati/src/rtl/shift_register/test_32_bit" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
-=======
-<efx:project name="test_32_bit" description="" last_change_date="Tue March 19 2024 09:10:08" location="/home/vansh/Documents/git/Gati/src/rtl/shift_register/test_32_bit" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
->>>>>>> a6be464 (to shift register)
+<efx:project name="test_shiftreg" description="" last_change_date="Wed April 3 2024 16:34:04" location="/home/vansh/Documents/git/Gati/src/rtl/shift_register/test_shiftreg" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
-        <efx:timing_model name="C3"/>
+        <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="top_for_shift_reg_gen"/>
-        <efx:design_file name="tx.v" version="default" library="default"/>
-        <efx:design_file name="top.v" version="default" library="default"/>
-        <efx:design_file name="mux.v" version="default" library="default"/>
-        <efx:design_file name="top_for_shift_reg_gen.v" version="default" library="default"/>
-        <efx:design_file name="controller.v" version="default" library="default"/>
-        <efx:design_file name="register.v" version="default" library="default"/>
-        <efx:design_file name="rx.v" version="default" library="default"/>
-        <efx:design_file name="controller_common_data.v" version="default" library="default"/>
-        <efx:design_file name="controller_common.v" version="default" library="default"/>
-        <efx:design_file name="top_gen_main_des.v" version="default" library="default"/>
-        <efx:design_file name="controller_gen_rd_wn.v" version="default" library="default"/>
         <efx:design_file name="controller_after_main_design_gen.v" version="default" library="default"/>
+        <efx:design_file name="register.v" version="default" library="default"/>
+        <efx:design_file name="controller.v" version="default" library="default"/>
         <efx:design_file name="top_fifo_gen_con.v" version="default" library="default"/>
+        <efx:design_file name="mux.v" version="default" library="default"/>
+        <efx:design_file name="top_gen_main_des.v" version="default" library="default"/>
+        <efx:design_file name="rx.v" version="default" library="default"/>
+        <efx:design_file name="top_for_shift_reg_gen.v" version="default" library="default"/>
+        <efx:design_file name="controller_gen_rd_wn.v" version="default" library="default"/>
+        <efx:design_file name="top.v" version="default" library="default"/>
+        <efx:design_file name="controller_common_data.v" version="default" library="default"/>
         <efx:design_file name="top_fifo_gen.v" version="default" library="default"/>
+        <efx:design_file name="tx.v" version="default" library="default"/>
         <efx:design_file name="controller_fifo_tx.v" version="default" library="default"/>
-        <efx:design_file name="../../common/fifo_valid.v" version="default" library="default"/>
         <efx:design_file name="../../common/memory_valid.v" version="default" library="default"/>
+        <efx:design_file name="../../common/fifo_valid.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

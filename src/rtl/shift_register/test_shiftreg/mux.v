@@ -1,3 +1,5 @@
+//this module is for performing mux operation and assigning the appropriate input data to output as per the select line chosen
+
 module mux(
     input [7:0] intermediate_result,
     input [7:0] quantized_result,

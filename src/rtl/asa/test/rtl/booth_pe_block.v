@@ -20,15 +20,13 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 reg [W_DATA-1 : 0] wb = 0;           //register to store weight
 reg [W_PSUM-1 : 0] psum_buff = 0;    //register to store partial sum
 reg w_dv = 0;
-reg [1:0] ps_dv = 0;
+reg ps_dv = 0;
 
 always @(posedge i_clk) begin
     if(i_rst)begin
-        ps_dv[0] <= 0;
-        ps_dv[1] <= 0;
+        ps_dv <= 0;
     end else begin
-        ps_dv[0] <= (i_data[W_DATA] & w_dv);
-        ps_dv[1] <= ps_dv[0];
+        ps_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 
@@ -51,18 +49,15 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-wire signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
 
-top_booth t1(
-    .clk(i_clk),
-    .a(i_data[W_DATA-1:0]),
-    .b(wb),
-    .c(temp)
-);
+always @(posedge i_clk) begin
+    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+end
 
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
 assign o_data = i_data;
-assign o_p_sum[W_PSUM] = ps_dv[1];
+assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
 
 endmodule
@@ -85,15 +80,13 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 reg [W_DATA-1:0] wb = 0;           //register to store weight
 reg [W_PSUM -1:0] psum_buff = 0;   //register to store partial sum
 reg w_dv = 0;
-reg [1:0] ps_dv = 0;
+reg ps_dv = 0;
 
 always @(posedge i_clk) begin
     if(i_rst)begin
-        ps_dv[0] <= 0;
-        ps_dv[1] <= 0;
+        ps_dv <= 0;
     end else begin
-        ps_dv[0] <= (i_data[W_DATA] & w_dv);
-        ps_dv[1] <= ps_dv[0];
+        ps_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 
@@ -116,16 +109,14 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-wire signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
 
-top_booth t2(
-    .clk(i_clk),
-    .a(i_data[W_DATA-1:0]),
-    .b(wb),
-    .c(temp)
-);
+always @(posedge i_clk) begin
+    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+end
+
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
-assign o_p_sum[W_PSUM] = ps_dv[1];
+assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
 assign o_data = i_data;
 
@@ -147,18 +138,15 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 reg [W_DATA-1:0] wb = 0;           //register to store weight
 reg [W_PSUM -1:0] psum_buff = 0;   //register to store partial sum
 reg w_dv = 0;
-reg [1:0] ps_dv = 0;
+reg ps_dv = 0;
 
 always @(posedge i_clk) begin
     if(i_rst)begin
-        ps_dv[0] <= 0;
-        ps_dv[1] <= 0;
+        ps_dv <= 0;
     end else begin
-        ps_dv[0] <= (i_data[W_DATA] & w_dv);
-        ps_dv[1] <= ps_dv[0];
+        ps_dv <= (i_data[W_DATA] & w_dv);
     end
 end
-
 always @(posedge i_clk) begin
     if(i_rst)begin
         wb <= 0;
@@ -178,18 +166,15 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-wire signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
 
-top_booth t3(
-	.clk(i_clk),
-	.a(i_data[W_DATA-1:0]),
-	.b(wb),
-	.c(temp)
-);
+always @(posedge i_clk) begin
+    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+end
 
 assign o_data = i_data;
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
-assign o_p_sum[W_PSUM] = ps_dv[1];
+assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA], wb};
 
 endmodule

@@ -4,52 +4,27 @@
 module sa_engine_dsp#(
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter COL = 4,
+    parameter COL = 8,
     parameter ROW = 9,
     parameter W_PSUM = 19,
-    parameter N_SA = 2,
+    parameter N_SA = 4,
     parameter RAM_DEPTH = (1 << W_ADDR)
 )(
     input i_clk,
     input s_clk,
     input i_rst,
     input i_trigger_1,
-    input [W_DATA-1 : 0] i_weight_fifo_array_data,
-    input [COL-1 : 0] i_weight_fifo_array_write_en,
+    input [(COL * W_DATA)-1 : 0] i_weight_fifo_array_data,
+    input [COL-1 : 0] i_weight_fifo_array_dv,
+    input [COL-1 : 0] i_weight_fifo_array_empty,
+    input [((W_ADDR + 1) * COL)-1 : 0] i_weight_fifo_array_occ,
     input [W_DATA-1 : 0] i_image_fifo_array_data,
     input [ROW-1 : 0] i_image_fifo_array_wren,
     input [COL-1 : 0] i_psum_ff_array_read_en,
     output [(W_PSUM * COL)-1 : 0] o_psum_ff_array_partial_sums,
     output [COL-1 : 0] o_psum_ff_array_empty,
-    output [COL-1 : 0] o_psum_ff_array_dv
-);
-
-wire [COL-1 : 0] read_rden_ctrl_weight_ff_array;
-wire [COL-1 : 0] dv_weight_ff_array_append_dv;
-wire [COL-1 : 0] empty_weight_ff_array_rden_ctrl;
-wire [(COL * W_DATA)-1 : 0] data_weight_ff_array_append_dv;
-wire [((W_ADDR + 1) * COL)-1 : 0] occ_weight_ff_array_rden_ctrl;
-
-/*
-    Each fifo in this array stores its corrosponding column's weights
-    before loading it into PE blocks 
-*/
-fifo_array#(
-    .DIMENSION(COL),
-    .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
-) sa_engine_weight_fifo_array (
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_data(i_weight_fifo_array_data),
-    .i_read_enable(read_rden_ctrl_weight_ff_array),
-    .i_write_enable(i_weight_fifo_array_write_en),
-    .o_data(data_weight_ff_array_append_dv),
-    .o_fifo_empty(empty_weight_ff_array_rden_ctrl),
-    .o_fifo_full(),
-    .o_fifo_dv(dv_weight_ff_array_append_dv),
-    .o_occupants(occ_weight_ff_array_rden_ctrl)
+    output [COL-1 : 0] o_psum_ff_array_dv,
+    output [COL-1 : 0] o_weight_fifo_array_rden
 );
 
 wire [(COL * (W_DATA + 1))-1 : 0] weights_append_dv_cdc;
@@ -59,8 +34,8 @@ append_dv#(
     .N_DIMENSION(COL),
     .W_DATA(W_DATA)
 )weight_fifo_array_dv(
-    .i_data(data_weight_ff_array_append_dv),
-    .i_data_valid(dv_weight_ff_array_append_dv),
+    .i_data(i_weight_fifo_array_data),
+    .i_data_valid(i_weight_fifo_array_dv),
     .o_data(weights_append_dv_cdc)
 );
 
@@ -77,9 +52,9 @@ weight_fifo_aray_rden#(
    .i_rst(i_rst),
    .i_trigger(i_trigger_1),
    .image_read_ctrl_enable(enb_weight_rden_ctrl_image_rden_ctrl),
-   .i_fifo_empty(empty_weight_ff_array_rden_ctrl),
-   .o_fifo_read_enable(read_rden_ctrl_weight_ff_array),
-   .i_fifo_occupants(occ_weight_ff_array_rden_ctrl)
+   .i_fifo_empty(i_weight_fifo_array_empty),
+   .o_fifo_read_enable(o_weight_fifo_array_rden),
+   .i_fifo_occupants(i_weight_fifo_array_occ)
 );
 
 wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;

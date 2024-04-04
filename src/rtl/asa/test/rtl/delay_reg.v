@@ -17,8 +17,11 @@ reg [(ROW * (W_DATA + 1)) - 1 : 0] r_pe_grid_image = 0;
 //No delay is provided to the image going into first row of SA
 assign pe_grid_image [((W_DATA+1) * ROW)-1 :((W_DATA+1) * (ROW-1))] = in_west[((W_DATA+1) * ROW)-1 : ((W_DATA+1) * (ROW-1))];
 
+generate
 //Image from 2nd to the last ROW of SA is passed through registers before broadcasting it into PE blocks
-assign pe_grid_image [(((W_DATA + 1) * ROW) - ROW - 1) : 0] = r_pe_grid_image[(((W_DATA + 1) * ROW) - ROW - 1) : 0];
+    if(ROW > 1)
+        assign pe_grid_image [(((W_DATA + 1) * ROW) - ROW - 1) : 0] = r_pe_grid_image[(((W_DATA + 1) * ROW) - ROW - 1) : 0];
+endgenerate
 
 genvar i , j;
     generate

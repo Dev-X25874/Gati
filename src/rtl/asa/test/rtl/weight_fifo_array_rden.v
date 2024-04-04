@@ -41,7 +41,6 @@ pulse_gen one_pulse (
 
 reg [COL-1:0] rden = 0;
 reg [2:0] state = 0;
-reg sel = 0;
 reg [($clog2(COL * 32))-1 : 0] counter = 0;
 reg read_img = 0;
 assign o_fifo_read_enable = rden;

@@ -3,7 +3,7 @@ module controller_rx #(parameter op_code_width = 4,
     input [7:0] din,
     input rx_valid,
     input clk,
-    output reg [7:0] opcode = 0,
+    output reg [(op_code_width)-1 : 0] opcode = 0,
     output reg [(data_in)-1 : 0] dout = 0,
     output reg dout_valid = 0
 );
@@ -22,11 +22,20 @@ always @(posedge clk) begin
     end
     1: begin
         if(rx_valid) begin
-            opcode <= din;
-            state <= 2;
+            if(count_opcode < 3) begin
+                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
+                count_opcode <= count_opcode + 1;
+                state <= 1;
+            end
+            else begin
+                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
+                count_opcode <= 0;
+                state <= 2;
+            end
         end
         else begin
             opcode <= opcode;
+            count_opcode <= count_opcode;
             state <= 1;
         end
     end

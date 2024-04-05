@@ -9,7 +9,7 @@ module top_test #(parameter op_code_width = 4,
 
 wire [7:0] d_out;
 wire dout_valid;
-wire [7:0] opcode;
+wire [(op_code_width)-1 : 0] opcode;
 wire [(data_in)-1 : 0] dout_instruction_fifoin;
 wire [(data_in)-1 : 0] dout_instruction_fifoout;
 wire rd;
@@ -40,7 +40,7 @@ controller_rx controller_rx(
     .dout_valid(dout_valid)
 );
 
-fifo_valid #(.DATA_WIDTH(256), .ADDR_WIDTH(4)) fifo_rx(
+fifo_valid #(.DATA_WIDTH(256), .ADDR_WIDTH(9)) fifo_rx(
     .clk(clk),
     .rst_n(rst),
     .data_in(dout_instruction_fifoin),
@@ -57,12 +57,12 @@ top_master_slave top_master_slave(
     .din(dout_instruction_fifoout),
     .start(start),
     .clk(clk),
-    .opcode(opcode[3:0]),
+    .opcode(opcode),
     .dout_final(dout_top_master_slave_fifoin),
     .valid(valid_master_slave)
 );
 
-fifo_valid #(.DATA_WIDTH(180), .ADDR_WIDTH(4)) fifo_tx(
+fifo_valid #(.DATA_WIDTH(180), .ADDR_WIDTH(9)) fifo_tx(
     .clk(clk),
     .rst_n(rst),
     .data_in(dout_top_master_slave_fifoin),

@@ -28,7 +28,7 @@ The flow of data within this systolic array design follows a specific sequence:
     - Sub-modules within the systolic array:
         - Grid of PE Blocks: Different configurations exist for PE blocks in various rows.
         - Delay Registers: Introduce clock cycle delays for effective data handling within the array.
-    - Utilization of booth multipliers for computation within the array.
+    - Utilization of lut and dsp multipliers for computation within the array.
 
 3. **Output Storage in FIFO:**
     - The resultant output is stored in a FIFO array (referred to as the south array), managed by dedicated controllers for write and read enable signals.
@@ -49,7 +49,6 @@ The processing phase within the systolic array involves intricate operations and
 - **Grid of Processing Elements (PEs):** The heart of the systolic array consists of a grid of PEs and interconnects designed to execute convolution operations in a pipelined manner.
 - **Distinct PE Block Configurations:** Rows within the systolic array host PE blocks with unique configurations—top, middle, bottom—each exhibiting varying input/output characteristics.
 - **Clock Cycle Synchronization:** Delay registers are strategically employed to synchronize the data flow, introducing clock cycle delays for seamless data propagation within the array.
-- **Enhancing Computational Performance with Booth Multipliers:** Booth multipliers are strategically integrated into the design to optimize computational performance. Their inclusion aims to improve the array's overall efficiency by leveraging advanced multiplication techniques.
 
 ### Output FIFO Storage
 The management of processed output data through FIFOs constitutes the final phase of the systolic array operation:

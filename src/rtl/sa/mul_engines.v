@@ -2,15 +2,15 @@
     Generates sa engine N_SA times
 */
 module mul_engines#(
-    parameter N_SA = (NSA_BOOTH + NSA_DSP),
+    parameter N_SA = (NSA_LUT + NSA_DSP),
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
     parameter COL = 4,    //number of columns for each engine
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1<<W_ADDR),
-    parameter NSA_BOOTH = 0,
-    parameter NSA_DSP = 1
+    parameter NSA_LUT = 1,  //number of LUT based multiplier SA engines
+    parameter NSA_DSP = 1   //number of DSP based multiplier SA engines
 )(
     input i_clk,
     input s_clk,
@@ -123,7 +123,7 @@ endgenerate
 
 genvar j;
 generate
-    if(NSA_BOOTH == 0)begin
+    if(NSA_LUT == 0)begin
         for(j = 0; j < N_SA/2; j = j + 1)begin : LUT_SA_ENG
             sa_engine_lut#(
                 .W_DATA(W_DATA),
@@ -152,7 +152,7 @@ generate
             );
         
         end 
-    end else if(NSA_BOOTH == N_SA)begin
+    end else if(NSA_LUT == N_SA)begin
             for(j = 0; j < N_SA; j = j + 1)begin : LUT_SA_ENG
                 sa_engine_lut#(
                     .W_DATA(W_DATA),

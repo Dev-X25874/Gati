@@ -1,5 +1,5 @@
 module top_uart_flow#(
-    parameter N_SA = (NSA_DSP + NSA_BOOTH),
+    parameter N_SA = (NSA_DSP + NSA_LUT),
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
     parameter COL = 8,
@@ -7,7 +7,7 @@ module top_uart_flow#(
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter NSA_DSP = 4,
-    parameter NSA_BOOTH = 4
+    parameter NSA_LUT = 4
 )(
     input i_clk,
     input s_clk,
@@ -220,7 +220,7 @@ mul_engines#(
     .ROW(ROW),
     .W_PSUM(W_PSUM),
     .RAM_DEPTH(RAM_DEPTH),
-    .NSA_BOOTH(NSA_BOOTH),
+    .NSA_LUT(NSA_LUT),
     .NSA_DSP(NSA_DSP)
 )multiple_sa_engines(
     .i_clk(i_clk),

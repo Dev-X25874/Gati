@@ -1,5 +1,5 @@
 /*
-    Uart-to-uart flow of a single SA engine
+    Single DSP based multipliers SA engine
 */
 module sa_engine_dsp#(
     parameter W_DATA = 8,

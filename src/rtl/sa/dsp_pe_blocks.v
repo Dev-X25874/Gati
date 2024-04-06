@@ -1,4 +1,4 @@
-//Processing elements for first row in PE grid
+//Processing elements for first row in PE grid made using DSP multipliers
 module dsp_top_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
@@ -50,7 +50,7 @@ end
 
 endmodule
 
-//Processing elements for rest of the rows in the grid
+//Processing elements for rest of the rows in the grid made using DSP multipliers
 module dsp_middle_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
@@ -105,7 +105,7 @@ always @(posedge i_clk) begin
 end
 endmodule
 
-//Processing elements for last row in the grid
+//Processing elements for last row in the grid made using DSP multipliers
 module dsp_bottom_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8

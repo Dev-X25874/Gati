@@ -1,8 +1,8 @@
 /*
     Generates a grid of processing elements, wherein all the PE blocks
-    uses LUTs used by booth algorithm for multiplication. 
+    uses multipliers generated with LUTs.
 */
-module booth_pe_grid#(
+module lut_pe_grid#(
     parameter COL = 1,
     parameter ROW = 1,
     parameter W_DATA = 8,
@@ -27,9 +27,9 @@ generate
             
             
             			if(ROW == 1) begin
-				if(COL == 1) begin	//ROW = 1, COL = 1
+				if(COL == 1) begin
 					if(i == 0 && j == 0) begin
-					booth_bottom_pe_block#(
+					lut_bottom_pe_block#(
    						.W_PSUM(W_PSUM),
    						.W_DATA(W_DATA)
 					)bottom_pe(
@@ -43,9 +43,9 @@ generate
 					);
 
 					end
-				end else if (COL == 2) begin //ROW = 1. COL = 2
+				end else if (COL == 2) begin
 					if(i == 0 && j == 0) begin
-					booth_bottom_pe_block#(
+					lut_bottom_pe_block#(
    						.W_PSUM(W_PSUM),
    						.W_DATA(W_DATA)
 					)bottom_pe(
@@ -59,7 +59,7 @@ generate
 					);
 					end else 
 					if(i == 0 && j == COL-1) begin
-                    booth_bottom_pe_block#(
+                    lut_bottom_pe_block#(
                         .W_PSUM(W_PSUM),
                         .W_DATA(W_DATA)
                      )bottom_pe(
@@ -73,9 +73,9 @@ generate
                      );
 					end
 					
-				end else begin	//ROW = 1, COL > 2
+				end else begin
                     if(i == 0 && j == 0) begin
-                        booth_bottom_pe_block#(
+                        lut_bottom_pe_block#(
                             .W_PSUM(W_PSUM),
                             .W_DATA(W_DATA)
                         )bottom_pe(
@@ -89,7 +89,7 @@ generate
                         );
                         end else 
                         if(i == 0 && j == COL-1) begin
-                        booth_bottom_pe_block#(
+                        lut_bottom_pe_block#(
                             .W_PSUM(W_PSUM),
                             .W_DATA(W_DATA)
                          )bottom_pe(
@@ -103,7 +103,7 @@ generate
                          );
                         end
                         else if(i == 0 && j < COL-1)  begin
-                        booth_bottom_pe_block#(
+                        lut_bottom_pe_block#(
                             .W_PSUM(W_PSUM),
                             .W_DATA(W_DATA)
                             )bottom_pe(
@@ -117,11 +117,10 @@ generate
                             );
                         end
 				end
-			end else begin    //ROW > 1
-                     
+			end else begin
             if(COL > 2)begin
-                if (i == 0 && j == 0) begin//1 
-                booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                if (i == 0 && j == 0) begin
+                lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -131,8 +130,8 @@ generate
                     .o_data(w_data)
                 );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
-                    booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if(i == ROW - 1 && j == 0) begin
+                    lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -144,8 +143,8 @@ generate
                     
                     
                     
-                end else if (j == 0) begin//3
-                    booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (j == 0) begin
+                    lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -157,8 +156,8 @@ generate
                     );
                 end
 
-                else if (i == 0 && j == COL - 1) begin//4
-                booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                else if (i == 0 && j == COL - 1) begin
+                lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -168,8 +167,8 @@ generate
                     .o_data(o_data[((ROW - i)*  (W_DATA + 1))-1 -: (W_DATA + 1)])
                 );
                 
-                end else if (i == 0) begin//5
-                booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (i == 0) begin
+                lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -179,8 +178,8 @@ generate
                     .o_data(w_data)
                 );
                     
-                end else if ((i == ROW - 1) && (j == COL - 1)) begin//6
-                    booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if ((i == ROW - 1) && (j == COL - 1)) begin
+                    lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -190,8 +189,8 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == COL - 1) begin //7
-                    booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (j == COL - 1) begin
+                    lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -202,8 +201,8 @@ generate
                         .o_data(o_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (i == ROW - 1) begin//8
-                    booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (i == ROW - 1) begin
+                    lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -213,8 +212,8 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else begin//9
-                    booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else begin
+                    lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -227,8 +226,8 @@ generate
                     
                 end
             end else if(COL == 1)begin
-                if (i == 0 && j == 0) begin//1 
-                    booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                if (i == 0 && j == 0) begin
+                    lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -238,8 +237,8 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
-                    booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if(i == ROW - 1 && j == 0) begin
+                    lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -249,8 +248,8 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == 0) begin//3
-                    booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (j == 0) begin
+                    lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -262,8 +261,8 @@ generate
                     );
                 end
             end else if( COL == 2) begin
-             if (i == 0 && j == 0) begin//1 
-                    booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+             if (i == 0 && j == 0) begin
+                    lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -273,8 +272,8 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
-                    booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if(i == ROW - 1 && j == 0) begin
+                    lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -284,8 +283,8 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else if (j == 0) begin//3
-                    booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (j == 0) begin
+                    lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -297,8 +296,8 @@ generate
                     );
                 end
                 
-                else if (i == 0 && j == COL - 1) begin//4
-                booth_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                else if (i == 0 && j == COL - 1) begin
+                lut_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
@@ -308,8 +307,8 @@ generate
                     .o_data(o_data[((ROW - i)*  (W_DATA + 1))-1 -: (W_DATA + 1)])
                 );
                     
-                end else if ((i == ROW - 1) && (j == COL - 1)) begin//6
-                booth_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if ((i == ROW - 1) && (j == COL - 1)) begin
+                lut_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
@@ -319,8 +318,8 @@ generate
                     .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == COL - 1) begin //7
-                booth_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
+                end else if (j == COL - 1) begin
+                lut_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
                     .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),

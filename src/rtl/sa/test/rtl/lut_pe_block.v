@@ -1,8 +1,5 @@
-/*
-    The data valid signal of partial sum is delayed by two clock cycles because 
-    the multiplied output coming from booth algorithm has delay of two clock cycle
-*/
-module booth_top_pe_block#(
+//Processing elements for first row in PE grid made using LUT multipliers
+module lut_top_pe_block#(
 	parameter W_DATA = 8, 
 	parameter W_PSUM = 19
 )(  input i_clk,
@@ -49,21 +46,21 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] mul_out;
 
 always @(posedge i_clk) begin
-    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+    mul_out <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
 end
 
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
 assign o_data = i_data;
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
 
 endmodule
 
-//Middle pe blocks
-module booth_pe_block  #(parameter W_DATA = 8, W_PSUM = 19) (
+//Processing elements for rest of the rows in the grid made using LUT multipliers
+module lut_pe_block  #(parameter W_DATA = 8, W_PSUM = 19) (
     input i_clk,
     input i_rst,
     input [W_DATA : 0] i_weight,
@@ -109,21 +106,21 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] mul_out;
 
 always @(posedge i_clk) begin
-    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+    mul_out <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
 end
 
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
 assign o_data = i_data;
 
 endmodule
 
-//Bottom pe block
-module booth_bottom_pe_block #(parameter W_DATA = 8, W_PSUM = 19) (
+//Processing elements for last row in the grid made using LUT multipliers
+module lut_bottom_pe_block #(parameter W_DATA = 8, W_PSUM = 19) (
     input i_clk,
     input i_rst,
     input [W_DATA : 0] i_weight,
@@ -166,14 +163,14 @@ always @(posedge i_clk) begin
 end
 
 //16 bit output of product of weight and image
-(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] temp;
+(* syn_use_dsp = "no" *) reg  signed [(2 * W_DATA)-1 : 0] mul_out;
 
 always @(posedge i_clk) begin
-    temp <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+    mul_out <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
 end
 
 assign o_data = i_data;
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{temp[(2*W_DATA)-1]}},{temp}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA], wb};
 

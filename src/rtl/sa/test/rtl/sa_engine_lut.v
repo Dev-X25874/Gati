@@ -1,7 +1,7 @@
 /*
-    Uart-to-uart flow of a single SA engine
+    Single LUT based multipliers SA engine
 */
-module sa_engine_booth#(
+module sa_engine_lut#(
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
     parameter COL = 8,
@@ -143,12 +143,12 @@ wire  [((W_PSUM + 1) * COL)-1 : 0] partial_sums_sa_cdc;
 //PE grid using DSP blocks as multipliers
 
 
-booth_pe_grid#(
+lut_pe_grid#(
     .COL(COL),
     .ROW(ROW),
     .W_DATA(W_DATA),
     .W_PSUM(W_PSUM)
-) booth_sa_block (
+) lut_sa_block (
     .i_clk(s_clk),
     .i_rst(i_rst),
     .i_weight(weights_cdc_sa),

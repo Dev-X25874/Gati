@@ -20,7 +20,7 @@ assign pe_grid_image [((W_DATA+1) * ROW)-1 :((W_DATA+1) * (ROW-1))] = in_west[((
 generate
 //Image from 2nd to the last ROW of SA is passed through registers before broadcasting it into PE blocks
     if(ROW > 1)
-        assign pe_grid_image [(((W_DATA + 1) * ROW) - ROW - 1) : 0] = r_pe_grid_image[(((W_DATA + 1) * ROW) - ROW - 1) : 0];
+        assign pe_grid_image [((((W_DATA + 1) * ROW)-1) - (W_DATA + 1)) : 0] = r_pe_grid_image[((((W_DATA + 1) * ROW))-1 - (W_DATA + 1)) : 0];
 endgenerate
 
 genvar i , j;

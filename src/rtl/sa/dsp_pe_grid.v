@@ -26,7 +26,7 @@ generate
             wire [W_DATA : 0] w_data;
           
       			if(ROW == 1) begin
-				if(COL == 1) begin	//ROW = 1, COL = 1
+				if(COL == 1) begin
 					if(i == 0 && j == 0) begin
 					dsp_bottom_pe_block#(
    						.W_PSUM(W_PSUM),
@@ -42,7 +42,7 @@ generate
 					);
 
 					end
-				end else if (COL == 2) begin //ROW = 1. COL = 2
+				end else if (COL == 2) begin
 					if(i == 0 && j == 0) begin
 					dsp_bottom_pe_block#(
    						.W_PSUM(W_PSUM),
@@ -72,7 +72,7 @@ generate
                      );
 					end
 					
-				end else begin	//ROW = 1, COL > 2
+				end else begin
                     if(i == 0 && j == 0) begin
                         dsp_bottom_pe_block#(
                             .W_PSUM(W_PSUM),
@@ -116,10 +116,9 @@ generate
                             );
                         end
 				end
-			end else begin    //ROW > 1
-
+			end else begin
             if(COL > 2)begin
-                if (i == 0 && j == 0) begin//1 
+                if (i == 0 && j == 0) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
@@ -130,7 +129,7 @@ generate
                     .o_data(w_data)
                 );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
+                end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -143,7 +142,7 @@ generate
                     
                     
                     
-                end else if (j == 0) begin//3
+                end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -156,7 +155,7 @@ generate
                     );
                 end
 
-                else if (i == 0 && j == COL - 1) begin//4
+                else if (i == 0 && j == COL - 1) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
@@ -167,7 +166,7 @@ generate
                     .o_data(o_data[((ROW - i)*  (W_DATA + 1))-1 -: (W_DATA + 1)])
                 );
                 
-                end else if (i == 0) begin//5
+                end else if (i == 0) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
@@ -178,7 +177,7 @@ generate
                     .o_data(w_data)
                 );
                     
-                end else if ((i == ROW - 1) && (j == COL - 1)) begin//6
+                end else if ((i == ROW - 1) && (j == COL - 1)) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -189,7 +188,7 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == COL - 1) begin //7
+                end else if (j == COL - 1) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -201,7 +200,7 @@ generate
                         .o_data(o_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (i == ROW - 1) begin//8
+                end else if (i == ROW - 1) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -212,7 +211,7 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else begin//9
+                end else begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -226,7 +225,7 @@ generate
                     
                 end
             end else if(COL == 1)begin
-                if (i == 0 && j == 0) begin//1 
+                if (i == 0 && j == 0) begin
                    dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -237,7 +236,7 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
+                end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -248,7 +247,7 @@ generate
                         .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == 0) begin//3
+                end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -261,7 +260,7 @@ generate
                     );
                 end
             end else if( COL == 2) begin
-             if (i == 0 && j == 0) begin//1 
+             if (i == 0 && j == 0) begin
                    dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -272,7 +271,7 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else if(i == ROW - 1 && j == 0) begin//2
+                end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -283,7 +282,7 @@ generate
                         .o_data(w_data)
                     );
                     
-                end else if (j == 0) begin//3
+                end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
                         .i_rst(i_rst),
@@ -296,7 +295,7 @@ generate
                     );
                 end
                 
-                else if (i == 0 && j == COL - 1) begin//4
+                else if (i == 0 && j == COL - 1) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
@@ -307,7 +306,7 @@ generate
                     .o_data(o_data[((ROW - i)*  (W_DATA + 1))-1 -: (W_DATA + 1)])
                 );
                     
-                end else if ((i == ROW - 1) && (j == COL - 1)) begin//6
+                end else if ((i == ROW - 1) && (j == COL - 1)) begin
                 dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),
@@ -318,7 +317,7 @@ generate
                     .o_data(o_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)])
                     );
                     
-                end else if (j == COL - 1) begin //7
+                end else if (j == COL - 1) begin
                 dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
                     .i_rst(i_rst),

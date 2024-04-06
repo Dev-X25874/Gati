@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="sa" description="" last_change="1712319713" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="sa" description="" last_change="1712381805" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
@@ -15,19 +15,15 @@
         <efx:design_file name="rtl/image_fifo_array_rden.v" version="default" library="default"/>
         <efx:design_file name="rtl/uart_tx.v" version="default" library="default"/>
         <efx:design_file name="rtl/top_booth.v" version="default" library="default"/>
-        <efx:design_file name="rtl/booth_pe_grid.v" version="default" library="default"/>
-        <efx:design_file name="rtl/booth_partial_product.v" version="default" library="default"/>
         <efx:design_file name="rtl/append_dv.v" version="default" library="default"/>
         <efx:design_file name="rtl/uart_rx.v" version="default" library="default"/>
         <efx:design_file name="rtl/dsp_pe_grid.v" version="default" library="default"/>
-        <efx:design_file name="rtl/booth_pe_block.v" version="default" library="default"/>
         <efx:design_file name="rtl/mul_fifo.v" version="default" library="default"/>
         <efx:design_file name="rtl/data_valid_append.v" version="default" library="default"/>
         <efx:design_file name="rtl/weight_fifo_array_rden.v" version="default" library="default"/>
         <efx:design_file name="rtl/psum_fifo_ctrl.v" version="default" library="default"/>
         <efx:design_file name="rtl/pulse_gen.v" version="default" library="default"/>
         <efx:design_file name="rtl/uart_rx_weight_ff_rden.v" version="default" library="default"/>
-        <efx:design_file name="rtl/booth_systolic_array.v" version="default" library="default"/>
         <efx:design_file name="rtl/psum_fifo_array.v" version="default" library="default"/>
         <efx:design_file name="rtl/fifo_array.v" version="default" library="default"/>
         <efx:design_file name="rtl/top.v" version="default" library="default"/>
@@ -37,12 +33,14 @@
         <efx:design_file name="rtl/dsp_pe_blocks.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_fifo_array_wren_gen.v" version="default" library="default"/>
         <efx:design_file name="rtl/sa_engine_dsp.v" version="default" library="default"/>
-        <efx:design_file name="rtl/sa_engine_booth.v" version="default" library="default"/>
         <efx:design_file name="rtl/top_uart_flow.v" version="default" library="default"/>
         <efx:design_file name="rtl/weight_array_data_mux.v" version="default" library="default"/>
         <efx:design_file name="rtl/res_top.v" version="default" library="default"/>
         <efx:design_file name="rtl/resource_cnt.v" version="default" library="default"/>
         <efx:design_file name="rtl/res_cnt_top.v" version="default" library="default"/>
+        <efx:design_file name="../sa_engine_lut.v" version="default" library="default"/>
+        <efx:design_file name="../lut_pe_block.v" version="default" library="default"/>
+        <efx:design_file name="../lut_pe_grid.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

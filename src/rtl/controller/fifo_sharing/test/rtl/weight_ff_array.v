@@ -3,8 +3,8 @@
     all the column's weights in systolic array gets loaded 
     simultaneously from this array of fifo.
 */
-module fifo_north#(
-    parameter COL = 64,
+module weight_ff_array#(
+    parameter COL = 32,
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
     parameter RAM_DEPTH = (1 << W_ADDR)

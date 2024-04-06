@@ -1,116 +1,154 @@
 module top#(
+    parameter N_SA = 4,     //number of SA engines
+    parameter COL_SA = 4,   //columns in one SA engine
+    parameter COL_FC = 32,   //columns in FC engine
+    parameter W_FC_CNT = 15,  //image dimension signal width
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
-    parameter COL = 32,
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter N_SA_CNV = 4,
-    parameter N_SA_FC = 1
-)( 
+    parameter N_BRAM_BYTES = 32
+)(
     input i_clk,
-    input i_rx_serial,
-    input in_rst,
-    input in_start, 
-    input i_opcode_sel,
-    output [(COL * (W_DATA + 1))-1 : 0] o_weight_ff_data
+    input i_rst,
+    input i_start,  //trigger for SA read enable controller
+    input [3:0] i_opcode,
+    input [W_DATA-1 : 0] i_weight_ff_array_data,
+    input [COL-1 : 0] i_weight_ff_array_wren,
+    output [COL-1 : 0] o_weight_ff_array_dv,
+    output [(COL * W_DATA)-1 : 0] o_weight_ff_array_data
 );
 
-wire i_start;
-assign i_start = ~in_start;
+localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
 
-wire i_rst;
-assign i_rst = ~in_rst;
-wire rx_dv;
-wire [W_DATA-1 : 0]rx_byte;
+wire [COL-1 : 0] empty_weight_ff_array_mux;
+wire [(COL * (W_ADDR + 1))-1 : 0] occ_weight_ff_array_mux;
 
-wire [3:0] i_opcode;
-assign i_opcode = (i_opcode_sel) ? 4'b1111 : 4'b0000; 
-uart_rx#(
-    .CLOCKS_PER_BIT(50)
-)receiver(
-    .i_Clock(i_clk),
-    .i_Rst(i_rst),
-    .i_RX_Serial(i_rx_serial),
-    .o_RX_DV(rx_dv),
-    .o_RX_Byte(rx_byte)
-);
-
-wire o_empty;
-wire [W_ADDR : 0] o_occupants;
-wire o_valid;
-wire [W_DATA-1 : 0] o_data;
-sync_fifo #(
-    .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR)
-)external_input_fifo(
-    .prog_full_o(),
-    .full_o(),
-    .empty_o(o_empty),
-    .clk_i(i_clk),
-    .wr_en_i(rx_dv),
-    .rd_en_i(o_rden),
-    .wdata(rx_byte),
-    .datacount_o(o_occupants),
-    .rst_busy(),
-    .rdata(o_data),
-    .a_rst_i(i_rst),
-    .o_valid(o_valid)
-);
-
-wire o_rden;
-
-external_ff_rden#(
-    .N_SA(1),
-    .W_ADDR(W_ADDR),
-    .COL(COL)
-)external_fifo_rden(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_fifo_empty(o_empty),
-    .i_fifo_occupants(o_occupants),
-    .o_fifo_read_enable(o_rden)
-);
-
-wire [W_DATA-1 : 0] north_data;
-wire north_wren_ctrl_enb;
-external_sa_input_ctrl#(
-    .W_DATA(W_DATA),
-    .COL(COL)
-)north_array_wren_ctrl_enb(
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_data_valid(o_valid),
-    .i_data(o_data),
-    .o_data(north_data),
-    .o_wren(north_wren_ctrl_enb)
-);
-
-wire [COL-1 : 0] north_wren;
-north_array_wren#(
-    .COL(COL),
-    .N_SA(1)
-) weight_ff_wren (
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_enb(north_wren_ctrl_enb),
-    .o_wren(north_wren)
-);
-
-// wire [(COL * (W_DATA + 1))-1 : 0] o_weight_ff_data;
-
-block#(
+//north fifo array
+weight_ff_array#(
     .COL(COL),
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH),
-    .N_SA_CNV(N_SA_CNV),
-    .N_SA_FC(N_SA_FC)
-)controller_inst(
+    .RAM_DEPTH(RAM_DEPTH)
+)weight_fifo_array(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_data(i_weight_ff_array_data),
+    .i_read_enable(weight_ff_array_rden),
+    .i_write_enable(i_weight_ff_array_wren),
+    .o_data(o_weight_ff_array_data),
+    .o_fifo_empty(empty_weight_ff_array_mux),
+    .o_fifo_full(),
+    .o_fifo_dv(o_weight_ff_array_dv),
+    .o_occupants(occ_weight_ff_array_mux)
+);
+
+wire [(N_SA * COL_SA)-1 : 0] sa_empty;
+wire [(N_SA * (COL_SA * (W_ADDR + 1)))-1 : 0] sa_occupants;
+wire w_sel1;
+wire [COL_FC-1 : 0] fc_empty;
+wire [(COL_FC * (W_ADDR + 1))-1 : 0] fc_occupants;
+//sa fc mux
+mux#(
+    .W_ADDR(W_ADDR),
+    .COL(COL),
+    .N_SA(N_SA),     //number of SA engines
+    .SA_COL(COL_SA),   //columns in each SA engine
+    .FC_COL(COL_FC),  //columns in FC engine
+    .N_BRAM_BYTES(N_BRAM_BYTES)     //number of BRAM burst bytes
+)sa_fc_mux(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_opcode(i_opcode),
+    .i_sel_sa_rden_ctrl(sel_sa_rden_mux),
+    .i_weight_ff_array_empty(empty_weight_ff_array_mux),
+    .i_weight_ff_array_occupants(occ_weight_ff_array_mux),
+    .o_fc_occupants(fc_occupants),
+    .o_fc_empty(fc_empty),
+    .o_sa_empty(sa_empty),
+    .o_sa_occupants(sa_occupants),
+    .o_sel1(w_sel1)
+);
+
+//SA rden controller
+wire sel_sa_rden_mux;
+assign sel_sa_rden_mux = &(w_sel2);
+wire [N_SA-1 : 0] w_sel2;
+wire [(N_SA * COL_SA)-1 : 0] sa_rden_req;
+// sa_north_rden#(
+//     .COL(COL_SA),
+//     .N_SA(N_SA),
+//     .W_ADDR(W_ADDR),
+//     .ROW(9),
+//     .N_BRAM_BYTES(N_BRAM_BYTES)
+// )(
+//     .clk(i_clk),
+//     .rst(i_rst),
+//     .start(i_start),
+//     .done(w_done),
+//     .layer_done(w_layer_done),
+//     .i_north_empty(sa_empty),
+//     .i_north_occ(sa_occupants),
+//     .o_fifo_rden(sa_rden_req),
+//     .o_sel(w_sel2)
+// );
+
+sa_weight_ff_rden#(
+    .COL_SA(COL_SA),
+    .W_ADDR(W_ADDR),
+    .ROW(9),
+    .N_SA(N_SA),
+    .N_BRAM_BYTES(N_BRAM_BYTES)
+)sa_rden_ctrl(
     .i_clk(i_clk),
     .i_rst(i_rst),
     .i_start(i_start),
-    .i_opcode(i_opcode),
-    .i_north_data(north_data),
-    .i_north_wren(north_wren),
-    .north_array_data(o_weight_ff_data)
+    .i_done(w_done),
+    .i_layer_done(w_layer_done),
+    .i_weight_ff_empty(sa_empty),
+    .i_weight_ff_occupants(sa_occupants),
+    .o_weight_ff_read_en(sa_rden_req),
+    .o_sel(w_sel2)
 );
+
+wire [COL_FC-1 : 0] fc_rden_req;
+//FC rden controller
+rden_controller#(
+    .COL(COL_FC),
+    .ROW(1),
+    .W_FC_CNT(W_FC_CNT),
+    .W_ADDR(W_ADDR)
+)fc_rden_ctrl(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_trigger(i_start),
+    .i_sel1(w_sel1),
+    .i_north_empty(fc_empty),
+    .i_north_occ(fc_occupants),
+    .i_img_dim(15'd10),    //TODO: Check the value
+    .o_north_rden(fc_rden_req)
+);
+
+wire w_layer_done;
+wire w_done;
+//test counters to generate done and layer done flags
+counters test_counters(
+    .i_clk(i_clk),
+    .i_start(i_start),
+    .o_layer_done(w_layer_done),
+    .o_done(w_done)
+);
+wire [COL-1 : 0] weight_ff_array_rden;
+//mux to select read enable signal among SA and FC read request
+rden_mux#(
+    .COL(COL)
+)sa_fc_rden_mux(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_fc_rden(fc_rden_req),
+    .i_sa_rden(sa_rden_req),
+    .i_sel_1(w_sel1),
+    .i_sel_2(w_sel2),
+    .o_north_rden(weight_ff_array_rden)
+);
+
 endmodule

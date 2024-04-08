@@ -57,4 +57,4 @@ module counter_ack_block #(
       end
     end
   endgenerate
-endmodule
+

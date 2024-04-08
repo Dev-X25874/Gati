@@ -1,41 +1,27 @@
-module ctrl_ack(
+module ctrl_ack #(
+    parameter  num_instructions=4
+  )(
     input clkin,
-    input inst_1,
-    input inst_2,
-    input inst_3,
-    input inst_4,
-    output reg [3:0]status_ack,
-    output reg [7:0]status_prev,
-    output reg [3:0]o_valid_sig
-);
-always@(posedge clkin)begin
-    if(inst_1)begin
-        status_ack[0]<=0;
-        status_prev[1:0]<=2'b11;
-        o_valid_sig[0]<=1'b1;
+    input [num_instructions-1:0] inst_signals,
+    output reg [num_instructions-1:0]status_ack,
+    output reg [(2*num_instructions)-1:0]status_prev,
+    output reg [num_instructions-1:0]o_valid_sig
+  );
+
+  genvar i;
+  generate
+    for(i=0;i<num_instructions;i=i+1)
+    begin
+      always @(posedge clkin)
+      begin
+        if(inst_signals[i])
+        begin
+          status_ack[i]<=0;
+          status_prev[2*i+:1]<=2'b11;
+          o_valid_sig[i]<=1'b1;
+        end
+      end
     end
-    else
-        o_valid_sig[0]<=1'b0;
-    if(inst_2)begin
-        status_ack[1]<=0;
-        status_prev[3:2]<=2'b11;
-        o_valid_sig[1]<=1'b1;
-    end
-    else
-        o_valid_sig[1]<=1'b0;
-    if(inst_3)begin
-        status_ack[2]<=0;
-        status_prev[5:4]<=2'b11;
-        o_valid_sig[2]<=1'b1;
-    end
-    else
-        o_valid_sig[2]<=1'b0;
-    if(inst_4)begin
-        status_ack[3]<=0;
-        status_prev[7:6]<=2'b11;
-        o_valid_sig[3]<=1'b1;
-    end
-    else
-        o_valid_sig[3]<=1'b0;
-end
-endmodule   
+  endgenerate
+
+endmodule

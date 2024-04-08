@@ -4,40 +4,41 @@
 `include "inst_q.v"
 `include "inst_read_ctrl.v"
 `include "top_master.v"*/
-module real_top(
+module real_top #(
+  parameter  addr_w=32,
+  parameter  inst_w=256,
+  parameter num_instructions =4 
+)(
     input clkin,
     input user_start,
-    input [31:0]global_start,
-    input [31:0]global_stop,
+    input [addr_w-1:0]global_start,
+    input [addr_w-1:0]global_stop,
     input valid,
     input sel,
-    input [255:0]instruction_data,
+    input [inst_w-1:0]instruction_data,
     output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,
     output [7:0]mem_burst_len,
-    input inst1,
-    input inst2,
-    input inst3,
-    input inst4,
-    output[3:0]start_command
+    input [num_instructions-1:0]ack_signals,
+    output[num_instructions-1:0]start_command
   );
   wire status_1_3;
-  wire [255:0]instruction_2_3;
+  wire [inst_w-1:0]instruction_2_3;
   wire instruction_v_2_3;
   wire read_req_3_4;
   wire status_3_4;
-  wire [255:0]o_instruction_3_5;
+  wire [inst_w-1:0]o_instruction_3_5;
   wire o_instruction_3_5_v;
   wire start_4_5;
   wire done_5_4;
-  wire [3:0]valid_6_4;
-  wire [7:0]prev_6_4;
-  wire [3:0]ack_6_4;
+  wire [num_instructions-1:0]valid_6_4;
+  wire [2*num_instructions-1:0]prev_6_4;
+  wire [num_instructions-1:0]ack_6_4;
  
 
 
-  ctrl_dram_req block1(.clkin(clkin),
+  ctrl_dram_req dram_controller_1(.clkin(clkin),
                        .user_start(user_start),
                        .status(status_1_3),
                        .global_reg_address_start(global_start),
@@ -48,7 +49,7 @@ module real_top(
                        .last(mem_last),
                        .burst_len(mem_burst_len));
 
-  controller_inst_q block2(
+  controller_inst_q inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
                       .sel(sel),
@@ -57,7 +58,7 @@ module real_top(
                       .o_instruction_valid(instruction_v_2_3)
                     );
 
-  instruct_q block3(
+  instruct_q inst_q_3(
                .clkin(clkin),
                .instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
@@ -68,7 +69,7 @@ module real_top(
                .o_status_inst(status_3_4)
              );
 
-  inst_read_ctrl block4(
+  inst_read_ctrl inst_read_ctrl_4(
                    .clkin(clkin),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
@@ -84,7 +85,7 @@ module real_top(
                    .read_signal(read_req_3_4)
                  );
 
-  top_master block5(
+  top_master master_controller_5(
                .din(o_instruction_3_5),
                .start(start_4_5),
                .clk(clkin),
@@ -96,12 +97,9 @@ module real_top(
                .done(done_5_4)
              );
 
-  ctrl_ack block6(
+  ctrl_ack ack_block_6(
              .clkin(clkin),
-             .inst_1(inst1),
-             .inst_2(inst2),
-             .inst_3(inst3),
-             .inst_4(inst4),
+             .inst_signals(ack_signals),
              .status_ack(ack_6_4),
              .status_prev(prev_6_4),
              .o_valid_sig(valid_6_4)

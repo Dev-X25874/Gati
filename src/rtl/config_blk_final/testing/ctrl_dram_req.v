@@ -1,27 +1,28 @@
 module ctrl_dram_req #(
     parameter  addr_w=32,
-    parameter burst_len_width=8
+    parameter burst_len_width=8,
+    parameter burst_len_axi =7 
   )(
     input clkin,
     input user_start,
     input status,
-    input [31:0] global_reg_address_start,
-    input [31:0] global_reg_address_stop,
+    input [addr_w-1:0] global_reg_address_start,
+    input [addr_w-1:0] global_reg_address_stop,
     output read_req,
     output valid,
     output [7:0]o_address,
     output last,
-    output [burst_len_width-1:0]burst_len
+    output [$clog2(burst_len_axi):0]burst_len
   );
   reg[5:0] counter1=0;
   reg [7:0] o_address_reg=0;
   reg dv;
   reg read_req_reg;
   reg last_reg=0;
-  reg [burst_len_width-1:0]burst_len_reg=0;
+  reg [$clog2(burst_len_axi):0]burst_len_reg=0;
   reg [3:0]state=0;
-  reg [31:0]internal_reg_start=0;
-  reg [31:0]internal_reg_stop=0;
+  reg [addr_w-1:0]internal_reg_start=0;
+  reg [addr_w-1:0]internal_reg_stop=0;
 
   always @(posedge clkin)
   begin
@@ -67,7 +68,7 @@ module ctrl_dram_req #(
           begin
             read_req_reg<=1'b0;
           end
-          burst_len_reg<=7'd7;
+          burst_len_reg<=burst_len_axi;
           if(counter1==24)
           begin
             last_reg<=1'b1;
@@ -93,22 +94,22 @@ module ctrl_dram_req #(
         end
       4'd3:
       begin
-        if(((internal_reg_stop-32'h200)>internal_reg_start))//((burst_len+1)<<5))>internal_reg_start)) //changed burst_len =>burst_len+1
+        if(((internal_reg_stop-((burst_len+1)<<5))>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
         begin
           if(status)
           begin
-            internal_reg_start<=internal_reg_start+32'h200;   //+//32'h10000; //((burst_len_reg+1)<<5);//for testing
+            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; //
             state<=4'd2;
           end
           else
           begin
-            internal_reg_start<=internal_reg_start+32'h200;   //+//32'h10000; //((burst_len_reg+1)<<5);//for testing
+            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; //
             state<=4'd1;
           end
         end
         else
         begin
-          burst_len_reg<=(global_reg_address_stop-internal_reg_start)>>5;
+          burst_len_reg<=((global_reg_address_stop-internal_reg_start)>>5);
           state<=4'd5;
         end
       end
@@ -147,8 +148,8 @@ module ctrl_dram_req #(
         dv<=1'b0;
         read_req_reg<=1'b0;
         last_reg<=1'b0;
-        o_address_reg<=8'd0;
-        burst_len_reg<=8'd0;
+        o_address_reg<=0;
+        burst_len_reg<=0;
         counter1<=6'd0;
         //end
       end

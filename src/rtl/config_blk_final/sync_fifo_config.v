@@ -1,19 +1,19 @@
-module synchronous_fifo #(parameter DEPTH=100, DATA_WIDTH=256) (
+module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
     input clk, rst_n,
     input w_en, r_en,
-    input [DATA_WIDTH-1:0] data_in,
-    output reg [DATA_WIDTH-1:0] data_out,
+    input [(DATA_WIDTH-1):0] data_in,
+    output reg [(DATA_WIDTH-1):0] data_out,
     output reg data_out_valid,
     output full, empty,
-    output [8:0]occupants,
+    output [($clog2(DEPTH)):0] occupants,
     output ten_trigg,
     output not_empty
   );
 
-  reg [5:0] w_ptr=6'd0;
-  reg [5:0] r_ptr=6'd0;
+  reg [($clog2(DEPTH)-1):0] w_ptr=0;
+  reg [($clog2(DEPTH)-1):0] r_ptr=0;
   reg [DATA_WIDTH-1:0] fifo[DEPTH:0];
-  reg [8:0]occupants_reg=9'd0;
+  reg [$clog2(DEPTH):0]occupants_reg=9'd0;
   //reg [3:0]whatever;
   // Set Default values on reset.
   always@(posedge clk)
@@ -73,6 +73,6 @@ module synchronous_fifo #(parameter DEPTH=100, DATA_WIDTH=256) (
   assign occupants=occupants_reg;
   assign full = ((w_ptr+1'b1) == r_ptr);
   assign empty = (w_ptr == r_ptr);
-  assign ten_trigg=(occupants<10);
+  assign ten_trigg=(occupants<1); //should be 10 is 1 for testing
   assign not_empty=~(w_ptr == r_ptr);
 endmodule

@@ -23,7 +23,7 @@ always @(posedge clk) begin
         dout <= 0;
         sel <= 0;
         write <= 0;
-        done <= 1;
+        done <= 0;
         state <= IDLE;
         count <= 0;
         if(start)begin

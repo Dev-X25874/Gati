@@ -1,11 +1,9 @@
-///////////////////////////////////////////////////////////////////////////////
 module WR_ID_Manager #(
   parameter NUM_PORTS = 4
 ) (
     input clk,
     input rst,
     input valid,
-    input [7:0] id_in,
     input atype,
     input wready,   ///// it is input in the ddr axi side so can i use the 
     input wlast ,
@@ -21,17 +19,13 @@ localparam STORE_ID = 2'b01;
 localparam WAIT_WLAST = 2'b10 ;
 
 reg [1:0] state = 0 ; // FSM state register
-reg [7:0] id_reg = 0; // Register to store the ID when valid and atype are high
 reg [7:0] stored_id = 0; // Store the ID when wready is high for the first time
 
-// Default assignments
-//assign status_reg = 8'h00;
-//assign ack = 1'b0;
+
 
 always @(posedge clk) begin
     if (!rst) begin
         state <= IDLE;
-        id_reg <= 8'h00;
         stored_id <= 8'h00; 
         
     end 
@@ -41,7 +35,6 @@ always @(posedge clk) begin
         case(state)
             IDLE: begin
                 if (valid && atype) begin
-                    id_reg <= id_in ;
                     state <= STORE_ID;
                 end
                 else 
@@ -60,11 +53,12 @@ always @(posedge clk) begin
                 if (wlast) begin 
                         state <= IDLE ; 
                  end 
-                end 
+             
                 
                 else begin 
                     state <= WAIT_WLAST ;
-                end 
+                end
+            end 
         endcase
     end
 end    
@@ -76,8 +70,8 @@ end
         end 
         
         else  begin
-            if (stored_id == wid && wready) begin 
-                select[stored_id] <= 1'b1 ;
+            if (stored_id  && (wready == 1)) begin 
+                select <= 1<<stored_id ;
                 status_reg <= wid ;
                 ack <= 1'b1 ;
             end 
@@ -90,5 +84,3 @@ end
     end
 
 endmodule
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////

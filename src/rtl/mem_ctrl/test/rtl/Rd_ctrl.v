@@ -3,19 +3,16 @@ module  RdCtrl
   //System Signal
   SysClk      , //System Clock
   Reset_N     , //System Reset
-  DataRdEnd   ,
-  DataRdBusy  ,
+
   //Operate Control & State
- /* RamRdStart  , //(I)Ram Read Start
-  RamRdEnd    , //(O)Ram Read End
+  RamRdStart  , //(I)Ram Read Start
   RamRdAddr   , //(O)Ram Read Addrdss
   RamRdData   , //(O)Ram Read Data
-  RamRdDAva   , //(O)Ram Read Available
-  RamRdBusy   , //(O)Ram Read Busy
-  RamRdALoad  , //(O)Ram Read Address Load*/
+  RamRdALoad  , //(O)Ram Read Address Load 
+
   //Config DDR & AXI Operate Parameter
- // CfgRdAddr   , //(I)Config Read Start Address
-  //CfgRdBLen   , //(I)[DdrOpCtrl]Config Read Burst Length
+  CfgRdAddr   , //(I)Config Read Start Address
+  CfgRdBLen   , //(I)[DdrOpCtrl]Config Read Burst Length
   //Axi4 Read Address & Data Bus
   ARID        , //(O)[RdAddr]Read address ID.
   ARADDR      , //(O)[RdAddr]Read address.
@@ -59,14 +56,10 @@ module  RdCtrl
   /////////////////////////////////////////////////////////
   //Operate Control & State
   input               RamRdStart  ; //(I)[DdrRdCtrl]Ram Read Start
-  output              RamRdEnd    ; //(O)[DdrRdCtrl]Ram Read End
   output  [     31:0] RamRdAddr   ; //(O)[DdrRdCtrl]Ram Read Addrdss
-  output              RamRdDAva   ; //(O)[DdrRdCtrl]Ram Read Available
-  output              RamRdBusy   ; //(O)Ram Read Busy
   output              RamRdALoad  ; //(O)Ram Read Address Load
   output  [ADW_C-1:0] RamRdData   ; //(O)[DdrRdCtrl]Ram Read Data
-  output              DataRdEnd   ;
-  output              DataRdBusy  ;
+
 
   /////////////////////////////////////////////////////////
   //Config DDR & AXI Operate Parameter
@@ -106,9 +99,6 @@ module  RdCtrl
   /////////////////////////////////////////////////////////
   reg   [7 :0]  RdBurstLen  = 8'h0;
   reg   [31:0]  RdStartAddr = 32'h0;
-
-  always @( posedge SysClk)   if(RamRdStart)  RdBurstLen    <= # TCo_C  CfgRdBLen;
-  always @( posedge SysClk)   if(RamRdStart)  RdStartAddr   <= # TCo_C  CfgRdAddr;
 
   /////////////////////////////////////////////////////////
   reg     AddrValid = 1'h0; //(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.
@@ -246,13 +236,7 @@ module  RdCtrl
   end
 
   /////////////////////////////////////////////////////////
-  reg   RamRdBusy   = 1'h0; //(O)Ram Read Busy
-
-  always @( posedge SysClk)   RamRdBusy <= DataRdReady | DataRdAddrAva;
-
-  /////////////////////////////////////////////////////////
   reg   DataRdBusy = 1'h0;
- // wire   DataRdBusy ;
 
   always @( posedge SysClk)
   begin
@@ -261,17 +245,10 @@ module  RdCtrl
   end
 
   /////////////////////////////////////////////////////////
-  reg   RamRdEnd = 1'h0;   //(O)[DdrRdCtrl]Ram Read End
-  
- // always @( posedge SysClk)  RamRdEnd  <= # TCo_C DataRdEnd & (DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
-  always @( posedge SysClk)  RamRdEnd  <= # TCo_C DataRdEn & (~DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
 
-  /////////////////////////////////////////////////////////
-  reg                 RamRdDAva ; //(O)[DdrRdCtrl]Ram Read Available
   reg   [ADW_C-1:0]   RamRdData ; //(O)[DdrRdCtrl]Ram Read Data
   reg   [     31:0]   RamRdAddr ; //(O)[DdrRdCtrl]Ram Read Addrdss
 
-  always @( posedge SysClk)                 RamRdDAva <= # TCo_C DataRdEn   ; //(O)[DdrRdCtrl]Ram Read Available
   always @( posedge SysClk)  if (DataRdEn)  RamRdData <= # TCo_C DataRdData ; //(O)[DdrRdCtrl]Ram Read Data
   always @( posedge SysClk)  if (DataRdEn)  RamRdAddr <= # TCo_C RdAddrCnt  ; //(O)[DdrRdCtrl]Ram Read Addrdss
 

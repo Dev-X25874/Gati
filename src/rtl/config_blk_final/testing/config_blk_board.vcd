@@ -1,0 +1,158 @@
+$date
+	Mon Apr  8 11:19:23 2024
+$end
+$version
+	GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+$end
+$timescale
+	1ns
+$end
+$scope module top $end
+$var wire 4 # config_block_mod_1/dram_controller_1/burst_len[3:0] $end
+$var wire 32 $ config_block_mod_1/dram_controller_1/global_reg_address_start[31:0] $end
+$var wire 32 % config_block_mod_1/dram_controller_1/global_reg_address_stop[31:0] $end
+$var wire 32 & config_block_mod_1/dram_controller_1/internal_reg_start[31:0] $end
+$var wire 32 ' config_block_mod_1/dram_controller_1/internal_reg_stop[31:0] $end
+$var wire 8 ( config_block_mod_1/dram_controller_1/o_address[7:0] $end
+$var wire 1 " config_block_mod_1/dram_controller_1/user_start $end
+$var wire 256 . config_block_mod_1/inst_q_controller_2/o_instruction[255:0] $end
+$var wire 1 / config_block_mod_1/inst_q_controller_2/o_instruction_valid $end
+$var wire 8 , config_block_mod_1/inst_q_3/instant/occupants[7:0] $end
+$var wire 1 - config_block_mod_1/inst_q_3/instant/r_en $end
+$var wire 1 * config_block_mod_1/inst_q_3/instant/full $end
+$var wire 1 + config_block_mod_1/inst_q_3/instant/not_empty $end
+$var wire 1 ) config_block_mod_1/inst_q_3/instant/empty $end
+$var wire 12 0 config_block_mod_1/inst_read_ctrl_4/layer_number[11:0] $end
+$var wire 4 3 config_block_mod_1/inst_read_ctrl_4/opcode[3:0] $end
+$var wire 8 1 config_block_mod_1/inst_read_ctrl_4/next_reg[7:0] $end
+$var wire 8 2 config_block_mod_1/inst_read_ctrl_4/prev_reg[7:0] $end
+$var wire 4 4 config_block_mod_1/inst_read_ctrl_4/start_command[3:0] $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+b0 0
+b0 ,
+0/
+b0 &
+b0 #
+b1000000000000 $
+b0 1
+b0 .
+b0 3
+b0 '
+b0 2
+b0 4
+1)
+b0 (
+0-
+b1100000000000 %
+0"
+0*
+0+
+$end
+#512
+1"
+#513
+0"
+b1000000000000 &
+b1100000000000 '
+#515
+b111 #
+#517
+b10000 (
+#518
+b0 (
+#519
+1/
+b1010101111000000 .
+#520
+b1010101111000011 .
+b1000100000000 &
+b1 ,
+1+
+0)
+#521
+b1010101111000001 .
+b10 ,
+1-
+#522
+0-
+b101010111100 0
+b1010101111001111 .
+#523
+b1010101111000000 .
+b10001 (
+b0 0
+b11 ,
+#524
+b100 ,
+b1010101111000011 .
+b0 (
+#525
+b101 ,
+b1 1
+b1010101111000001 .
+#526
+b1010101111001111 .
+b110 ,
+b1001000000000 &
+#527
+b111 ,
+b1010101111000000 .
+b0 #
+#528
+b1000 ,
+b1010101111000011 .
+#529
+b0 .
+0/
+b1001 ,
+#559
+1-
+#560
+0-
+b1000 ,
+b11 3
+b101010111100 0
+#561
+b0 0
+b0 3
+#563
+b1000001 1
+#597
+1-
+#598
+0-
+b111 ,
+b1 3
+b101010111100 0
+#599
+b0 0
+b0 3
+#601
+b1000101 1
+#635
+1-
+#636
+0-
+b1111 3
+b101010111100 0
+b110 ,
+#637
+b0 0
+b0 3
+#638
+b1000101 2
+b0 1
+#639
+1-
+b1011 4
+#640
+b0 4
+0-
+b101010111100 0
+b101 ,
+#641
+b0 0
+#1023

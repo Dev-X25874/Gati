@@ -19,7 +19,7 @@ module controller_inst_q #(
     else
       begin
         o_instruction_valid<=0;
-        o_instruction<=0;
+        //o_instruction<=0;
       end
   end
   endmodule

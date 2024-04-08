@@ -7,7 +7,7 @@ The configuration block consists of the following modules:
 5. Bus Master COntroller
 6. Acknowledgement Controller
 
-### DRAM COntroller:
+### DRAM Controller:
 The DRAM controller is initially idle. After receiving a user start it loads start and stop addresses from global registers.
 It then transmits the 32 bit addresses in chunks of 8 bits along with a read request signal to the DRAM Memory.
 
@@ -36,5 +36,5 @@ It sends a done signal to the Instruction Read Controller.
 ### Acknowledgement Controller
 It receives an acknowledgement signal from the blocks controlled by the bus master and sends a instruction acknowledgement received signal to the instruction read controller.
 
-
+![Config_Block](https://github.com/vicharak-in/Gati/blob/config_blk/src/rtl/config_blk_final/Images/Config_Block.jpeg?raw=true)
 

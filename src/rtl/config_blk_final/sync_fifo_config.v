@@ -46,7 +46,7 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
       else
       begin
         data_out_valid<=1'b0;
-        data_out<=256'd0;
+        //data_out<=256'd0;
       end
       
       case((w_en&&!full)+(r_en&&!empty))

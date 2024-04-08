@@ -23,7 +23,7 @@ localparam STOP = 2'b11;
 assign addr = temp_r_addr_1;
 
 initial begin
-    $readmemh("Data.mem", mem);
+    $readmemh("/home/prapti/Efinity_Project/round_robin_ARB/Data.mem", mem);
 end
 
 always @(posedge clk ) begin
@@ -75,3 +75,5 @@ always @(posedge clk ) begin
 end
 
 endmodule
+
+

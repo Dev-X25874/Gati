@@ -32,10 +32,10 @@ always @(posedge i_clk)begin
                 if((N_SA * COL_SA) < N_BRAM_BYTES)begin
                     case (i_sel_2)
                         1'b0:begin  //First half of weight fifo array (starting from MSB)
-                            north_rden <= {i_sa_rden, {((COL_SA * N_SA)/2){1'b0}}};
+                            north_rden <= {i_sa_rden, {(COL_SA * N_SA){1'b0}}};
                         end
                         1'b1: begin //Second half of weight fifo array
-                            north_rden <= {{((COL_SA * N_SA)/2){1'b0}}, i_sa_rden};
+                            north_rden <= {{(COL_SA * N_SA){1'b0}}, i_sa_rden};
                         end 
                     endcase
                 end else begin

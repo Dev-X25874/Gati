@@ -1,4 +1,3 @@
-
 module Port_controller #(
   parameter ADDR_SEGMENTS = 4,
   parameter PORT_ID_VALUE = 0
@@ -19,9 +18,9 @@ module Port_controller #(
   output reg [40:0]  combined_out = 0
 );
 
-  parameter IDLE = 2'b00;
-  parameter TRANSMIT_ADDRESS = 2'b01;
-  parameter WAIT_DATA = 2'b10 ;
+  localparam IDLE = 2'b00;
+  localparam TRANSMIT_ADDRESS = 2'b01;
+  localparam WAIT_DATA = 2'b10 ;
   
   // Define state register
   reg [1:0] state = 0;
@@ -33,6 +32,7 @@ module Port_controller #(
   reg [3:0]  burst_len_reg = 0;
   reg        enable_rw_reg = 0;
   
+////////////////////////////////////////////////////////////////////////
   // Separate always block for handling address and valid signal
   always @(posedge clk) begin
     if (!rst) begin
@@ -61,7 +61,7 @@ module Port_controller #(
         IDLE: begin 
           if (valid) begin
             state <= TRANSMIT_ADDRESS;
-            burst_len_reg <= 0;
+            burst_len_reg <= in_burst_len;
             enable_rw_reg <= in_enable_rw;
             o_valid <= 0 ;
           end
@@ -79,7 +79,7 @@ module Port_controller #(
         
         WAIT_DATA : begin 
             o_valid <= 1'b1 ;
-            burst_len_reg <= in_burst_len;
+            burst_len_reg <= burst_len_reg;
             combined_out <= {address_reg, burst_len_reg, port_id_temp, enable_rw_reg};
            // combined_out <= {enable_rw_reg, port_id_temp, burst_len_reg, address_reg};
             state <= IDLE ;

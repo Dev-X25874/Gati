@@ -23,7 +23,7 @@ always @(posedge clk)begin
         rden <= 0;
     end else begin
         if(i_fifo_empty == 0)begin
-            if(i_fifo_occupants >= {N_FIFO{10'd28}})begin
+            if(i_fifo_occupants >= {N_FIFO{10'd150}})begin
                 rden <= {N_FIFO{1'b1}};
             end
         end else begin

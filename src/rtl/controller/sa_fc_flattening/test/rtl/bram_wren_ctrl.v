@@ -9,7 +9,7 @@ module bram_wren_ctrl#(
 )(
     input clk,
     input rst,
-    input start,
+    input start,         //NOTE: Include this external start trigger while integration
     input data_valid,
     input [19:0] image_dim,
     input [((N_BANK * N_BRAM) * W_DATA)-1 : 0] i_data,
@@ -44,33 +44,51 @@ always @(posedge clk) begin
         w_done <= 0;
         wren <= 0;
     end else begin
-        case (state)
-            0:begin
-                w_done <= 0;
-                if(w_start)begin
-                    state <= 1;
-                end
+        if(data_valid)begin
+            if(counter == (image_dim >> 5))begin
+                 state <= 0;
+                 counter <= 0;
+                 addr <= 0;
+                 wren <= {(N_BANK * N_BRAM){1'b0}};
+                 w_done <= 1'b1;
+                 data <= 0;
+            end else begin
+                 data <= i_data;
+                 counter <= counter + 1;
+                 wren <= {(N_BANK * N_BRAM){1'b1}};
+                 addr <= addr + 1;
             end
+         end
 
-            1: begin
-                if(data_valid)begin
-                   if(counter == (image_dim >> 5))begin
-                        state <= 0;
-                        counter <= 0;
-                        addr <= 0;
-                        wren <= {(N_BANK * N_BRAM){1'b0}};
-                        w_done <= 1'b1;
-                        data <= 0;
-                   end else begin
-                        data <= i_data;
-                        counter <= counter + 1;
-                        wren <= {(N_BANK * N_BRAM){1'b1}};
-                        addr <= addr + 1;
-                   end
-                end
-            end
-            default: state <= 0;
-        endcase
+        //Include below given code for integration
+
+        // case (state)
+        //     0:begin
+        //         w_done <= 0;
+        //         if(w_start)begin
+        //             state <= 1;
+        //         end
+        //     end
+
+        //     1: begin
+        //         if(data_valid)begin
+        //            if(counter == (image_dim >> 5))begin
+        //                 state <= 0;
+        //                 counter <= 0;
+        //                 addr <= 0;
+        //                 wren <= {(N_BANK * N_BRAM){1'b0}};
+        //                 w_done <= 1'b1;
+        //                 data <= 0;
+        //            end else begin
+        //                 data <= i_data;
+        //                 counter <= counter + 1;
+        //                 wren <= {(N_BANK * N_BRAM){1'b1}};
+        //                 addr <= addr + 1;
+        //            end
+        //         end
+        //     end
+        //     default: state <= 0;
+        // endcase
     end
 end
 

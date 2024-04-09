@@ -50,7 +50,7 @@ wire rx_fifo_dv;
 wire [W_DATA-1 : 0] rx_fifo_data;
 wire rx_fifo_empty;
 wire [W_ADDR : 0] rx_fifo_occ;
-//satores weights received through uart trx
+//stores weights received through uart trx
 fifo#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR)
@@ -157,7 +157,7 @@ block#(
     .i_valid(valid_weight_ff_array_flattening_ctrl),
     .i_acc_valid(i_acc_valid),
     .i_weight_ff_array_empty(i_weight_ff_array_empty),
-    .i_img_dim(i_img_dim),
+    .i_img_dim(20'd49),
     .i_data(weight_ff_array_data_out),
     .o_done_rden_ctrl(o_done_rden_ctrl),
     .o_data_mux(o_data_mux),

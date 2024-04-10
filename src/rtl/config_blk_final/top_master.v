@@ -1,3 +1,4 @@
+//bus master controller which sends instruction data to slave blocks
 //`include "controller.v"
 module top_master #(parameter op_code_width = 4, 
             parameter CNT = (data_in/data_out),

@@ -1,3 +1,4 @@
+// sends acknowledgement signal to instruction read controller block
 module ctrl_ack #(
     parameter  num_instructions=4
   )(
@@ -16,10 +17,12 @@ module ctrl_ack #(
       begin
         if(inst_signals[i])
         begin
-          status_ack[i]<=0;
-          status_prev[2*i+:1]<=2'b11;
-          o_valid_sig[i]<=1'b1;
+          status_ack[i]<=0; //set ack as 0
+          status_prev[(2*i)+:2]<=2'b11; //set prev 11
+          o_valid_sig[i]<=1'b1; //valid signal 1
         end
+        else
+          o_valid_sig[i]<=1'b0; //valid signal 0
       end
     end
   endgenerate

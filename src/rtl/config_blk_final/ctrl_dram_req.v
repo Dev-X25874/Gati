@@ -1,18 +1,18 @@
+//ResponsibLe for sending memory address and read requests to DRAM memory 
 module ctrl_dram_req #(
     parameter  addr_w=32,
-    parameter burst_len_width=8,
     parameter burst_len_axi =7 
   )(
     input clkin,
-    input user_start,
-    input status,
-    input [addr_w-1:0] global_reg_address_start,
-    input [addr_w-1:0] global_reg_address_stop,
-    output read_req,
-    output valid,
-    output [7:0]o_address,
-    output last,
-    output [$clog2(burst_len_axi):0]burst_len
+    input user_start, //External trigger to move from IDLE state to NONIDLE state
+    input status, //status of instruction queue
+    input [addr_w-1:0] global_reg_address_start, //start address
+    input [addr_w-1:0] global_reg_address_stop, //stop address
+    output read_req, //read req for dram
+    output valid, //valid signal
+    output [7:0]o_address, //8 bit chunks of address
+    output last, //last chunk of 8 bits
+    output [$clog2(burst_len_axi):0]burst_len //burst length for dram
   );
   reg[5:0] counter1=0;
   reg [7:0] o_address_reg=0;
@@ -29,7 +29,7 @@ module ctrl_dram_req #(
     case(state)
       4'd0:
       begin
-        if(user_start)
+        if(user_start) //shift from sleep state to idle i.e state =1
         begin
           state<=1;
           internal_reg_start<=global_reg_address_start;
@@ -42,7 +42,7 @@ module ctrl_dram_req #(
       4'd1:
       begin
         //idle state
-        if(~status)
+        if(~status) //check status of instruction queue
         begin
           read_req_reg<=1'b0;
           dv<=1'b0;
@@ -78,7 +78,7 @@ module ctrl_dram_req #(
             last_reg<=1'b0;
           end
 
-          if(counter1<32)
+          if(counter1<addr_w)
           begin
             state<=4'd2;
           end
@@ -98,13 +98,13 @@ module ctrl_dram_req #(
         begin
           if(status)
           begin
-            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; //
+            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; // update internal reg
             state<=4'd2;
           end
           else
           begin
-            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; //
-            state<=4'd1;
+            internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; // update internal reg
+            state<=4'd1; //Back to check status of instruction queue
           end
         end
         else
@@ -113,7 +113,7 @@ module ctrl_dram_req #(
           state<=4'd5;
         end
       end
-      4'd4:
+      4'd4://reached stop address
       begin
         state<=4'd0;
         read_req_reg<=1'b0;

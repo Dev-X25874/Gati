@@ -1,3 +1,5 @@
+//Responsible for sending read signal to instruction q based on done status of bus master
+// Also has 3 registers which show the status of the slave blocks for respective instructions and the next and previous instructions to be executed
 module inst_read_ctrl#(
     parameter  num_instructions=4
   )(
@@ -5,15 +7,15 @@ module inst_read_ctrl#(
     input [num_instructions-1:0]valid_ack,
     input [(num_instructions*2)-1:0]prev_in,
     input [num_instructions-1:0]ack_in,
-    input [11:0]layer_number,
-    input [11:0]total_layers,
+    input [11:0]layer_number, //data from instruction
+    input [11:0]total_layers, //data from instruction
     input status_inst_q,
     input user_start,
     input done_status,
-    input [3:0]opcode,
-    output reg bus_master_valid,
-    output reg [num_instructions-1:0] start_command,
-    output read_signal
+    input [3:0]opcode, //opcode received from instruction data
+    output reg bus_master_valid, //valid signal for bus master(start)
+    output reg [num_instructions-1:0] start_command, //sends start signal to respective slave blocks
+    output read_signal //read signal for instruction queue
   );
 
   integer i;
@@ -22,27 +24,27 @@ module inst_read_ctrl#(
   reg [3:0]top_state=4'd0;
   reg [3:0]state0=4'd0;
   reg [1:0] counter=2;
-  reg [4:0]r_opcode=0;
-  reg [3:0]super_state=4'd0;
-  reg [3:0]state_start=4'd0;
+  reg [3:0]r_opcode=0;
+  reg [3:0]super_state=4'd0; 
+  reg [3:0]state_start=4'd0; 
   reg flag=1;
   //reg [7:0]prev_reg;
   //reg [7:0]next_sent=8'b0;
 
-  reg [(num_instructions*2)-1:0]prev_reg=0;
-  reg [(num_instructions*2)-1:0]next_reg=0;
-  reg [num_instructions-1:0]ack_reg=0;
-  reg [num_instructions-1:0]psedo_ack_reg=0;
-  reg [num_instructions-1:0]valid_ack_reg=0;
+  reg [(num_instructions*2)-1:0]prev_reg=0; //shows the previous instructions
+  reg [(num_instructions*2)-1:0]next_reg=0; //shows the next instructions
+  reg [num_instructions-1:0]ack_reg=0; //shows status of the slave blocks
+  reg [num_instructions-1:0]psedo_ack_reg=0; //interim register
+  reg [num_instructions-1:0]valid_ack_reg=0; 
 
   always @(posedge clkin)
   begin
-    case(super_state)
+    case(super_state) 
       4'd0:
       begin
-        if((layer_number==total_layers)&&(opcode==4'b1111))
+        if((layer_number==total_layers)&&(opcode==4'b1111)) //if conditions match make config block wait for user start again
         begin
-          super_state<=4'd1;
+          super_state<=4'd1; 
         end
         valid_ack_reg<=valid_ack;
         if(valid_ack_reg!=4'd0)
@@ -72,7 +74,7 @@ module inst_read_ctrl#(
             4'd1:
             begin
 
-              if((status_inst_q && done_status)| (flag&&status_inst_q))
+              if((status_inst_q && done_status)| (flag&&status_inst_q)) //send read signal
               begin
                 read_signal_reg<=1'b1;
                 flag<=0;
@@ -91,13 +93,13 @@ module inst_read_ctrl#(
             end
             4'd3:
             begin
-              r_opcode<=opcode;
+              r_opcode<=opcode; //store opcode
               top_state<=4'd4;
             end
             4'd4:
             begin
               //r_opcode<=opcode;
-              if(r_opcode!=4'b1111)
+              if(r_opcode!=4'b1111) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)
                   4'b0:
@@ -155,7 +157,7 @@ module inst_read_ctrl#(
                 endcase
 
               end
-              if(r_opcode==5'b01111)
+              if(r_opcode==4'b1111) //if start signal prefetch and wait for ack reg 0
               begin
                 if(ack_reg==4'd0)
                 begin
@@ -215,7 +217,7 @@ module inst_read_ctrl#(
           super_state<=4'd0;
           top_state<=4'd0;
           state0<=4'd0;
-          psedo_ack_reg<=4'b0;
+          psedo_ack_reg<=4'b0; //reset full cycle and wait for user start again
         end
       end
     endcase

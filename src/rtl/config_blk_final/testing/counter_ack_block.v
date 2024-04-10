@@ -1,3 +1,4 @@
+//Acts as fake slave for testing ack block in config block
 module counter_ack_block #(
     parameter num_instructions=4
   )(
@@ -52,9 +53,10 @@ module counter_ack_block #(
           begin
             ack_signals[i]<=1'b0;
             sub_state[i]<=4'd0;
+            counter[i]<=0;
           end
         endcase
       end
     end
   endgenerate
-
+endmodule

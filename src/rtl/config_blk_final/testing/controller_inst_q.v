@@ -1,3 +1,4 @@
+//takes instruction data from DRAM memory and checks it calid signal before passing to instruction queue
 module controller_inst_q #(
   parameter instruct_w=256
 )(
@@ -11,15 +12,14 @@ module controller_inst_q #(
   reg [instruct_w-1:0]internal_reg=0;
   always@(posedge clkin)
   begin
-    if(sel && valid)
+    if(sel && valid) //check sel and valid signal for internal data
     begin
         o_instruction<=i_instruction_data;
-        o_instruction_valid<=1;
+        o_instruction_valid<=1; //set valid to 1
     end
     else
       begin
-        o_instruction_valid<=0;
-        o_instruction<=0;
+        o_instruction_valid<=0; //set valid to 0
       end
   end
   endmodule

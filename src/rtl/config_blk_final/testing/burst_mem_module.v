@@ -1,3 +1,4 @@
+//memory module that sends instruction data in bursts of 8
 module burst_mem_module(
     input clkin,
     input burst_read_trigger,

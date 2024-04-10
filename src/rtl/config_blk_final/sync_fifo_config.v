@@ -18,7 +18,7 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
   // Set Default values on reset.
   always@(posedge clk)
   begin
-    if(!rst_n)
+    if(!rst_n) //reset FIFO
     begin
       w_ptr <= 0;
       r_ptr <= 0;
@@ -46,10 +46,10 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
       else
       begin
         data_out_valid<=1'b0;
-        //data_out<=256'd0;
+        data_out<=256'd0;
       end
       
-      case((w_en&&!full)+(r_en&&!empty))
+      case((w_en&&!full)+(r_en&&!empty)) //occupants logic
         2'd0:
           occupants_reg<=occupants_reg;
         2'd1:
@@ -73,6 +73,6 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
   assign occupants=occupants_reg;
   assign full = ((w_ptr+1'b1) == r_ptr);
   assign empty = (w_ptr == r_ptr);
-  assign ten_trigg=(occupants<1); //should be 10 is 1 for testing
+  assign ten_trigg=(occupants<10); //should be 10 is 1 for testing
   assign not_empty=~(w_ptr == r_ptr);
 endmodule

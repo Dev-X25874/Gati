@@ -1,5 +1,5 @@
 $date
-	Mon Apr  8 11:19:23 2024
+	Wed Apr 10 14:45:32 2024
 $end
 $version
 	GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
@@ -8,151 +8,1004 @@ $timescale
 	1ns
 $end
 $scope module top $end
-$var wire 4 # config_block_mod_1/dram_controller_1/burst_len[3:0] $end
-$var wire 32 $ config_block_mod_1/dram_controller_1/global_reg_address_start[31:0] $end
-$var wire 32 % config_block_mod_1/dram_controller_1/global_reg_address_stop[31:0] $end
-$var wire 32 & config_block_mod_1/dram_controller_1/internal_reg_start[31:0] $end
-$var wire 32 ' config_block_mod_1/dram_controller_1/internal_reg_stop[31:0] $end
-$var wire 8 ( config_block_mod_1/dram_controller_1/o_address[7:0] $end
-$var wire 1 " config_block_mod_1/dram_controller_1/user_start $end
-$var wire 256 . config_block_mod_1/inst_q_controller_2/o_instruction[255:0] $end
-$var wire 1 / config_block_mod_1/inst_q_controller_2/o_instruction_valid $end
-$var wire 8 , config_block_mod_1/inst_q_3/instant/occupants[7:0] $end
-$var wire 1 - config_block_mod_1/inst_q_3/instant/r_en $end
-$var wire 1 * config_block_mod_1/inst_q_3/instant/full $end
-$var wire 1 + config_block_mod_1/inst_q_3/instant/not_empty $end
-$var wire 1 ) config_block_mod_1/inst_q_3/instant/empty $end
-$var wire 12 0 config_block_mod_1/inst_read_ctrl_4/layer_number[11:0] $end
-$var wire 4 3 config_block_mod_1/inst_read_ctrl_4/opcode[3:0] $end
-$var wire 8 1 config_block_mod_1/inst_read_ctrl_4/next_reg[7:0] $end
-$var wire 8 2 config_block_mod_1/inst_read_ctrl_4/prev_reg[7:0] $end
-$var wire 4 4 config_block_mod_1/inst_read_ctrl_4/start_command[3:0] $end
+$var wire 8 G config_block_mod_1/mem_address[7:0] $end
+$var wire 1 D config_block_mod_1/instruction_v_2_3 $end
+$var wire 256 C config_block_mod_1/instruction_data[255:0] $end
+$var wire 1 K config_block_mod_1/memory_valid $end
+$var wire 14 N config_block_mod_1/prev_6_4[13:0] $end
+$var wire 1 M config_block_mod_1/o_instruction_3_5_v $end
+$var wire 256 L config_block_mod_1/o_instruction_3_5[255:0] $end
+$var wire 8 H config_block_mod_1/mem_burst_len[7:0] $end
+$var wire 1 J config_block_mod_1/memory_read_r $end
+$var wire 1 I config_block_mod_1/mem_last $end
+$var wire 256 B config_block_mod_1/instruction_2_3[255:0] $end
+$var wire 4 ( config_block_mod_1/dram_controller_1/burst_len[3:0] $end
+$var wire 32 ) config_block_mod_1/dram_controller_1/internal_reg_start[31:0] $end
+$var wire 32 * config_block_mod_1/dram_controller_1/internal_reg_stop[31:0] $end
+$var wire 1 + config_block_mod_1/dram_controller_1/last_reg $end
+$var wire 8 , config_block_mod_1/dram_controller_1/o_address_reg[7:0] $end
+$var wire 1 - config_block_mod_1/dram_controller_1/read_req $end
+$var wire 1 . config_block_mod_1/dram_controller_1/user_start $end
+$var wire 256 5 config_block_mod_1/inst_q_controller_2/o_instruction[255:0] $end
+$var wire 1 6 config_block_mod_1/inst_q_controller_2/o_instruction_valid $end
+$var wire 256 4 config_block_mod_1/inst_q_controller_2/i_instruction_data[255:0] $end
+$var wire 1 7 config_block_mod_1/inst_q_controller_2/valid $end
+$var wire 1 1 config_block_mod_1/inst_q_3/instant/r_en $end
+$var wire 8 0 config_block_mod_1/inst_q_3/instant/occupants[7:0] $end
+$var wire 1 / config_block_mod_1/inst_q_3/instant/empty $end
+$var wire 1 3 config_block_mod_1/inst_q_3/instant/w_en $end
+$var wire 1 2 config_block_mod_1/inst_q_3/instant/ten_trigg $end
+$var wire 1 : config_block_mod_1/inst_read_ctrl_4/bus_master_valid $end
+$var wire 7 9 config_block_mod_1/inst_read_ctrl_4/ack_reg[6:0] $end
+$var wire 7 8 config_block_mod_1/inst_read_ctrl_4/ack_in[6:0] $end
+$var wire 1 ; config_block_mod_1/inst_read_ctrl_4/done_status $end
+$var wire 4 = config_block_mod_1/inst_read_ctrl_4/opcode[3:0] $end
+$var wire 14 < config_block_mod_1/inst_read_ctrl_4/next_reg[13:0] $end
+$var wire 14 > config_block_mod_1/inst_read_ctrl_4/prev_reg[13:0] $end
+$var wire 7 ? config_block_mod_1/inst_read_ctrl_4/psedo_ack_reg[6:0] $end
+$var wire 4 @ config_block_mod_1/inst_read_ctrl_4/r_opcode[3:0] $end
+$var wire 7 A config_block_mod_1/inst_read_ctrl_4/start_command[6:0] $end
+$var wire 4 F config_block_mod_1/master_controller_5/op_code[3:0] $end
+$var wire 1 E config_block_mod_1/master_controller_5/done $end
+$var wire 7 $ config_block_mod_1/ack_block_6/inst_signals[6:0] $end
+$var wire 7 % config_block_mod_1/ack_block_6/o_valid_sig[6:0] $end
+$var wire 7 & config_block_mod_1/ack_block_6/status_ack[6:0] $end
+$var wire 14 ' config_block_mod_1/ack_block_6/status_prev[13:0] $end
+$var wire 7 # ack_generator_mod_7/trigger_start[6:0] $end
+$var wire 7 " ack_generator_mod_7/ack_signals[6:0] $end
 $upscope $end
 $enddefinitions $end
 #0
 $dumpvars
-b0 0
+0;
+b0 "
+b0 5
+b0 <
+0K
+b0 G
+0D
+b0 =
+b0 H
 b0 ,
-0/
-b0 &
+b0 A
+b0 ?
+0-
+b0 >
+b0 @
+0J
+0.
 b0 #
-b1000000000000 $
-b0 1
-b0 .
-b0 3
+b0 %
+b0 N
+b0 F
+0E
+b0 $
+0I
+06
+07
 b0 '
-b0 2
 b0 4
-1)
-b0 (
-0-
-b1100000000000 %
-0"
-0*
-0+
-$end
-#512
-1"
-#513
-0"
-b1000000000000 &
-b1100000000000 '
-#515
-b111 #
-#517
-b10000 (
-#518
-b0 (
-#519
+b0 &
+b0 B
+b0 8
+b0 )
+0M
+01
+b0 C
 1/
-b1010101111000000 .
-#520
-b1010101111000011 .
-b1000100000000 &
-b1 ,
-1+
-0)
-#521
-b1010101111000001 .
-b10 ,
-1-
-#522
-0-
-b101010111100 0
-b1010101111001111 .
-#523
-b1010101111000000 .
-b10001 (
-b0 0
-b11 ,
-#524
-b100 ,
-b1010101111000011 .
 b0 (
-#525
-b101 ,
-b1 1
-b1010101111000001 .
-#526
-b1010101111001111 .
-b110 ,
-b1001000000000 &
-#527
-b111 ,
-b1010101111000000 .
-b0 #
-#528
-b1000 ,
-b1010101111000011 .
-#529
-b0 .
+b0 0
+0+
+b0 L
+03
+12
+b0 9
+b0 *
+0:
+$end
+#274
+1.
+#275
+0.
+b1100000000000 *
+b1000000000000 )
+#277
+1K
+b111 H
+1-
+1J
+b111 (
+#278
+0-
+0J
+#279
+b10000 G
+b10000 ,
+#280
+b0 ,
+b0 G
+b1010101111000000 4
+1I
+17
+b1010101111000000 C
+1+
+#281
+0+
+0I
+0K
+b1010101111000000 5
+1D
+b1010101111000001 4
+16
+b1010101111000001 C
+b1010101111000000 B
+13
+#282
+b1010101111000010 4
+b1000100000000 )
+b1010101111000001 5
+b1010101111000001 B
 0/
-b1001 ,
-#559
+b1010101111000010 C
+b1 0
+#283
+b10 0
+1J
+1K
+b1010101111000011 4
+b1010101111000011 C
+b1010101111000010 5
 1-
-#560
+11
+b1010101111000010 B
+#284
+b1010101111000011 B
+0J
+01
+b1010101111000011 5
+b1010101111000100 4
+b1010101111000100 C
+1M
 0-
-b1000 ,
-b11 3
-b101010111100 0
-#561
-b0 0
-b0 3
-#563
-b1000001 1
+b1010101111000000 L
+#285
+b0 L
+b1010101111000100 B
+b11 0
+b10001 G
+b10001 ,
+b1010101111000101 4
+b1010101111000100 5
+0M
+b1010101111000101 C
+#286
+b1010101111001111 C
+b0 G
+1I
+1+
+b100 0
+b1010101111000101 B
+b0 ,
+b1010101111000101 5
+b1010101111001111 4
+#287
+b1010101111000001 4
+b101 0
+b1010101111000001 C
+b1 <
+1:
+b1 ?
+0+
+0I
+0K
+b1010101111001111 5
+b1010101111001111 B
+#288
+b1010101111000001 B
+b1010101111000010 4
+b1010101111000010 C
+b110 0
+b1001000000000 )
+b1010101111000001 5
+#289
+b1010101111000010 5
+b111 0
+b1010101111000011 C
+b1010101111000011 4
+b1010101111000010 B
+0:
+1J
+1-
+1K
+#290
+b1010101111000011 B
+b1000 0
+b1010101111000011 5
+0-
+0J
+07
+#291
+b1001 0
+03
+b10010 G
+0D
+06
+b10010 ,
+#292
+b0 ,
+b0 G
+17
+b1010101111001111 C
+1I
+b1010101111001111 4
+1+
+#293
+0+
+b1010101111000010 4
+b1010101111001111 B
+0K
+0I
+b1010101111000010 C
+13
+16
+1D
+b1010101111001111 5
+#294
+b1010101111000010 5
+b1010101111000011 C
+b1010101111000011 4
+b1010 0
+b1010101111000010 B
+b1001100000000 )
+02
+#295
+b1011 0
+b1010101111000100 C
+b1010101111000011 5
+b1010101111000100 4
+1K
+1J
+b1010101111000011 B
+1-
+#296
+0-
+b1010101111000101 4
+b1100 0
+b1010101111000100 5
+b1010101111000101 C
+b1010101111000100 B
+0J
+#297
+b1010101111000101 5
+b10011 G
+b10011 ,
+b1101 0
+b1010101111001111 4
+b1010101111000101 B
+b1010101111001111 C
+#298
+b1010101111000011 C
+b1110 0
+b1010101111001111 5
+1+
+b0 ,
+b0 G
+1I
+b1010101111001111 B
+b1010101111000011 4
+#299
+b1010101111000100 4
+b1111 0
+b1010101111000100 C
+0+
+b1010101111000011 5
+b1010101111000011 B
+0I
+0K
+#300
+b1010101111000101 4
+b1010101111000101 C
+b10000 0
+b1010000000000 )
+b1010101111000100 B
+b1010101111000100 5
+#301
+b1010101111000101 5
+b1010101111000110 C
+b0 (
+b1010101111000110 4
+b0 H
+b1010101111000101 B
+b10001 0
+#302
+b10010 0
+b1010101111000110 5
+07
+b1010101111000110 B
+#303
+b10011 0
+0D
+06
+03
+#320
+1;
+1E
+#321
+0E
+0;
+11
+#322
+01
+b1010101111000001 L
+b1 =
+b1 F
+1M
+b10010 0
+#323
+b0 =
+b1 @
+b0 L
+0M
+b0 F
+#325
+b101 <
+b11 ?
+1:
+#327
+0:
+#358
+1E
+1;
+#359
+0;
+11
+0E
+#360
+b10001 0
+b10 F
+b10 =
+01
+1M
+b1010101111000010 L
+#361
+b0 L
+b0 F
+b10 @
+0M
+b0 =
+#363
+1:
+b10101 <
+b111 ?
+#365
+0:
+#396
+1;
+1E
+#397
+0E
+0;
+11
+#398
+01
+b11 F
+b1010101111000011 L
+b11 =
+b10000 0
+1M
+#399
+0M
+b0 =
+b0 F
+b0 L
+b11 @
+#401
+b1111 ?
+1:
+b1010101 <
+#403
+0:
+#434
+1E
+1;
+#435
+0;
+11
+0E
+#436
+b100 F
+1M
+b100 =
+01
+b1111 0
+b1010101111000100 L
+#437
+b0 L
+0M
+b0 F
+b100 @
+b0 =
+#439
+1:
+b11111 ?
+b101010101 <
+#441
+0:
+#472
+1E
+1;
+#473
+0;
+0E
+11
+#474
+01
+b101 =
+b101 F
+1M
+b1010101111000101 L
+b1110 0
+#475
+0M
+b0 F
+b0 =
+b0 L
+b101 @
+#477
+1:
+b10101010101 <
+b111111 ?
+#479
+0:
+#510
+1;
+1E
+#511
+0E
+11
+0;
+#512
+b1111 F
+1M
+b1101 0
+01
+b1111 =
+b1010101111001111 L
+#513
+b0 L
+0M
+b1111 @
+b0 F
+b0 =
+#514
+b10101010101 >
+b0 <
+b111111 9
+#515
+1:
+b111111 A
+b111111 #
+11
+#516
+01
+b0 A
+b0 ?
+b1 =
+b1010101111000001 L
+0:
+1M
+b0 #
+b1 F
+b1100 0
+#517
+b1 @
+b0 L
+b0 =
+b0 F
+0M
+#548
+1E
+1;
+#549
+0;
+0E
+#567
+b1 "
+b1 $
+#568
+b0 $
+b0 "
+b1 %
+b11 N
+b11 '
+#569
+b0 %
+#570
+b111110 9
+b10101010111 >
+#577
+b10 $
+b10 "
+#578
+b0 "
+b0 $
+b1111 '
+b1111 N
+b10 %
+#579
+b0 %
+#580
+b10101011111 >
+b111100 9
+#582
+b10 ?
+1:
+b100 <
+#584
+0:
+#587
+b100 "
+b100 $
+#588
+b0 $
+b0 "
+b100 %
+b111111 '
+b111111 N
+#589
+b0 %
+#590
+b111000 9
+b10101111111 >
 #597
-1-
+b1000 $
+b1000 "
 #598
-0-
-b111 ,
-b1 3
-b101010111100 0
+b0 "
+b0 $
+b1000 %
+b11111111 N
+b11111111 '
 #599
-b0 0
-b0 3
-#601
-b1000101 1
-#635
+b0 %
+#600
+b10111111111 >
+b110000 9
+#607
+b10000 $
+b10000 "
+#608
+b0 "
+b0 $
+b10000 %
+b1111111111 '
+b1111111111 N
+#609
+b0 %
+#610
+b100000 9
+b11111111111 >
+#615
+1;
+1E
+#616
+0E
+0;
+11
+#617
+01
+b100000 "
+b1010101111000010 L
+b1011 0
+b100000 $
+1M
+b10 =
+b10 F
+#618
+b0 F
+b0 $
+b111111111111 N
+b100000 %
+b111111111111 '
+b0 L
+b0 "
+b10 @
+b0 =
+0M
+#619
+b0 %
+#620
+b111111111111 >
+b0 9
+#621
+b110 ?
+1:
+b10100 <
+#623
+0:
+#654
+1;
+1E
+#655
+0E
+0;
+11
+#656
+01
+b11 F
+1M
+b1010 0
+b1010101111000011 L
+b11 =
+#657
+b0 =
+0M
+b0 F
+b0 L
+b11 @
+#659
+1:
+b1110 ?
+b1010100 <
+#661
+0:
+#692
+1;
+1E
+#693
+0E
+0;
+11
+#694
+01
+1M
+12
+b1111 =
+b1001 0
+b1010101111001111 L
+b1111 F
+#695
+b0 F
+b0 =
+b1111 @
+0M
+b0 L
+#696
+b0 <
+1J
 1-
-#636
+b1110 9
+b111 (
+1K
+b1010100 >
+b111 H
+#697
+11
+1:
+b1110 A
+0J
 0-
-b1111 3
-b101010111100 0
-b110 ,
-#637
-b0 0
-b0 3
-#638
-b1000101 2
-b0 1
-#639
+b1110 #
+#698
+b0 #
+01
+b1010101111000010 L
+b10100 G
+b10 F
+b0 A
+b10 =
+0:
+b10100 ,
+b0 ?
+b1000 0
+1M
+#699
+0M
+b0 L
+b1010101111001111 4
+1+
+b10 @
+b0 =
+b0 G
+b1010101111001111 C
+b0 F
+17
+1I
+b0 ,
+#700
+b1010101111000100 C
+b1010101111000100 4
+b1010101111001111 B
+b1010101111001111 5
+0+
+13
+0I
+16
+0K
+1D
+#701
+b1010101111000101 4
+b1010101111000101 C
+b1010101111000100 5
+b1010101111000100 B
+b1001 0
+b1010100000000 )
+#702
+b1010101111000101 5
+1J
+b1010101111000110 C
+b1010101111000110 4
+02
+b1010 0
+1K
 1-
-b1011 4
-#640
+b1010101111000101 B
+#703
+b1010101111000110 B
+b1010101111000111 4
+b1010101111000111 C
+b1010101111000110 5
+0J
+0-
+b1011 0
+#704
+b1100 0
+b1010101111000111 5
+b10101 ,
+b1010101111001111 C
+b1010101111000111 B
+b10101 G
+b1010101111001111 4
+#705
 b0 4
-0-
-b101010111100 0
-b101 ,
-#641
-b0 0
+b0 G
+b1101 0
+1+
+b1010101111001111 B
+b0 ,
+b1010101111001111 5
+b0 C
+1I
+#706
+0I
+b0 5
+0+
+b1110 0
+b0 B
+0K
+#707
+b1111 0
+b1011000000000 )
+#708
+b10000 0
+b0 (
+b0 H
+#709
+b10001 0
+07
+#710
+0D
+b10010 0
+03
+06
+#730
+1;
+1E
+#731
+0E
+0;
+#759
+b10 $
+b10 "
+#760
+b0 "
+b0 $
+b10 %
+#761
+b0 %
+#762
+b1100 9
+b1011100 >
+#769
+b100 "
+b100 $
+#770
+b0 $
+b0 "
+b100 %
+#771
+b0 %
+#772
+b1111100 >
+b1000 9
+#774
+b10000 <
+1:
+b100 ?
+#776
+0:
+#779
+b1000 $
+b1000 "
+#780
+b0 "
+b0 $
+b1000 %
+#781
+b0 %
+#782
+b0 9
+b11111100 >
+#807
+1E
+1;
+#808
+0;
+0E
+11
+#809
+01
+b1010101111000011 L
+1M
+b11 =
+b11 F
+b10001 0
+#810
+0M
+b0 L
+b11 @
+b0 F
+b0 =
+#812
+b1010000 <
+1:
+b1100 ?
+#814
+0:
+#845
+1E
+1;
+#846
+0;
+0E
+11
+#847
+01
+b1010101111000100 L
+b100 =
+1M
+b10000 0
+b100 F
+#848
+b0 F
+0M
+b0 =
+b0 L
+b100 @
+#850
+1:
+b101010000 <
+b11100 ?
+#852
+0:
+#883
+1E
+1;
+#884
+0;
+0E
+11
+#885
+01
+b101 =
+1M
+b101 F
+b1010101111000101 L
+b1111 0
+#886
+0M
+b101 @
+b0 =
+b0 L
+b0 F
+#888
+1:
+b111100 ?
+b10101010000 <
+#890
+0:
+#921
+1E
+1;
+#922
+0;
+0E
+11
+#923
+01
+b1111 F
+b1110 0
+1M
+b1010101111001111 L
+b1111 =
+#924
+b0 =
+b1111 @
+b0 F
+b0 L
+0M
+#925
+b0 <
+b10101010000 >
+b111100 9
+#926
+11
+b111100 #
+1:
+b111100 A
+#927
+b0 A
+0:
+b1101 0
+b0 #
+1M
+01
+b11 =
+b1010101111000011 L
+b11 F
+b0 ?
+#928
+b11 @
+0M
+b0 F
+b0 L
+b0 =
+#959
+1E
+1;
+#960
+0;
+0E
+#998
+b100 $
+b100 "
+#999
+b0 "
+b0 $
+b100 %
+#1000
+b0 %
+#1001
+b111000 9
+b10101110000 >
+#1008
+b1000 $
+b1000 "
+#1009
+b0 "
+b0 $
+b1000 %
+#1010
+b0 %
+#1011
+b10111110000 >
+b110000 9
+#1013
+b1000000 <
+b1000 ?
+1:
+#1015
+0:
+#1018
+b10000 "
+b10000 $
+#1019
+b0 $
+b0 "
+b10000 %
+#1020
+b0 %
+#1021
+b100000 9
+b11111110000 >
 #1023

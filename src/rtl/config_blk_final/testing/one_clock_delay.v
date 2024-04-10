@@ -1,3 +1,4 @@
+//delay input signal by 1 clock
 module one_clock_delay#(parameter DATA_WIDTH=8)(
     input clkin,
     input[DATA_WIDTH-1:0] i_data,

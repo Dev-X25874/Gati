@@ -1,3 +1,4 @@
+//stores instruction data from dram
 //`include "sync_fifo_config.v"
 module instruct_q #(
     parameter instruct_w=256

@@ -1,17 +1,17 @@
 module onehot_to_bin (onehot,bin);
 
-parameter ONEHOT_WIDTH = 4;
-parameter BIN_WIDTH = $clog2(ONEHOT_WIDTH-1);
+parameter ONEHOT_WIDTH = 32;
+parameter BIN_WIDTH = $clog2(ONEHOT_WIDTH);
 
 input [ONEHOT_WIDTH-1:0] onehot;
 output  [BIN_WIDTH-1:0] bin;
 
 genvar i,j;
 generate
-	for (j=1; j<BIN_WIDTH; j=j+1)
+	for (j=0; j<BIN_WIDTH; j=j+1)
 	begin : jl
 		wire [ONEHOT_WIDTH-1:0] tmp_mask;
-		for (i=1; i<ONEHOT_WIDTH; i=i+1)
+		for (i=0; i<ONEHOT_WIDTH; i=i+1)
 		begin : il
 			assign tmp_mask[i] = i[j];
 		end

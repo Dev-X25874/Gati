@@ -9,7 +9,7 @@ module RR_ARB #(
 input		    rst_an,
 input		    clk,
 input	[N-1:0]	req,
-output	reg [N-1:0]	grant = 0,
+output [N-1:0]	grant_out ,
 input           en_pin ,
 input [(N*DATA_WIDTH)-1 : 0] in_data_div ,
 output [NUM_PORTS-1 :0 ] req_out ,
@@ -17,11 +17,14 @@ output [ADDRESS_WIDTH-1 : 0] o_addr_div,
 output [(BURST_LENGTH_WIDTH-1) : 0]  o_burst_div, 
 output [(N-1) : 0] o_port_div ,
 output o_rw_div ,
-input [NUM_PORTS-1 : 0] r_valid
+input [NUM_PORTS-1 : 0] r_valid,
+output valid_req 
 
 );
 
+assign grant_out = grant ;
 
+reg [N-1 : 0 ] grant = 0 ;
 reg	[N-1:0]	rotate_ptr = 0;
 wire	[N-1:0]	mask_req;
 wire	[N-1:0]	mask_grant;
@@ -97,7 +100,7 @@ begin
                  grant[N-1:0] <= grant_comb[N-1:0] & ~grant[N-1:0];
                  
             else 
-                 grant [N-1:0] <= grant [N-1:0] ;
+                 grant [N-1:0] <= 0 ;
     end 
 end
 
@@ -110,14 +113,15 @@ Req_Manager #(
 ) req_manager_inst(
     .clk (clk) ,
     .rst (rst_an) ,
-    .req_in (grant),
+    .req_in (grant_out),
     .req_out (req_out) ,
     .in_data_div (in_data_div),
     .o_addr_div (o_addr_div) ,
     .o_burst_div (o_burst_div),
     .o_port_div (o_port_div),
     .o_rw_div (o_rw_div),
-    .rd_valid (r_valid)
+    .rd_valid (r_valid),
+    .valid_req(valid_req)
  );
 
 endmodule

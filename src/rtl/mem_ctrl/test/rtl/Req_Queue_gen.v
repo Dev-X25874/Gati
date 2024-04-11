@@ -1,8 +1,8 @@
 module Req_Queue_gen #(
     parameter NUM_QUEUE = 4,
-    parameter DATA_WIDTH = 41
-   // parameter ADDR_WIDTH = 10, 
-   // parameter RAM_DEPTH = (1 << ADDR_WIDTH)
+    parameter DATA_WIDTH = 41,
+    parameter ADDR_WIDTH = 10, 
+    parameter RAM_DEPTH = (1 << ADDR_WIDTH)
     
 ) (
     input clk,
@@ -18,22 +18,25 @@ module Req_Queue_gen #(
 genvar i ;
 generate
     for (i = 0; i < NUM_QUEUE; i = i + 1) begin
-        req_que_mod
-        req_que_mod_inst(
-            .prog_full_o (),
-            .full_o(),
-            .empty_o (empty_flag [i]),
-            .clk_i (clk),
-            .wr_en_i (Wr_en [NUM_QUEUE-1:0]),
-            .rd_en_i (rd_en [NUM_QUEUE-1:0]),
-            .wdata(data_in [(41 * (NUM_QUEUE - i))-1 -: 41] ),
-            .datacount_o (),
-            .rst_busy(),
-            .rdata (data_out [(41 * (NUM_QUEUE - i))-1 -: 10] ),
-            .a_rst_i (rst)
-           // .rd_out (rd_out [i])
-        );
-     end 
+    
+       fifo_valid#(
+           .DATA_WIDTH (DATA_WIDTH),
+           .ADDR_WIDTH (ADDR_WIDTH), 
+           .RAM_DEPTH (RAM_DEPTH)
+        ) fifo_valid_inst(
+            .clk (clk),
+            .rst_n (rst),
+            .data_in (data_in [(41* (NUM_QUEUE - i)) -1 -: 41]),
+            .we (Wr_en[i]),
+            .re (rd_en[i]),
+            .data_out (data_out[(41 * (NUM_QUEUE - i))-1 -: 41]),
+            .occupants (),
+            .empty (empty_flag[i]),
+            .full (),
+            .data_valid (rd_out [i])
+);
+
+    end 
 endgenerate
 
 endmodule

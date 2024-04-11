@@ -3,7 +3,7 @@ module Req_Manager #(
     parameter DATA_WIDTH = 41,
     parameter ADDRESS_WIDTH = 32,
     parameter BURST_WIDTH = 4,
-    parameter BIN_WIDTH = $clog2(NUM_PORTS-1),
+    parameter BIN_WIDTH = $clog2(NUM_PORTS),
     parameter PORT_ID_WIDTH = 4
 ) (
     input clk,
@@ -11,12 +11,12 @@ module Req_Manager #(
     input [NUM_PORTS-1:0] req_in,
     output reg [NUM_PORTS-1:0] req_out = 0,
     input [(NUM_PORTS*DATA_WIDTH)-1:0] in_data_div,
-    output reg [ADDRESS_WIDTH-1:0] o_addr_div = 0,
-    output reg [BURST_WIDTH-1:0] o_burst_div = 0,
-    output reg [PORT_ID_WIDTH-1:0] o_port_div = 0,
-    output reg o_rw_div = 0,
-  //  output  [NUM_PORTS-1 : 0] rd_sel_binary = 0 ,
-    input [NUM_PORTS-1:0] rd_valid 
+    output  [ADDRESS_WIDTH-1:0] o_addr_div ,
+    output  [BURST_WIDTH-1:0] o_burst_div ,
+    output  [PORT_ID_WIDTH-1:0] o_port_div ,
+    output  o_rw_div ,
+    input [NUM_PORTS-1:0] rd_valid ,
+    output reg valid_req = 0
 );
 
 onehot_to_bin #(
@@ -27,41 +27,37 @@ onehot_to_bin #(
     .bin (rd_sel_binary)
 );
 
+assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;
+assign o_burst_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-1:BURST_WIDTH+1];
+assign o_port_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-1:DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH];
+assign o_rw_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH-1];
 
 always @(*) begin
     req_out = req_in;
 end
 
-wire [1:0] rd_sel_binary ;
+wire [BIN_WIDTH-1:0] rd_sel_binary;
+reg [(DATA_WIDTH*NUM_PORTS)-1:0] data_sel = 0 ;
 
 always @ (posedge clk) begin 
-    if (!rst) begin
-        o_addr_div <= 0;
-        o_burst_div <= 0;
-        o_port_div <= 0;
-        o_rw_div <= 0;
+    if (!rst) begin 
+        valid_req <= 0 ;
+    
     end 
-    else begin
-        // Select the active port based on rd_valid
-            if (rd_sel_binary != 0) begin 
-                // Use bitwise AND operation to select the active port  
-                o_addr_div <= in_data_div[(rd_sel_binary-1) * DATA_WIDTH +: ADDRESS_WIDTH];
-               // o_addr_div <= in_data_div[((rd_sel_binary-1) * DATA_WIDTH) + ADDRESS_WIDTH + BURST_WIDTH + PORT_ID_WIDTH];
-                o_burst_div <= in_data_div[(rd_sel_binary * DATA_WIDTH) + ADDRESS_WIDTH +: BURST_WIDTH];
-               // o_burst_div <= in_data_div[(rd_sel_binary * DATA_WIDTH) + ADDRESS_WIDTH+ PORT_ID_WIDTH +: BURST_WIDTH];
-                o_port_div <= in_data_div[(rd_sel_binary * DATA_WIDTH) + ADDRESS_WIDTH + BURST_WIDTH +: PORT_ID_WIDTH];
-              //  o_port_div <= in_data_div[(rd_sel_binary * DATA_WIDTH) + ADDRESS_WIDTH +: PORT_ID_WIDTH];
-                o_rw_div <= in_data_div[(rd_sel_binary * DATA_WIDTH) + ADDRESS_WIDTH + BURST_WIDTH + PORT_ID_WIDTH];
-               // o_rw_div <= in_data_div[(rd_sel_binary * DATA_WIDTH)];
-            end
-            else begin 
-                // Reset outputs when there is no valid read request
-                o_addr_div <= o_addr_div;
-                o_burst_div <= o_burst_div;
-                o_port_div <= o_port_div;
-                o_rw_div <= o_rw_div;
-            end
+    
+    else begin 
+        if(rd_valid) begin 
+            data_sel <= in_data_div [DATA_WIDTH*(NUM_PORTS-rd_sel_binary) -1 -: DATA_WIDTH] ;
+            valid_req <= 1'b1 ;
+        end 
+        
+        else begin 
+            data_sel <= 0 ;
+            valid_req <= 0 ;
+        end 
     end 
+    
 end 
 
-endmodule
+endmodule 
+        

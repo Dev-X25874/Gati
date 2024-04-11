@@ -1,5 +1,10 @@
-//bus master controller which sends instruction data to slave blocks
-//`include "controller.v"
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Top Master
+// Project Name: Gati
+// Description: Bus master controller which sends instruction data to slave blocks in 8 bit chunks.
+//////////////////////////////////////////////////////////////////////////////////
+//
 module top_master #(parameter op_code_width = 4, 
             parameter CNT = (data_in/data_out),
             parameter data_in = 256,

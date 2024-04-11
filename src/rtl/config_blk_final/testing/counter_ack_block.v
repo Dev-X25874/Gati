@@ -1,4 +1,11 @@
-//Acts as fake slave for testing ack block in config block
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Counter Acknowledgement Block
+// Project Name: Gati
+// Description: Acts as fake slave for testing ack block in config block by relaying acknowledgement signal after receiving start signal after a 
+// delay. 
+//////////////////////////////////////////////////////////////////////////////////
+//
 module counter_ack_block #(
     parameter num_instructions=4
   )(

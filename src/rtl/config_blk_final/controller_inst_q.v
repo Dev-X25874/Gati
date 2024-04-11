@@ -1,4 +1,9 @@
-//takes instruction data from DRAM memory and checks it calid signal before passing to instruction queue
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Controller Instruction Queue
+// Project Name: Gati
+// Description:Takes instruction data from DRAM memory and checks its validity before passing to Instruction Queue 
+//////////////////////////////////////////////////////////////////////////////////
 module controller_inst_q #(
   parameter instruct_w=256
 )(
@@ -9,12 +14,11 @@ module controller_inst_q #(
     output reg [instruct_w-1:0]o_instruction,
     output reg o_instruction_valid
   );
-  reg [instruct_w-1:0]internal_reg=0;
   always@(posedge clkin)
   begin
     if(sel && valid) //check sel and valid signal for internal data
     begin
-        o_instruction<=i_instruction_data;
+        o_instruction<=i_instruction_data; 
         o_instruction_valid<=1; //set valid to 1
     end
     else

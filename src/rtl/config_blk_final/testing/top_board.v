@@ -1,4 +1,10 @@
-// Testing the config block with memory module
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Top Board
+// Project Name: Gati
+// Description: Testing the config block with memory module.
+//////////////////////////////////////////////////////////////////////////////////
+// 
 module top_board #(
     parameter  inst_w=256,
     parameter num_inst =7,

@@ -1,4 +1,11 @@
-// sends acknowledgement signal to instruction read controller block
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Acknowledgement COntroller
+// Project Name: Gati
+// Description:Sends acknowledgement signal to instruction read controller block which
+//sets respective previous registers as 11 and sets respective acknowledgement registers as 0
+//////////////////////////////////////////////////////////////////////////////////
+// 
 module ctrl_ack #(
     parameter  num_instructions=4
   )(

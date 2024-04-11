@@ -1,5 +1,11 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Instruction Read Controller
+// Project Name: Gati
+// Description: 
 //Responsible for sending read signal to instruction q based on done status of bus master
 // Also has 3 registers which show the status of the slave blocks for respective instructions and the next and previous instructions to be executed
+//////////////////////////////////////////////////////////////////////////////////
 module inst_read_ctrl#(
     parameter  num_instructions=4
   )(
@@ -28,8 +34,6 @@ module inst_read_ctrl#(
   reg [3:0]super_state=4'd0; 
   reg [3:0]state_start=4'd0; 
   reg flag=1;
-  //reg [7:0]prev_reg;
-  //reg [7:0]next_sent=8'b0;
 
   reg [(num_instructions*2)-1:0]prev_reg=0; //shows the previous instructions
   reg [(num_instructions*2)-1:0]next_reg=0; //shows the next instructions
@@ -47,7 +51,7 @@ module inst_read_ctrl#(
           super_state<=4'd1; 
         end
         valid_ack_reg<=valid_ack;
-        if(valid_ack_reg!=4'd0)
+        if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
         begin
           for(i=0;i<num_instructions;i=i+1)
           begin
@@ -98,7 +102,6 @@ module inst_read_ctrl#(
             end
             4'd4:
             begin
-              //r_opcode<=opcode;
               if(r_opcode!=4'b1111) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)

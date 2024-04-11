@@ -1,4 +1,11 @@
-//ResponsibLe for sending memory address and read requests to DRAM memory 
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: DRAM controller
+// Project Name: Gati
+// Description:ResponsibLe for sending memory address and read requests to DRAM memory. 
+//Is triggered by external user start
+//////////////////////////////////////////////////////////////////////////////////
+//
 module ctrl_dram_req #(
     parameter  addr_w=32,
     parameter burst_len_axi =7 
@@ -124,25 +131,6 @@ module ctrl_dram_req #(
       end
       4'd5:
       begin
-        //o_address_reg<=internal_reg_stop[addr_w-counter1-1-:8];
-        /* counter1<=counter1+8;
-        dv<=1'b1;
-        read_req_reg<=1'b1;
-        if(counter1==24)
-        begin
-          last_reg<=1'b1;
-        end
-        else
-        begin
-          last_reg<=1'b0;
-        end
-
-        if(counter1<32)
-        begin
-          state<=4'd5;
-        end
-        else
-        begin */
         internal_reg_start<=internal_reg_stop;
         state<=4'd4;
         dv<=1'b0;
@@ -151,7 +139,6 @@ module ctrl_dram_req #(
         o_address_reg<=0;
         burst_len_reg<=0;
         counter1<=6'd0;
-        //end
       end
       default:
       begin

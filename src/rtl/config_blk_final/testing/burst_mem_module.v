@@ -1,4 +1,11 @@
-//memory module that sends instruction data in bursts of 8
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Burst Memory Module
+// Project Name: Gati
+// Description: Memory module that sends instruction data in bursts of 8 to the instruction queue controller along with a
+// valid signal. 
+//////////////////////////////////////////////////////////////////////////////////
+//
 module burst_mem_module(
     input clkin,
     input burst_read_trigger,
@@ -10,7 +17,7 @@ reg [4:0]counter1=0;
 reg [3:0]state=0;
 reg [10:0]pointer=0;
 initial begin
-    $readmemh("vgg16.mem",internal_mem,0,63);
+    $readmemh("vgg16.mem",internal_mem,0,63); //load mem file into local registers of 256 bits
 end
 always @(posedge clkin) begin
     if(burst_read_trigger)begin

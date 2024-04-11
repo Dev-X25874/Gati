@@ -1,9 +1,9 @@
-/*`include "controller_inst_q.v"
-`include "ctrl_ack.v"
-`include "ctrl_dram_req.v"
-`include "inst_q.v"
-`include "inst_read_ctrl.v"
-`include "top_master.v"*/
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Configuration Block
+// Project Name: Gati
+// Description: Is the top module that integrates all the sub modules of the configuration block.
+//////////////////////////////////////////////////////////////////////////////////
 module config_blk #(
     parameter  addr_w=32,
     parameter  inst_w=256,

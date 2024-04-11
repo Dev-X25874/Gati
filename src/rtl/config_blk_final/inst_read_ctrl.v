@@ -1,5 +1,12 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Instruction Read Controller
+// Project Name: Gati
+// Description: 
 //Responsible for sending read signal to instruction q based on done status of bus master
-// Also has 3 registers which show the status of the slave blocks for respective instructions and the next and previous instructions to be executed
+// Also has 3 registers which show the status of the slave blocks for respective instructions and the next and previous instructions to be executed.
+// These are status reg, prev reg and next reg.
+//////////////////////////////////////////////////////////////////////////////////
 module inst_read_ctrl#(
     parameter  num_instructions=4
   )(
@@ -28,8 +35,6 @@ module inst_read_ctrl#(
   reg [3:0]super_state=4'd0; 
   reg [3:0]state_start=4'd0; 
   reg flag=1;
-  //reg [7:0]prev_reg;
-  //reg [7:0]next_sent=8'b0;
 
   reg [(num_instructions*2)-1:0]prev_reg=0; //shows the previous instructions
   reg [(num_instructions*2)-1:0]next_reg=0; //shows the next instructions
@@ -47,7 +52,7 @@ module inst_read_ctrl#(
           super_state<=4'd1; 
         end
         valid_ack_reg<=valid_ack;
-        if(valid_ack_reg!=4'd0)
+        if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
         begin
           for(i=0;i<num_instructions;i=i+1)
           begin
@@ -98,7 +103,6 @@ module inst_read_ctrl#(
             end
             4'd4:
             begin
-              //r_opcode<=opcode;
               if(r_opcode!=4'b1111) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)
@@ -159,7 +163,7 @@ module inst_read_ctrl#(
               end
               if(r_opcode==4'b1111) //if start signal prefetch and wait for ack reg 0
               begin
-                if(ack_reg==4'd0)
+                if(ack_reg==0)
                 begin
                   ack_reg<=psedo_ack_reg;
                   prev_reg<=next_reg;
@@ -182,11 +186,11 @@ module inst_read_ctrl#(
                   end
                   4'd2:
                   begin
-                    start_command<=4'd0;
+                    start_command<=0;
                     state_start<=4'd0;
                     read_signal_reg<=1'b0;
                     top_state<=4'd3;
-                    psedo_ack_reg<=4'd0;
+                    psedo_ack_reg<=0;
                     bus_master_valid<=1'b0;
                   end
                 endcase
@@ -198,7 +202,7 @@ module inst_read_ctrl#(
       end
       4'd1:
       begin
-        if(valid_ack_reg!=4'd0)
+        if(valid_ack_reg!=0)
         begin
           for(k=0;k<num_instructions;k=k+1)
           begin
@@ -210,7 +214,7 @@ module inst_read_ctrl#(
 
           end
         end
-        if(ack_reg==4'b0000)
+        if(ack_reg==0)
         begin
           prev_reg<=8'd0;
           next_reg<=8'd0;

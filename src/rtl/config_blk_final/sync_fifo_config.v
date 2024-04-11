@@ -1,3 +1,11 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Design Name: Config Block
+// Module Name: Synchronous FIFO
+// Project Name: Gati
+// Description: FIFO that stores the instruction data. 
+//It also sends status signals to the DRAM controller and the Instruction Read Controller.
+//It also counts number of instructions stored in the FIFO.
+//////////////////////////////////////////////////////////////////////////////////
 module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
     input clk, rst_n,
     input w_en, r_en,

@@ -1,6 +1,7 @@
 module controller_concate(
     input [7:0] din,
     input rx_valid,
+    input clk,
     output [31:0] start_addr,
     output [31:0] stop_addr,
     output [11:0] kernelitr,

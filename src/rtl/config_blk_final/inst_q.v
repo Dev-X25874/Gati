@@ -7,13 +7,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 module instruct_q #(
-    parameter instruct_w=256
+    parameter INSTRUCT_W=256
 )(
     input clkin,
-    input [instruct_w-1:0]instruct_mem, //talking to inst q controller
+    input [INSTRUCT_W-1:0]instruct_mem, //talking to inst q controller
     input read_req_inst, //talking to inst read controller
     input instruct_valid, //talking to isnt q controller
-    output [instruct_w-1:0]o_instruction,
+    output [INSTRUCT_W-1:0]o_instruction,
     output o_instruction_valid,
     output o_status_dram,
     output o_status_inst

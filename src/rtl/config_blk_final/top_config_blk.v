@@ -5,40 +5,40 @@
 // Description: Is the top module that integrates all the sub modules of the configuration block.
 //////////////////////////////////////////////////////////////////////////////////
 module config_blk #(
-    parameter  addr_w=32,
-    parameter  inst_w=256,
-    parameter num_instructions =4
+    parameter  ADDR_W=32,
+    parameter  INST_W=256,
+    parameter NUM_INSTRUCTIONS =4
   )(
     input clkin,
     input user_start,
-    input [addr_w-1:0]global_start,
-    input [addr_w-1:0]global_stop,
+    input [ADDR_W-1:0]global_start,
+    input [ADDR_W-1:0]global_stop,
     input valid,
     input sel,
-    input [inst_w-1:0]instruction_data,
+    input [INST_W-1:0]instruction_data,
     output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,
     output [7:0]mem_burst_len,
-    input [num_instructions-1:0]ack_signals,
-    output[num_instructions-1:0]start_command
+    input [NUM_INSTRUCTIONS-1:0]ack_signals,
+    output[NUM_INSTRUCTIONS-1:0]start_command
   );
   wire status_1_3;
-  wire [inst_w-1:0]instruction_2_3;
+  wire [INST_W-1:0]instruction_2_3;
   wire instruction_v_2_3;
   wire read_req_3_4;
   wire status_3_4;
-  wire [inst_w-1:0]o_instruction_3_5;
+  wire [INST_W-1:0]o_instruction_3_5;
   wire o_instruction_3_5_v;
   wire start_4_5;
   wire done_5_4;
-  wire [num_instructions-1:0]valid_6_4;
-  wire [2*num_instructions-1:0]prev_6_4;
-  wire [num_instructions-1:0]ack_6_4;
+  wire [NUM_INSTRUCTIONS-1:0]valid_6_4;
+  wire [2*NUM_INSTRUCTIONS-1:0]prev_6_4;
+  wire [NUM_INSTRUCTIONS-1:0]ack_6_4;
 
 
 
-  ctrl_dram_req #(.addr_w(addr_w),.burst_len_axi(7))dram_controller_1 (.clkin(clkin),
+  ctrl_dram_req #(.ADDR_W(ADDR_W),.burst_len_axi(7))dram_controller_1 (.clkin(clkin),
                 .user_start(user_start),
                 .status(status_1_3),
                 .global_reg_address_start(global_start),
@@ -49,7 +49,7 @@ module config_blk #(
                 .last(mem_last),
                 .burst_len(mem_burst_len));
 
-  controller_inst_q #(.instruct_w(inst_w)) inst_q_controller_2(
+  controller_inst_q #(.instruct_w(INST_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
                       .sel(sel),
@@ -58,7 +58,7 @@ module config_blk #(
                       .o_instruction_valid(instruction_v_2_3)
                     );
 
-  instruct_q #(.instruct_w(inst_w))inst_q_3(
+  instruct_q #(.instruct_w(INST_W))inst_q_3(
                .clkin(clkin),
                .instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
@@ -69,7 +69,7 @@ module config_blk #(
                .o_status_inst(status_3_4)
              );
 
-  inst_read_ctrl #(.num_instructions(num_instructions))inst_read_ctrl_4(
+  inst_read_ctrl #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))inst_read_ctrl_4(
                    .clkin(clkin),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
@@ -97,7 +97,7 @@ module config_blk #(
                .done(done_5_4)
              );
 
-  ctrl_ack #(.num_instructions(num_instructions))ack_block_6(
+  ctrl_ack #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))ack_block_6(
              .clkin(clkin),
              .inst_signals(ack_signals),
              .status_ack(ack_6_4),

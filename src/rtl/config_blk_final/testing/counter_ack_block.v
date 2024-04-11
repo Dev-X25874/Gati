@@ -7,20 +7,20 @@
 //////////////////////////////////////////////////////////////////////////////////
 //
 module counter_ack_block #(
-    parameter num_instructions=4
+    parameter NUM_INSTRUCTIONS=4
   )(
     input clkin,
-    input [num_instructions-1:0]trigger_start,
-    output reg [num_instructions-1:0] ack_signals
+    input [NUM_INSTRUCTIONS-1:0]trigger_start,
+    output reg [NUM_INSTRUCTIONS-1:0] ack_signals
   );
   genvar i;
   genvar l;
-  reg [7:0]counter[num_instructions-1:0];
+  reg [7:0]counter[NUM_INSTRUCTIONS-1:0];
   reg [3:0]state=0;
-  reg [3:0]sub_state[num_instructions-1:0];
+  reg [3:0]sub_state[NUM_INSTRUCTIONS-1:0];
 
   generate
-  for(l=0;l<num_instructions;l=l+1)
+  for(l=0;l<NUM_INSTRUCTIONS;l=l+1)
   begin
     initial begin
     sub_state[l]=0;
@@ -30,7 +30,7 @@ module counter_ack_block #(
   endgenerate
 
   generate
-    for(i=0;i<num_instructions;i=i+1)
+    for(i=0;i<NUM_INSTRUCTIONS;i=i+1)
     begin
       always @(posedge clkin)
       begin

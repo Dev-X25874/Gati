@@ -7,18 +7,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 // 
 module ctrl_ack #(
-    parameter  num_instructions=4
+    parameter  NUM_INSTRUCTIONS=4
   )(
     input clkin,
-    input [num_instructions-1:0] inst_signals,
-    output reg [num_instructions-1:0]status_ack,
-    output reg [(2*num_instructions)-1:0]status_prev,
-    output reg [num_instructions-1:0]o_valid_sig
+    input [NUM_INSTRUCTIONS-1:0] inst_signals,
+    output reg [NUM_INSTRUCTIONS-1:0]status_ack,
+    output reg [(2*NUM_INSTRUCTIONS)-1:0]status_prev,
+    output reg [NUM_INSTRUCTIONS-1:0]o_valid_sig
   );
 
   genvar i;
   generate
-    for(i=0;i<num_instructions;i=i+1)
+    for(i=0;i<NUM_INSTRUCTIONS;i=i+1)
     begin
       always @(posedge clkin)
       begin

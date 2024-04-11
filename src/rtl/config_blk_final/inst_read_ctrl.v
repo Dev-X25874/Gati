@@ -8,12 +8,12 @@
 // These are status reg, prev reg and next reg.
 //////////////////////////////////////////////////////////////////////////////////
 module inst_read_ctrl#(
-    parameter  num_instructions=4
+    parameter  NUM_INSTRUCTIONS=4
   )(
     input clkin,
-    input [num_instructions-1:0]valid_ack,
-    input [(num_instructions*2)-1:0]prev_in,
-    input [num_instructions-1:0]ack_in,
+    input [NUM_INSTRUCTIONS-1:0]valid_ack,
+    input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
+    input [NUM_INSTRUCTIONS-1:0]ack_in,
     input [11:0]layer_number, //data from instruction
     input [11:0]total_layers, //data from instruction
     input status_inst_q,
@@ -21,7 +21,7 @@ module inst_read_ctrl#(
     input done_status,
     input [3:0]opcode, //opcode received from instruction data
     output reg bus_master_valid, //valid signal for bus master(start)
-    output reg [num_instructions-1:0] start_command, //sends start signal to respective slave blocks
+    output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
     output read_signal //read signal for instruction queue
   );
 
@@ -36,11 +36,11 @@ module inst_read_ctrl#(
   reg [3:0]state_start=4'd0; 
   reg flag=1;
 
-  reg [(num_instructions*2)-1:0]prev_reg=0; //shows the previous instructions
-  reg [(num_instructions*2)-1:0]next_reg=0; //shows the next instructions
-  reg [num_instructions-1:0]ack_reg=0; //shows status of the slave blocks
-  reg [num_instructions-1:0]psedo_ack_reg=0; //interim register
-  reg [num_instructions-1:0]valid_ack_reg=0; 
+  reg [(NUM_INSTRUCTIONS*2)-1:0]prev_reg=0; //shows the previous instructions
+  reg [(NUM_INSTRUCTIONS*2)-1:0]next_reg=0; //shows the next instructions
+  reg [NUM_INSTRUCTIONS-1:0]ack_reg=0; //shows status of the slave blocks
+  reg [NUM_INSTRUCTIONS-1:0]psedo_ack_reg=0; //interim register
+  reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0; 
 
   always @(posedge clkin)
   begin
@@ -54,7 +54,7 @@ module inst_read_ctrl#(
         valid_ack_reg<=valid_ack;
         if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
         begin
-          for(i=0;i<num_instructions;i=i+1)
+          for(i=0;i<NUM_INSTRUCTIONS;i=i+1)
           begin
             if(valid_ack_reg[i])
             begin
@@ -204,7 +204,7 @@ module inst_read_ctrl#(
       begin
         if(valid_ack_reg!=0)
         begin
-          for(k=0;k<num_instructions;k=k+1)
+          for(k=0;k<NUM_INSTRUCTIONS;k=k+1)
           begin
             if(valid_ack_reg[k])
             begin

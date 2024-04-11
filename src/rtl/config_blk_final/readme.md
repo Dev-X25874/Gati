@@ -36,5 +36,5 @@ It sends a done signal to the Instruction Read Controller.
 ### Acknowledgement Controller
 It receives an acknowledgement signal from the blocks controlled by the bus master and sends a instruction acknowledgement received signal to the instruction read controller.
 
-![Config_Block](https://github.com/vicharak-in/Gati/blob/config_blk/src/rtl/config_blk_final/Images/Config_Block.jpeg?raw=true)
+![Config_Block](https://github.com/vicharak-in/Gati/blob/config_blk/src/rtl/config_blk_final/Images/Config_Block_2.png?raw=true)
 

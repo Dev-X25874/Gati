@@ -2,11 +2,20 @@ module controller_concate(
     input [7:0] din,
     input rx_valid,
     input clk,
-    output [31:0] start_addr,
-    output [31:0] stop_addr,
-    output [11:0] kernelitr,
-    output config_start
+    output reg [31:0] start_addr = 0,
+    output reg [31:0] stop_addr = 0,
+    output reg [11:0] kernelitr = 0,
+    output reg config_start = 0,
+    output reg valid_start_addr = 0,
+    output reg valid_stop_addr = 0,
+    output reg valid_kernelitr = 0
 );
+
+reg [1:0] state = 0;
+reg [4:0] count_start_addr = 0;
+reg [4:0] count_krnl_itr = 0;
+reg [4:0] count_stp_addr = 0;
+
 
 always @(posedge clk) begin
     case(state)
@@ -14,7 +23,10 @@ always @(posedge clk) begin
         config_start <= 0;
         start_addr <= 0;
         stop_addr <= 0;
-        kernelitr <= 0
+        kernelitr <= 0;
+        valid_start_addr <= 0;
+        valid_stop_addr <= 0;
+        valid_kernelitr <= 0;
         state <= 1;
     end
     1: begin
@@ -32,11 +44,13 @@ always @(posedge clk) begin
             if(count_start_addr < 3) begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= count_start_addr + 1;
+                valid_start_addr <= 1;
                 state <= 2;
             end
             else begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= 0;
+                valid_start_addr <= 1;
                 state <= 3;
             end
         end
@@ -44,6 +58,7 @@ always @(posedge clk) begin
             start_addr <= start_addr;
             count_start_addr <= count_start_addr;
             state <= 2;
+            valid_start_addr <= 0;
         end
     end
     3: begin
@@ -51,17 +66,20 @@ always @(posedge clk) begin
             if(count_krnl_itr < 3) begin
                 kernelitr[32-(count_krnl_itr*8)-1 -:8] <= din;
                 count_krnl_itr <= count_krnl_itr + 1;
+                valid_kernelitr <= 1;
                 state <= 3;
             end
             else begin
                 kernelitr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= 0;
+                valid_kernelitr <= 1;
                 state <= 4;
             end
         end
         else begin
             kernelitr <= kernelitr;
             count_krnl_itr <= count_krnl_itr;
+            valid_kernelitr <= 0;
             state <= 3;
         end
     end
@@ -70,11 +88,13 @@ always @(posedge clk) begin
             if(count_stp_addr < 3) begin
                 stop_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_stp_addr <= count_stp_addr + 1;
+                valid_stop_addr <= 1;
                 state <= 4;
             end
             else begin
                 stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= 0;
+                valid_stop_addr <= 1;
                 state <= 5;
             end
         end
@@ -82,6 +102,7 @@ always @(posedge clk) begin
             stop_addr <= stop_addr;
             count_stp_addr <= count_stp_addr;
             state <= 4;
+            valid_stop_addr <= 0;
         end
     end
     endcase

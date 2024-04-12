@@ -67,8 +67,13 @@ always @(posedge clk) begin
     end
     ADDR_ITR: begin
         nxt_addr <= (nxt_addr + ((burst_length_out + 1) << $clog2(AXI_DATA_BYTES)));
-        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then it will give directly give stop_address to the final addr_out and then check for kernel_iteration 
-            state <= KERNEL_ITR;    
+        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed
+            state <= IDLE;    
+            state <= KERNEL_ITR; 
+            addr_out <= 0;
+            valid <= 0;  
+            burst_length <= r_burst_length;
+            wr_enable <= 0;
         end
         else if(nxt_addr > stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
             state <= FIFO_STATUS;
@@ -78,6 +83,9 @@ always @(posedge clk) begin
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
             state <= FIFO_STATUS;
+            wr_enable <= 0;
+            valid <= 0;
+            r_burst_length <= r_burst_length;
         end
     end
     KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read

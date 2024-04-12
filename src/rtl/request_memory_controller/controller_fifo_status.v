@@ -11,7 +11,7 @@ reg [1:0] state = 0;
 always @(posedge clk) begin
     case(state)
     0: begin
-        fifo_status <= 1
+        fifo_status <= 1;
         state <= 1;
     end
     1: begin

@@ -1,4 +1,4 @@
-module top_test(
+module top_test #(parameter burst_length_out = 10, parameter occupancy_count = 40, parameter AXI_DATA_BYTES = 32) (
     input din,
     input clk,
     input rst,
@@ -7,13 +7,26 @@ module top_test(
 
 wire [7:0] d_out;
 wire rx_valid;
-wire [31:0] start_addr_con;
-wire [31:0] stop_addr_con;
-wire [11:0] kernelitr_con;
+wire [31:0] start_addr_fifo_in;
+wire [31:0] start_addr_fifo_out;
+wire [31:0] stop_addr_fifo_in;
+wire [31:0] stop_addr_fifo_out;
+wire [11:0] kernelitr_fifo_in;
+wire [11:0] kernelitr_fifo_out;
 wire config_start_con;
 wire fifo_status_con;
 wire [7:0] addr_out_con;
 wire dv;
+wire [$clog2(AXI_DATA_BYTES) : 0] burst_length_con;
+wire valid_start_addr;
+wire valid_stop_addr;
+wire valid_kernelitr;
+wire empty_start_addr;
+wire empty_stp_addr;
+wire empty_krnl_itr;
+wire re_start_addr;
+wire re_krnl_itr;
+wire re_stp_addr;
 
 rx rx(
     .clk(clk),
@@ -25,31 +38,73 @@ rx rx(
 controller_concate controller_concate(
     .din(d_out),
     .rx_valid(rx_valid),
-    .start_addr(start_addr_con),
-    .stop_addr(stop_addr_con),
-    .kernelitr(kernelitr_con),
+    .start_addr(start_addr_fifo_in),
+    .stop_addr(stop_addr_fifo_in),
+    .kernelitr(kernelitr_fifo_in),
     .clk(clk),
-    .config_start(config_start_con)
+    .config_start(config_start_con),
+    .valid_start_addr(valid_start_addr),
+    .valid_stop_addr(valid_stop_addr),
+    .valid_kernelitr(valid_kernelitr)
+);
+
+fifo_valid fifo_valid_start_addr(
+    .clk(clk),
+    .rst_n(rst),
+    .data_in(start_addr_fifo_in),
+    .we(valid_start_addr),
+    .re(re_start_addr),
+    .data_out(start_addr_fifo_out),
+    .occupants(),
+    .empty(empty_start_addr),
+    .full(),
+    .data_valid()
+);
+
+fifo_valid fifo_valid_kernelitr(
+    .clk(clk),
+    .rst_n(rst),
+    .data_in(kernelitr_fifo_in),
+    .we(valid_kernelitr),
+    .re(re_krnl_itr),
+    .data_out(kernelitr_fifo_out),
+    .occupants(),
+    .empty(empty_krnl_itr),
+    .full(),
+    .data_valid()
+);
+
+fifo_valid fifo_valid_stop_addr(
+    .clk(clk),
+    .rst_n(rst),
+    .data_in(stop_addr_fifo_in),
+    .we(valid_stop_addr),
+    .re(re_stp_addr),
+    .data_out(stop_addr_fifo_out),
+    .occupants(),
+    .empty(empty_stp_addr),
+    .full(),
+    .data_valid()
 );
 
 top_fifo_dram_mimic_con top_fifo_dram_mimic_con(
-    .addr_out(addr_out_con),
+    .burst_length(burst_length_con),
     .clk(clk),
     .fifo_status(fifo_status_con)
 );
 
 request_controller_im2col request_controller_im2col(
-    .start_addr(start_addr_con),
+    .start_addr(start_addr_fifo_out),
     .channelitr(),
-    .kernelitr(kernelitr_con),
-    .stop_addr(stop_addr_con),
+    .kernelitr(kernelitr_fifo_out),
+    .stop_addr(stop_addr_fifo_out),
     .config_start(config_start_con),
     .fifo_status(fifo_status_con), //occupancy check
     .clk(clk),
     .addr_out(addr_out_con),
     .wr_enable(),
     .valid(dv),
-    .burst_length()
+    .burst_length(burst_length_con)
 );
 
 tx tx(
@@ -61,5 +116,10 @@ tx tx(
     .o_TX_Serial(dout),
     .o_TX_Done(done_tx)
 );
+
+
+assign re_start_addr = ~empty_start_addr;
+assign re_stp_addr = ~empty_stp_addr;
+assign re_krnl_itr = ~empty_krnl_itr;
 
 endmodule

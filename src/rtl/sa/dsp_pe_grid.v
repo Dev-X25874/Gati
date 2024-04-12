@@ -9,7 +9,7 @@ module dsp_pe_grid#(
     parameter W_PSUM = 19
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [(COL * (W_DATA + 1)) -1 : 0] i_weight,
     input [(ROW * (W_DATA + 1)) -1 : 0] in_data,
     output [(COL * (W_PSUM + 1))-1 : 0] o_partial_sum,
@@ -33,7 +33,7 @@ generate
    						.W_DATA(W_DATA)
 					)bottom_pe(
    						.i_clk(i_clk),
-    					.i_rst(i_rst),
+    					.i_rstn(i_rstn),
     					.i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
     					.i_p_sum({(W_PSUM+1){1'b0}}),
     					.i_data(in_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -49,7 +49,7 @@ generate
    						.W_DATA(W_DATA)
 					)bottom_pe(
    						.i_clk(i_clk),
-    					.i_rst(i_rst),
+    					.i_rstn(i_rstn),
     					.i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
     					.i_p_sum({(W_PSUM+1){1'b0}}),
     					.i_data(in_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -63,7 +63,7 @@ generate
                         .W_DATA(W_DATA)
                      )bottom_pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
                         .i_p_sum({(W_PSUM+1){1'b0}}),
                         .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -79,7 +79,7 @@ generate
                             .W_DATA(W_DATA)
                         )bottom_pe(
                             .i_clk(i_clk),
-                            .i_rst(i_rst),
+                            .i_rstn(i_rstn),
                             .i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
                             .i_p_sum({(W_PSUM+1){1'b0}}),
                             .i_data(in_data[((ROW - i) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -93,7 +93,7 @@ generate
                             .W_DATA(W_DATA)
                          )bottom_pe(
                             .i_clk(i_clk),
-                            .i_rst(i_rst),
+                            .i_rstn(i_rstn),
                             .i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
                             .i_p_sum({(W_PSUM+1){1'b0}}),
                             .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -107,7 +107,7 @@ generate
                             .W_DATA(W_DATA)
                             )bottom_pe(
                             .i_clk(i_clk),
-                            .i_rst(i_rst),
+                            .i_rstn(i_rstn),
                             .i_weight(i_weight[((COL - j) * (W_DATA + 1))-1 -: (W_DATA + 1)]),
                             .i_p_sum({(W_PSUM+1){1'b0}}),
                             .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -121,7 +121,7 @@ generate
                 if (i == 0 && j == 0) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                     .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
                     .o_weight(w_weight),
@@ -132,7 +132,7 @@ generate
                 end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -145,7 +145,7 @@ generate
                 end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -158,7 +158,7 @@ generate
                 else if (i == 0 && j == COL - 1) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                     .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
                     .o_weight(w_weight),
@@ -169,7 +169,7 @@ generate
                 end else if (i == 0) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                     .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
                     .o_weight(w_weight),
@@ -180,7 +180,7 @@ generate
                 end else if ((i == ROW - 1) && (j == COL - 1)) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -191,7 +191,7 @@ generate
                 end else if (j == COL - 1) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -203,7 +203,7 @@ generate
                 end else if (i == ROW - 1) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -214,7 +214,7 @@ generate
                 end else begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -228,7 +228,7 @@ generate
                 if (i == 0 && j == 0) begin
                    dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
                         .o_weight(w_weight),
@@ -239,7 +239,7 @@ generate
                 end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -250,7 +250,7 @@ generate
                 end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -263,7 +263,7 @@ generate
              if (i == 0 && j == 0) begin
                    dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
                         .o_weight(w_weight),
@@ -274,7 +274,7 @@ generate
                 end else if(i == ROW - 1 && j == 0) begin
                     dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -285,7 +285,7 @@ generate
                 end else if (j == 0) begin
                     dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                         .i_clk(i_clk),
-                        .i_rst(i_rst),
+                        .i_rstn(i_rstn),
                         .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                         .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                         .i_data(in_data[((ROW - i)* (W_DATA + 1))-1 -: (W_DATA + 1)]),
@@ -298,7 +298,7 @@ generate
                 else if (i == 0 && j == COL - 1) begin
                dsp_top_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(i_weight[((COL - j)* (W_DATA +  1))-1 -: (W_DATA +  1)]),
                     .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
                     .o_weight(w_weight),
@@ -309,7 +309,7 @@ generate
                 end else if ((i == ROW - 1) && (j == COL - 1)) begin
                 dsp_bottom_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                     .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                     .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),
@@ -320,7 +320,7 @@ generate
                 end else if (j == COL - 1) begin
                 dsp_middle_pe_block #(.W_PSUM(W_PSUM), .W_DATA(W_DATA)) pe(
                     .i_clk(i_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_weight(FOR_ROW[i-1].FOR_COL[j].w_weight),
                     .i_p_sum(FOR_ROW[i-1].FOR_COL[j].w_psum),
                     .i_data(FOR_ROW[i].FOR_COL[j-1].w_data),

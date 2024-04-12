@@ -3,7 +3,7 @@ module lut_top_pe_block#(
 	parameter W_DATA = 8, 
 	parameter W_PSUM = 19
 )(  input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA : 0] i_weight,
     input [W_DATA : 0] i_data,
     output [W_DATA : 0] o_weight,
@@ -20,7 +20,7 @@ reg w_dv = 0;
 reg ps_dv = 0;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         ps_dv <= 0;
     end else begin
         ps_dv <= (i_data[W_DATA] & w_dv);
@@ -28,7 +28,7 @@ always @(posedge i_clk) begin
 end
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;    
@@ -62,7 +62,7 @@ endmodule
 //Processing elements for rest of the rows in the grid made using LUT multipliers
 module lut_pe_block  #(parameter W_DATA = 8, W_PSUM = 19) (
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA : 0] i_weight,
     input [W_PSUM : 0] i_p_sum,
     input [W_DATA : 0] i_data,
@@ -80,7 +80,7 @@ reg w_dv = 0;
 reg ps_dv = 0;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         ps_dv <= 0;
     end else begin
         ps_dv <= (i_data[W_DATA] & w_dv);
@@ -88,7 +88,7 @@ always @(posedge i_clk) begin
 end
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;
@@ -122,7 +122,7 @@ endmodule
 //Processing elements for last row in the grid made using LUT multipliers
 module lut_bottom_pe_block #(parameter W_DATA = 8, W_PSUM = 19) (
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA : 0] i_weight,
     input [W_PSUM : 0] i_p_sum,
     input [W_DATA : 0] i_data,
@@ -138,14 +138,14 @@ reg w_dv = 0;
 reg ps_dv = 0;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         ps_dv <= 0;
     end else begin
         ps_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;

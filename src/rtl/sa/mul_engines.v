@@ -9,13 +9,16 @@ module mul_engines#(
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1<<W_ADDR),
-    parameter NSA_LUT = 1,  //number of LUT based multiplier SA engines
-    parameter NSA_DSP = 1   //number of DSP based multiplier SA engines
+    parameter NSA_LUT = 0,  //number of LUT based multiplier SA engines
+    parameter NSA_DSP = 4,  //number of DSP based multiplier SA engines
+    parameter N_BRAM_BYTES = 32
 )(
     input i_clk,
     input s_clk,
-    input i_rst,
+    input i_rstn,
     input i_trigger_1,
+    input i_done,
+    input i_layer_done,
     input [(N_SA * (COL * W_DATA))-1 : 0] i_data_weight_ff_sharing,
     input [(N_SA * COL)-1 : 0] i_dv_weight_ff_sharing,
     input [(N_SA * COL)-1 : 0] i_empty_weight_ff_sharing,
@@ -26,9 +29,11 @@ module mul_engines#(
     output [((COL * W_PSUM) * N_SA)-1 : 0] o_psum_ff_array_partial_sums,
     output [(COL * N_SA)-1 : 0] o_psum_ff_array_empty,
     output [(COL * N_SA)-1 : 0] o_psum_ff_array_dv,
-    output [(N_SA * COL)-1 : 0] o_read_en_weight_ff_sharing
+    output [(N_SA * COL)-1 : 0] o_read_en_weight_ff_sharing,
+    output o_mux_sel
 );
-
+wire [N_SA-1 : 0] mux_sel;
+assign o_mux_sel = &(mux_sel);
 genvar i;
 generate
 if(NSA_DSP == 0)begin
@@ -40,12 +45,16 @@ if(NSA_DSP == 0)begin
             .ROW(ROW),
             .W_PSUM(W_PSUM),
             .RAM_DEPTH(RAM_DEPTH),
-            .N_SA(N_SA/2)
+            .N_SA(N_SA/2),
+            .N_BRAM_BYTES(N_BRAM_BYTES)
         ) dsp_engine_inst (
             .i_clk(),
             .s_clk(),
-            .i_rst(),
+            .i_rstn(),
             .i_trigger_1(),
+            .i_done(),
+            .i_layer_done(),
+            .o_mux_sel(),
             .i_weight_fifo_array_data(),
             .i_weight_fifo_array_dv(),
             .i_weight_fifo_array_empty(),
@@ -69,12 +78,16 @@ end
                 .ROW(ROW),
                 .W_PSUM(W_PSUM),
                 .RAM_DEPTH(RAM_DEPTH),
-                .N_SA(N_SA)
+                .N_SA(N_SA),
+                .N_BRAM_BYTES(N_BRAM_BYTES)
             ) dsp_engine_inst (
                 .i_clk(i_clk),
                 .s_clk(s_clk),
-                .i_rst(i_rst),
+                .i_rstn(i_rstn),
                 .i_trigger_1(i_trigger_1),
+                .i_done(i_done),
+                .i_layer_done(i_layer_done),
+                .o_mux_sel(mux_sel[i]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - i))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
@@ -99,12 +112,16 @@ end
                 .ROW(ROW),
                 .W_PSUM(W_PSUM),
                 .RAM_DEPTH(RAM_DEPTH),
-                .N_SA(N_SA/2)
+                .N_SA(N_SA/2),
+                .N_BRAM_BYTES(N_BRAM_BYTES)
             ) dsp_engine_inst (
                 .i_clk(i_clk),
                 .s_clk(s_clk),
-                .i_rst(i_rst),
+                .i_rstn(i_rstn),
                 .i_trigger_1(i_trigger_1),
+                .i_done(i_done),
+                .i_layer_done(i_layer_done),
+                .o_mux_sel(mux_sel[i]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - i))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
@@ -132,12 +149,16 @@ generate
                 .ROW(ROW),
                 .W_PSUM(W_PSUM),
                 .RAM_DEPTH(RAM_DEPTH),
-                .N_SA(N_SA/2)
+                .N_SA(N_SA/2),
+                .N_BRAM_BYTES(N_BRAM_BYTES)
             ) lut_engine_inst (
                 .i_clk(),
                 .s_clk(),
-                .i_rst(),
+                .i_rstn(),
                 .i_trigger_1(),
+                .i_done(),
+                .i_layer_done(),
+                .o_mux_sel(),
                 .i_weight_fifo_array_data(),
                 .i_weight_fifo_array_dv(),
                 .i_weight_fifo_array_empty(),
@@ -161,12 +182,16 @@ generate
                     .ROW(ROW),
                     .W_PSUM(W_PSUM),
                     .RAM_DEPTH(RAM_DEPTH),
-                    .N_SA(N_SA)
+                    .N_SA(N_SA),
+                    .N_BRAM_BYTES(N_BRAM_BYTES)
                 ) lut_engine_inst (
                     .i_clk(i_clk),
                     .s_clk(s_clk),
-                    .i_rst(i_rst),
+                    .i_rstn(i_rstn),
                     .i_trigger_1(i_trigger_1),
+                    .i_done(i_done),
+                    .i_layer_done(i_layer_done),
+                    .o_mux_sel(mux_sel[i]),
                     .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - j))-1 -: (COL * W_DATA)]),
                     .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - j))-1 -: COL]),
                     .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - j))-1 -: COL]),
@@ -191,12 +216,16 @@ generate
                 .ROW(ROW),
                 .W_PSUM(W_PSUM),
                 .RAM_DEPTH(RAM_DEPTH),
-                .N_SA(N_SA/2)
+                .N_SA(N_SA/2),
+                .N_BRAM_BYTES(N_BRAM_BYTES)
             ) lut_engine_inst (
                 .i_clk(i_clk),
                 .s_clk(s_clk),
-                .i_rst(i_rst),
+                .i_rstn(i_rstn),
                 .i_trigger_1(i_trigger_1),
+                .i_done(i_done),
+                .i_layer_done(i_layer_done),
+                .o_mux_sel(mux_sel[i]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA/2 - j))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA/2 - j))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA/2 - j))-1 -: COL]),

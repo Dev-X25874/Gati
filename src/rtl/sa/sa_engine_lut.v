@@ -4,16 +4,19 @@
 module sa_engine_lut#(
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
-    parameter COL = 8,
+    parameter COL = 4,
     parameter ROW = 9,
     parameter W_PSUM = 19,
-    parameter N_SA = 4,
-    parameter RAM_DEPTH = (1 << W_ADDR)
+    parameter N_SA = 1,
+    parameter RAM_DEPTH = (1 << W_ADDR),
+    parameter N_BRAM_BYTES = 32
 )(
     input i_clk,
     input s_clk,
-    input i_rst,
+    input i_rstn,
     input i_trigger_1,
+    input i_done,
+    input i_layer_done,
     input [COL-1 : 0] i_weight_fifo_array_dv,
     input [(COL * W_DATA)-1 : 0] i_weight_fifo_array_data,
     input [COL-1 : 0] i_weight_fifo_array_empty,
@@ -24,7 +27,8 @@ module sa_engine_lut#(
     output [(W_PSUM * COL)-1 : 0] o_psum_ff_array_partial_sums,
     output [COL-1 : 0] o_psum_ff_array_empty,
     output [COL-1 : 0] o_psum_ff_array_dv,
-    output [COL-1 : 0] o_weight_fifo_array_rden
+    output [COL-1 : 0] o_weight_fifo_array_rden,
+    output o_mux_sel
 );
 
 wire [(COL * (W_DATA + 1))-1 : 0] weights_append_dv_cdc;
@@ -43,25 +47,29 @@ wire enb_weight_rden_ctrl_image_rden_ctrl;
 
 //Control read enable signal of uart_rx_weight_fifo
 weight_fifo_aray_rden#(
-   .COL(COL),
-   .ROW(ROW),
-   .W_ADDR(W_ADDR),
-   .W_DATA(W_DATA)
-) weight_fifo_array_rden_ctrl (
-   .i_clk(i_clk),
-   .i_rst(i_rst),
-   .i_trigger(i_trigger_1),
-   .image_read_ctrl_enable(enb_weight_rden_ctrl_image_rden_ctrl),
-   .i_fifo_empty(i_weight_fifo_array_empty),
-   .o_fifo_read_enable(o_weight_fifo_array_rden),
-   .i_fifo_occupants(i_weight_fifo_array_occ)
+    .COL(COL),
+    .W_ADDR(W_ADDR),
+    .ROW(ROW),
+    .N_SA(N_SA),
+    .N_BRAM_BYTES(N_BRAM_BYTES)
+)weight_fifo_array_rden_ctrl(
+    .i_clk(i_clk),
+    .i_rstn(i_rstn),
+    .i_start(i_trigger_1),
+    .i_done(i_done),
+    .i_layer_done(i_layer_done),
+    .i_fifo_empty(i_weight_fifo_array_empty),
+    .i_fifo_occupants(i_weight_fifo_array_occ),
+    .o_fifo_read_enable(o_weight_fifo_array_rden),
+    .o_sel(o_mux_sel),
+    .o_enable_image_rden_ctrl(enb_weight_rden_ctrl_image_rden_ctrl)
 );
 
 wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
 wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
-wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
+// wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
 
 /*
     Each fifo in this array stores its corrosponding row's image 
@@ -74,7 +82,7 @@ fifo_array#(
     .RAM_DEPTH(RAM_DEPTH)
 ) sa_engine_image_fifo_array (
     .i_clk(i_clk),
-    .i_rst(i_rst),
+    .i_rstn(i_rstn),
     .i_data(i_image_fifo_array_data),
     .i_write_enable(i_image_fifo_array_wren),
     .i_read_enable(read_rden_ctrl_image_ff_array),
@@ -82,7 +90,7 @@ fifo_array#(
     .o_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_fifo_full(),
     .o_fifo_dv(dv_image_ff_array_append_dv),
-    .o_occupants(occ_image_ff_array_rden_ctrl)
+    .o_occupants()
 );
 
 //Appends data valid signal with image before sending it to delay registers
@@ -104,8 +112,8 @@ image_fifo_array_rden#(
     .W_DATA(W_DATA)
 ) image_fifo_array_rden_ctrl (
     .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_occupants(occ_image_ff_array_rden_ctrl),
+    .i_rstn(i_rstn),
+    // .i_occupants(occ_image_ff_array_rden_ctrl),
     .i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
@@ -133,7 +141,7 @@ delay_reg #(
     .W_DATA(W_DATA)
 ) sa_image_delay_registers (
     .in_clk(s_clk),
-    .i_rst(i_rst),
+    .i_rstn(i_rstn),
     .in_west(image_cdc_sa),
     .pe_grid_image(image_delay_reg_dsp_pe)
 );
@@ -150,7 +158,7 @@ lut_pe_grid#(
     .W_PSUM(W_PSUM)
 ) lut_sa_block (
     .i_clk(s_clk),
-    .i_rst(i_rst),
+    .i_rstn(i_rstn),
     .i_weight(weights_cdc_sa),
     .in_data(image_delay_reg_dsp_pe),
     .o_partial_sum(partial_sums_sa_cdc),
@@ -192,7 +200,7 @@ psum_fifo_array#(
     .RAM_DEPTH(RAM_DEPTH)
 ) partial_sum_array (
     .i_clk(i_clk),
-    .i_rst(i_rst),
+    .i_rstn(i_rstn),
     .i_data(psum_seperate_dv_psum_ff_array),
     .i_write_enable(dv_seperate_dv_psum_ff_array),
     .i_read_enable(i_psum_ff_array_read_en),

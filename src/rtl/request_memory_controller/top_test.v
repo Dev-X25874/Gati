@@ -27,6 +27,9 @@ wire empty_krnl_itr;
 wire re_start_addr;
 wire re_krnl_itr;
 wire re_stp_addr;
+wire valid;
+wire re_rci;
+wire [7:0] tx_din;
 
 rx rx(
     .clk(clk),
@@ -48,7 +51,7 @@ controller_concate controller_concate(
     .valid_kernelitr(valid_kernelitr)
 );
 
-fifo_valid fifo_valid_start_addr(
+fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(5)) fifo_valid_start_addr(
     .clk(clk),
     .rst_n(rst),
     .data_in(start_addr_fifo_in),
@@ -61,7 +64,7 @@ fifo_valid fifo_valid_start_addr(
     .data_valid()
 );
 
-fifo_valid fifo_valid_kernelitr(
+fifo_valid #(.DATA_WIDTH(12), .ADDR_WIDTH(5)) fifo_valid_kernelitr(
     .clk(clk),
     .rst_n(rst),
     .data_in(kernelitr_fifo_in),
@@ -74,7 +77,7 @@ fifo_valid fifo_valid_kernelitr(
     .data_valid()
 );
 
-fifo_valid fifo_valid_stop_addr(
+fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(5)) fifo_valid_stop_addr(
     .clk(clk),
     .rst_n(rst),
     .data_in(stop_addr_fifo_in),
@@ -103,10 +106,30 @@ request_controller_im2col request_controller_im2col(
     .clk(clk),
     .addr_out(addr_out_con),
     .wr_enable(),
-    .valid(dv),
+    .valid(valid),
     .burst_length(burst_length_con)
 );
 
+fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_valid_tx(
+    .clk(clk),
+    .rst_n(rst),
+    .data_in(addr_out_con),
+    .we(valid),
+    .re(re_rci),
+    .data_out(tx_din),
+    .occupants(),
+    .empty(empty_rci),
+    .full(),
+    .data_valid()
+);
+
+controller_fifo_tx controller_fifo_tx(
+    .empty(empty_rci),
+    .done(done_tx),
+    .clk(clk),
+    .dv_tx(dv),
+    .re(re_rci) 
+);
 tx tx(
     .i_Rst_L(rst),
     .i_Clock(clk),

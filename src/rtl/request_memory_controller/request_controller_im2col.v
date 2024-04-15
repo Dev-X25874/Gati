@@ -9,7 +9,7 @@ module request_controller_im2col #(parameter burst_length_out = 10, parameter oc
     output reg [7:0] addr_out  = 0,
     output reg wr_enable = 0,
     output reg valid = 0,
-    output reg [$clog2(AXI_DATA_BYTES) : 0] burst_length = 0
+    output [$clog2(AXI_DATA_BYTES) : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
@@ -22,6 +22,7 @@ parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
 parameter ADDR_ITR = 3'b011;
 parameter KERNEL_ITR = 3'b101;
+assign burst_length = r_burst_length;
 
 always @(posedge clk) begin
     case(state) 
@@ -29,7 +30,6 @@ always @(posedge clk) begin
         addr_out <= 0;
         wr_enable <= 0;
         valid <= 0;
-        burst_length <= 0;
         if(config_start) begin
             state <= FIFO_STATUS;
             nxt_addr <= start_addr;
@@ -52,7 +52,7 @@ always @(posedge clk) begin
             addr_out <= nxt_addr[32-(count*8)-1 -:8];
             wr_enable <= 0;
             valid <= 1;
-            burst_length <= r_burst_length;
+            r_burst_length <= r_burst_length;
             state <= START_ADDR;
             count <= count + 1;
         end
@@ -60,7 +60,7 @@ always @(posedge clk) begin
             addr_out <= nxt_addr[32-(count*8)-1 -:8];
             wr_enable <= 0;
             valid <= 1;
-            burst_length <= r_burst_length;
+            r_burst_length <= r_burst_length;
             state <= ADDR_ITR;
             count <= 0;
         end
@@ -72,7 +72,7 @@ always @(posedge clk) begin
             state <= KERNEL_ITR; 
             addr_out <= 0;
             valid <= 0;  
-            burst_length <= r_burst_length;
+            r_burst_length <= r_burst_length;
             wr_enable <= 0;
         end
         else if(nxt_addr > stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 

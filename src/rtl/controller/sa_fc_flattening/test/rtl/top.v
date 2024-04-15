@@ -14,11 +14,15 @@ module top#(
     input i_flattening,
     input i_start,
     input i_accumulator_valid,
-    input [N_FIFO-1 : 0] i_weight_ff_array_empty,
+    // input [N_FIFO-1 : 0] i_weight_ff_array_empty,
     input [W_IMG_DIM-1 : 0] i_img_dim,
-    output o_done_rden_ctrl,
-    output [W_DATA-1 : 0] o_data_mux,
-    output o_data_valid
+
+    output [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out,
+    output [(N_BANK * N_BRAM)-1 : 0] read_valid
+
+    // output o_done_rden_ctrl,
+    // output [W_DATA-1 : 0] o_data_mux,
+    // output o_data_valid
 );
 
 //TODO: Invert all single bit input signals.
@@ -156,12 +160,15 @@ block#(
     .start(start),
     .i_valid(valid_weight_ff_array_flattening_ctrl),
     .i_acc_valid(i_acc_valid),
-    .i_weight_ff_array_empty(i_weight_ff_array_empty),
+    .i_weight_ff_array_empty(32'd0),
     .i_img_dim(20'd49),
     .i_data(weight_ff_array_data_out),
-    .o_done_rden_ctrl(o_done_rden_ctrl),
-    .o_data_mux(o_data_mux),
-    .o_data_valid(o_data_valid)
+
+    .bram_array_data_out(bram_array_data_out),
+    .read_valid(read_valid)
+    // .o_done_rden_ctrl(o_done_rden_ctrl),
+    // .o_data_mux(o_data_mux),
+    // .o_data_valid(o_data_valid)
 );
 
 endmodule

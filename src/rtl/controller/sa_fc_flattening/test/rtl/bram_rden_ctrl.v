@@ -23,13 +23,15 @@ module bram_rden_controller#(
     output [N_BRAM-1 : 0] o_read_enable,
     output o_done,
     output [(N_BANK * (W_ADDR + 1))-1 : 0] o_bank_address,
-    output [N_BANK-1 : 0] o_bank_enable
+    output [N_BANK-1 : 0] o_bank_enable,
+    output [15:0] kernal_counter
 );
 reg [1:0] state = 0;
 reg [N_BRAM-1 : 0] rden = 0;
 reg done = 0;
 reg [N_BANK-1 : 0]bank_en = 0;
 reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
+// reg [W_ADDR : 0] addr = 0;
 assign o_done = done;
 assign o_read_enable = rden;
 assign o_bank_address = addr;
@@ -154,29 +156,54 @@ always @(posedge clk) begin
                     end 
                     end
                     1: begin
-                        if(~weight_ff_array_empty)begin
+                        if(weight_ff_array_empty == 0)begin
                             if(kernal_counter < (r_kernal_count >> 5))begin
                                 if(bank_shift_counter < 4)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
                                     if(bank_counter == 4)begin
                                         bank_counter <= 0;
                                         bank_shift_counter <= bank_shift_counter + 1;
-                                        next_addr <= addr_counter + 1;
+                                        // next_addr = addr_counter + 1;
                                     end else begin
                                         if(element_counter == (image_dimension))begin
+                                            
+                                            if(bank_counter == 3) next_addr = addr_counter + 1;
+
                                             bank_counter <= bank_counter + 1;
                                             element_counter <= 0;
                                             //Increment address of previous bank before going to the new bank address
                                             // addr[((W_ADDR + 1) * (bank_counter))-1 -: (W_ADDR + 1)] <= addr_counter + 1;
                                             addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= next_addr;
                                             addr_counter <= next_addr;
+                                            rden_counter <= 0;
+                                            rden <= 0;
                                         end else begin
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;
                                             addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            // if(rden_counter == N_BRAM-1)begin
+                                            //     addr_counter <= addr_counter + 1;
+                                            // end else begin
+                                            //     addr_counter <= addr_counter;
+                                            // end
+                                            
+                                            //update read counter conditions
                                             if(rden_counter == N_BRAM-1)begin
+                                                rden_counter <= 0;
                                                 addr_counter <= addr_counter + 1;
                                             end else begin
+                                                rden_counter <= rden_counter + 1;
                                                 addr_counter <= addr_counter;
+                                            end
+                                            rden[rden_counter] <= 1;
+                                            // rden[rden_counter-1] <= 1;
+                                            if(N_BRAM > 1)begin
+                                                if(rden_counter == 0)
+                                                    rden[N_BRAM-1] <= 0;
+                                                else
+                                                    rden[rden_counter-1] <= 0;
+                                            end else begin
+                                                rden <= 0;
+                                                rden_counter <= 0;
                                             end
                                         end
                                     // end
@@ -197,6 +224,7 @@ always @(posedge clk) begin
                                 end
                                 end else begin
                                     state <= 2;
+                                    addr <= 0;
                                 end
                             end else begin
                                 done <= 1'b1;
@@ -264,31 +292,31 @@ end
 // end
 
 
-always @(posedge clk) begin
-    if (rst) begin
-        rden_counter <= 0;
-        rden <= 0;
-    end else begin
-        if(bank_en != 0)begin
-            if(rden_counter == N_BRAM-1)
-                rden_counter <= 0;
-            else
-                rden_counter <= rden_counter + 1;
-            rden[rden_counter] <= 1;
-            // rden[rden_counter-1] <= 1;
-            if(N_BRAM > 1)begin
-                if(rden_counter == 0)
-                    rden[N_BRAM-1] <= 0;
-                else
-                    rden[rden_counter-1] <= 0;
-            end else begin
-                rden <= 0;
-                rden_counter <= 0;
-            end
-        end else begin
-            rden_counter <= 0;
-        end
-    end
-end
+// always @(posedge clk) begin
+//     if (rst) begin
+//         rden_counter <= 0;
+//         rden <= 0;
+//     end else begin
+//         if(bank_en != 0)begin
+//             if(rden_counter == N_BRAM-1)
+//                 rden_counter <= 0;
+//             else
+//                 rden_counter <= rden_counter + 1;
+//             rden[rden_counter] <= 1;
+//             // rden[rden_counter-1] <= 1;
+//             if(N_BRAM > 1)begin
+//                 if(rden_counter == 0)
+//                     rden[N_BRAM-1] <= 0;
+//                 else
+//                     rden[rden_counter-1] <= 0;
+//             end else begin
+//                 rden <= 0;
+//                 rden_counter <= 0;
+//             end
+//         end else begin
+//             rden_counter <= 0;
+//         end
+//     end
+// end
 
 endmodule

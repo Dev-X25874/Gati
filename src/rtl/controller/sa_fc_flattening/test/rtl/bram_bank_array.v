@@ -8,6 +8,7 @@ module bram_bank_array#(
     input [N_BANK-1 : 0] i_bank_en,
     input [(N_BANK * N_BRAM)-1 : 0] we,
     input [N_BRAM-1 : 0] re,
+    // input [(N_BANK * N_BRAM)-1 : 0] re,
     input [((W_DATA * N_BRAM) * N_BANK)-1 : 0] i_data,
     input [((W_ADDR + 1) * N_BANK)-1 : 0] w_addr,
     input [((W_ADDR + 1) * N_BANK)-1 : 0] r_addr,
@@ -27,6 +28,7 @@ generate
             .bank_en(i_bank_en[i]),
             .we(we[(N_BRAM * (N_BANK - i))-1 -: (N_BRAM)]),
             .re(re),
+            // .re(re[(N_BRAM * (N_BANK - i))-1 -: (N_BRAM)]),
             .i_data(i_data[((W_DATA * N_BRAM) * (N_BANK - i))-1 -: (N_BRAM * W_DATA)]),
             .w_addr(w_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
             .r_addr(r_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
@@ -53,6 +55,8 @@ module bram_array#(
     output [(N_BRAM * W_DATA)-1 : 0] o_data,
     output [N_BRAM-1 : 0] read_valid
 );
+wire [63:0] temp_data;
+assign o_data = temp_data + 64'd12;
 
 genvar i;
 generate
@@ -63,7 +67,7 @@ generate
             .waddr(w_addr),
             .raddr(r_addr),
             .wdata_a(i_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
-            .rdata_b(o_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
+            .rdata_b(temp_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
             .clk(clk)
         );
         
@@ -71,6 +75,6 @@ generate
 endgenerate
 wire [N_BRAM-1 : 0] rden;
 assign rden = (bank_en) ? re : 8'd0;
-assign read_valid = rden;
+assign read_valid = re;
 
 endmodule

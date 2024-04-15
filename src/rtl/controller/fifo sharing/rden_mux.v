@@ -9,7 +9,7 @@ module rden_mux#(
     parameter N_BRAM_BYTES = 32
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [COL_FC-1 : 0] i_fc_rden,
     input [(N_SA * COL_SA)-1 : 0] i_sa_rden,
     input i_sel_1,
@@ -21,7 +21,7 @@ reg [COL-1 : 0] north_rden = 0;
 assign o_north_rden = north_rden;
 
 always @(posedge i_clk)begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         north_rden <= 0;
     end else begin
         case (i_sel_1)

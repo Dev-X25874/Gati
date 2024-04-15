@@ -10,7 +10,7 @@ module weight_ff_array#(
     parameter RAM_DEPTH = (1 << W_ADDR)
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [(COL * W_DATA)-1 : 0]i_data,
     input [COL-1:0] i_read_enable,      
     input [COL-1:0] i_write_enable,
@@ -38,7 +38,7 @@ generate
             .datacount_o(o_occupants[((W_ADDR + 1) * (i + 1)) - 1 -: (W_ADDR + 1)]),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (COL - i)) -1) -: W_DATA]),
-            .a_rst_i(i_rst),
+            .a_rst_i(~i_rstn),
             .o_valid(o_fifo_dv[i])
         );
 

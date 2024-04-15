@@ -20,6 +20,8 @@ module top#(
     output o_sel_mux,
     output [(COL_FC * (W_ADDR + 1))-1 : 0] o_occupants_mux_fc,
     output [COL_FC-1 : 0] o_empty_mux_fc,
+    output [COL_FC-1 : 0] o_dv_mux_fc,
+    output [(N_SA * COL_SA)-1 : 0] o_dv_mux_sa,
     output [(N_SA * (COL_SA * (W_ADDR + 1)))-1 : 0] o_occupants_mux_sa,
     output [(N_SA * COL_SA)-1 : 0] o_empty_mux_sa,
     output [(COL_FC * W_DATA)-1 : 0] o_data_mux_fc,

@@ -22,12 +22,14 @@ module top#(
     output [COL_FC-1 : 0] o_empty_mux_fc,
     output [(N_SA * (COL_SA * (W_ADDR + 1)))-1 : 0] o_occupants_mux_sa,
     output [(N_SA * COL_SA)-1 : 0] o_empty_mux_sa,
-    output [(W_DATA * COL)-1 : 0] o_data_weight_ff_array
+    output [(COL_FC * W_DATA)-1 : 0] o_data_mux_fc,
+    output [(N_SA * COL_SA * W_DATA)-1 : 0] o_data_mux_sa
 );
 
 localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
 
 wire [COL-1 : 0] weight_ff_array_empty;
+wire [(COL * W_DATA)-1 : 0] weight_ff_array_data;
 wire [(COL * (W_ADDR + 1))-1 : 0] weight_ff_array_occupants;
 //weight fifo array
 weight_ff_array#(
@@ -41,7 +43,7 @@ weight_ff_array#(
     .i_data(i_data_weight_ff_array),
     .i_read_enable(weight_ff_array_read_en),
     .i_write_enable(i_write_en_weight_ff_array),
-    .o_data(o_data_weight_ff_array),
+    .o_data(weight_ff_array_data),
     .o_fifo_empty(weight_ff_array_empty),
     .o_fifo_full(),
     .o_fifo_dv(),
@@ -59,18 +61,21 @@ mux#(
     .N_BRAM_BYTES(N_BRAM_BYTES),
     .SA_OPCODE(SA_OPCODE),
     .FC_OPCODE(FC_OPCODE)
-)sa_fc_mux(
+)sa_fc_demux(
     .i_clk(clk),
     .i_rst(i_rst),
     .i_opcode(i_opcode),
     .i_sel_sa_rden_ctrl(i_sel_sa_rden_ctrl),
+    .i_weight_ff_array_data(weight_ff_array_data),
     .i_weight_ff_array_empty(weight_ff_array_empty),
     .i_weight_ff_array_occupants(weight_ff_array_occupants),
     .o_fc_occupants(o_occupants_mux_fc),
     .o_fc_empty(o_empty_mux_fc),
     .o_sa_empty(o_empty_mux_sa),
     .o_sa_occupants(o_occupants_mux_sa),
-    .o_sel1(o_sel_mux)
+    .o_sel1(o_sel_mux),
+    .o_sa_data(o_data_mux_sa),
+    .o_fc_data(o_data_mux_fc)
 );
 
 wire [COL-1 : 0] weight_ff_array_read_en;

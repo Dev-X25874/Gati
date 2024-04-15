@@ -80,6 +80,7 @@ always @(posedge clk) begin
             wr_enable <= 0;
             valid <= 0;
             r_burst_length <= (r_burst_length - (nxt_addr - stop_addr));
+            nxt_addr <= stop_addr;
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
             state <= FIFO_STATUS;

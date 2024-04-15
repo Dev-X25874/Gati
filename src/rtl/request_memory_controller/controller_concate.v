@@ -15,6 +15,7 @@ reg [2:0] state = 0;
 reg [4:0] count_start_addr = 0;
 reg [4:0] count_krnl_itr = 0;
 reg [4:0] count_stp_addr = 0;
+reg enable = 0;
 reg [15:0] r_kernelitr = 0;
 assign kernelitr = r_kernelitr[11:0];
 
@@ -45,12 +46,14 @@ always @(posedge clk) begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= count_start_addr + 1;
                 valid_start_addr <= 0;
+                enable <= 0;
                 state <= 2;
             end
             else begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= 0;
                 valid_start_addr <= 1;
+                enable <= 1;
                 state <= 3;
             end
         end
@@ -58,6 +61,7 @@ always @(posedge clk) begin
             start_addr <= start_addr;
             count_start_addr <= count_start_addr;
             state <= 2;
+            enable <= 0;
             valid_start_addr <= 0;
         end
     end
@@ -85,7 +89,20 @@ always @(posedge clk) begin
     end
     4: begin
         if(rx_valid) begin
-            if(count_stp_addr < 3) begin
+            if(enable) begin
+                stop_addr <= start_addr + ((burst_length_out + 1) << $clog2(AXI_DATA_BYTES)*10);
+                state <= 5;
+            end
+            else begin
+               stop_addr <= 0; 
+               state <= 4;
+            end
+        end
+        else begin
+            stop_addr <= stop_addr;
+            state <= 4;
+        end
+            /*if(count_stp_addr < 3) begin
                 stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= count_stp_addr + 1;
                 valid_stop_addr <= 0;
@@ -103,7 +120,7 @@ always @(posedge clk) begin
             count_stp_addr <= count_stp_addr;
             state <= 4;
             valid_stop_addr <= 0;
-        end
+        end*/
     end
     5: begin
         if(rx_valid) begin

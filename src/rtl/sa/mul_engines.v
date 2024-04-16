@@ -9,8 +9,8 @@ module mul_engines#(
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1<<W_ADDR),
-    parameter NSA_LUT = 0,  //number of LUT based multiplier SA engines
-    parameter NSA_DSP = 4,  //number of DSP based multiplier SA engines
+    parameter NSA_LUT = 2,  //number of LUT based multiplier SA engines
+    parameter NSA_DSP = 2,  //number of DSP based multiplier SA engines
     parameter N_BRAM_BYTES = 32
 )(
     input i_clk,
@@ -87,7 +87,7 @@ end
                 .i_trigger_1(i_trigger_1),
                 .i_done(i_done),
                 .i_layer_done(i_layer_done),
-                .o_mux_sel(mux_sel[i]),
+                .o_mux_sel(mux_sel[(N_SA-i)-1]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - i))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
@@ -121,7 +121,7 @@ end
                 .i_trigger_1(i_trigger_1),
                 .i_done(i_done),
                 .i_layer_done(i_layer_done),
-                .o_mux_sel(mux_sel[i]),
+                .o_mux_sel(mux_sel[(N_SA-i)-1]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - i))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
@@ -191,7 +191,7 @@ generate
                     .i_trigger_1(i_trigger_1),
                     .i_done(i_done),
                     .i_layer_done(i_layer_done),
-                    .o_mux_sel(mux_sel[j]),
+                    .o_mux_sel(mux_sel[(N_SA-j)-1]),
                     .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - j))-1 -: (COL * W_DATA)]),
                     .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - j))-1 -: COL]),
                     .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - j))-1 -: COL]),
@@ -225,7 +225,7 @@ generate
                 .i_trigger_1(i_trigger_1),
                 .i_done(i_done),
                 .i_layer_done(i_layer_done),
-                .o_mux_sel(mux_sel[j]),
+                .o_mux_sel(mux_sel[((N_SA/2)-j)-1]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA/2 - j))-1 -: (COL * W_DATA)]),
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA/2 - j))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA/2 - j))-1 -: COL]),

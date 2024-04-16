@@ -4,7 +4,7 @@ module mux#(
     parameter N_SA = 8,     //number of SA engines
     parameter COL_SA = 8,   //columns in each SA engine
     parameter COL_FC = 32,  //columns in FC engine
-    parameter N_BRAM_BYTES = 32,     //number of BRAM burst bytes
+    parameter N_DRAM_BYTES = 32,     //number of BRAM burst bytes
     parameter SA_OPCODE = 0,
     parameter FC_OPCODE = 4
 )(
@@ -75,7 +75,7 @@ always @(posedge i_clk)begin
                r_fc_dv <= i_weight_ff_array_dv;
             end
             1'b1:begin      //Convolution layer
-                if((N_SA * COL_SA) < N_BRAM_BYTES) begin
+                if((N_SA * COL_SA) < N_DRAM_BYTES) begin
                     case (i_sel_sa_rden_ctrl)
                         1'b0: begin     //First half of weight fifo array (starting from MSB)
                             r_sa_empty <= i_weight_ff_array_empty[(COL-1) -: (N_SA * COL_SA)];

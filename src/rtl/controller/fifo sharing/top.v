@@ -5,7 +5,7 @@ module top#(
     parameter COL_SA = 4,               //columns in one SA engine
     parameter COL_FC = 32,              //total columns in FC
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter N_BRAM_BYTES = 32,        //number of BRAM bytes
+    parameter N_DRAM_BYTES = 32,        //number of BRAM bytes
     parameter SA_OPCODE = 0,            
     parameter FC_OPCODE = 4
 )(
@@ -61,7 +61,7 @@ mux#(
     .N_SA(N_SA),     
     .COL_SA(COL_SA),   
     .COL_FC(COL_FC),  
-    .N_BRAM_BYTES(N_BRAM_BYTES),
+    .N_DRAM_BYTES(N_DRAM_BYTES),
     .SA_OPCODE(SA_OPCODE),
     .FC_OPCODE(FC_OPCODE)
 )sa_fc_demux(
@@ -91,7 +91,7 @@ rden_mux#(
     .COL_FC(COL_FC),
     .N_SA(N_SA),
     .COL_SA(COL_SA),
-    .N_BRAM_BYTES(N_BRAM_BYTES)
+    .N_DRAM_BYTES(N_DRAM_BYTES)
 )sa_fc_read_mux(
     .i_clk(clk),
     .i_rstn(i_rstn),

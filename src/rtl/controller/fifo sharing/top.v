@@ -5,7 +5,7 @@ module top#(
     parameter COL_SA = 4,               //columns in one SA engine
     parameter COL_FC = 32,              //total columns in FC
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter N_DRAM_BYTES = 32,        //number of BRAM bytes
+    parameter N_DRAM_BYTES = 32,        //number of DRAM bytes
     parameter SA_OPCODE = 0,            
     parameter FC_OPCODE = 4
 )(
@@ -63,7 +63,8 @@ mux#(
     .COL_FC(COL_FC),  
     .N_DRAM_BYTES(N_DRAM_BYTES),
     .SA_OPCODE(SA_OPCODE),
-    .FC_OPCODE(FC_OPCODE)
+    .FC_OPCODE(FC_OPCODE),
+    .W_DATA(W_DATA)
 )sa_fc_demux(
     .i_clk(clk),
     .i_rstn(i_rstn),
@@ -81,7 +82,7 @@ mux#(
     .o_sa_data(o_data_mux_sa),
     .o_fc_data(o_data_mux_fc),
     .o_fc_dv(o_dv_mux_fc),
-    .o_sa_dv(o_dv_mux_sa),
+    .o_sa_dv(o_dv_mux_sa)
 );
 
 wire [COL-1 : 0] weight_ff_array_read_en;

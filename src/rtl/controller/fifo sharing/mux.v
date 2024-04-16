@@ -4,9 +4,10 @@ module mux#(
     parameter N_SA = 8,     //number of SA engines
     parameter COL_SA = 8,   //columns in each SA engine
     parameter COL_FC = 32,  //columns in FC engine
-    parameter N_DRAM_BYTES = 32,     //number of BRAM burst bytes
+    parameter N_DRAM_BYTES = 32,     //number of DRAM burst bytes
     parameter SA_OPCODE = 0,
-    parameter FC_OPCODE = 4
+    parameter FC_OPCODE = 4,
+    parameter W_DATA = 8
 )(
     input i_clk,
     input i_rstn,

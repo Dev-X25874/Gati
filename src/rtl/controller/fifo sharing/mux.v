@@ -62,10 +62,10 @@ always @(posedge i_clk)begin
         r_sa_empty <= 0;
         r_fc_empty <= 0;
         r_fc_occ <= 0;
-        r_fc_data <== 0;
+        r_fc_data <= 0;
         r_sa_data <= 0; 
         r_sa_dv <= 0;
-        r_fc_dv < 0;
+        r_fc_dv <= 0;
     end else begin
         case (o_sel1)
             1'b0:begin      //Fully Connected layer

@@ -58,7 +58,18 @@ always @(posedge clk) begin
         wren <= 0;
     end else begin
         case (state)
-            0: begin
+            0:begin
+                if(data_valid)begin
+                    data <= i_data;
+                    counter <= counter + 1;
+                    wren <= {(N_BANK * N_BRAM){1'b1}};
+                    // waddr <= waddr + 1;
+                    w_done <= 1'b0;
+                    state <= 1;
+                end
+            end
+
+            1: begin
                 if(data_valid)begin
                     if(counter == (image_dim >> 5))begin
                         //  state <= 0;
@@ -67,7 +78,7 @@ always @(posedge clk) begin
                          wren <= {(N_BANK * N_BRAM){1'b0}};
                          w_done <= 1'b1;
                          data <= 0;
-                         state <= 1;
+                         state <= 2;
                     end else begin
                          data <= i_data;
                          counter <= counter + 1;
@@ -84,7 +95,33 @@ always @(posedge clk) begin
                 end
             end
 
-            1: begin
+            // 0:begin
+            //     if(data_valid)begin
+            //     if(counter == (image_dim >> 5))begin
+            //             //  state <= 0;
+            //             counter <= 0;
+            //             waddr <= 0;
+            //             wren <= {(N_BANK * N_BRAM){1'b0}};
+            //             w_done <= 1'b1;
+            //             data <= 0;
+            //             state <= 1;
+            //     end else begin
+            //             data <= i_data;
+            //             counter <= counter + 1;
+            //             wren <= {(N_BANK * N_BRAM){1'b1}};
+            //             waddr = waddr + 1;
+            //             w_done <= 1'b0;
+            //     end
+            //     end else begin
+            //         counter <= counter;
+            //         waddr <= waddr;
+            //         w_done <= 1'b0;
+            //         wren <= 0;
+            //         data <= data;
+            //     end
+            // end
+
+            2: begin
                 if(kernal_counter == 16'd128)  //32 weight are loaded at once into FC, so 4096/32 = 128
                     state <= 0;
             end

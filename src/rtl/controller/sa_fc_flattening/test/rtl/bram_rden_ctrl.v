@@ -37,23 +37,16 @@ assign o_read_enable = rden;
 assign o_bank_address = addr;
 assign o_bank_enable = bank_en;
 
-reg [W_KERNAL_CNT-1 : 0]    r_kernal_count = 0;
-reg [W_IMG_ROWS-1 : 0]      r_image_rows = 0;
 reg [1:0] rd_state = 0;
-
-always @(posedge clk) begin
-    r_kernal_count <= kernal_count;
-    r_image_rows <= image_rows;
-end
 
 //count number of elements in a bank, 1-49
 reg [5:0] element_counter = 0;
 //count number of reads in one row of a bank, 1-8
-reg [2:0] rden_counter = 0;
+reg [3:0] rden_counter = 0;
 //holds value of an address to be incremented in a bank, 1-7/8
-reg [4:0] addr_counter = 0;
+reg [5:0] addr_counter = 0;
 //hold adress of previous BRAM BANK
-reg [4:0] next_addr = 0;
+reg [5:0] next_addr = 0;
 //counts number of banks, 1-4 
 reg [2:0] bank_counter = 0;
 //counts how many times does shifting of bank enable signal need to be done, for flatten = 0 counts is 1-28, for flatten = 1 counts is 1-4
@@ -85,24 +78,57 @@ always @(posedge clk) begin
                        end 
                     end
                     1: begin
-                        if(~weight_ff_array_empty)begin
-                            if(kernal_counter < (r_kernal_count >> 5))begin
-                                if(bank_shift_counter < (r_image_rows >> 5))begin   //need to keep shifting bank enable signal for 28 times
+                        if(weight_ff_array_empty == 0)begin
+                            if(kernal_counter < (kernal_count >> 5))begin
+                                if(bank_shift_counter < (image_rows >> 5))begin   //need to keep shifting bank enable signal for each row
                                     if(bank_counter == N_BANK)begin
                                         bank_counter <= 0;
                                         bank_shift_counter <= bank_shift_counter + 1;
-                                        addr_counter <= addr_counter + 1;
+                                        // next_addr = addr_counter;
+                                        // addr_counter <= addr_counter + 1;
                                     end else begin
-                                        if(element_counter == (N_BRAM-1))begin
-                                            bank_counter <= bank_counter + 1; 
+                                        if(element_counter == (N_BRAM))begin
+                                            
+                                            if(bank_counter == 3) next_addr = addr_counter + 1;
+
+                                            bank_counter <= bank_counter + 1;
                                             element_counter <= 0;
-                                            //values of address remains same
-                                            addr_counter <= addr_counter;
-                                            //sliding the address window for different bank, but with same address value
+                                            //Increment address of previous bank before going to the new bank address
+                                            // addr[((W_ADDR + 1) * (bank_counter))-1 -: (W_ADDR + 1)] <= addr_counter + 1;
                                             addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            addr_counter <= next_addr;
+                                            rden_counter <= 0;
+                                            rden <= 0;
                                         end else begin
+                                            addr_counter <= addr_counter;
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;
+                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            // if(rden_counter == N_BRAM-1)begin
+                                            //     addr_counter <= addr_counter + 1;
+                                            // end else begin
+                                            // addr_counter <= addr_counter;
+                                            // end
+                                            
+                                            //update read counter conditions
+                                            if(rden_counter == N_BRAM-1)begin
+                                                rden_counter <= 0;
+                                                // addr_counter <= addr_counter + 1;
+                                            end else begin
+                                                rden_counter <= rden_counter + 1;
+                                                // addr_counter <= addr_counter;
+                                            end
+                                            rden[rden_counter] <= 1;
+                                            // rden[rden_counter-1] <= 1;
+                                            if(N_BRAM > 1)begin
+                                                if(rden_counter == 0)
+                                                    rden[N_BRAM-1] <= 0;
+                                                else
+                                                    rden[rden_counter-1] <= 0;
+                                            end else begin
+                                                rden <= 0;
+                                                rden_counter <= 0;
+                                            end
                                         end
                                     // end
                                     bank_en[bank_counter] <= 1;
@@ -122,6 +148,7 @@ always @(posedge clk) begin
                                 end
                                 end else begin
                                     state <= 2;
+                                    addr <= 0;
                                 end
                             end else begin
                                 done <= 1'b1;
@@ -157,9 +184,9 @@ always @(posedge clk) begin
                     end
                     1: begin
                         if(weight_ff_array_empty == 0)begin
-                            if(kernal_counter < (r_kernal_count >> 5))begin
+                            if(kernal_counter < (kernal_count >> 5))begin
                                 if(bank_shift_counter < 4)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
-                                    if(bank_counter == 4)begin
+                                    if(bank_counter == N_BANK)begin
                                         bank_counter <= 0;
                                         bank_shift_counter <= bank_shift_counter + 1;
                                         // next_addr = addr_counter + 1;
@@ -172,7 +199,7 @@ always @(posedge clk) begin
                                             element_counter <= 0;
                                             //Increment address of previous bank before going to the new bank address
                                             // addr[((W_ADDR + 1) * (bank_counter))-1 -: (W_ADDR + 1)] <= addr_counter + 1;
-                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= next_addr;
+                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
                                             addr_counter <= next_addr;
                                             rden_counter <= 0;
                                             rden <= 0;

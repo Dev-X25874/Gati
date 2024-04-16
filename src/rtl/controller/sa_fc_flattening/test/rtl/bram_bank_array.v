@@ -31,7 +31,7 @@ generate
             // .re(re[(N_BRAM * (N_BANK - i))-1 -: (N_BRAM)]),
             .i_data(i_data[((W_DATA * N_BRAM) * (N_BANK - i))-1 -: (N_BRAM * W_DATA)]),
             .w_addr(w_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
-            .r_addr(r_addr[((W_ADDR + 1) * (N_BANK - i))-1 -: (W_ADDR + 1)]),
+            .r_addr(r_addr[(W_ADDR + 1) * i +: (W_ADDR + 1)]),
             .o_data(o_data[((W_DATA * N_BRAM) * (N_BANK - i))-1 -: (N_BRAM * W_DATA)]),
             .read_valid(read_valid[(N_BRAM * (N_BANK - i))-1 -: N_BRAM])
         );
@@ -55,20 +55,34 @@ module bram_array#(
     output [(N_BRAM * W_DATA)-1 : 0] o_data,
     output [N_BRAM-1 : 0] read_valid
 );
-wire [63:0] temp_data;
-assign o_data = temp_data + 64'd12;
+// wire [63:0] temp_data;
+// assign o_data = temp_data + 64'd12;
 
 genvar i;
 generate
     for (i = 0; i < N_BRAM; i = i + 1) begin
-        bram bram_wrapper(
-            .re(rden[i]),
-            .we(we[i]),
-            .waddr(w_addr),
-            .raddr(r_addr),
-            .wdata_a(i_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
-            .rdata_b(temp_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
-            .clk(clk)
+        // bram bram_wrapper(
+        //     .re(rden[i]),
+        //     .we(we[i]),
+        //     .waddr(w_addr),
+        //     .raddr(r_addr),
+        //     .wdata_a(i_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
+        //     .rdata_b(temp_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),
+        //     .clk(clk)
+        // );
+
+        sdpram#(
+            .DATA_WIDTH(W_DATA),                 
+            .ADDR_WIDTH(W_ADDR),
+            .RAM_DEPTH(1024)              
+        )bram_inst(    
+            .we(we[i]),         
+            .re(rden[i]),         
+            .clk(clk),
+            .data(i_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA]),      
+            .read_addr(r_addr),  
+            .write_addr(w_addr),   
+            .q(o_data[(W_DATA * (N_BRAM - i))-1 -: W_DATA])     
         );
         
     end

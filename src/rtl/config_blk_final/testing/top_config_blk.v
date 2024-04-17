@@ -20,7 +20,7 @@ module config_blk #(
   output memory_read_r,memory_valid,
   output [7:0]mem_address,
   output mem_last,
-  output [7:0]mem_burst_len,
+  output [$clog2(BURST_LEN_AXI):0]mem_burst_len,
   input [NUM_INSTRUCTIONS-1:0]ack_signals,
   output[NUM_INSTRUCTIONS-1:0]start_command
 );

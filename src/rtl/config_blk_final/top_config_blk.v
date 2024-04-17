@@ -90,7 +90,7 @@ module config_blk #(
                .start(start_4_5),
                .clk(clkin),
                .op_code(o_instruction_3_5[3:0]),
-               .ready_in(16'b11111111111), //for testing
+               .ready_in(), 
                .dout(),
                .sel(),
                .write(),
@@ -104,10 +104,5 @@ module config_blk #(
              .status_prev(prev_6_4),
              .o_valid_sig(valid_6_4)
            );
-  /*   counter_ack_block block7(
-      .clkin(clkin),
-      .trigger_start(start_command_4_7)
-    ); */
-
 
 endmodule

@@ -7,7 +7,8 @@
 module config_blk #(
     parameter  ADDR_W=32,
     parameter  INST_W=256,
-    parameter NUM_INSTRUCTIONS =4
+    parameter NUM_INSTRUCTIONS =4,
+    parameter BURST_LEN_AXI=7
   )(
     input clkin,
     input user_start,
@@ -38,7 +39,7 @@ module config_blk #(
 
 
 
-  ctrl_dram_req #(.ADDR_W(ADDR_W),.BURST_LEN_AXI(7))dram_controller_1 (.clkin(clkin),
+  ctrl_dram_req #(.ADDR_W(ADDR_W),.BURST_LEN_AXI(BURST_LEN_AXI))dram_controller_1 (.clkin(clkin),
                 .user_start(user_start),
                 .status(status_1_3),
                 .global_reg_address_start(global_start),

@@ -1,7 +1,7 @@
 /*
     Generates fifo N_FIFO times.
 */
-module weight_fifo_array#(
+module uart_fifo_array#(
     parameter N_FIFO = 64,
     parameter W_DATA = 8,
     parameter W_ADDR = 9

@@ -1,8 +1,8 @@
 /*
     Asserts write enable signal of all the fifo one by one, 
-    in weight fifo array.
+    in image fifo array.
 */
-module weight_fifo_array_wren#(
+module uart_fifo_array_wren#(
     parameter N_FIFO = 3
 )(
     input clk,

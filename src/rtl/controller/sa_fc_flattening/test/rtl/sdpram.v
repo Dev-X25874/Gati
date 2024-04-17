@@ -12,8 +12,7 @@ module  sdpram#(
     output reg [DATA_WIDTH-1:0] q     
 );
 
-reg [DATA_WIDTH-1:0] ram [RAM_DEPTH-1 : 0]; 
-//reg [DATA_WIDTH-1:0] ram [2**ADDR_WIDTH:0]; 
+reg [DATA_WIDTH-1:0] ram [RAM_DEPTH-1 : 0];
 
 always @(posedge clk) begin
     if (we) begin 

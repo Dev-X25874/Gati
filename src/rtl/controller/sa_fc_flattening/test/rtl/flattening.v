@@ -1,4 +1,4 @@
-module block#(
+module flattening#(
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
     parameter N_BRAM = 8, //number of brams in one bank
@@ -16,11 +16,8 @@ module block#(
     input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
     input [W_IMG_DIM-1 : 0] i_img_dim,
     input [((N_BANK * N_BRAM) * W_DATA)-1 : 0]  i_data,
-    output [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out,
-    output [(N_BANK * N_BRAM)-1 : 0] read_valid
-    // output o_done_rden_ctrl,
-    // output [W_DATA-1 : 0] o_data_mux,
-    // output o_data_valid
+    output [W_DATA-1 : 0] o_data_mux,
+    output o_data_valid
 );
 
 wire flattened_data_valid;
@@ -57,22 +54,17 @@ bram_wren_ctrl#(
     .start(start),
     .kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl),
     .data_valid(flattened_data_valid),
-    // .image_dim(20'd784),
     .image_dim(20'd784),
     .i_data(flattened_data),
     .write_done(wren_done_bram_we_ctrl_bram_re_ctrl),
     .write_enable(wren_ctrl_bram_array),
     .o_data(data_we_ctrl_bram_array),
     .o_waddr(w_addr_we_ctrl_bram_array)
-
-    // .o_raddr(r_addr_rd_ctrl_bram_array),
-    // .o_bank_en(bank_enable_rden_ctrl_bram_bank),
-    // .o_bram_rden(rden_ctrl_bram_bank)
 );
 
-// wire [(N_BANK * N_BRAM)-1 : 0] read_valid;
+wire [N_BRAM-1 : 0] read_valid;
 wire [(N_BANK * (W_ADDR + 1))-1 : 0] r_addr_rd_ctrl_bram_array;
-// wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out;
+wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out;
 //Array of brams to store flattened data
 bram_bank_array#(
     .N_BANK(N_BANK),                //number of banks of bram
@@ -89,6 +81,27 @@ bram_bank_array#(
     .r_addr(r_addr_rd_ctrl_bram_array),
     .o_data(bram_array_data_out),
     .read_valid(read_valid)
+);
+
+reg [N_BRAM-1 : 0] mux_rden;
+reg [N_BANK-1 : 0] mux_bank_en;
+always @(posedge clk) begin
+    mux_rden <= read_valid;
+    mux_bank_en <= bank_enable_rden_ctrl_bram_bank;
+end
+
+output_mux#(
+    .N_BANK(N_BANK),
+    .N_BRAM(N_BRAM),
+    .W_DATA(W_DATA)
+) output_data_mux (
+    .clk(clk),
+    .rst(rst),
+    .i_rden(mux_rden),
+    .i_bank_en(mux_bank_en),
+    .i_data(bram_array_data_out),
+    .o_data(o_data_mux),
+    .data_valid(o_data_valid)
 );
 
 wire [N_BRAM-1 : 0] rden_ctrl_bram_bank;
@@ -118,29 +131,4 @@ bram_rden_controller#(
     .kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl)
 );
 
-// rden#(
-//     .N_BANK(N_BANK),
-//     .N_BRAM(N_BRAM),
-//     .W_ADDR(W_ADDR)
-// )test_rden_ctrl(
-//     .clk(clk),
-//     .w_done(wren_done_bram_we_ctrl_bram_re_ctrl),
-//     .i_weight_fifo_array_empty(i_weight_ff_array_empty),
-//     .o_fifo_read_enable(rden_ctrl_bram_bank),
-//     // .o_bank_enable(bank_enable_rden_ctrl_bram_bank),
-//     .o_bram_address(r_addr_rd_ctrl_bram_array)
-// );
-
-// output_mux#(
-//     .N_BANK(N_BANK),
-//     .N_BRAM(N_BRAM),
-//     .W_DATA(W_DATA)
-// ) output_data_mux (
-//     .clk(clk),
-//     .rst(rst),
-//     .i_data(bram_array_data_out),
-//     .i_rden(read_valid),
-//     .o_data(o_data_mux),
-//     .data_valid(o_data_valid)
-// );
 endmodule

@@ -1,10 +1,10 @@
 /*
-    This module write the weights from single rx_fifo 
-    to weight_fifo_array ony by one. It also enables 
+    This module write the image from single rx_fifo 
+    to image_fifo_array ony by one. It also enables 
     the controller which asserts write enable signal of
-    fifo in weight fifo array one after the other.
+    fifo in image fifo array one after the other.
 */
-module weight_fifo_array_data#(
+module uart_fifo_array_data#(
     parameter W_DATA = 8
 )(
     input clk,

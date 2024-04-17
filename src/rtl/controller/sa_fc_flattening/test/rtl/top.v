@@ -14,18 +14,11 @@ module top#(
     input i_flattening,
     input i_start,
     input i_accumulator_valid,
-    // input [N_FIFO-1 : 0] i_weight_ff_array_empty,
     input [W_IMG_DIM-1 : 0] i_img_dim,
-
-    output [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out,
-    output [(N_BANK * N_BRAM)-1 : 0] read_valid
-
-    // output o_done_rden_ctrl,
-    // output [W_DATA-1 : 0] o_data_mux,
-    // output o_data_valid
+    output [W_DATA-1 : 0] o_data_mux,
+    output o_data_valid
 );
 
-//TODO: Invert all single bit input signals.
 wire rst;
 wire start;
 wire flatten;
@@ -39,7 +32,7 @@ assign i_acc_valid = ~ i_accumulator_valid;
 wire rx_dv;
 wire [W_DATA-1 : 0] rx_byte;
 
-//uart receiver to serially receive weight matrix
+//uart receiver to serially receive image matrix
 uart_rx#(
     .CLOCKS_PER_BIT(50)
 )receiver(
@@ -54,7 +47,7 @@ wire rx_fifo_dv;
 wire [W_DATA-1 : 0] rx_fifo_data;
 wire rx_fifo_empty;
 wire [W_ADDR : 0] rx_fifo_occ;
-//stores weights received through uart trx
+//stores images received through uart trx
 fifo#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR)
@@ -86,66 +79,66 @@ rx_fifo_rden_ctrl#(
     .o_fifo_read_enable(rx_fifo_rden)
 );
 
-wire weight_ff_ctrl_enb;
-wire [W_DATA-1 : 0] weight_ff_array_data_in;
+wire uart_ff_ctrl_enb;
+wire [W_DATA-1 : 0] uart_ff_array_data_in;
 //send data from single uart rx fifo to array of fifo
-weight_fifo_array_data#(
+uart_fifo_array_data#(
     .W_DATA(W_DATA)
-)weight_ff_array_data(
+)uart_ff_array_data(
     .clk(clk),
     .rst(rst),
     .i_data_valid(rx_fifo_dv),
     .i_data(rx_fifo_data),
-    .o_enable(weight_ff_ctrl_enb),
-    .o_data(weight_ff_array_data_in)
+    .o_enable(uart_ff_ctrl_enb),
+    .o_data(uart_ff_array_data_in)
 );
 
-wire [N_FIFO-1 : 0] weight_ff_array_wren;
-//asserts write enable signal of weight fifo array
-weight_fifo_array_wren#(
+wire [N_FIFO-1 : 0] uart_ff_array_wren;
+//asserts write enable signal of image fifo array
+uart_fifo_array_wren#(
     .N_FIFO(N_FIFO)
-)weight_ff_array_wren_ctrl(
+)uart_ff_array_wren_ctrl(
     .clk(clk),
     .rst(rst),
-    .i_enable(weight_ff_ctrl_enb),
-    .o_data(weight_ff_array_wren) 
+    .i_enable(uart_ff_ctrl_enb),
+    .o_data(uart_ff_array_wren) 
 );
 
-wire [(N_FIFO * W_DATA)-1 : 0] weight_ff_array_data_out;
-wire [N_FIFO-1 : 0] weight_ff_array_rden;
-wire [N_FIFO-1 : 0] weight_ff_array_empty;
-wire [(N_FIFO * (W_ADDR+1))-1 : 0] weight_ff_array_occ;
-wire [(N_BANK * N_BRAM)-1 : 0] valid_weight_ff_array_flattening_ctrl;
+wire [(N_FIFO * W_DATA)-1 : 0] uart_ff_array_data_out;
+wire [N_FIFO-1 : 0] uart_ff_array_rden;
+wire [N_FIFO-1 : 0] uart_ff_array_empty;
+wire [(N_FIFO * (W_ADDR+1))-1 : 0] uart_ff_array_occ;
+wire [(N_BANK * N_BRAM)-1 : 0] valid_uart_ff_array_flattening_ctrl;
 //each fifo in this array stores an element of each channel
-weight_fifo_array#(
+uart_fifo_array#(
     .W_DATA(W_DATA),
     .N_FIFO(N_FIFO),
     .W_ADDR(W_ADDR)
-)weight_fifo_array(
+)uart_fifo_array(
     .clk(clk),
     .rst(rst),
-    .i_write_enable(weight_ff_array_wren),
-    .i_read_enable(weight_ff_array_rden),
-    .i_data(weight_ff_array_data_in),
-    .o_data(weight_ff_array_data_out),
-    .o_occupants(weight_ff_array_occ),
-    .o_empty(weight_ff_array_empty),
-    .o_valid(valid_weight_ff_array_flattening_ctrl)
+    .i_write_enable(uart_ff_array_wren),
+    .i_read_enable(uart_ff_array_rden),
+    .i_data(uart_ff_array_data_in),
+    .o_data(uart_ff_array_data_out),
+    .o_occupants(uart_ff_array_occ),
+    .o_empty(uart_ff_array_empty),
+    .o_valid(valid_uart_ff_array_flattening_ctrl)
 );
 
-//asserts read enable signal of weight fifo array
-weight_fifo_array_rden#(
+//asserts read enable signal of image fifo array
+uart_fifo_array_rden#(
     .N_FIFO(N_FIFO),
     .W_ADDR(W_ADDR)
-)weight_ff_array_rden_ctrl(
+)uart_ff_array_rden_ctrl(
     .clk(clk),
     .rst(rst),
-    .i_fifo_empty(weight_ff_array_empty),
-    .i_fifo_occupants(weight_ff_array_occ),
-    .o_fifo_read_enable(weight_ff_array_rden)
+    .i_fifo_empty(uart_ff_array_empty),
+    .i_fifo_occupants(uart_ff_array_occ),
+    .o_fifo_read_enable(uart_ff_array_rden)
 );
 
-block#(
+flattening#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
     .N_BRAM(N_BRAM), //number of brams in one bank
@@ -153,22 +146,18 @@ block#(
     .W_KERNAL_CNT(W_KERNAL_CNT),
     .W_IMG_DIM(W_IMG_DIM),
     .W_IMG_ROWS(W_IMG_ROWS)
-)integration_block(
+)flattening_layer(
     .clk(clk),
     .rst(rst),
     .flatten(flatten),
     .start(start),
-    .i_valid(valid_weight_ff_array_flattening_ctrl),
     .i_acc_valid(i_acc_valid),
+    .i_valid(valid_uart_ff_array_flattening_ctrl),
     .i_weight_ff_array_empty(32'd0),
     .i_img_dim(20'd49),
-    .i_data(weight_ff_array_data_out),
-
-    .bram_array_data_out(bram_array_data_out),
-    .read_valid(read_valid)
-    // .o_done_rden_ctrl(o_done_rden_ctrl),
-    // .o_data_mux(o_data_mux),
-    // .o_data_valid(o_data_valid)
+    .i_data(uart_ff_array_data_out),
+    .o_data_mux(o_data_mux),
+    .o_data_valid(o_data_valid)
 );
 
 endmodule

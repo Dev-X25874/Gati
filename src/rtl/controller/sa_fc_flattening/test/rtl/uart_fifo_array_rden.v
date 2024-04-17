@@ -1,10 +1,10 @@
 /*
-    Reads 28 data from each fifo in weight fifo array at once.
+    Reads 28 data from each fifo in uart image fifo array at once.
     Reason to stream 28 data:
         Image dim: 7x7x16 = 784, 7 0's for each channel, 7x16 = 112
         And, 784+112 = 896, 896/32 = 28
 */
-module weight_fifo_array_rden#(
+module uart_fifo_array_rden#(
     parameter W_ADDR = 9,
     parameter N_FIFO = 32
 )(

@@ -104,10 +104,5 @@ ctrl_ack #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))ack_block_6(
            .status_prev(prev_6_4),
            .o_valid_sig(valid_6_4)
          );
-/*   counter_ack_block block7(
-    .clkin(clkin),
-    .trigger_start(start_command_4_7)
-  ); */
-
 
 endmodule

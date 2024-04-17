@@ -38,7 +38,7 @@ module config_blk #(
 
 
 
-  ctrl_dram_req #(.ADDR_W(ADDR_W),.burst_len_axi(7))dram_controller_1 (.clkin(clkin),
+  ctrl_dram_req #(.ADDR_W(ADDR_W),.BURST_LEN_AXI(7))dram_controller_1 (.clkin(clkin),
                 .user_start(user_start),
                 .status(status_1_3),
                 .global_reg_address_start(global_start),

@@ -16,7 +16,7 @@ module top#(
     input i_trigger_1,
     input i_sel_1,
     input i_sel_2,
-    output [COL-1 : 0] o_tx_serial
+    output [N_SA-1 : 0] o_tx_serial
 );
 
 /*

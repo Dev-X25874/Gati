@@ -36,7 +36,6 @@ generate
         .COL(COL),
         .ROW(ROW),
         .W_PSUM(W_PSUM),
-        .N_SA(N_SA),
         .RAM_DEPTH(RAM_DEPTH),
         .W_ACC(W_ACC),
         .W_FC_CNT(W_FC_CNT)

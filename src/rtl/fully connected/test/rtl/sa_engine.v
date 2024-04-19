@@ -5,7 +5,6 @@ module sa_engine#(
     parameter COL = 4,
     parameter ROW = 1,
     parameter W_PSUM = 19,
-    parameter N_SA = 1,
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter W_ACC = 32,
     parameter W_FC_CNT = 15
@@ -22,8 +21,8 @@ module sa_engine#(
     input [(ROW * (W_ADDR + 1))-1 : 0] i_west_occ,
     output [ROW-1 : 0] o_west_rden,
     input i_west_dv,
-    output [(COL * N_SA)-1 : 0] o_acc_dv2,
-    output [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data2
+    output [COL-1 : 0] o_acc_dv2,
+    output [(COL * W_ACC)-1 : 0] o_acc_data2
 );
 
 wire [COL-1 : 0] north_rden;
@@ -104,47 +103,30 @@ begin
     y2<=y1;
 end
 
-wire [(ROW * (W_DATA + 1))-1 : 0] temp;
-wire sa_last_row_dv;
 wire  [((W_PSUM + 1) * COL)-1 : 0] out_south_data;
 
 pe_grid#(
-    .COL(COL/2),
+    .COL(COL),
     .ROW(ROW),
     .W_DATA(W_DATA),
     .W_PSUM(W_PSUM)
 )sa_block(
     .i_clk(s_clk),
     .i_rst(i_rst),
-    .i_weight(x2[((COL) * (W_DATA+1))-1 : ((COL/2) * (W_DATA + 1))]),
+    .i_weight(x2),
     .in_data(y2),
-    .o_partial_sum(out_south_data[((COL) * (W_PSUM + 1))-1 : ((COL/2) * (W_PSUM + 1))]),
-    .o_data(temp) 
-);
-
-booth_pe_grid#(
-    .COL(COL/2),
-    .ROW(ROW),
-    .W_DATA(W_DATA),
-    .W_PSUM(W_PSUM)
-) booth_sa_block (
-    .i_clk(s_clk),
-    .i_rst(i_rst),
-    .i_weight(x2[((COL/2) * (W_DATA + 1))-1 : 0]),
-    .in_data(temp),
-    .o_partial_sum(out_south_data[((COL/2) * (W_PSUM + 1))-1 : 0]),
+    .o_partial_sum(out_south_data),
     .o_data() 
 );
 
-wire [(COL * N_SA)-1 : 0] o_acc_dv;
-wire [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data;
+wire [COL-1 : 0] o_acc_dv;
+wire [(COL * W_ACC)-1 : 0] o_acc_data;
 
 accumulator#(
     .COL(COL),
     .W_ACC(W_ACC),
     .W_FC_CNT(W_FC_CNT),
-    .W_PSUM(W_PSUM),
-    .N_SA(N_SA)
+    .W_PSUM(W_PSUM)
 ) accumulator_array(
     .i_clk(s_clk),
     .i_rst(i_rst),
@@ -155,8 +137,8 @@ accumulator#(
 );
 
 //synchronizers for CDC
-(*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] o_acc_dv1, o_acc_dv2 = 0;
-(*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data1, o_acc_data2 = 0;
+(*async_reg = "true" *) reg [COL-1 : 0] o_acc_dv1, o_acc_dv2 = 0;
+(*async_reg = "true" *) reg [(COL * W_ACC)-1 : 0] o_acc_data1, o_acc_data2 = 0;
 
 always @(posedge i_clk)begin
     o_acc_dv1 <=    o_acc_dv;

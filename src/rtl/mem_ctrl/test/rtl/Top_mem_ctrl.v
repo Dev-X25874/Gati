@@ -1,35 +1,68 @@
 module Top_mem_ctrl #(
-parameter NUM_PORTS = 4,
-parameter NUM_QUEUE = 4,
-parameter DATA_WIDTH = 41,
-parameter ADDR_WIDTH = 32,
-parameter BURST_LENGTH_WIDTH = 4,
-parameter ADDRESS_WIDTH = 32,
-parameter BURST_WIDTH = 4,
-parameter POINTER_COUNT = 10,
-parameter RAM_DEPTH = (1 << POINTER_COUNT),
-parameter BIN_WIDTH = $clog2(NUM_PORTS-1),
-parameter PORT_ID_WIDTH = 4
+    parameter NUM_PORTS = 4,
+    parameter NUM_QUEUE = 4,
+    parameter DATA_WIDTH = 41,
+    parameter ADDR_WIDTH = 32,
+    parameter BURST_LENGTH_WIDTH = 4,
+    parameter ADDRESS_WIDTH = 32,
+    parameter BURST_WIDTH = 4,
+    parameter POINTER_COUNT = 10,
+    parameter RAM_DEPTH = (1 << POINTER_COUNT),
+    parameter BIN_WIDTH = $clog2(NUM_PORTS-1),
+    parameter PORT_ID_WIDTH = 4,
+    parameter AXI_ID_BLEN_CON = 8 ,
+    parameter  AXI_DATA_WIDTH      = 256 ,
+    parameter  AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8  ,                                  
+    parameter  ADW_C               = AXI_DATA_WIDTH    ,
+    parameter  ABN_C               = AXI_BYTE_NUMBER   
 ) (
-input clk,
-input rst,
-output [(NUM_PORTS*32)-1 : 0] o_addr,
-output [(NUM_PORTS*4)-1:0] o_BLEN ,
-output [(NUM_PORTS*4)-1:0] i_port_id,
-output [NUM_PORTS-1:0] enable_in,
-//output [(NUM_PORTS * 41)-1:0] combined_out,
-//output [(NUM_PORTS*41)-1 : 0]  div_out_data,
-//output [NUM_PORTS-1:0] rd_out_en ,
-//output [NUM_PORTS-1 :0 ] e_flag
-output o_valid_req,
-output [NUM_PORTS-1:0]  o_grant,
-output [ADDR_WIDTH-1:0]  o_addr_div,
-output [BURST_LENGTH_WIDTH-1:0] o_burst_div,
-output [PORT_ID_WIDTH-1:0] o_port_div,
-output o_rw_div 
+    input clk,
+    input rst,
+    output [(NUM_PORTS*32)-1 : 0] o_addr,
+    output [(NUM_PORTS*4)-1:0] o_BLEN ,
+    output [(NUM_PORTS*4)-1:0] i_port_id,
+    output [NUM_PORTS-1:0] enable_in,
+    //output [(NUM_PORTS * 41)-1:0] combined_out,
+    //output [(NUM_PORTS*41)-1 : 0]  div_out_data,
+    //output [NUM_PORTS-1:0] rd_out_en ,
+    //output [NUM_PORTS-1 :0 ] e_flag
+   // output o_valid_req,
+   /* output [ADDR_WIDTH-1:0]  o_addr_div,
+    output [BURST_LENGTH_WIDTH-1:0] o_burst_div,
+    output [PORT_ID_WIDTH-1:0] o_port_div,
+    output o_rw_div ,
+    output o_valid_req ,
+    output [NUM_PORTS-1:0]  o_grant,*/
+    output [BIN_WIDTH-1:0] rd_sel_binary,
+   
+    output  [      7:0] aid     ,
+    output  [     31:0] aaddr   , 
+    output  [      7:0] alen    , 
+    output  [      2:0] asize   , 
+    output  [      1:0] aburst  , 
+    output  [      1:0] alock   , 
+    output              avalid  , 
+    input               aready  , 
+    output              atype   ,
+    output  [      7:0] wid     , 
+    output  [ABN_C-1:0] wstrb   , 
+    output              wlast   , 
+    output              wvalid  , 
+    input               wready  , 
+    output  [ADW_C-1:0] wdata   , 
+    input   [      7:0] rid     , 
+    input               rlast   , 
+    input               rvalid  , 
+    output              rready  , 
+    input   [      1:0] rresp   , 
+    input   [ADW_C-1:0] rdata   , 
+    input   [      7:0] bid     , 
+    input               bvalid  , 
+    output              bready  ,
+    output [255:0] r_data_out_1
+   //output [255:0] r_data_out_2 
  
 );
-
 
 wire [NUM_PORTS-1:0] i_valid ;
 wire [(NUM_PORTS * 8)-1:0] in_address;
@@ -41,7 +74,24 @@ wire [NUM_PORTS-1:0] e_flag;
 wire [NUM_PORTS-1:0] o_valid, r_en ;
 wire [(NUM_PORTS*DATA_WIDTH)-1 : 0]  div_out_data ;
 wire [NUM_PORTS-1:0] rd_out_en ;
-
+//wire en_pin ;
+wire r_en_ack, w_en_ack ;
+wire [AXI_DATA_WIDTH-1 :0 ] ram_data ;
+wire [AXI_ID_BLEN_CON-1:0 ] id_in, blen ;
+wire wr_start, rd_start ;
+wire [3:0] select_wr ;
+//wire w_sel_1 , w_sel_2 ;
+wire [3:0] select_rd ;
+wire r_sel_1 , r_sel_2 ;
+wire valid_ctrl_1,valid_ctrl_2 , last_ctrl_2, last_ctrl_1 ;
+wire [255:0] wdata_ctrl_1, wdata_ctrl_2 ;
+wire wr_axi_valid, wr_axi_last ;
+wire [255:0] wr_axi_data ;
+wire [ADDR_WIDTH-1:0]  o_addr_div;
+wire [BURST_LENGTH_WIDTH-1:0] o_burst_div;
+wire [PORT_ID_WIDTH-1:0] o_port_div;
+wire o_rw_div ;
+wire o_valid_req ;
 
 Top_test_data_ctrl # (
     .NUM_PORTS (NUM_PORTS) 
@@ -90,7 +140,7 @@ Req_Queue_gen_inst(
     .rd_en (r_en),
     .Wr_en (o_valid),
     .data_in (combined_out),
-    .data_out (div_out_data),
+    .data_out (div_out_data),  //  output [255:0] w_data_out1 ,
     .rd_out (rd_out_en)
     
 );
@@ -100,6 +150,7 @@ RR_ARB  #(
     .NUM_PORTS (NUM_PORTS),
     .PORT_ID_WIDTH (PORT_ID_WIDTH) ,
     .ADDRESS_WIDTH (ADDR_WIDTH),
+    .BIN_WIDTH (BIN_WIDTH),
     .BURST_LENGTH_WIDTH (BURST_LENGTH_WIDTH) ,
     .DATA_WIDTH (DATA_WIDTH)
 )
@@ -108,7 +159,8 @@ RR_ARB_inst(
 	.clk (clk),
 	.req (~e_flag),
 	.grant_out (o_grant),
-    .en_pin (1'b1),
+    .en_pin (en_pin),
+    .rd_sel_binary (rd_sel_binary),
     .req_out (r_en),
     .in_data_div (div_out_data),
     .o_addr_div (o_addr_div),
@@ -120,5 +172,185 @@ RR_ARB_inst(
 );
 
 
+reg en_pin;
+//assign en_pin = (w_en_ack | r_en_ack) ;
+assign blen = {4'b0, o_burst_div} ;
+assign blen_wr = {4'b0, o_burst_div} ;
+assign id_in = {4'b0, o_port_div} ;
+assign wr_start = o_rw_div & o_valid_req ;
+assign rd_start = !o_rw_div & o_valid_req ;
+wire [7:0] blen_wr ;
+Top_Axi #(
+    .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
+    .AXI_BYTE_NUMBER (AXI_BYTE_NUMBER) ,                                  
+    .ADW_C (ADW_C) ,
+    .ABN_C (ABN_C)   
+)
+NATIVE_AXI_inst(  
+    .SysClk (clk),
+    .rst(rst),
+    .RamRdStart (rd_start) ,
+    .RamRdData (ram_data) ,
+    .CfgRdAddr (o_addr_div) ,
+    .CfgRdBLen (blen),
+    .w_ctrl_valid  (wr_axi_valid),
+    .w_ctrl_last (wr_axi_last),
+    
+    .RamWrStart (wr_start),
+    .axi_wr_id(id_in) ,
+    .axi_rd_id (id_in) ,
+    .RamWrData (wr_axi_data),
+    .CfgWrAddr (o_addr_div) ,
+    .CfgWrBlen (blen_wr),
+    .aid    (aid)     ,
+    .aaddr  (aaddr)   , 
+    .alen   (alen)    , 
+    .asize  (asize)   , 
+    .aburst (aburst)  , 
+    .alock  (alock)   , 
+    .avalid (avalid)  , 
+    .aready (aready)  , 
+    .atype  (atype)   ,
+    .wid    (wid)     , 
+    .wstrb  (wstrb)   , 
+    .wlast  (wlast)   , 
+    .wvalid (wvalid)  , 
+    .wready (wready)  , 
+    .wdata  (wdata)   , 
+    .rid    (rid)     , 
+    .rlast  (rlast)   , 
+    .rvalid (rvalid)  , 
+    .rready (rready)  , 
+    .rresp  (rresp)   , 
+    .rdata  (rdata)   , 
+    .bid    (bid)     , 
+    .bvalid (bvalid)  , 
+    .bready (bready) 
 
-endmodule 
+);
+
+//assign w_sel_1 = select_wr[0] |  select_wr[2];
+assign w_sel_1 = select_wr[0] ;
+//assign w_sel_2 = select_wr[1] | select_wr[3] ;
+assign w_sel_2 = select_wr[1] ;
+wire w_sel_1  ;
+wire w_sel_2  ;
+Mem_ctrl_wr # (
+.AXI_DATA_WIDTH (AXI_DATA_WIDTH)
+)
+Mem_ctrl_wr_1(
+    .clk (clk),
+    .rst (rst),
+    .select (w_sel_1),
+    .wready_w (wready),
+    .wvalid_w (valid_ctrl_1),
+    .wlast_w (last_ctrl_1),
+    .in_Addr (aaddr),
+    .wdata_out (wdata_ctrl_1),
+    .BLEN_w (alen)
+) ;
+
+Mem_ctrl_wr #(
+.AXI_DATA_WIDTH(AXI_DATA_WIDTH)
+)
+Mem_ctrl_wr_2 (
+    .clk (clk),
+    .rst (rst),
+    .select (w_sel_2),
+    .wready_w (wready),
+    .wvalid_w (valid_ctrl_2),
+    .wlast_w (last_ctrl_2),
+    .in_Addr (aaddr),
+    .wdata_out (wdata_ctrl_2),
+    .BLEN_w (alen)
+ ) ;
+ 
+ MUX_WR_SEL 
+ Mux_inst(
+    .clk(clk),
+    .rst (rst), 
+    .w_valid_1 (valid_ctrl_1),
+    .w_valid_2 (valid_ctrl_2),
+   // .w_ready_sel (wready),
+    .w_last1 (last_ctrl_1),
+    .w_last2 (last_ctrl_2),
+    .sel_in1 (w_sel_1), 
+    .sel_in2 (w_sel_2),
+    .data_in1 (wdata_ctrl_1),
+    .data_in2 (wdata_ctrl_2),
+    .w_valid_out (wr_axi_valid),
+    .w_last_out (wr_axi_last),
+    .w_odata_sel (wr_axi_data)
+);
+
+
+WR_ID_Manager #(
+  .NUM_PORTS (NUM_PORTS)
+) 
+ID_MANAGER_inst(
+    .clk (clk),
+    .rst(rst),
+    .aid ( aid ),
+ //   .valid (o_valid_req),
+    .valid (avalid),
+    .atype (atype),
+    .wready (wready),   ///// it is input in the ddr axi side so can i use the 
+    .wlast (wlast) ,
+    .wid (wid),       // Write controller ID
+    .w_en_ack(w_en_ack) ,
+    .select (select_wr),
+    .status_reg (),
+    .ack() 
+);
+
+
+assign r_sel_1 = select_rd[0] | select_rd[1];
+assign r_sel_2 = select_rd[3] | select_rd[2] ;
+
+RD_ID_Manager
+ID_manager_rd_inst (
+    .clk (clk),
+    .rst (rst),
+    .valid (o_valid_req),
+    .id_rd_in (aid),
+    .atype (atype),
+    .rvalid (rvalid),
+    .rlast (rlast),
+    .rid (rid),
+    .r_en_ack (r_en_ack),
+    .select_rd (select_rd),
+    .status_rd_reg (),
+    .ack_rd () 
+);
+
+Mem_Rd_ctrl
+Mem_Rd_inst_1 (
+    .clk (clk),
+    .rst (rst),
+    .select_rd (r_sel_1),
+    .rvalid_rd (rvalid) ,
+    .rlast_rd (rlast),
+    .rdata_in (ram_data),
+    .rdata_out (r_data_out_1)
+) ;         
+/*
+Mem_Rd_ctrl
+Mem_Rd_ctrl_inst2 (
+    .clk (clk),
+    .rst (rst),
+    .select_rd (r_sel_2),
+    .rvalid_rd (rvalid) ,
+    .rlast_rd (rlast),
+    .rdata_in (ram_data),
+    .rdata_out (r_data_out_2)
+) ;
+*/
+always@(posedge clk) begin
+    if(!rst) en_pin <= 1;
+    else begin
+        if(r_en!=0) en_pin <= 0;
+        else if (w_en_ack|r_en_ack) en_pin <=1;
+    end
+
+end
+endmodule

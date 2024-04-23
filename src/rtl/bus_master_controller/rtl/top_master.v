@@ -1,14 +1,14 @@
-module top_master #(parameter op_code_width = 4, 
-            parameter CNT = (data_in/data_out),
-            parameter data_in = 256,
-            parameter data_out = 8) (
-    input [(data_in)-1 : 0] din,
+module top_master #(parameter OP_CODE_WIDTH = 4, 
+            parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
+            parameter INPUT_WIDTH = 256,
+            parameter OUTPUT_WIDTH = 8) (
+    input [(INPUT_WIDTH)-1 : 0] din,
     input start,
     input clk,
-    input [(op_code_width)-1 : 0] op_code,
-    input [(op_code_width)-1 : 0] ready_in,
-    output [(data_out)-1 : 0] dout,
-    output [(op_code_width)-1 : 0] sel,
+    input [(OP_CODE_WIDTH)-1 : 0] op_code,
+    input [(OP_CODE_WIDTH)-1 : 0] ready_in,
+    output [(OUTPUT_WIDTH)-1 : 0] dout,
+    output [(OP_CODE_WIDTH)-1 : 0] sel,
     output write,
     output done
 );

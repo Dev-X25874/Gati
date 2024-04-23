@@ -1,12 +1,15 @@
-module OP_Tailblock#(parameter op_code_width = 4, 
-            parameter CNT = (data_out/data_in),
-            parameter data_in = 8,
-            parameter data_out = 256)(
-                input [(data_in)-1 : 0] din,
+module OP_Tailblock#(parameter OP_CODE_WIDTH = 4, 
+            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+            parameter INPUT_WIDTH = 8,
+            parameter OUTPUT_WIDTH = 256)(
+                input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
                 input done,
                 input clk,
+                output reg [7:0] relu_clip = 0;
+                output reg [7:0] maxpool_threshold = 0;
+                output reg [31:0] stop_addr = 0;
                 output reg ready = 0,
                 output reg valid = 0,
                 output reg [3:0] opcode = 0,
@@ -21,10 +24,10 @@ module OP_Tailblock#(parameter op_code_width = 4,
                 output reg [3:0] poolheight = 0,
                 output reg [3:0] poolstride = 0,
                 output reg [3:0] poolpadding = 0,
-                output reg [121:0] dout = 0
+                output reg [166:0] dout = 0
         );
 
-reg [(data_out)-1 : 0] data_instruction = 0;
+reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
 parameter IDLE = 3'b000;
@@ -57,12 +60,12 @@ always @(posedge clk) begin
             ready <= 1'b1;
             if(write) begin
                 if(count < (CNT-1)) begin
-                    data_instruction[data_out-(count*8)-1 -:8] <= din;
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
                     count <= count + 1;
                     state <= REGISTER;
                 end
                 else begin
-                    data_instruction[data_out-(count*8)-1 -:8] <= din;
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
                     count <= 0;
                     state <= CONCAT;
                 end
@@ -83,12 +86,15 @@ always @(posedge clk) begin
             poolheight <= data_instruction[113:110];
             poolstride <= data_instruction[117:114];
             poolpadding <= data_instruction[121:118];
+            relu_clip <= data_instruction[129:122];
+            maxpool_threshold <= data_instruction[137:130];
+            stop_addr <= data_instruction[169:138];
             valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {poolpadding,poolstride,poolheight,poolwidth,pooltype,quantshift,quantscale,acttype,BIASaddr,BNaddress,BNchannels,opcode};
+        dout <= {stop_addr,maxpool_threshold,relu_clip,poolpadding,poolstride,poolheight,poolwidth,pooltype,quantshift,quantscale,acttype,BIASaddr,BNaddress,BNchannels,opcode};
         state <= IDLE;
         valid <= 1'b1;
     end

@@ -1,14 +1,14 @@
-module controller #(parameter op_code_width = 4, 
-            parameter CNT = (data_in/data_out),
-            parameter data_in = 256,
-            parameter data_out = 8) (
-    input [(data_in)-1 : 0] din,
+module controller #(parameter OP_CODE_WIDTH = 4, 
+            parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
+            parameter INPUT_WIDTH = 256,
+            parameter OUTPUT_WIDTH = 8) (
+    input [(INPUT_WIDTH)-1 : 0] din,
     input start,
     input clk,
-    input [(op_code_width)-1 : 0] op_code,
+    input [(OP_CODE_WIDTH)-1 : 0] op_code,
     input ready, //[(1<<op_code_width)-1 : 0] ready,
-    output reg [(data_out)-1 : 0] dout = 0,
-    output reg [(1<<op_code_width)-1 : 0] sel = 0,
+    output reg [(OUTPUT_WIDTH)-1 : 0] dout = 0,
+    output reg [(1<<OP_CODE_WIDTH)-1 : 0] sel = 0,
     output reg write = 0,
     output reg done = 0
 );
@@ -32,7 +32,7 @@ always @(posedge clk) begin
             sel[op_code] <= 1'b1;
             if(ready) begin
                 if(count < (CNT-1)) begin
-                    dout <= din[data_in-(count*8)-1 -:8];
+                    dout <= din[INPUT_WIDTH-(count*8)-1 -:8];
                     count <= count + 1;
                     write <= 1;
                     //sel[op_code] <= 1'b1;
@@ -40,7 +40,7 @@ always @(posedge clk) begin
                     state <= SPLIT;
                 end
                 else begin
-                    dout <= din[data_in-(count*8)-1 -:8];
+                    dout <= din[INPUT_WIDTH-(count*8)-1 -:8];
                     count <= 0;
                     write <= 1;
                     //sel[op_code] <= 1'b1;

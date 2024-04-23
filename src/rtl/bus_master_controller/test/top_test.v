@@ -1,5 +1,5 @@
-module top_test #(parameter op_code_width = 4, 
-            parameter data_in = 256) (
+module top_test #(parameter OP_CODE_WIDTH = 4, 
+            parameter INPUT_WIDTH = 256) (
     input din,
     input start,
     input clk,
@@ -9,7 +9,7 @@ module top_test #(parameter op_code_width = 4,
 
 wire [7:0] d_out;
 wire dout_valid;
-wire [(op_code_width)-1 : 0] opcode;
+wire [(OP_CODE_WIDTH)-1 : 0] opcode;
 wire [(data_in)-1 : 0] dout_instruction_fifoin;
 wire [(data_in)-1 : 0] dout_instruction_fifoout;
 wire rd;

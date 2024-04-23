@@ -1,8 +1,8 @@
-module OP_CONV #(parameter op_code_width = 4, 
-            parameter CNT = (data_out/data_in),
-            parameter data_in = 8,
-            parameter data_out = 256)(
-                input [(data_in)-1 : 0] din,
+module OP_CONV #(parameter OP_CODE_WIDTH = 4, 
+            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+            parameter INPUT_WIDTH = 8,
+            parameter OUTPUT_WIDTH = 256)(
+                input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
                 input done,
@@ -21,11 +21,12 @@ module OP_CONV #(parameter op_code_width = 4,
                 output reg [31:0] INPUT_ADDRESS = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
+                output reg [31:0] stop_addr = 0;
                 output valid,
                 output reg ready = 0,
-                output reg [144:0] dout = 0
+                output reg [175:0] dout = 0
             );
-reg [(data_out)-1 : 0] data_instruction = 0;
+reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
 parameter IDLE = 3'b000;
@@ -61,12 +62,12 @@ always @(posedge clk) begin
             ready <= 1'b1;
             if(write) begin
                 if(count < (CNT-1)) begin
-                    data_instruction[data_out-(count*8)-1 -:8] <= din;
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
                     count <= count + 1;
                     state <= REGISTER;
                 end
                 else begin
-                    data_instruction[data_out-(count*8)-1 -:8] <= din;
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
                     count <= 0;
                     state <= CONCAT;
                 end
@@ -89,13 +90,14 @@ always @(posedge clk) begin
             INPUT_ADDRESS <= data_instruction[110:79];
             channelItr <= data_instruction[122:111];
             kernelItr <= data_instruction[134:123];
-            //valid <= 1'b1;
+            stop_addr <= data_instruction[166:135];
+            valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {kernelItr, channelItr, INPUT_ADDRESS, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode};
-        //valid <= 1'b1;
+        dout <= {stop_addr,kernelItr, channelItr, INPUT_ADDRESS, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode};
+        valid <= 1'b1;
         state <= IDLE;
     end
     endcase

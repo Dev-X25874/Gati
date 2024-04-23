@@ -1,25 +1,25 @@
-module top_master_slave #(parameter op_code_width = 4, 
-            parameter CNT = (data_in/data_out),
-            parameter data_in = 256,
-            parameter data_out = 8) (
-                input [(data_in)-1 : 0] din,
+module top_master_slave #(parameter OP_CODE_WIDTH = 4, 
+            parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
+            parameter INPUT_WIDTH = 256,
+            parameter OUTPUT_WIDTH = 8) (
+                input [(INPUT_WIDTH)-1 : 0] din,
                 input start,
                 input clk,
-                input [(op_code_width)-1 : 0] opcode,
+                input [(OP_CODE_WIDTH)-1 : 0] opcode,
                 //input ready,
-                output reg [179:0] dout_final = 0,
+                output reg [209:0] dout_final = 0,
                 output reg valid = 0
             );
 
-wire [144:0] dout_op_conv;
-wire [176:0] dout_op_fc;
-wire [107:0] dout_op_ob;
-wire [121:0] dout_op_tb;
-reg [(data_out)-1 : 0] din_op_conv = 0;
-reg [(data_out)-1 : 0] din_op_fc = 0;
-reg [(data_out)-1 : 0] din_op_ob = 0;
-reg [(data_out)-1 : 0] din_op_tb = 0;
-wire [(data_out)-1 : 0] dout_top_master;
+wire [175:0] dout_op_conv;
+wire [207:0] dout_op_fc;
+wire [138:0] dout_op_ob;
+wire [166:0] dout_op_tb;
+reg [(OUTPUT_WIDTH)-1 : 0] din_op_conv = 0;
+reg [(OUTPUT_WIDTH)-1 : 0] din_op_fc = 0;
+reg [(OUTPUT_WIDTH)-1 : 0] din_op_ob = 0;
+reg [(OUTPUT_WIDTH)-1 : 0] din_op_tb = 0;
+wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master;
 reg wr_op_conv = 0;
 reg wr_op_fc = 0;
 reg wr_op_ob = 0;
@@ -30,7 +30,7 @@ reg done_op_fc = 0;
 reg done_op_ob = 0;
 reg done_op_tb = 0;
 wire done_top_master;
-wire [(op_code_width)-1 : 0] sel_top_master;
+wire [(OP_CODE_WIDTH)-1 : 0] sel_top_master;
 reg sel_op_conv = 0;
 reg sel_op_fc = 0;
 reg sel_op_ob = 0;
@@ -39,7 +39,7 @@ wire ready_op_conv;
 wire ready_op_fc;
 wire ready_op_ob;
 wire ready_op_tb;
-reg [(1<<op_code_width)-1 : 0] ready = 0;
+reg [(1<<OP_CODE_WIDTH)-1 : 0] ready = 0;
 wire valid_op_conv;
 wire valid_op_fc;
 wire valid_op_ob;

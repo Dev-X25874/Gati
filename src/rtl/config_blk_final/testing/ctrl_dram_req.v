@@ -120,7 +120,18 @@ begin
         state<=4'd5;
       end
     end
-    4'd4://reached stop address
+    4'd4:
+    begin
+      internal_reg_start<=internal_reg_stop;
+      state<=4'd5;
+      dv<=1'b0;
+      read_req_reg<=1'b0;
+      last_reg<=1'b0;
+      o_address_reg<=0;
+      burst_len_reg<=0;
+      counter1<=6'd0;
+    end
+    4'd5://reached stop address
     begin
       state<=4'd0;
       read_req_reg<=1'b0;
@@ -128,17 +139,6 @@ begin
       o_address_reg<=0;
       last_reg<=0;
       burst_len_reg<=0;
-    end
-    4'd5:
-    begin
-      internal_reg_start<=internal_reg_stop;
-      state<=4'd4;
-      dv<=1'b0;
-      read_req_reg<=1'b0;
-      last_reg<=1'b0;
-      o_address_reg<=0;
-      burst_len_reg<=0;
-      counter1<=6'd0;
     end
     default:
     begin

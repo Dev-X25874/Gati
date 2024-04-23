@@ -20,7 +20,7 @@ It also provide status signals to the DRAM controller and Instruction Read Contr
 When it receives a Read Enable signal from Instruction Read COntroller it sends the instruction containing required data to the Bus Master Controller and Instruction Read Controller.
 
 ### Instruction Read Controller
-The Instruction Read COntroller sends a read enable signal to the Instruction Queue based on the Done Status of the Bus Master and not_empty status of the Instruction Queue.
+The Instruction Read Controller sends a read enable signal to the Instruction Queue by reading the Done Status of the Bus Master and the not_empty status of the Instruction Queue.
 It also contains status registers to show the status of the various slave blocks of the bus master.
 These status registers are:
 1. Previous Registers
@@ -30,7 +30,7 @@ These registers decide wheter to send a start signal to the Bus Master Controlle
 It also sends a start command when it receives a start instruction i.e opcode =1111.
 
 ### Bus Master Controller
-It is responsible for controlling various blocks what perform operations based on the instruction data.
+It is responsible for controlling various blocks that perform operations based on the instruction data.
 It sends a done signal to the Instruction Read Controller.
 
 ### Acknowledgement Controller

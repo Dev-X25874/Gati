@@ -24,7 +24,7 @@ module config_blk #(
   input [NUM_INSTRUCTIONS-1:0]ack_signals,
   output[NUM_INSTRUCTIONS-1:0]start_command
 );
-wire status_1_3;
+wire status_3_1;
 wire [INST_W-1:0]instruction_2_3;
 wire instruction_v_2_3;
 wire read_req_3_4;
@@ -41,7 +41,7 @@ wire [NUM_INSTRUCTIONS-1:0]ack_6_4;
 
 ctrl_dram_req #(.ADDR_W(ADDR_W),.BURST_LEN_AXI(BURST_LEN_AXI))dram_controller_1 (.clkin(clkin),
               .user_start(user_start),
-              .status(status_1_3),
+              .status(status_3_1),
               .global_reg_address_start(global_start),
               .global_reg_address_stop(global_stop),
               .read_req(memory_read_r),
@@ -66,7 +66,7 @@ instruct_q #(.INSTRUCT_W(INST_W))inst_q_3(
              .instruct_valid(instruction_v_2_3),
              .o_instruction(o_instruction_3_5),
              .o_instruction_valid(o_instruction_3_5_v),
-             .o_status_dram(status_1_3),
+             .o_status_dram(status_3_1),
              .o_status_inst(status_3_4)
            );
 

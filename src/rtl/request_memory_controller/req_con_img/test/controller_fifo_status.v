@@ -1,4 +1,4 @@
-module controller_fifo_status #(parameter threshold = 40) (
+module controller_fifo_status #(parameter OCCUPANCY = 40) (
     input valid,
     input clk,
     output reg fifo_status = 0
@@ -20,7 +20,7 @@ always @(posedge clk) begin
     end
     2: begin
         if(valid) begin
-            if(count_occupancy < threshold) begin
+            if(count_occupancy < OCCUPANCY) begin
                 count_occupancy <= count_occupancy + 1;
                 occupancy <= occupancy + 1;
                 fifo_status <= 1;

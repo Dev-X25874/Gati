@@ -1,4 +1,4 @@
-module controller_request_receiver #(parameter burst_length_out = 10, parameter occupancy_count = 40, parameter AXI_DATA_BYTES = 32) (
+module controller_request_receiver #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
     input [$clog2(AXI_DATA_BYTES) : 0] burst_length,
     input clk,
     output reg valid = 0

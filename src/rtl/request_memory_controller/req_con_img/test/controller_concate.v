@@ -1,4 +1,4 @@
-module controller_concate #(parameter burst_length_out = 10, parameter occupancy_count = 40, parameter AXI_DATA_BYTES = 32) (
+module controller_concate #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
     input [7:0] din,
     input rx_valid,
     input clk,
@@ -90,7 +90,7 @@ always @(posedge clk) begin
     4: begin
         if(rx_valid) begin
             if(enable) begin
-                stop_addr <= ((start_addr + (((burst_length_out + 1) << $clog2(AXI_DATA_BYTES)) * 15)));
+                stop_addr <= ((start_addr + (((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)) * 15)));
                 state <= 5;
             end
             else begin

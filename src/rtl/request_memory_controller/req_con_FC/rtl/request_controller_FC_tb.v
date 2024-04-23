@@ -2,8 +2,8 @@
 module request_controller_FC_tb;
 
   // Parameters
-  localparam  burst_length_out = 15;
-  localparam  occupancy_count = 40;
+  localparam  BURST_LENGTH = 15;
+  localparam  OCCUPANCY = 40;
   localparam  AXI_DATA_BYTES = 32;
 
   //Ports
@@ -18,8 +18,8 @@ module request_controller_FC_tb;
   wire [$clog2(AXI_DATA_BYTES) : 0] burst_length;
 
   request_controller_FC # (
-    .burst_length_out(burst_length_out),
-    .occupancy_count(occupancy_count),
+    .BURST_LENGTH(BURST_LENGTH),
+    .OCCUPANCY(OCCUPANCY),
     .AXI_DATA_BYTES(AXI_DATA_BYTES)
   )
   request_controller_FC_inst (

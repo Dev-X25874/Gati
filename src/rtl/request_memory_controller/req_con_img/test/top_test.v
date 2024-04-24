@@ -91,7 +91,7 @@ fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(5)) fifo_valid_stop_addr(
 );
 
 top_fifo_dram_mimic_con #(.BURST_LENGTH(15)) top_fifo_dram_mimic_con(
-    .burst_length(burst_length_con),
+    .valid_in(valid),
     .clk(clk),
     .fifo_status(fifo_status_con)
 );

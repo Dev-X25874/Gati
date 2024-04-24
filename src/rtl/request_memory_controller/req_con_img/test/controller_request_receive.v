@@ -1,7 +1,7 @@
 module controller_request_receiver #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
-    input [$clog2(AXI_DATA_BYTES) : 0] burst_length,
+    input valid_in, //[$clog2(AXI_DATA_BYTES) : 0] burst_length,
     input clk,
-    output reg valid = 0
+    output reg valid_out = 0
   );
 
   reg r_burst_length = 0;
@@ -16,14 +16,14 @@ module controller_request_receiver #(parameter BURST_LENGTH = 10, parameter OCCU
     //     state <= 1;
     // end
     //1: begin
-    if(burst_length[1] == 1)
+    if(valid_in) //(burst_length[1] == 1)
     begin
-      valid <= 1;
+      valid_out <= 1;
       state <= 0;
     end
     else
     begin
-      valid <= 0;
+      valid_out <= 0;
       state <= 1;
     end
     //end

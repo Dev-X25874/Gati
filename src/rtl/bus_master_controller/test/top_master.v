@@ -1,3 +1,5 @@
+//this module is top for master's controller
+
 module top_master #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
             parameter INPUT_WIDTH = 256,

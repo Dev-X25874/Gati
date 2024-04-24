@@ -1,3 +1,7 @@
+//this module is the master's controller
+//this takes in 256 bits of data as input and divides them into chunks of 8 bits and transfers to the selected slave, as it receives ready from the respective slave
+//it starts working when start signal is received from the instruction controller
+
 module controller #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
             parameter INPUT_WIDTH = 256,
@@ -32,7 +36,7 @@ always @(posedge clk) begin
             sel[op_code] <= 1'b1;
             if(ready) begin
                 if(count < (CNT-1)) begin
-                    dout <= din[INPUT_WIDTH-(count*8)-1 -:8];
+                    dout <= din[INPUT_WIDTH-(count*8)-1 -:8]; //258 bits divided into chucks of 8 bits, as a part of protocol
                     count <= count + 1;
                     write <= 1;
                     //sel[op_code] <= 1'b1;

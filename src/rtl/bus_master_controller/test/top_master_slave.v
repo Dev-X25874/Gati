@@ -1,3 +1,5 @@
+//this module comprises of the connections between master and the slave for their communication
+
 module top_master_slave #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
             parameter INPUT_WIDTH = 256,
@@ -143,9 +145,9 @@ OP_Tailblock OP_Tailblock(
     .dout(dout_op_tb)
 );
 
-always @(posedge clk) begin
+always @(posedge clk) begin  //this is an internal mux so that the appropriate signal get connected with each other as opcode changes
 case(opcode) 
-4'b000: begin
+4'b000: begin  //OP_CONV
     dout_final <= dout_op_conv;
     sel_op_conv <= sel_top_master[0];
     wr_op_conv <= wr_top_master;
@@ -154,7 +156,7 @@ case(opcode)
     ready[0] <= ready_op_conv;
     valid <= valid_op_conv;
 end
-4'b001: begin
+4'b001: begin  //OP_FC
     dout_final <= dout_op_fc;
     sel_op_fc <= sel_top_master[1];
     wr_op_fc <= wr_top_master;
@@ -163,7 +165,7 @@ end
     ready[1] <= ready_op_fc;
     valid <= valid_op_fc;
 end
-4'b011: begin
+4'b011: begin  //OP_OUTPUTBLOCK
     dout_final <= dout_op_ob;
     sel_op_ob <= sel_top_master[2];
     wr_op_ob <= wr_top_master;
@@ -172,7 +174,7 @@ end
     ready[2] <= ready_op_ob;
     valid <= valid_op_ob;
 end
-4'b101: begin
+4'b101: begin  //OP_TAILBLOCK
     dout_final <= dout_op_tb;
     sel_op_tb <= sel_top_master[3];
     wr_op_tb <= wr_top_master;

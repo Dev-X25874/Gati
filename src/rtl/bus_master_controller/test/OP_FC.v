@@ -9,7 +9,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg valid = 0,
+                output valid,
                 output reg ready = 0,
                 output reg [3:0] opcode = 0,
                 output reg [15:0] weightrows = 0,
@@ -21,7 +21,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [19:0] imagedim = 0,
                 output reg [31:0] imageendaddr = 0,
                 output reg [31:0] FCbias = 0,
-                output reg [31:0] stop_addr = 0;
+                output reg [31:0] stop_addr = 0,
                 output reg [207:0] dout = 0
             );
 
@@ -38,7 +38,6 @@ always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-        valid <= 0;
         ready <= 0;
         opcode <= 0;
         weightrows <= 0;

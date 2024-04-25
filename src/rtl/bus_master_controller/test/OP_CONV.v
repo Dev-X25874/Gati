@@ -24,7 +24,7 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] INPUT_ADDRESS = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
-                output reg [31:0] stop_addr = 0;
+                output reg [31:0] stop_addr = 0,
                 output valid,
                 output reg ready = 0,
                 output reg [175:0] dout = 0

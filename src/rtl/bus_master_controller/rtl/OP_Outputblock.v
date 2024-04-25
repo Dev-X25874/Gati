@@ -9,7 +9,7 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg valid = 0,
+                output valid,
                 output reg ready = 0,
                 output reg [3:0] opcode = 0,
                 output reg [31:0] accumulantaddr = 0,
@@ -17,7 +17,6 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
                 output reg [15:0] imagedim = 0,
-                output reg [138:0] dout = 0,
                 output reg [31:0] stop_addr = 0
             );
 
@@ -26,8 +25,7 @@ reg [2:0] state = 0;
 reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
-parameter CONCAT = 3'b011;   
-parameter OUTPUT_CHECK = 3'b101;  
+parameter CONCAT = 3'b011; 
 assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
 
 
@@ -35,7 +33,6 @@ always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-        valid <= 0;
         ready <= 0;
         opcode <= 0;
         accumulantaddr <= 0;
@@ -72,13 +69,8 @@ always @(posedge clk) begin
             imagedim <= data_instruction[107:92];
             stop_addr <= data_instruction[139:108];
             //valid <= 1'b1;
-            state <= OUTPUT_CHECK;
+            state <= IDLE;
         end
-    end
-    OUTPUT_CHECK: begin
-        dout <= {stop_addr,imagedim,kernelItr,channelItr,outputaddr,accumulantaddr,opcode}; //this concates the different output signals for checking purpose
-        state <= IDLE;
-        //valid <= 1'b1;
     end
     endcase
 end

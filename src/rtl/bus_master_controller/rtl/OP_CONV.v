@@ -24,10 +24,9 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] INPUT_ADDRESS = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
-                output reg [31:0] stop_addr = 0;
+                output reg [31:0] stop_addr = 0,
                 output valid,
-                output reg ready = 0,
-                output reg [175:0] dout = 0
+                output reg ready = 0
             );
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -35,7 +34,6 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011;
-parameter OUTPUT_CHECK = 3'b101;
 assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals
 
 always @(posedge clk) begin
@@ -95,13 +93,8 @@ always @(posedge clk) begin
             kernelItr <= data_instruction[134:123];
             stop_addr <= data_instruction[166:135];
            //valid <= 1'b1;
-            state <= OUTPUT_CHECK;
+            state <= IDLE;
         end
-    end
-    OUTPUT_CHECK: begin
-        dout <= {stop_addr,kernelItr, channelItr, INPUT_ADDRESS, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode}; //this concates the different output signals for checking purpose
-        //valid <= 1'b1;
-        state <= IDLE;
     end
     endcase
 end

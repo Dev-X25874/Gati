@@ -9,11 +9,11 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg [7:0] relu_clip = 0;
-                output reg [7:0] maxpool_threshold = 0;
-                output reg [31:0] stop_addr = 0;
+                output reg [7:0] relu_clip = 0,
+                output reg [7:0] maxpool_threshold = 0,
+                output reg [31:0] stop_addr = 0,
                 output reg ready = 0,
-                output reg valid = 0,
+                output valid,
                 output reg [3:0] opcode = 0,
                 output reg [9:0] BNchannels = 0,
                 output reg [31:0] BNaddress = 0,
@@ -25,8 +25,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [3:0] poolwidth = 0,
                 output reg [3:0] poolheight = 0,
                 output reg [3:0] poolstride = 0,
-                output reg [3:0] poolpadding = 0,
-                output reg [166:0] dout = 0
+                output reg [3:0] poolpadding = 0
         );
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
@@ -35,14 +34,12 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011; 
-parameter OUTPUT_CHECK = 3'b101;
 assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
 
 always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-        valid <= 0;
         ready <= 0;
         opcode <= 0;
         BNchannels <= 0;
@@ -93,13 +90,8 @@ always @(posedge clk) begin
             maxpool_threshold <= data_instruction[137:130];
             stop_addr <= data_instruction[169:138];
             //valid <= 1'b1;
-            state <= OUTPUT_CHECK;
+            state <= IDLE;
         end
-    end
-    OUTPUT_CHECK: begin
-        dout <= {stop_addr,maxpool_threshold,relu_clip,poolpadding,poolstride,poolheight,poolwidth,pooltype,quantshift,quantscale,acttype,BIASaddr,BNaddress,BNchannels,opcode};  //this concates the different output signals for checking purpose
-        state <= IDLE;
-        //valid <= 1'b1;
     end
     endcase
 end

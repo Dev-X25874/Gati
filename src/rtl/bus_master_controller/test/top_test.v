@@ -10,8 +10,8 @@ module top_test #(parameter OP_CODE_WIDTH = 4,
 wire [7:0] d_out;
 wire dout_valid;
 wire [(OP_CODE_WIDTH)-1 : 0] opcode;
-wire [(data_in)-1 : 0] dout_instruction_fifoin;
-wire [(data_in)-1 : 0] dout_instruction_fifoout;
+wire [(INPUT_WIDTH)-1 : 0] dout_instruction_fifoin;
+wire [(INPUT_WIDTH)-1 : 0] dout_instruction_fifoout;
 wire rd;
 wire empty;
 wire [179:0] dout_top_master_slave_fifoin;

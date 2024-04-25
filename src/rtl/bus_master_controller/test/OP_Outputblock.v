@@ -9,7 +9,7 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg valid = 0,
+                output valid,
                 output reg ready = 0,
                 output reg [3:0] opcode = 0,
                 output reg [31:0] accumulantaddr = 0,
@@ -34,7 +34,6 @@ always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-        valid <= 0;
         ready <= 0;
         opcode <= 0;
         accumulantaddr <= 0;

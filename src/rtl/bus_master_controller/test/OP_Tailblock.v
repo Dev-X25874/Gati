@@ -9,11 +9,11 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg [7:0] relu_clip = 0;
-                output reg [7:0] maxpool_threshold = 0;
-                output reg [31:0] stop_addr = 0;
+                output reg [7:0] relu_clip = 0,
+                output reg [7:0] maxpool_threshold = 0,
+                output reg [31:0] stop_addr = 0,
                 output reg ready = 0,
-                output reg valid = 0,
+                output valid,
                 output reg [3:0] opcode = 0,
                 output reg [9:0] BNchannels = 0,
                 output reg [31:0] BNaddress = 0,
@@ -42,7 +42,6 @@ always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-        valid <= 0;
         ready <= 0;
         opcode <= 0;
         BNchannels <= 0;

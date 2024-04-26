@@ -1,4 +1,6 @@
 module Top_mem_ctrl #(
+    parameter   TCo_C             = 100             ,
+    parameter   SYS_CLK_PERIOD    = 32'd100_000_000 , //System Clock Period
     parameter NUM_PORTS = 4,
     parameter NUM_QUEUE = 4,
     parameter DATA_WIDTH = 41,
@@ -18,6 +20,13 @@ module Top_mem_ctrl #(
 ) (
     input clk,
     input rst,
+    input   [ 1:0]  PllLocked ,
+    
+    //DDR Controner Control Signal
+    output      DdrCtrl_CFG_RST_N     ,     //(O)[Control]DDR Controner Reset(Low Active)     
+    output      DdrCtrl_CFG_SEQ_RST   ,    //(O)[Control]DDR Controner Sequencer Reset 
+    output      DdrCtrl_CFG_SEQ_START ,    //(O)[Control]DDR Controner Sequencer Start 
+    
     output [(NUM_PORTS*32)-1 : 0] o_addr,
     output [(NUM_PORTS*4)-1:0] o_BLEN ,
     output [(NUM_PORTS*4)-1:0] i_port_id,
@@ -59,8 +68,8 @@ module Top_mem_ctrl #(
     input   [      7:0] bid     , 
     input               bvalid  , 
     output              bready  ,
-    output [255:0] r_data_out_1
-   //output [255:0] r_data_out_2 
+    output [255:0] r_data_out_1 
+   // output [255:0] r_data_out_2 
  
 );
 
@@ -92,6 +101,7 @@ wire [BURST_LENGTH_WIDTH-1:0] o_burst_div;
 wire [PORT_ID_WIDTH-1:0] o_port_div;
 wire o_rw_div ;
 wire o_valid_req ;
+//reg [255:0] r_data_out_2 = 0  ;
 
 Top_test_data_ctrl # (
     .NUM_PORTS (NUM_PORTS) 
@@ -180,6 +190,83 @@ assign id_in = {4'b0, o_port_div} ;
 assign wr_start = o_rw_div & o_valid_req ;
 assign rd_start = !o_rw_div & o_valid_req ;
 wire [7:0] blen_wr ;
+
+///////////////////////////////////////////////////////////////////////////////////
+  reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter
+  reg [2:0] ResetShiftReg   = 3'h0  ; //Reset Shift Regist
+  wire      DdrResetCtrl            ; //DDR Controller Reset Control
+  
+  always @( posedge clk) if (&PllLocked)    
+  begin
+    PowerOnResetCnt <= # TCo_C PowerOnResetCnt + {7'h0,(~&PowerOnResetCnt)};
+  end
+  
+  always @( posedge clk)  
+  begin
+    ResetShiftReg[2] <= # TCo_C  ResetShiftReg[1] ;
+    ResetShiftReg[1] <= # TCo_C  ResetShiftReg[0] ;
+    ResetShiftReg[0] <= # TCo_C  (&PowerOnResetCnt) & (~DdrResetCtrl);
+  end    
+  
+  /////////////////////////////////////////////////////////
+  //DDR Reset  
+  wire  DDrCtrlReset  ;  //DDR Controner Reset(Low Active)  
+  wire  DdrSeqReset   ;  //DDR Controner Sequencer Reset    
+  wire  DDrSeqStart   ;  //DDR Controner Sequencer Start    
+  wire  DdrInitDone   ;  //DDR Initial Done status
+  
+  ddr_reset_sequencer 
+  # (
+      .FREQ (SYS_CLK_PERIOD / 1_000_000)
+    )
+  U0_DDR_Reset
+  (
+    .ddr_rstn_i         ( ResetShiftReg[2]      ), // main user DDR reset, active low
+    .clk                ( clk                ), // user clock
+    /* Connect these three signals to DDR reset interface */
+    .ddr_rstn           ( DdrCtrl_CFG_RST_N          ), // Master Reset
+    .ddr_cfg_seq_rst    ( DdrCtrl_CFG_SEQ_RST   ), // Sequencer Reset
+    .ddr_cfg_seq_start  ( DdrCtrl_CFG_SEQ_START ), // Sequencer Start
+    /* optional status monitor for user logic */
+    .ddr_init_done		  ( DdrInitDone           )  // Done status
+  );
+  
+  /////////////////////////////////////////////////////////
+  reg   [2:0] SysClkResetReg = 3'h0;    //System Clock Reset Register
+  
+  always @( posedge clk)  
+  begin
+    SysClkResetReg[2] <= # TCo_C  SysClkResetReg[1] ;
+    SysClkResetReg[1] <= # TCo_C  SysClkResetReg[0] ;
+    SysClkResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+  end
+    
+  wire    Reset_N  = SysClkResetReg[2]; //System Reset (Low Active)
+    
+  /////////////////////////////////////////////////////////
+  reg   [2:0] Axi0ResetReg = 3'h0;    //System Clock Reset Register
+  
+  always @( posedge clk)  
+  begin
+    Axi0ResetReg[2] <= # TCo_C  Axi0ResetReg[1] ;
+    Axi0ResetReg[1] <= # TCo_C  Axi0ResetReg[0] ;
+    Axi0ResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+  end
+    
+  wire    Axi0Rst_N  = Axi0ResetReg[2]; //System Reset (Low Active)
+    
+  /////////////////////////////////////////////////////////
+  reg   [2:0] Axi1ResetReg = 3'h0;    //System Clock Reset Register
+   
+  always @( posedge clk)  
+  begin
+    Axi1ResetReg[2] <= # TCo_C  Axi1ResetReg[1] ;
+    Axi1ResetReg[1] <= # TCo_C  Axi1ResetReg[0] ;
+    Axi1ResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+  end
+    
+  wire    Axi1Rst_N  = Axi1ResetReg[2]; //System Reset (Low Active)
+
 Top_Axi #(
     .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
     .AXI_BYTE_NUMBER (AXI_BYTE_NUMBER) ,                                  
@@ -188,7 +275,7 @@ Top_Axi #(
 )
 NATIVE_AXI_inst(  
     .SysClk (clk),
-    .rst(rst),
+    .rst(Reset_N),
     .RamRdStart (rd_start) ,
     .RamRdData (ram_data) ,
     .CfgRdAddr (o_addr_div) ,
@@ -229,10 +316,8 @@ NATIVE_AXI_inst(
 
 );
 
-//assign w_sel_1 = select_wr[0] |  select_wr[2];
-assign w_sel_1 = select_wr[0] ;
-//assign w_sel_2 = select_wr[1] | select_wr[3] ;
-assign w_sel_2 = select_wr[1] ;
+assign w_sel_1 = select_wr[0] |  select_wr[2];
+assign w_sel_2 = select_wr[1] | select_wr[3] ;
 wire w_sel_1  ;
 wire w_sel_2  ;
 Mem_ctrl_wr # (
@@ -245,9 +330,9 @@ Mem_ctrl_wr_1(
     .wready_w (wready),
     .wvalid_w (valid_ctrl_1),
     .wlast_w (last_ctrl_1),
-    .in_Addr (aaddr),
+    .in_Addr (o_addr_div),
     .wdata_out (wdata_ctrl_1),
-    .BLEN_w (alen)
+    .BLEN_w (blen_wr)
 ) ;
 
 Mem_ctrl_wr #(
@@ -260,9 +345,9 @@ Mem_ctrl_wr_2 (
     .wready_w (wready),
     .wvalid_w (valid_ctrl_2),
     .wlast_w (last_ctrl_2),
-    .in_Addr (aaddr),
+    .in_Addr (o_addr_div),
     .wdata_out (wdata_ctrl_2),
-    .BLEN_w (alen)
+    .BLEN_w (blen_wr)
  ) ;
  
  MUX_WR_SEL 
@@ -291,7 +376,6 @@ ID_MANAGER_inst(
     .clk (clk),
     .rst(rst),
     .aid ( aid ),
- //   .valid (o_valid_req),
     .valid (avalid),
     .atype (atype),
     .wready (wready),   ///// it is input in the ddr axi side so can i use the 
@@ -299,7 +383,7 @@ ID_MANAGER_inst(
     .wid (wid),       // Write controller ID
     .w_en_ack(w_en_ack) ,
     .select (select_wr),
-    .status_reg (),
+   // .status_reg (),
     .ack() 
 );
 
@@ -311,7 +395,8 @@ RD_ID_Manager
 ID_manager_rd_inst (
     .clk (clk),
     .rst (rst),
-    .valid (o_valid_req),
+    .valid (avalid),
+   // .valid (avalid),
     .id_rd_in (aid),
     .atype (atype),
     .rvalid (rvalid),
@@ -319,7 +404,7 @@ ID_manager_rd_inst (
     .rid (rid),
     .r_en_ack (r_en_ack),
     .select_rd (select_rd),
-    .status_rd_reg (),
+   // .status_rd_reg (),
     .ack_rd () 
 );
 
@@ -333,8 +418,8 @@ Mem_Rd_inst_1 (
     .rdata_in (ram_data),
     .rdata_out (r_data_out_1)
 ) ;         
-/*
-Mem_Rd_ctrl
+
+/*Mem_Rd_ctrl
 Mem_Rd_ctrl_inst2 (
     .clk (clk),
     .rst (rst),
@@ -343,9 +428,9 @@ Mem_Rd_ctrl_inst2 (
     .rlast_rd (rlast),
     .rdata_in (ram_data),
     .rdata_out (r_data_out_2)
-) ;
-*/
-always@(posedge clk) begin
+) ;*/
+
+always@(*) begin
     if(!rst) en_pin <= 1;
     else begin
         if(r_en!=0) en_pin <= 0;
@@ -353,4 +438,4 @@ always@(posedge clk) begin
     end
 
 end
-endmodule
+endmodule 

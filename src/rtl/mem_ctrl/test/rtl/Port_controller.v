@@ -2,7 +2,7 @@ module Port_controller #(
   parameter ADDR_SEGMENTS = 4,
   parameter PORT_ID_VALUE = 0
 )(
-  input              clk,          // Clock signal
+  input              clk,          // Clock signal  
   input              rst,          // Reset signal  
   input              valid,        // Valid signal
   input              last,         // Last signal  
@@ -71,8 +71,8 @@ module Port_controller #(
         end
         TRANSMIT_ADDRESS: begin 
           if (last) begin
-            o_valid <= 1'b0 ;
-            //combined_out <= {address_reg, burst_len_reg, port_id_reg, enable_rw_reg};
+             o_valid <= 1'b0;
+           //combined_out <= {address_reg, burst_len_reg, port_id_reg, enable_rw_reg};
             state <= WAIT_DATA ;
           end
         end 

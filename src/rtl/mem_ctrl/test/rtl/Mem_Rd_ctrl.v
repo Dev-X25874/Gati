@@ -17,7 +17,7 @@ localparam MEM_DATA = 2'b01;
 //localparam COUNT_BLEN = 2'b10;
 
 always @ (posedge clk) begin 
-    if (!rst) begin 
+    if (!rst) begin
         rdata_out <= 0 ;
         state <= IDLE ;
      //   count_rd_blen <= 0 ;

@@ -26,6 +26,7 @@ always @ (posedge clk) begin
     if (!rst) begin 
         wvalid_w <= 0;
         wlast_w <= 0 ;
+        addr <= 0 ;
         wdata_out <= 0 ;
         count_blen <= 0 ;
         state <= IDLE ;
@@ -64,7 +65,7 @@ always @ (posedge clk) begin
                 end
 
                 else begin 
-                    WriteEn <= 0;
+                    WriteEn <= WriteEn;
                     addr <= addr;
                     wvalid_w <= wvalid_w ;
                     wdata_out <= wdata_out ; 
@@ -114,3 +115,4 @@ localparam          ADW_C         =   AXI_DATA_WIDTH  ;
   assign  DdrWrData   = AddrData; //(O)[DdrWrDataGen]DDR Write Data
 
 endmodule 
+

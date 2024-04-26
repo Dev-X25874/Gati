@@ -11,7 +11,7 @@ module WR_ID_Manager #(
     input [7:0] wid, // Write controller ID
     output reg w_en_ack = 0 ,
     output reg [NUM_PORTS-1 :0] select = 0 ,
-    output reg [7:0] status_reg = 0 ,
+   // output reg [7:0] status_reg = 0 ,
     output reg ack = 0 
 );
 
@@ -28,7 +28,9 @@ reg [1:0] state = 0 ; // FSM state register
 always @(posedge clk) begin
     if (!rst) begin
         state <= IDLE;
-        status_reg <= 8'h00; 
+        select <= 4'b0000 ;
+     //   status_reg <= 8'h00; 
+        ack <= 0 ;
         w_en_ack <= 0 ;
         
     end 
@@ -40,28 +42,43 @@ always @(posedge clk) begin
                 if (valid && atype) begin
                     w_en_ack <= 0 ;
                     state <= STORE_ID;
+                     ack <= 0 ;
+                    select <= 4'b0000 ;
                 end
-                else 
+                else begin 
+                    w_en_ack <= 0 ;
                     state <= IDLE ;
+                end 
             end
             STORE_ID: begin
                 if (wready) begin
-                    w_en_ack <= 0 ;
-                    status_reg <= wid;
-                    state <= WAIT_WLAST;
+                    if ( wid == aid) begin 
+                       select <= 1<< wid ;
+                        w_en_ack <= 0 ;
+                         ack <= 1'b1 ;
+                       // status_reg <= wid;
+                        state <= WAIT_WLAST;
+                     end
                 end  
-                else  
+                else begin 
+                    select  <= select ;
+                    ack  <= 0 ;
                     state <= STORE_ID ;
+                end
             end
             
             WAIT_WLAST : begin 
                 if (wlast) begin 
-                        w_en_ack <= 1'b1 ;
-                        state <= IDLE ; 
+                    select  <= select ;
+                    ack <= 0 ;
+                    w_en_ack <= 1'b1 ;
+                    state <= IDLE ; 
                  end 
              
                 
-                else begin 
+                else begin
+                    select  <= select ;
+                    ack <= 0 ;
                     w_en_ack <= 0 ;
                     state <= WAIT_WLAST ;
                 end
@@ -70,24 +87,4 @@ always @(posedge clk) begin
     end
 end    
  
-always @ (posedge clk) begin 
-        if (!rst) begin 
-            select <= 4'b0000 ;
-            ack <= 0 ;
-        end 
-        
-        else  begin
-            if (( status_reg == aid)  && (wready == 1)) begin 
-                select <= 1<<status_reg ;
-              //  status_reg <= wid ;
-                ack <= 1'b1 ;
-            end 
-            
-            else begin
-                select <= 0 ;
-                ack <= ack ; 
-            end 
-       end     
-    end
-
 endmodule

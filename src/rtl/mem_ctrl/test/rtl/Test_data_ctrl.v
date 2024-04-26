@@ -9,10 +9,10 @@ module Test_data_ctrl (
 );
 
 reg [1:0] state = 2'b00;
-reg [36:0] mem [5:0];
+reg [36:0] mem [4:0];
 reg [2:0] count_addr = 0;
 reg [2:0] count_data = 0;
-reg [31:0] r_addr;
+reg [31:0] r_addr = 0;
 reg [7:0] temp_r_addr_1 = 0;
 
 localparam IDLE = 2'b00;
@@ -20,10 +20,10 @@ localparam DIVIDE_DATA = 2'b01;
 localparam COUNT_DATA = 2'b10;
 localparam STOP = 2'b11;
 
-assign addr = temp_r_addr_1;
+assign addr = temp_r_addr_1 ;
 
 initial begin
-    $readmemh("/home/prapti/Efinity_Project/round_robin_ARB/Data.mem", mem);
+    $readmemb("/home/prapti/Efinity_Project/round_robin_ARB/Data.mem", mem);
 end
 
 always @(posedge clk ) begin
@@ -40,18 +40,23 @@ always @(posedge clk ) begin
             end
             DIVIDE_DATA: begin
                 last <= 0;
-                valid <= 1'b1;
                 blen_in <= mem[count_data][35:32];
-                r_w_en <= mem[count_data][36:35];
-                r_addr <= mem[count_data][31:0];
-                if (count_addr < 4) begin
+                r_w_en <= mem[count_data][36];
+                r_addr = mem[count_data][31:0];
+                if (count_addr == 3) begin
                     temp_r_addr_1 <= r_addr[8*(4-count_addr)-1 -: 8];
-                    count_addr <= count_addr + 1;
-                end else begin
-                    state <= COUNT_DATA;
-                    valid <= 0;
-                    last <= 1;
                     count_addr <= 0;
+                    valid  <= 1'b0 ;
+                    state <= COUNT_DATA;
+                    last  <= 1'b1 ;
+                end 
+                else begin
+                    temp_r_addr_1 <= r_addr[8*(4-count_addr)-1 -: 8];
+                    valid <= 1'b1;
+                    last <= 1'b0 ;
+                    count_addr  <= count_addr + 1 ;
+                    state <= DIVIDE_DATA;
+                    
                 end
             end
             COUNT_DATA: begin
@@ -60,6 +65,7 @@ always @(posedge clk ) begin
                     state <= IDLE;
                     last <= 0;
                 end else begin
+                    count_data <= 0;
                     state <= STOP;
                 end
             end
@@ -73,7 +79,5 @@ always @(posedge clk ) begin
         endcase
     end
 end
-
-endmodule
 
 

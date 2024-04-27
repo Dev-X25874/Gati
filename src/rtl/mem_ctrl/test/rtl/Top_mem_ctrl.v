@@ -275,7 +275,7 @@ Top_Axi #(
 )
 NATIVE_AXI_inst(  
     .SysClk (clk),
-    .rst(Reset_N),
+    .rst(Axi0Rst_N),
     .RamRdStart (rd_start) ,
     .RamRdData (ram_data) ,
     .CfgRdAddr (o_addr_div) ,

@@ -39,25 +39,23 @@ always @(posedge clk ) begin
                 state <= DIVIDE_DATA;
             end
             DIVIDE_DATA: begin
-               last <= 0;
+               valid <= 1'b1 ;
+                last <= 0;
                 blen_in <= mem[count_data][35:32];
                 r_w_en <= mem[count_data][36];
                 r_addr = mem[count_data][31:0];
-                if (count_addr == 3) begin
-                    temp_r_addr_1 <= r_addr[8*(4-count_addr)-1 -: 8];
-                    count_addr <= 0;
-                    valid  <= 1'b0 ;
-                    state <= COUNT_DATA;
-                    last  <= 1'b1 ;
+                if (count_addr < 4) begin 
+                    state <= DIVIDE_DATA ;
+                    temp_r_addr_1 <= r_addr [8*(4-count_addr)-1 -: 8];
+                    count_addr <= count_addr + 1 ;
                 end 
-                else begin
-                    temp_r_addr_1 <= r_addr[8*(4-count_addr)-1 -: 8];
-                    valid <= 1'b1;
-                    last <= 1'b0 ;
-                    count_addr  <= count_addr + 1 ;
-                    state <= DIVIDE_DATA;
-                    
-                end
+                
+                else begin 
+                    state <= COUNT_DATA ;
+                    valid <= 0 ;
+                    last <= 1'b1 ;
+                    count_addr <= 0 ;
+                end 
             end
             COUNT_DATA: begin
                 if (count_data < 5) begin

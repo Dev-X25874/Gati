@@ -22,9 +22,10 @@
         <efx:design_file name="rtl/Axi4FullDeplex.v" version="default" library="default"/>
         <efx:design_file name="rtl/RD_ID_Manager.v" version="default" library="default"/>
         <efx:design_file name="rtl/Test_data_ctrl_2.v" version="default" library="default"/>
-        <efx:design_file name="rtl/ Test_data_ctrl_3 .v" version="default" library="default"/>
+        <efx:design_file name="rtl/Test_data_ctrl_3.v" version="default" library="default"/>
         <efx:design_file name="rtl/Test_data_ctrl.v" version="default" library="default"/>
         <efx:design_file name="rtl/Top_Axi.v" version="default" library="default"/>
+         <efx:design_file name="rtl/MUX_WR_SEL.v" version="default" library="default"/>
         <efx:design_file name="rtl/Mem_Rd_ctrl.v" version="default" library="default"/>
          <efx:design_file name="rtl/Mem_ctrl_wr.v" version="default" library="default"/>
         <efx:design_file name="rtl/Test_data_ctrl_1.v" version="default" library="default"/>

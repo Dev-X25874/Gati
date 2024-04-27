@@ -6,17 +6,21 @@ parameter  ABN_C               = AXI_BYTE_NUMBER
 ) (  
 input  SysClk,
 input  rst,
-//input  ATYPE,
 input  RamRdStart ,
-output [31:0] RamRdAddr ,
-output RamRdALoad ,
+//output [31:0] RamRdAddr ,
+//output RamRdALoad ,
+
+input w_ctrl_last,
+input w_ctrl_valid ,
 output [ADW_C-1:0] RamRdData ,
 input  [31:0] CfgRdAddr ,
-input  [7:0] CfgBLen,
+input  [7:0] CfgRdBLen,
 input  RamWrStart,
-output [31:0] RamWrAddr,
+input [7:0] axi_wr_id ,
+input [7:0] axi_rd_id ,
+//output [31:0] RamWrAddr,
 input  [ADW_C-1 : 0] RamWrData ,
-output RamWrALoad,
+//output RamWrALoad,
 input  [31:0] CfgWrAddr ,
 input  [7:0] CfgWrBlen,
 output  [      7:0] aid     ,
@@ -49,7 +53,8 @@ output              bready
 wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;
 wire [31:0] AWADDR, WSTRB , ARADDR ;
 wire [2:0] AWSIZE, ARSIZE ;
-wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK ;
+wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;
+wire [255:0] WDATA, RDATA ;
 wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;
 
 
@@ -62,7 +67,7 @@ AxiFull_inst(
    //Axi Slave Interfac Signal
   .AWID (AWID)     , //(I)[WrAddr]Write address ID.
   .AWADDR (AWADDR)    , //(I)[WrAddr]Write address.
-  .AWLEN (AWLWN)     , //(I)[WrAddr]Burst length.
+  .AWLEN (AWLEN)     , //(I)[WrAddr]Burst length.
   .AWSIZE (AWSIZE)    , //(I)[WrAddr]Burst size.
   .AWBURST (AWBURST)   , //(I)[WrAddr]Burst type.
   .AWLOCK (AWLOCK)    , //(I)[WrAddr]Lock type.
@@ -136,16 +141,20 @@ Wr_ctrl_inst(
   
   //config AXI&DDR Operate Parameter
   .CfgWrAddr (CfgWrAddr)   , //(I)Config Write Start Address
-  .CfgWrBLen (CfgWrBLen)  , //(I)Config Write Burst Length
+  .CfgWrBLen (CfgWrBlen)  , //(I)Config Write Burst Length
+  .axi_wr_id (axi_wr_id),
+  .w_ctrl_valid (w_ctrl_valid) ,
+  .w_ctrl_last (w_ctrl_last) ,
+  
   
   //Operate Control & State
   .RamWrStart (RamWrStart)  , //(I)Ram Operate Start
   //RamWrEnd    , //(O)Ram Operate End
-  .RamWrAddr (RamWrAddr)  , //(O)Ram Write Address
+ // .RamWrAddr (RamWrAddr)  , //(O)Ram Write Address
   //RamWrNext   , //(O)Ram Write Next
   .RamWrData (RamWrData)   , //(I)Ram Write Data
   //RamWrBusy   , //(O)Ram Write Busy
-  .RamWrALoad (RamWrALoad)  , //(O)Ram Write Address Load
+ // .RamWrALoad (RamWrALoad)  , //(O)Ram Write Address Load
   
   //Axi Slave Interfac Signal
   .AWID (AWID)        , //(O)[WrAddr]Write address ID.
@@ -170,22 +179,22 @@ Wr_ctrl_inst(
 );
 
 
-RdCtrl
-RdCtrl_inst(
+Rd_ctrl
+Rd_ctrl_inst(
   //System Signal
   .SysClk (SysClk)      , //System Clock
   .Reset_N (rst)     , //System Reset
-  .DataRdEnd ()  ,
-  .DataRdBusy ()  ,
-  
+//  .DataRdEnd ()  ,
+//  .DataRdBusy ()  ,
+  .axi_rd_id (axi_rd_id),
   //Operate Control & State
   .RamRdStart (RamRdStart)  , //(I)Ram Read Start
  // RamRdEnd    , //(O)Ram Read End
-  .RamRdAddr (RamRdAddr)  , //(O)Ram Read Addrdss
+ // .RamRdAddr (RamRdAddr)  , //(O)Ram Read Addrdss
   .RamRdData (RamRdData)   , //(O)Ram Read Data
  // RamRdDAva   , //(O)Ram Read Available
  // RamRdBusy   , //(O)Ram Read Busy
-  .RamRdALoad (RamRdALoad)  , //(O)Ram Read Address Load
+ // .RamRdALoad (RamRdALoad)  , //(O)Ram Read Address Load
   
   //Config DDR & AXI Operate Parameter
   .CfgRdAddr (CfgRdAddr)   , //(I)Config Read Start Address

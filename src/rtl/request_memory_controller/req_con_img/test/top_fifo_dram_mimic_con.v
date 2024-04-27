@@ -1,4 +1,4 @@
-module top_fifo_dram_mimic_con #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
+module top_fifo_dram_mimic_con #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
     input valid_in, //[$clog2(AXI_DATA_BYTES) : 0] burst_length,
     input clk,
     output fifo_status

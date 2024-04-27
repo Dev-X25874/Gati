@@ -1,4 +1,4 @@
-module top_test #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
+module top_test #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
     input din,
     input clk,
     input rst,
@@ -38,7 +38,7 @@ rx rx(
     .valid(rx_valid)
 );
 
-controller_concate #(.BURST_LENGTH(15)) controller_concate(
+controller_concate controller_concate(
     .din(d_out),
     .rx_valid(rx_valid),
     .start_addr(start_addr_fifo_in),
@@ -90,13 +90,14 @@ fifo_valid #(.DATA_WIDTH(32), .ADDR_WIDTH(5)) fifo_valid_stop_addr(
     .data_valid()
 );
 
-top_fifo_dram_mimic_con #(.BURST_LENGTH(15)) top_fifo_dram_mimic_con(
-    .valid_in(valid),
+controller_fifo_status controller_fifo_status(
+    .start(config_start_con),
     .clk(clk),
+    .rx_valid(rx_valid),
     .fifo_status(fifo_status_con)
 );
 
-request_controller_img #(.BURST_LENGTH(15)) request_controller_im2col(
+request_controller_img request_controller_im2col(
     .start_addr(start_addr_fifo_out),
     .channelitr(),
     .kernelitr(kernelitr_fifo_out),
@@ -107,6 +108,7 @@ request_controller_img #(.BURST_LENGTH(15)) request_controller_im2col(
     .addr_out(addr_out_con),
     .wr_enable(),
     .valid(valid),
+    .last(),
     .burst_length(burst_length_con)
 );
 

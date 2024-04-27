@@ -12,7 +12,34 @@ always @ (posedge clk) begin
     case(state)
     0: begin
         dv_tx <= 0;
+        re <= 0;
+        state <= 1;
+    end
+    1: begin
         if(~empty) begin
+            re <= 1;
+            state <= 2;
+        end
+        else begin
+            re <= 0;
+            state <= 1;
+        end
+    end
+    2: begin
+        re <= 0;
+        state <= 3;
+    end
+    3: begin
+        if(done) begin
+            dv_tx <= 1;
+            state <= 0;
+        end
+        else begin
+            dv_tx <= 0;
+            state <= 3;
+        end
+    end
+        /*if(~empty) begin
             re <= 1;
             state <= 1;
         end
@@ -35,7 +62,7 @@ always @ (posedge clk) begin
             dv_tx <= 0;
             state <= 2;
         end
-    end
+    end*/
     endcase
 end
 

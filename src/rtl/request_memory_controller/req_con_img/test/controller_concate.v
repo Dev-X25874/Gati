@@ -1,4 +1,4 @@
-module controller_concate #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
+module controller_concate #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32, parameter STP_ADDR = 1000) (
     input [7:0] din,
     input rx_valid,
     input clk,
@@ -31,39 +31,65 @@ always @(posedge clk) begin
         state <= 1;
     end
     1: begin
-        if(rx_valid)  begin
-            config_start <= din[0];
-            state <= 2;
-        end
-        else begin
-            config_start <= 0;
-            state <= 1;
-        end
-    end
-    2: begin
         if(rx_valid) begin
             if(count_start_addr < 3) begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= count_start_addr + 1;
                 valid_start_addr <= 0;
                 enable <= 0;
-                state <= 2;
+                state <= 1;
             end
             else begin
                 start_addr[32-(count_start_addr*8)-1 -:8] <= din;
                 count_start_addr <= 0;
                 valid_start_addr <= 1;
                 enable <= 1;
-                state <= 3;
+                state <= 2;
             end
         end
         else begin
             start_addr <= start_addr;
             count_start_addr <= count_start_addr;
-            state <= 2;
+            state <= 1;
             enable <= 0;
             valid_start_addr <= 0;
         end
+    end
+    2: begin
+        if(rx_valid) begin
+            if(enable) begin
+                stop_addr <= ((start_addr + (((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)) * 15)));
+                valid_stop_addr <= 1;
+                state <= 3;
+            end
+            else begin
+               stop_addr <= 0; 
+               state <= 2;
+            end
+        end
+        else begin
+            stop_addr <= stop_addr;
+            state <= 2;
+        end
+            /*if(count_stp_addr < 3) begin
+                stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
+                count_stp_addr <= count_stp_addr + 1;
+                valid_stop_addr <= 0;
+                state <= 4;
+            end
+            else begin
+                stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
+                count_stp_addr <= 0;
+                valid_stop_addr <= 1;
+                state <= 5;
+            end
+        end
+        else begin
+            stop_addr <= stop_addr;
+            count_stp_addr <= count_stp_addr;
+            state <= 4;
+            valid_stop_addr <= 0;
+        end*/
     end
     3: begin
         if(rx_valid) begin
@@ -88,48 +114,29 @@ always @(posedge clk) begin
         end
     end
     4: begin
-        if(rx_valid) begin
-            if(enable) begin
-                stop_addr <= ((start_addr + (((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)) * 15)));
-                state <= 5;
-            end
-            else begin
-               stop_addr <= 0; 
-               state <= 4;
-            end
+        if(rx_valid)  begin
+            config_start <= din[0];
+            state <= 5;
         end
         else begin
-            stop_addr <= stop_addr;
+            config_start <= 0;
             state <= 4;
         end
-            /*if(count_stp_addr < 3) begin
-                stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
-                count_stp_addr <= count_stp_addr + 1;
-                valid_stop_addr <= 0;
-                state <= 4;
-            end
-            else begin
-                stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
-                count_stp_addr <= 0;
-                valid_stop_addr <= 1;
-                state <= 5;
-            end
-        end
-        else begin
-            stop_addr <= stop_addr;
-            count_stp_addr <= count_stp_addr;
-            state <= 4;
-            valid_stop_addr <= 0;
-        end*/
     end
     5: begin
         if(rx_valid) begin
-            stop_addr <= stop_addr;
-            valid_stop_addr <= 1;
-            count_stp_addr <= 0;
+            config_start <= 0;
             state <= 0;
         end
     end
+    // 5: begin
+    //     if(rx_valid) begin
+    //         stop_addr <= stop_addr;
+    //         valid_stop_addr <= 1;
+    //         count_stp_addr <= 0;
+    //         state <= 0;
+    //     end
+    // end
     endcase
 end
 

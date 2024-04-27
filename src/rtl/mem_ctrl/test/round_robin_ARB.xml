@@ -28,8 +28,6 @@
         <efx:design_file name="rtl/Mem_Rd_ctrl.v" version="default" library="default"/>
          <efx:design_file name="rtl/Mem_ctrl_wr.v" version="default" library="default"/>
         <efx:design_file name="rtl/Test_data_ctrl_1.v" version="default" library="default"/>
-        <efx:design_file name="rtl/ Test_data_ctrl_3.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Test_data_ctrl_3.v" version="default" library="default"/>
         <efx:design_file name="rtl/ddr_reset_sequencer.v" version="default" library="default"/>
         <efx:design_file name="rtl/Top_test_data_ctrl.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>

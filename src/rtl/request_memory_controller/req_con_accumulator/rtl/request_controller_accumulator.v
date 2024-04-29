@@ -8,6 +8,7 @@ module request_controller_accumulator #(parameter BURST_LENGTH = 10, parameter O
     output reg [7:0] addr_out  = 0,
     output reg wr_enable = 0,
     output reg valid = 0,
+    output reg last = 0,
     output [$clog2(AXI_DATA_BYTES) : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
@@ -28,6 +29,7 @@ always @(posedge clk) begin
             addr_out <= 0;
             wr_enable <= 0;
             valid <= 0;
+            last <= 0;
             if(config_start) begin
                 state <= FIFO_STATUS;
                 nxt_addr <= start_addr;
@@ -58,6 +60,7 @@ always @(posedge clk) begin
             else begin
                 addr_out <= nxt_addr[32-(count*8)-1 -:8];
                 wr_enable <= 0;
+                last <= 1;
                 valid <= 1;
                 r_burst_length <= r_burst_length;
                 state <= ADDR_ITR;
@@ -73,6 +76,7 @@ always @(posedge clk) begin
             // end
         end
         ADDR_ITR: begin
+            last <= 0;
             nxt_addr <= (nxt_addr + ((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)));
             if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to IDLE state.
                 state <= IDLE;  

@@ -71,8 +71,7 @@ always @(posedge clk) begin
     ADDR_ITR: begin
         last <= 0;
         nxt_addr <= (nxt_addr + ((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)));
-        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed
-            state <= IDLE;    
+        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed  
             state <= KERNEL_ITR; 
             addr_out <= 0;
             valid <= 0;  

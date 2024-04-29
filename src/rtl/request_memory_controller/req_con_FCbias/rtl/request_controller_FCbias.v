@@ -6,6 +6,7 @@ module request_controller_FCbias #(parameter BURST_LENGTH = 10, parameter OCCUPA
     input clk,
     output reg [7:0] addr_out  = 0,
     output reg wr_enable = 0,
+    output reg last = 0,
     output reg valid = 0,
     output [$clog2(AXI_DATA_BYTES) : 0] burst_length
 );
@@ -26,6 +27,7 @@ always @(posedge clk) begin
         addr_out <= 0;
         wr_enable <= 0;
         valid <= 0;
+        last <= 0;
         if(config_start) begin
             state <= FIFO_STATUS;
             nxt_addr <= start_addr;
@@ -56,6 +58,7 @@ always @(posedge clk) begin
             addr_out <= nxt_addr[32-(count*8)-1 -:8];
             wr_enable <= 0;
             valid <= 1;
+            last <= 1;
             r_burst_length <= r_burst_length;
             state <= ADDR_ITR;
             count <= 0;

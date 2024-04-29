@@ -283,10 +283,10 @@ module  Wr_ctrl
   /////////////////////////////////////////////////////////
   reg     BackReady = 1'h0; //(O)[WrResp]Response ready. This signal indicates that the master can accept a write response.
 
-  always @( posedge SysClk or negedge Reset_N)
+  always @( posedge SysClk )
   begin
     if (!Reset_N)           BackReady  <= # TCo_C 1'h0;
-    else if (DataWrLast)    BackReady  <= # TCo_C 1'h1;
+    else if (w_ctrl_last)    BackReady  <= # TCo_C 1'h1;
     else if (BackValid)     BackReady  <= # TCo_C 1'h0;
   end
 

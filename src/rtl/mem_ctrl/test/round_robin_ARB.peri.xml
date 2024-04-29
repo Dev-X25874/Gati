@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efxpt:design_db name="round_robin_ARB" device_def="T120F324" location="/home/prapti/Efinity_Project/round_robin_ARB" version="2023.2.307" db_version="20232999" last_change_date="Fri Apr 19 19:02:48 2024" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
+<efxpt:design_db name="round_robin_ARB" device_def="T120F324" location="/home/prapti/Gati/src/rtl/mem_ctrl/test" version="2023.2.307" db_version="20232999" last_change_date="Sat Apr 27 15:36:04 2024" xmlns:efxpt="http://www.efinixinc.com/peri_design_db" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/peri_design_db peri_design_db.xsd ">
     <efxpt:device_info>
         <efxpt:iobank_info>
             <efxpt:iobank name="1A" iostd="3.3 V LVTTL / LVCMOS"/>
@@ -36,11 +36,11 @@
         <efxpt:global_unused_config state="input with weak pullup"/>
     </efxpt:gpio_info>
     <efxpt:pll_info>
-        <efxpt:pll name="clk_in" pll_def="PLL_BR2" ref_clock_name="" ref_clock_freq="10.0000" multiplier="80" pre_divider="1" post_divider="1" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
+        <efxpt:pll name="clk_in" pll_def="PLL_BR2" ref_clock_name="" ref_clock_freq="10.0000" multiplier="80" pre_divider="1" post_divider="1" reset_name="" locked_name="PllLocked[1]" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:output_clock name="clk" number="0" out_divider="8" adv_out_phase_shift="0"/>
             <efxpt:adv_prop ref_clock_mode="external" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="" feedback_mode="internal"/>
         </efxpt:pll>
-        <efxpt:pll name="DdrPLL" pll_def="PLL_BR0" ref_clock_name="" ref_clock_freq="50.0000" multiplier="32" pre_divider="1" post_divider="4" reset_name="" locked_name="" is_ipfrz="false" is_bypass_lock="true">
+        <efxpt:pll name="DdrPLL" pll_def="PLL_BR0" ref_clock_name="" ref_clock_freq="50.0000" multiplier="32" pre_divider="1" post_divider="4" reset_name="" locked_name="PllLocked[0]" is_ipfrz="false" is_bypass_lock="true">
             <efxpt:output_clock name="Ddr_Clk" number="0" out_divider="1" adv_out_phase_shift="0"/>
             <efxpt:adv_prop ref_clock_mode="external" ref_clock1_name="" ext_ref_clock_id="2" clksel_name="" feedback_clock_name="" feedback_mode="internal"/>
         </efxpt:pll>
@@ -49,7 +49,7 @@
     <efxpt:mipi_info/>
     <efxpt:jtag_info/>
     <efxpt:ddr_info>
-        <efxpt:ddr name="DdrCtrl" ddr_def="DDR_0" cs_preset_id="" cs_mem_type="DDR3" cs_ctrl_width="x16" cs_dram_width="x16" cs_dram_density="4G" cs_speedbin="800D" target0_enable="true" target1_enable="false" ctrl_type="none" adv_density_en="false" cs_row_width="0" cs_col_width="0">
+        <efxpt:ddr name="DdrCtrl" ddr_def="DDR_0" cs_preset_id="" cs_mem_type="DDR3" cs_ctrl_width="x16" cs_dram_width="x16" cs_dram_density="4G" cs_speedbin="800D" target0_enable="true" target1_enable="false" ctrl_type="ena_user_rst" adv_density_en="false" cs_row_width="0" cs_col_width="0">
             <efxpt:gen_pin_target0>
                 <efxpt:pin name="clk" type_name="ACLK_0" is_bus="false" is_clk="true" is_clk_invert="false"/>
                 <efxpt:pin name="aready" type_name="AREADY_0" is_bus="false"/>
@@ -108,9 +108,9 @@
                 <efxpt:pin name="" type_name="CFG_SCL_IN" is_bus="false"/>
                 <efxpt:pin name="" type_name="CFG_SDA_IN" is_bus="false"/>
                 <efxpt:pin name="" type_name="CFG_SDA_OEN" is_bus="false"/>
-                <efxpt:pin name="" type_name="RSTN" is_bus="false"/>
-                <efxpt:pin name="" type_name="CFG_SEQ_RST" is_bus="false"/>
-                <efxpt:pin name="" type_name="CFG_SEQ_START" is_bus="false"/>
+                <efxpt:pin name="DdrCtrl_CFG_RST_N" type_name="RSTN" is_bus="false"/>
+                <efxpt:pin name="DdrCtrl_CFG_SEQ_RST" type_name="CFG_SEQ_RST" is_bus="false"/>
+                <efxpt:pin name="DdrCtrl_CFG_SEQ_START" type_name="CFG_SEQ_START" is_bus="false"/>
             </efxpt:gen_pin_config>
             <efxpt:cs_fpga>
                 <efxpt:param name="FPGA_ITERM" value="60" value_type="str"/>
@@ -132,13 +132,13 @@
                 <efxpt:param name="tWTR" value="7.500" value_type="float"/>
                 <efxpt:param name="tREFI" value="3.900" value_type="float"/>
                 <efxpt:param name="tRTP" value="7.500" value_type="float"/>
-                <efxpt:param name="tRC" value="52.5" value_type="float"/>
-                <efxpt:param name="tRP" value="15.0" value_type="float"/>
-                <efxpt:param name="tRRD" value="4.0" value_type="float"/>
+                <efxpt:param name="tRC" value="52.500" value_type="float"/>
+                <efxpt:param name="tRP" value="15.000" value_type="float"/>
+                <efxpt:param name="tRRD" value="4.000" value_type="float"/>
                 <efxpt:param name="tRFC" value="260.000" value_type="float"/>
-                <efxpt:param name="tRAS" value="37.5" value_type="float"/>
-                <efxpt:param name="tFAW" value="20.0" value_type="float"/>
-                <efxpt:param name="tRCD" value="15.0" value_type="float"/>
+                <efxpt:param name="tRAS" value="37.500" value_type="float"/>
+                <efxpt:param name="tFAW" value="20.000" value_type="float"/>
+                <efxpt:param name="tRCD" value="15.000" value_type="float"/>
             </efxpt:cs_memory_timing>
             <efxpt:cs_control>
                 <efxpt:param name="EN_AUTO_PWR_DN" value="Off" value_type="str"/>

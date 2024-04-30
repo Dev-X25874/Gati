@@ -45,7 +45,23 @@ The testing procedure involves sending valid signals to the main design to trigg
 - for image
 - for weights
 
-![image](https://github.com/vicharak-in/Gati/assets/114066925/52254bb8-0e28-49dd-9a41-8051f4d14e0b)
+## Waveforms:
 
-![image](https://github.com/vicharak-in/Gati/assets/114066925/9f34a130-4412-4351-a35b-cf48affaff55)
+![image](https://github.com/vicharak-in/Gati/assets/114066925/bbddfd37-665e-42fc-893a-0df19a9a38f1)
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/27551a07-40f8-4ddf-a051-3524a7082438)
+
+
+## Diagrams:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/dc75240d-7c92-4a07-827a-7f879db75535)
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/626cfa8b-8d3a-43e8-8c5c-11ed193c72b4)
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/c4a71a3f-3ade-4f24-aa43-06fea44f3889)
+
+
+
+
+
 

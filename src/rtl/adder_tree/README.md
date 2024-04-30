@@ -41,8 +41,12 @@ The testing design includes several modules to verify the functionality of the a
 
 7. **UART Transmission**: The UART transmitter sends the transmitted data for verification via another controller. This controller reads from the final singular FIFO at every done bit of the transmitter, breaks the 20 bits of output into 3 packets of 1 byte, each. The data can be monitored and analyzed to ensure that the adder tree block operates correctly and produces the expected results.
 ![image](https://github.com/vicharak-in/Gati/assets/114066925/8912ac87-cdde-42d3-8704-78f24c900898)
-![image](https://github.com/vicharak-in/Gati/assets/114066925/ea77e9ad-f15b-4585-a650-0589ff829ef0)
 
 ## Conclusion
 
 The described testing design verifies the functionality of the adder tree block by processing input data through 8 instances of the main design and transmitting the final results for verification.
+
+## Diagram:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/c18fc234-a41a-4576-9a83-d902bb84a961)
+

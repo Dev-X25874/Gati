@@ -46,3 +46,8 @@ This repository presents a custom hardware design for a maxpooling operation imp
 
 -Takes 1 byte of data at a time from each FIFO.
 -Conducts the maxpool operation and outputs the maximum of the two values.
+
+## Diagram:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/6bee16d8-f998-4206-ba3a-170ebfdcb368)
+

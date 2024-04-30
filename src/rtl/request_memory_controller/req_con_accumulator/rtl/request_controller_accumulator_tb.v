@@ -50,9 +50,9 @@ always #5  clk = ~clk ;
 initial begin
     $dumpfile("req_con_accumulator.vcd");
     $dumpvars(0,request_controller_accumulator_tb);
-    fifo_status = 1;
-    config_start = 1;
     enable = 1;
+    config_start = 1;
+    fifo_status = 1;
     start_addr = 32'h0000_0000;
     stop_addr = 32'h0000_1F96;
     #1000;

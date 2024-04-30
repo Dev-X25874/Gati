@@ -6,9 +6,6 @@ This block contains modules for Shift Register implementation and testing.
 
 The main shift register design is composed of a multiplexer (mux) and a register, instantiated four times to form a complete shift register module. The mux features a select line determining whether the output is an intermediate result (32 bits) or a quantized result (8 bits). In the case of a quantized result, where the input is 8 bits, data is transferred from one mux and register block to the next while new 8-bit data enters the initial block. The final 32-bit result is received from the shift register block. For intermediate results, the 32-bit input is divided into 8-bit segments, distributed among the four mux and register blocks, with a 32-bit output provided from the shift register block.
 
-![image](https://github.com/vicharak-in/Gati/assets/114066925/4bd25293-26d1-4ac7-9325-8cfdb6a30e06)
-
-
 ## For testing
 
 Modules for testing:
@@ -37,3 +34,12 @@ Following the main design, this controller sequentially reads data from the seco
 ### UART Transmitter Interface and controller fifo tx
 
 The controller FIFO TX module receives 32-bit data from the singular FIFO, dividing it into 8-bit chunks. These chunks are then transferred sequentially to the UART transmitter upon receiving a done bit from uart transmitter, the uart transmitter transmits the 8 bits of data serially.
+
+## Waveform:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/4bd25293-26d1-4ac7-9325-8cfdb6a30e06)
+
+## Diagram:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/f7fd3503-a61e-40ed-9e7b-e99030665209)
+

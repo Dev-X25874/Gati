@@ -44,6 +44,12 @@ For comprehensive on-board testing, additional modules are integrated into the s
 
 5. **TX**: The transmission module responsible for outbound data transmission to external devices or systems.
 
+## Waveform:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/bc1578ab-b00a-46d8-8d81-f793d53c8017)
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/494aa2f8-d73e-469c-b9ea-626dfc7e89eb)
+
 ## Diagram:
 
 ![image](https://github.com/vicharak-in/Gati/assets/114066925/9b6a4fc6-0b7b-41db-8133-d5d72197e386)

@@ -50,7 +50,7 @@ module demux1(
   end 
 
  // always @(posedge rx_valid)
-  always @(posedge datavalid)
+  always @(*)
   begin
   // temp <= a;  //the first input from the previous block gets assigned to a reg, hence waiting for the second input because the next module is maxpool. Maxpooling requires two input at the same time.
   // c <= temp;

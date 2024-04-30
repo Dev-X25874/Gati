@@ -92,7 +92,7 @@ demux1 dut0(
 
 maxpool dut1(
   .clk(clk),
-  .datavalid(demux1_o2[8]), 
+  .datavalid(demux1_o1[8]), 
   .dina(demux1_o1[7:0]),
   .dinb(demux1_o2[7:0]),
   .temp(maxpool_o)

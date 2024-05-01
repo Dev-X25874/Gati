@@ -47,7 +47,7 @@ always @(posedge clk) begin
         //end
     end
     DATA: begin
-        if(count1 <= 20) begin
+        if(count1 <= 28) begin
             if(rx_valid) begin
                 d_out <= d_in;
                 datavalid <= 1'b1;

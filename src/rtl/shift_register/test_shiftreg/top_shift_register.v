@@ -1,4 +1,4 @@
-module top_gen #(parameter no_of_blocks = 4) (
+module top_gen_shift_register #(parameter no_of_blocks = 4) (
     input [31:0] intermediate_result,
     input [7:0] quantized_result_in,
     input sel,
@@ -16,7 +16,7 @@ assign valid_out_final = &(valid_out);
 generate
     for(i = 0; i < no_of_blocks; i = i + 1) begin
         if(i == 0) begin
-            top top(
+            top_shift_register top_shift_register(
                 .intermediate_result(intermediate_result[31:24]),
                 .quantized_result(quantized_result_in),
                 .sel(sel),
@@ -28,7 +28,7 @@ generate
             );
         end
         else begin
-        top top(
+            top_shift_register top_shift_register(
             .intermediate_result(intermediate_result[(((no_of_blocks-i)*8)-1) -: 8]),
             .quantized_result(data_out[((no_of_blocks-(i-1))*8)-1 -: 8]),
             .sel(sel),
@@ -45,7 +45,7 @@ endgenerate
 endmodule
 
 
-module top(
+module top_shift_register(
     input [7:0] intermediate_result,
     input [7:0] quantized_result,
     input sel,

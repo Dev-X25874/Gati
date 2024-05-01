@@ -1,6 +1,6 @@
 //this is the top module for testing 4 instances of shift register block along with the uart interface
 
-module top_for_shift_reg_gen #(parameter no_of_designs = 4, parameter N_FIFO = 4, parameter ADDR_WIDTH = 9) (
+module top_test #(parameter no_of_designs = 4, parameter N_FIFO = 4, parameter ADDR_WIDTH = 9) (
     input din,
     input clk,
     input rst,
@@ -61,7 +61,7 @@ rx rx(
     .sel(select_line)
 );*/
 
-controller_common_data controller_common_data(
+controller_for_intermediate_quantized_data controller_for_intermediate_quantized_data(
     .clk(clk),
     .din(d_out),
     .rx_valid(rx_valid),
@@ -71,7 +71,7 @@ controller_common_data controller_common_data(
     .valid_out(valid_con)
 );
 
-controller_gen_rd_wn con_rd_wn(
+controller_wr_enable controller_wr_enable(
     .i_clk(clk),
     .i_rx_valid(valid_con),
     .i_fifo_empty(empty),
@@ -80,7 +80,7 @@ controller_gen_rd_wn con_rd_wn(
     .o_fifo_rden(rn)
 );
 
-top_fifo_gen_con top_fifo_gen_con_int(
+top_fifo_gen_controller top_fifo_gen_con_int(
     .clk(clk),
     .rst_n(rst),
     .we(wr1),
@@ -95,7 +95,7 @@ top_fifo_gen_con top_fifo_gen_con_int(
 
 //this is to generate fifo arrays for storing in the 8 bits in order to test the main design; it mimics for quantized result input
 
-top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
+top_fifo_gen_controller #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .clk(clk),
     .rst_n(rst),
     .we(wr2),
@@ -108,7 +108,7 @@ top_fifo_gen_con #(.DATA_WIDTH(8)) top_fifo_gen_con_quan(
     .data_valid(valid_con_fifo_quan)
 );
 
-top_gen_main_des top_gen_main_des(
+generate_shift_register generate_shift_register(
     .intermediate_result(thirty_two_result_fifo),
     .quantized_result_in(eight_result_fifo),
     .sel(select_line),
@@ -119,7 +119,7 @@ top_gen_main_des top_gen_main_des(
     .data_out(fifo_in_gen)
 );
 
-top_fifo_gen top_fifo_gen_maindes(
+top_fifo_gen top_fifo_gen_shift_register(
     .clk(clk),
     .rst_n(rst),
     .we(we_gen),
@@ -132,7 +132,7 @@ top_fifo_gen top_fifo_gen_maindes(
     .data_valid()
 );
 
-controller_after_main_design_gen controller_after_main_design_gen(
+controller_tx controller_tx(
     .i_clk(clk),
     .i_data(data_out_fifo_gen),
     .i_fifo_empty(empty_flag),

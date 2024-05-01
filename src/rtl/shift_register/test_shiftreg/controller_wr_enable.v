@@ -1,7 +1,7 @@
 //this module to control the read and write enable of the 8 fifos generated. 
 //write enable of the fifos get high in the squential matter while read enable of all fifos get enabled at once.
 
-module controller_gen_rd_wn#(
+module controller_wr_enable #(
     parameter N_FIFO = 4, parameter DATA_WIDTH = 32, parameter ADDR_WIDTH = 9
 )(
     input i_clk,

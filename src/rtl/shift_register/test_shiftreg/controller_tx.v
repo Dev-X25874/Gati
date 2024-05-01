@@ -1,6 +1,6 @@
 //this module takes in inputs from 8 fifos and submit them into a singular fifo
 
-module controller_after_main_design_gen#(
+module controller_tx #(
     parameter COL = 8,
     parameter W_DATA = 20
 )(

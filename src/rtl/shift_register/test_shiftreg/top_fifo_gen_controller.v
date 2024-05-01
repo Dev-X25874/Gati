@@ -1,6 +1,6 @@
 //this is to generate fifo arrays for storing in the 32 bits in order to test the main design; it mimics for intermediate result input
 
-module top_fifo_gen_con #(parameter FIFO_NO = 4, 
+module top_fifo_gen_controller #(parameter FIFO_NO = 4, 
                     parameter DATA_WIDTH = 32, 
                     parameter ADDR_WIDTH = 9)
                     (

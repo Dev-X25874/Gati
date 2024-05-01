@@ -1,6 +1,6 @@
 //this block is to generate the main design 4 times, for testing purposes.
 
-module top_gen_main_des #(parameter no_of_designs = 4, parameter no_of_blocks = 4) (
+module generate_shift_register #(parameter no_of_designs = 4, parameter no_of_blocks = 4) (
     input [(no_of_designs * 32)-1 : 0] intermediate_result,
     input [(no_of_designs * 8)-1 : 0] quantized_result_in,
     input [(no_of_designs)-1 : 0] sel,
@@ -15,7 +15,7 @@ genvar i;
 
 generate 
     for(i = 0; i < no_of_designs; i = i + 1) begin
-        top_gen top_gen(
+        top_gen_shift_register top_gen_shift_register(
             .intermediate_result(intermediate_result[(((no_of_designs-i)*32)-1) -: 32]),
             .quantized_result_in(quantized_result_in[(((no_of_designs-i)*8)-1) -: 8]),
             .sel(sel[i]),

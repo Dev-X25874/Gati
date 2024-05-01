@@ -36,8 +36,14 @@ Following the main design, this controller sequentially reads data from the seco
 The controller FIFO TX module receives 32-bit data from the singular FIFO, dividing it into 8-bit chunks. These chunks are then transferred sequentially to the UART transmitter upon receiving a done bit from uart transmitter, the uart transmitter transmits the 8 bits of data serially.
 
 ## Waveform:
+#### Intermediate result: 
 
-![image](https://github.com/vicharak-in/Gati/assets/114066925/4bd25293-26d1-4ac7-9325-8cfdb6a30e06)
+![image](https://github.com/vicharak-in/Gati/assets/114066925/8edc0977-8703-4f69-8532-5e2f5f6975b1)
+
+#### Quantized result:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/a42bf92c-241d-47b2-834d-23859ca3ff69)
+
 
 ## Diagram:
 

@@ -43,7 +43,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _e0e49d35702a4a16b21f173caa4eb591
+`define IP_UUID _365551e2ae624c3bbdd00aa8dd7466fa
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module sync_fifo (
@@ -65,9 +65,9 @@ input a_rst_i
 .DATA_WIDTH (8),
 .MODE ("STANDARD"),
 .OUTPUT_REG (0),
-.PROG_FULL_ASSERT (512),
+.PROG_FULL_ASSERT (128),
 .PROGRAMMABLE_FULL ("STATIC_SINGLE"),
-.PROG_FULL_NEGATE (512),
+.PROG_FULL_NEGATE (128),
 .PROGRAMMABLE_EMPTY ("NONE"),
 .PROG_EMPTY_ASSERT (0),
 .PROG_EMPTY_NEGATE (2),

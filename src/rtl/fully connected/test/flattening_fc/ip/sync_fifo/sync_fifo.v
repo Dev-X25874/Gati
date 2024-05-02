@@ -43,12 +43,12 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-`define IP_UUID _e0e49d35702a4a16b21f173caa4eb591
+`define IP_UUID _365551e2ae624c3bbdd00aa8dd7466fa
 `define IP_NAME_CONCAT(a,b) a``b
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module sync_fifo#(
     parameter W_DATA = 8,
-    parameter W_ADDR = 10
+    parameter W_ADDR = 9
 )(
 output prog_full_o,
 output full_o,
@@ -69,15 +69,15 @@ output o_valid
 .DATA_WIDTH (W_DATA),
 .MODE ("STANDARD"),
 .OUTPUT_REG (0),
-.PROG_FULL_ASSERT (512),
+.PROG_FULL_ASSERT (128),
 .PROGRAMMABLE_FULL ("STATIC_SINGLE"),
-.PROG_FULL_NEGATE (512),
+.PROG_FULL_NEGATE (128),
 .PROGRAMMABLE_EMPTY ("NONE"),
 .PROG_EMPTY_ASSERT (0),
 .PROG_EMPTY_NEGATE (2),
 .OPTIONAL_FLAGS (0),
 .PIPELINE_REG (1),
-.DEPTH (1024),
+.DEPTH (1 << W_ADDR),
 .FAMILY ("TRION"),
 .ASYM_WIDTH_RATIO (4),
 .BYPASS_RESET_SYNC (0),

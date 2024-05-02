@@ -1,0 +1,726 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ADDR_WIDTH	memory_valid.v	/^parameter ADDR_WIDTH = 8;$/;"	c
+CLEANUP	uart_rx.v	/^		parameter CLEANUP = 3'b100;$/;"	c
+COL	acc_array.v	/^    parameter COL = 4,$/;"	c
+COL	booth_pe_grid.v	/^    parameter COL = 4,$/;"	c
+COL	col_fifo_data.v	/^    parameter COL = 3,$/;"	c
+COL	external_sa_output_ctrl.v	/^    parameter COL = 4,$/;"	c
+COL	external_west_rden.v	/^    parameter COL = 4$/;"	c
+COL	fifo_north.v	/^    parameter COL = 64,$/;"	c
+COL	fifo_south.v	/^    parameter COL = 3,$/;"	c
+COL	internal_north_rden.v	/^   parameter COL = 1,$/;"	c
+COL	internal_north_wren.v	/^    parameter COL = 3,$/;"	c
+COL	internal_north_wren_gen.v	/^    parameter COL = 4,$/;"	c
+COL	pe_grid.v	/^    parameter COL = 4,$/;"	c
+COL	rden_controller.v	/^    parameter COL = 4,$/;"	c
+COL	rem_dv_array.v	/^    parameter COL = 4,$/;"	c
+COL	sa_engine.v	/^    parameter COL = 4,$/;"	c
+DATA_WIDTH	controller_fifo_tx.v	/^    parameter DATA_WIDTH = 19,$/;"	c
+DATA_WIDTH	fifo_valid.v	/^            parameter DATA_WIDTH = 8,$/;"	c
+DATA_WIDTH	memory_valid.v	/^parameter DATA_WIDTH = 8;$/;"	c
+IDLE	uart_rx.v	/^		parameter IDLE = 3'b000;$/;"	c
+N_DIMENSION	append_dv.v	/^    parameter N_DIMENSION = 8,  \/\/number of rows or columns$/;"	c
+N_SA	abc.v	/^    parameter N_SA = 1,$/;"	c
+N_SA	acc_array.v	/^    parameter N_SA = 1$/;"	c
+N_SA	external_ff_rden_ctrl.v	/^    parameter N_SA = 2,$/;"	c
+N_SA	external_sa_input_ctrl.v	/^    parameter N_SA = 2,$/;"	c
+N_SA	external_sa_output_ctrl.v	/^    parameter N_SA = 4$/;"	c
+N_SA	external_west_rden.v	/^    parameter N_SA = 2,$/;"	c
+N_SA	fc_block.v	/^    parameter N_SA = 1,$/;"	c
+N_SA	mul_engines.v	/^    parameter N_SA = 1,$/;"	c
+N_SA	top.v	/^    parameter N_SA = 1,$/;"	c
+N_SA	tx_controller_gen.v	/^    parameter N_SA = 4,$/;"	c
+N_SA	wren.v	/^    parameter N_SA = 4$/;"	c
+RAM_DEPTH	abc.v	/^    parameter RAM_DEPTH = (1 << W_ADDR),$/;"	c
+RAM_DEPTH	fc_block.v	/^    parameter RAM_DEPTH = (1<<W_ADDR),$/;"	c
+RAM_DEPTH	fifo_north.v	/^    parameter RAM_DEPTH = (1 << W_ADDR)$/;"	c
+RAM_DEPTH	fifo_valid.v	/^            parameter RAM_DEPTH = (1 << ADDR_WIDTH)$/;"	c
+RAM_DEPTH	memory_valid.v	/^parameter RAM_DEPTH = (1 << ADDR_WIDTH);$/;"	c
+RAM_DEPTH	mul_engines.v	/^    parameter RAM_DEPTH = (1<<W_ADDR),$/;"	c
+RAM_DEPTH	sa_engine.v	/^    parameter RAM_DEPTH = (1 << W_ADDR),$/;"	c
+RAM_DEPTH	top.v	/^    parameter RAM_DEPTH = (1 << W_ADDR),$/;"	c
+ROW	abc.v	/^    parameter ROW = 1,$/;"	c
+ROW	booth_systolic_array.v	/^    parameter ROW = 9, $/;"	c
+ROW	external_ff_rden_ctrl.v	/^    parameter ROW = 9,$/;"	c
+ROW	fc_block.v	/^    parameter ROW = 1,$/;"	c
+ROW	fifo_west.v	/^    parameter ROW = 9,$/;"	c
+ROW	internal_west_rden.v	/^    parameter ROW = 9,$/;"	c
+ROW	internal_west_wren.v	/^    parameter ROW = 3,$/;"	c
+ROW	internal_west_wren_gen.v	/^    parameter ROW = 9,$/;"	c
+ROW	mul_engines.v	/^    parameter ROW = 1,$/;"	c
+ROW	systolic_array.v	/^    parameter ROW = 9, $/;"	c
+ROW	systolic_array.v	/^    parameter ROW = 9,$/;"	c
+ROW	top.v	/^    parameter ROW = 1,$/;"	c
+RX_DATA_BITS	uart_rx.v	/^		parameter RX_DATA_BITS = 3'b010;$/;"	c
+RX_START_BIT	uart_rx.v	/^		parameter RX_START_BIT = 3'b001;$/;"	c
+RX_STOP_BIT	uart_rx.v	/^		parameter RX_STOP_BIT = 3'b011;$/;"	c
+TOTAL_BYTES	booth_systolic_array.v	/^    parameter TOTAL_BYTES = ROW * COL,$/;"	c
+TOTAL_BYTES	systolic_array.v	/^    parameter TOTAL_BYTES = ROW * COL,$/;"	c
+W_ACC	accumulator.v	/^    parameter W_ACC = 32,    \/\/data width$/;"	c
+W_ACC	last_ff_ctrl.v	/^    parameter W_ACC = 32,$/;"	c
+W_ADDR	abc.v	/^    parameter W_ADDR = 8,$/;"	c
+W_ADDR	fc_block.v	/^    parameter W_ADDR = 8,$/;"	c
+W_ADDR	fifo_south.v	/^    parameter W_ADDR = 8,$/;"	c
+W_ADDR	fifo_west.v	/^    parameter W_ADDR = 8,$/;"	c
+W_ADDR	internal_north_rden.v	/^   parameter W_ADDR = 8,$/;"	c
+W_ADDR	internal_west_rden.v	/^    parameter W_ADDR = 8$/;"	c
+W_ADDR	mul_engines.v	/^    parameter W_ADDR = 8,$/;"	c
+W_ADDR	mul_fifo.v	/^    parameter W_ADDR = 8$/;"	c
+W_ADDR	top.v	/^    parameter W_ADDR = 8,$/;"	c
+W_DATA	booth_pe_block.v	/^	parameter W_DATA = 8, $/;"	c
+W_DATA	booth_pe_grid.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	data_valid_append.v	/^    parameter W_DATA = 8$/;"	c
+W_DATA	fifo_north.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	mul_fifo.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	mul_receiver.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	mul_transmitter.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	pe_grid.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	sa_engine.v	/^    parameter W_DATA = 8,$/;"	c
+W_DATA	systolic_array.v	/^    parameter W_DATA = 8$/;"	c
+W_DATA	tx_controller_gen.v	/^    parameter W_DATA = 8$/;"	c
+W_FC_CNT	abc.v	/^    parameter W_FC_CNT = 15$/;"	c
+W_FC_CNT	acc_array.v	/^    parameter W_FC_CNT = 15,$/;"	c
+W_FC_CNT	accumulator.v	/^    parameter W_FC_CNT = 15,$/;"	c
+W_FC_CNT	fc_block.v	/^    parameter W_FC_CNT = 15$/;"	c
+W_FC_CNT	mul_engines.v	/^    parameter W_FC_CNT = 15$/;"	c
+W_FC_CNT	rden_controller.v	/^    parameter W_FC_CNT = 15,$/;"	c
+W_FC_CNT	sa_engine.v	/^    parameter W_FC_CNT = 15$/;"	c
+W_FC_CNT	top.v	/^    parameter W_FC_CNT = 15$/;"	c
+W_PSUM	booth_systolic_array.v	/^    parameter W_PSUM = 19$/;"	c
+W_PSUM	pe_blocks.v	/^    parameter W_PSUM = 19,$/;"	c
+W_PSUM	rem_dv_array.v	/^    parameter W_PSUM = 19$/;"	c
+W_PSUM	sa_engine.v	/^    parameter W_PSUM = 19,$/;"	c
+W_PSUM	systolic_array.v	/^    parameter W_PSUM = 19$/;"	c
+a	one_cycle.v	/^    input a,$/;"	p
+abc	abc.v	/^module abc#($/;"	m
+acc_array	acc_array.v	/^module acc_array#($/;"	m
+acc_data	abc.v	/^wire [((COL * W_ACC) * N_SA)-1 : 0] acc_data;$/;"	n
+acc_data	top.v	/^wire [((COL * W_ACC) * N_SA)-1 : 0] acc_data;$/;"	n
+acc_dv	abc.v	/^wire [(COL * N_SA)-1 : 0] acc_dv;$/;"	n
+acc_dv	top.v	/^wire [(COL * N_SA)-1 : 0] acc_dv;$/;"	n
+acc_reg	accumulator.v	/^reg [31:0] acc_reg = 0;$/;"	r
+accumulator	accumulator.v	/^module accumulator#($/;"	m
+append_dv	append_dv.v	/^module append_dv#($/;"	m
+booth_bottom_pe_block	booth_pe_block.v	/^module booth_bottom_pe_block #(parameter W_DATA = 8, W_PSUM = 19) ($/;"	m
+booth_partial_product	booth_partial_product.v	/^module booth_partial_product(input  [2:0] opr,$/;"	m
+booth_pe_block	booth_pe_block.v	/^module booth_pe_block  #(parameter W_DATA = 8, W_PSUM = 19) ($/;"	m
+booth_pe_grid	booth_pe_grid.v	/^module booth_pe_grid#($/;"	m
+booth_systolic_array	booth_systolic_array.v	/^module booth_systolic_array #($/;"	m
+booth_top_pe_block	booth_pe_block.v	/^module booth_top_pe_block#($/;"	m
+bottom_pe_block	pe_blocks.v	/^module bottom_pe_block#($/;"	m
+clk	fifo_valid.v	/^input clk;$/;"	p
+clk	one_cycle.v	/^    input clk,$/;"	p
+clk	top_booth.v	/^	input clk,$/;"	p
+cnt	col_fifo_data.v	/^reg [($clog2(COL)): 0] cnt = 0;$/;"	r
+cnt	last_ff_ctrl.v	/^reg [$clog2(COL) : 0] cnt = 0;$/;"	r
+col_fifo_data	col_fifo_data.v	/^module col_fifo_data#($/;"	m
+controller_fifo_tx	controller_fifo_tx.v	/^module controller_fifo_tx #($/;"	m
+counter	accumulator.v	/^reg [W_FC_CNT-1 : 0] counter = 0;$/;"	r
+counter	internal_north_rden.v	/^reg [($clog2(COL * 32))-1 : 0] counter = 0;$/;"	r
+counter	internal_north_wren.v	/^reg [COL-1:0] counter = 0;$/;"	r
+counter	internal_west_wren.v	/^reg [ROW-1:0] counter = 0;$/;"	r
+counter	rden_controller.v	/^reg [$clog2(W_FC_CNT)-1 : 0] counter = 0;$/;"	r
+d	booth_partial_product.v	/^reg d=0;$/;"	r
+data	accumulator.v	/^reg [W_ACC-1 : 0] data = 0;$/;"	r
+data	col_fifo_data.v	/^reg [W_PSUM : 0] data = 0;$/;"	r
+data	external_sa_input_ctrl.v	/^reg [(N_SA * W_DATA)-1 : 0] data = 0;$/;"	r
+data	internal_north_wren.v	/^reg [COL-1:0] data = 0;$/;"	r
+data	internal_west_wren.v	/^reg [ROW-1:0] data = 0;$/;"	r
+data	last_ff_ctrl.v	/^reg [W_ACC-1 : 0] data = 0;$/;"	r
+data_in	fifo_valid.v	/^            data_in,$/;"	c
+data_in	fifo_valid.v	/^input [DATA_WIDTH-1:0] data_in;$/;"	p
+data_out	fifo_valid.v	/^            data_out,$/;"	c
+data_out	fifo_valid.v	/^output [DATA_WIDTH-1:0] data_out;$/;"	p
+data_out_reg	systolic_array.v	/^        wire [W_DATA:0] data_out_reg;$/;"	n
+data_ram	fifo_valid.v	/^wire [DATA_WIDTH-1:0]   data_ram;$/;"	n
+data_reg	systolic_array.v	/^module data_reg#($/;"	m
+data_to_be_passed	booth_systolic_array.v	/^wire [(ROW * (W_DATA + 1)) - 1 : 0] data_to_be_passed;  \/\/9 bits data output from registers (used for providing delay) going into rows of systolic array $/;"	n
+data_to_be_passed	systolic_array.v	/^    output [(ROW * (W_DATA + 1)) - 1 : 0] data_to_be_passed$/;"	p
+data_to_be_passed	systolic_array.v	/^wire [(ROW * (W_DATA + 1)) - 1 : 0] data_to_be_passed;  \/\/9 bits data output from registers (used for providing delay) going into rows of systolic array $/;"	n
+data_valid	fifo_valid.v	/^            data_valid$/;"	c
+data_valid	fifo_valid.v	/^output data_valid;  \/\/data will only be considered valid if it is read from a non-empty memory of fifo$/;"	p
+data_valid_append	data_valid_append.v	/^module data_valid_append#($/;"	m
+dbg_cnt	accumulator.v	/^reg [4:0] dbg_cnt = 0;$/;"	r
+dbg_cnt	rden_controller.v	/^reg [3:0] dbg_cnt = 0;$/;"	r
+delay_reg	systolic_array.v	/^module delay_reg #($/;"	m
+dv	accumulator.v	/^reg dv = 0;$/;"	r
+dv	memory_valid.v	/^reg dv = 0;$/;"	r
+dv_wren	wren.v	/^module dv_wren ($/;"	m
+empty	fifo_valid.v	/^            empty,$/;"	c
+empty	fifo_valid.v	/^output                 empty;$/;"	p
+empty_flag	memory_valid.v	/^input empty_flag;$/;"	p
+enb	accumulator.v	/^reg enb = 0;$/;"	r
+engine_north_ff_wren	abc.v	/^wire [(N_SA * COL)-1 : 0] engine_north_ff_wren;$/;"	n
+engine_north_ff_wren	top.v	/^wire [(N_SA * COL)-1 : 0] engine_north_ff_wren;$/;"	n
+extend_one	booth_partial_product.v	/^	input [1:0] extend_one,$/;"	p
+external_ff_rden_ctrl	external_ff_rden_ctrl.v	/^module external_ff_rden_ctrl#($/;"	m
+external_sa_input_ctrl	external_sa_input_ctrl.v	/^module external_sa_input_ctrl#($/;"	m
+external_sa_output_ctrl	external_sa_output_ctrl.v	/^module external_sa_output_ctrl#($/;"	m
+external_west_rden	external_west_rden.v	/^module external_west_rden#($/;"	m
+fc_block	fc_block.v	/^module fc_block#($/;"	m
+fifo_north	fifo_north.v	/^module fifo_north#($/;"	m
+fifo_south	fifo_south.v	/^module fifo_south#($/;"	m
+fifo_valid	fifo_valid.v	/^        module fifo_valid#($/;"	m
+fifo_west	fifo_west.v	/^module fifo_west#($/;"	m
+full	fifo_valid.v	/^            full,$/;"	c
+full	fifo_valid.v	/^output                 full;$/;"	p
+full_flag	memory_valid.v	/^input full_flag;$/;"	p
+i_Clock	uart_rx.v	/^			input 		i_Clock,$/;"	p
+i_RX_Serial	uart_rx.v	/^			input 		i_RX_Serial,$/;"	p
+i_Rst	uart_tx.v	/^   input       i_Rst,$/;"	p
+i_TX_DV	uart_tx.v	/^   input       i_TX_DV,$/;"	p
+i_acc_image_dim	mul_engines.v	/^    input [W_FC_CNT-1 : 0] i_acc_image_dim,$/;"	p
+i_clk	accumulator.v	/^    input i_clk,$/;"	p
+i_clk	booth_pe_block.v	/^    input i_clk,$/;"	p
+i_clk	booth_pe_grid.v	/^    input i_clk,$/;"	p
+i_clk	col_fifo_data.v	/^    input i_clk,$/;"	p
+i_clk	external_ff_rden_ctrl.v	/^    input i_clk,$/;"	p
+i_clk	external_sa_input_ctrl.v	/^    input i_clk,$/;"	p
+i_clk	fifo_south.v	/^    input i_clk,$/;"	p
+i_clk	fifo_west.v	/^    input i_clk,$/;"	p
+i_clk	internal_north_rden.v	/^   input i_clk,$/;"	p
+i_clk	internal_north_wren.v	/^    input i_clk,$/;"	p
+i_clk	internal_north_wren_gen.v	/^    input i_clk,$/;"	p
+i_clk	internal_west_wren.v	/^    input i_clk,$/;"	p
+i_clk	internal_west_wren_gen.v	/^    input i_clk,$/;"	p
+i_clk	last_ff_ctrl.v	/^    input i_clk,$/;"	p
+i_clk	mul_receiver.v	/^    input i_clk,$/;"	p
+i_clk	mul_transmitter.v	/^    input i_clk,$/;"	p
+i_clk	pe_blocks.v	/^    input i_clk,$/;"	p
+i_clk	pe_grid.v	/^    input i_clk,$/;"	p
+i_clk	rden_controller.v	/^    input i_clk,$/;"	p
+i_data	booth_pe_block.v	/^    input [W_DATA : 0] i_data,$/;"	p
+i_data	col_fifo_data.v	/^    input [(W_PSUM * COL) -1:0] i_data,$/;"	p
+i_data	external_sa_output_ctrl.v	/^    input  [((COL * W_PSUM) * N_SA)-1 : 0] i_data,$/;"	p
+i_data	fifo_north.v	/^    input [W_DATA-1 : 0]i_data,$/;"	p
+i_data	fifo_south.v	/^    input [(W_DATA * COL)-1:0] i_data,$/;"	p
+i_data	fifo_west.v	/^    input [W_DATA-1:0] i_data,$/;"	p
+i_data	mul_fifo.v	/^    input [(N_SA * W_DATA)-1 : 0] i_data,$/;"	p
+i_data	pe_blocks.v	/^    input [W_DATA :0] i_data,$/;"	p
+i_data	systolic_array.v	/^    input [W_DATA:0] i_data, $/;"	p
+i_data	tx_controller_gen.v	/^    input [(N_SA * W_ACC)-1 : 0] i_data,$/;"	p
+i_data_valid	append_dv.v	/^    input [N_DIMENSION-1 : 0] i_data_valid,$/;"	p
+i_data_valid	external_sa_input_ctrl.v	/^    input [N_SA-1 : 0] i_data_valid,$/;"	p
+i_data_valid	last_ff_ctrl.v	/^    input i_data_valid,$/;"	p
+i_dv	wren.v	/^    input i_dv,$/;"	p
+i_empty_flag	controller_fifo_tx.v	/^    input i_empty_flag,$/;"	p
+i_enable	external_west_rden.v	/^    input [COL-1 : 0] i_enable,$/;"	p
+i_enable	internal_north_wren.v	/^    input i_enable,$/;"	p
+i_enable	internal_west_wren.v	/^    input i_enable,$/;"	p
+i_enb	internal_north_wren_gen.v	/^    input [N_SA-1 : 0] i_enb,$/;"	p
+i_enb	internal_west_wren_gen.v	/^    input [N_SA-1 : 0] i_enb,$/;"	p
+i_fifo_empty	external_ff_rden_ctrl.v	/^    input [N_SA-1 : 0] i_fifo_empty,$/;"	p
+i_fifo_empty	internal_west_rden.v	/^    input [ROW-1:0] i_fifo_empty,$/;"	p
+i_fifo_empty	tx_controller_gen.v	/^    input [N_SA-1 : 0] i_fifo_empty,$/;"	p
+i_fifo_occupants	external_west_rden.v	/^    input [(N_SA * (W_ADDR + 1))-1 : 0] i_fifo_occupants,$/;"	p
+i_img_dim	acc_array.v	/^    input [W_FC_CNT-1 : 0] i_img_dim,$/;"	p
+i_img_dim	accumulator.v	/^    input [W_FC_CNT-1 : 0] i_img_dim,$/;"	p
+i_img_dim	rden_controller.v	/^    input [W_FC_CNT-1 : 0] i_img_dim,$/;"	p
+i_img_dim	sa_engine.v	/^    input [W_FC_CNT-1 : 0] i_img_dim,$/;"	p
+i_north_data	mul_engines.v	/^    input [(N_SA * W_DATA)-1 : 0] i_north_data,$/;"	p
+i_north_empty	rden_controller.v	/^    input [COL-1 : 0] i_north_empty,$/;"	p
+i_north_occ	rden_controller.v	/^    input [(COL * (W_ADDR + 1))-1 : 0] i_north_occ,$/;"	p
+i_north_wren	fc_block.v	/^    input [(COL * N_SA)-1 : 0] i_north_wren,$/;"	p
+i_north_wren	sa_engine.v	/^    input [COL-1 : 0] i_north_wren,$/;"	p
+i_read_enable	fifo_south.v	/^    input [COL-1:0] i_read_enable,$/;"	p
+i_read_enable	fifo_west.v	/^    input [ROW-1:0] i_read_enable,$/;"	p
+i_rst	abc.v	/^wire i_rst;$/;"	n
+i_rst	booth_pe_block.v	/^    input i_rst,$/;"	p
+i_rst	controller_fifo_tx.v	/^    input i_rst,$/;"	p
+i_rst	fc_block.v	/^    input i_rst,$/;"	p
+i_rst	internal_west_rden.v	/^    input i_rst,$/;"	p
+i_rst	mul_engines.v	/^    input i_rst,$/;"	p
+i_rst	pe_blocks.v	/^    input i_rst,$/;"	p
+i_rst	sa_engine.v	/^    input i_rst,$/;"	p
+i_rst	systolic_array.v	/^    input i_rst,$/;"	p
+i_rst	top.v	/^wire i_rst;$/;"	n
+i_rst	wren.v	/^    input i_rst,$/;"	p
+i_rx_serial	mul_receiver.v	/^    input [N_SA-1 : 0] i_rx_serial,$/;"	p
+i_sel_1	abc.v	/^    input i_sel_1,$/;"	p
+i_sel_2	top.v	/^    input i_sel_2,$/;"	p
+i_trans_done_tx2	controller_fifo_tx.v	/^    input  i_trans_done_tx2$/;"	p
+i_trigger	internal_north_rden.v	/^   input i_trigger,$/;"	p
+i_trigger	rden_controller.v	/^    input i_trigger,$/;"	p
+i_trigger_1	abc.v	/^    input i_trigger_1,$/;"	p
+i_trigger_1	top.v	/^    input i_trigger_1,$/;"	p
+i_tx_dv	mul_transmitter.v	/^    input [N_SA-1 : 0] i_tx_dv,$/;"	p
+i_weight	booth_pe_block.v	/^    input [W_DATA : 0] i_weight,$/;"	p
+i_weight	booth_pe_grid.v	/^    input [(COL * (W_DATA + 1)) -1 : 0] i_weight,$/;"	p
+i_weight	pe_blocks.v	/^    input [W_DATA :0] i_weight,$/;"	p
+i_weight	pe_grid.v	/^    input [(COL * (W_DATA + 1)) -1 : 0] i_weight,$/;"	p
+i_west_data	mul_engines.v	/^    input [(N_SA * W_DATA)-1 : 0] i_west_data,$/;"	p
+i_west_dv	fc_block.v	/^    input i_west_dv,$/;"	p
+i_west_empty	mul_engines.v	/^    input [(N_SA * ROW)-1 : 0] i_west_empty,$/;"	p
+i_west_empty	sa_engine.v	/^    input [ROW-1 : 0] i_west_empty,$/;"	p
+i_write_enable	fifo_north.v	/^    input [COL-1:0] i_write_enable,$/;"	p
+i_write_enable	mul_fifo.v	/^    input [N_SA-1 : 0] i_write_enable,$/;"	p
+image_dim	rden_controller.v	/^wire [W_ADDR : 0] image_dim;$/;"	n
+in_data	rem_dv_array.v	/^    input [(COL * (W_PSUM + 1))-1 : 0] in_data,$/;"	p
+in_north	systolic_array.v	/^    input [(COL * (W_DATA + 1)) - 1:0] in_north,  \/\/8 bit weights $/;"	p
+in_west	booth_systolic_array.v	/^    input [(ROW * (W_DATA + 1)) - 1:0] in_west,    \/\/8 bit data $/;"	p
+input	abc.v	/^    input [N_SA-1 : 0] i_rx_serial,$/;"	p
+input	abc.v	/^    input i_sel_2,$/;"	p
+input	abc.v	/^    input i_trigger_2,$/;"	p
+input	abc.v	/^    input s_clk,$/;"	c
+input	acc_array.v	/^    input [((COL * (W_PSUM+1)) * N_SA)-1 : 0] i_psum_data,$/;"	p
+input	acc_array.v	/^    input i_rst,$/;"	c
+input	accumulator.v	/^    input [W_PSUM:0] i_psum,    \/\/partial sums coming from SA's last row$/;"	p
+input	accumulator.v	/^    input i_rst,$/;"	p
+input	booth_partial_product.v	/^	input clk,$/;"	p
+input	booth_pe_block.v	/^    input [W_DATA : 0] i_weight,$/;"	p
+input	booth_pe_block.v	/^    input [W_PSUM : 0] i_p_sum,$/;"	p
+input	booth_pe_block.v	/^    input i_rst,$/;"	p
+input	booth_pe_grid.v	/^    input [(ROW * (W_DATA + 1)) -1 : 0] in_data,$/;"	p
+input	booth_pe_grid.v	/^    input i_rst,$/;"	p
+input	booth_systolic_array.v	/^    input [(COL * (W_DATA + 1)) - 1:0] in_north,  \/\/8 bit weights $/;"	c
+input	col_fifo_data.v	/^    input [COL-1:0] i_fifo_empty,$/;"	p
+input	col_fifo_data.v	/^    input i_rst,$/;"	p
+input	controller_fifo_tx.v	/^    input [DATA_WIDTH-1:0] i_fifo_data,$/;"	p
+input	data_valid_append.v	/^    input i_data_valid,$/;"	c
+input	external_ff_rden_ctrl.v	/^    input [(N_SA * (W_ADDR + 1))-1 : 0] i_fifo_occupants,$/;"	p
+input	external_ff_rden_ctrl.v	/^    input i_rst,$/;"	p
+input	external_sa_input_ctrl.v	/^    input [(N_SA * W_DATA)-1 : 0] i_data,$/;"	p
+input	external_sa_input_ctrl.v	/^    input i_rst,$/;"	p
+input	external_sa_output_ctrl.v	/^    input [(COL * N_SA)-1 : 0] i_fifo_empty,$/;"	p
+input	external_sa_output_ctrl.v	/^    input i_rst,$/;"	c
+input	external_west_rden.v	/^    input [N_SA-1 : 0] i_fifo_empty,$/;"	p
+input	external_west_rden.v	/^    input i_rst,$/;"	c
+input	fc_block.v	/^    input [(N_SA * W_DATA)-1 : 0] i_north_data,$/;"	p
+input	fc_block.v	/^    input [W_DATA-1 : 0] i_west_data,$/;"	p
+input	fc_block.v	/^    input [W_FC_CNT-1 : 0] i_image_dim,$/;"	p
+input	fc_block.v	/^    input s_clk,$/;"	c
+input	fc_block.v	/^    input trigger1,$/;"	p
+input	fifo_north.v	/^    input [COL-1:0] i_read_enable,$/;"	p
+input	fifo_north.v	/^    input i_rst,$/;"	c
+input	fifo_south.v	/^    input [COL-1:0] i_write_enable,$/;"	p
+input	fifo_south.v	/^    input i_rst,$/;"	p
+input	fifo_west.v	/^    input [ROW-1:0] i_write_enable,$/;"	p
+input	fifo_west.v	/^    input i_rst,$/;"	p
+input	internal_north_rden.v	/^   input [((W_ADDR + 1) * COL)-1 : 0] i_fifo_occupants$/;"	p
+input	internal_north_rden.v	/^   input [COL-1:0] i_fifo_empty,$/;"	p
+input	internal_north_rden.v	/^   input i_rst,$/;"	p
+input	internal_north_wren.v	/^    input i_rst,$/;"	p
+input	internal_north_wren_gen.v	/^    input i_rst,$/;"	p
+input	internal_west_rden.v	/^    input [(((W_ADDR + 1) * ROW) -1): 0] i_occupants,$/;"	p
+input	internal_west_rden.v	/^    input i_trigger,$/;"	c
+input	internal_west_wren.v	/^    input i_rst,$/;"	p
+input	internal_west_wren_gen.v	/^    input i_rst,$/;"	p
+input	last_ff_ctrl.v	/^    input [(W_ACC * COL)-1 : 0] i_data,$/;"	p
+input	last_ff_ctrl.v	/^    input i_rst,$/;"	p
+input	mul_engines.v	/^    input [(COL * N_SA)-1 : 0] i_north_wren,$/;"	p
+input	mul_engines.v	/^    input [(N_SA * (ROW * (W_ADDR+1)))-1 : 0] i_west_occ,$/;"	p
+input	mul_engines.v	/^    input i_trigger_1,$/;"	p
+input	mul_engines.v	/^    input i_west_dv,$/;"	p
+input	mul_engines.v	/^    input s_clk,$/;"	c
+input	mul_fifo.v	/^    input [N_SA-1 : 0] i_read_enable,$/;"	p
+input	mul_fifo.v	/^    input i_rst,$/;"	c
+input	mul_receiver.v	/^    input i_rst,$/;"	p
+input	mul_transmitter.v	/^    input [(N_SA * W_DATA)-1 : 0] i_tx_byte,$/;"	p
+input	mul_transmitter.v	/^    input i_rst,$/;"	p
+input	one_cycle.v	/^    input rst,$/;"	p
+input	pe_blocks.v	/^    input [W_DATA :0] i_weight,$/;"	p
+input	pe_blocks.v	/^    input [W_PSUM :0] i_p_sum,$/;"	p
+input	pe_blocks.v	/^    input i_rst,$/;"	p
+input	pe_grid.v	/^    input [(ROW * (W_DATA + 1)) -1 : 0] in_data,$/;"	p
+input	pe_grid.v	/^    input i_rst,$/;"	p
+input	rden_controller.v	/^    input [(ROW * (W_ADDR + 1))-1 : 0] i_west_occ,$/;"	p
+input	rden_controller.v	/^    input [COL-1 : 0] i_enable,$/;"	p
+input	rden_controller.v	/^    input [ROW-1 : 0] i_west_empty,$/;"	p
+input	rden_controller.v	/^    input i_rst,$/;"	p
+input	sa_engine.v	/^    input [(ROW * (W_ADDR + 1))-1 : 0] i_west_occ,$/;"	p
+input	sa_engine.v	/^    input [W_DATA-1 : 0] i_north_data,$/;"	p
+input	sa_engine.v	/^    input [W_DATA-1 : 0] i_west_data,$/;"	p
+input	sa_engine.v	/^    input i_trigger_1,$/;"	p
+input	sa_engine.v	/^    input i_west_dv,$/;"	p
+input	sa_engine.v	/^    input s_clk,$/;"	c
+input	systolic_array.v	/^    input [(ROW * (W_DATA + 1)) - 1 : 0] in_west,$/;"	p
+input	systolic_array.v	/^    input [(ROW * (W_DATA + 1)) - 1:0] in_west,    \/\/8 bit image $/;"	p
+input	systolic_array.v	/^    input i_rst,$/;"	c
+input	systolic_array.v	/^    input rst,$/;"	c
+input	top.v	/^    input [N_SA-1 : 0] i_rx_serial,$/;"	p
+input	top.v	/^    input i_sel_1,$/;"	p
+input	top.v	/^    input s_clk,$/;"	c
+input	tx_controller_gen.v	/^    input [N_SA-1 : 0] i_tx_done,$/;"	p
+input	tx_controller_gen.v	/^    input i_rst,$/;"	c
+input	uart_rx.v	/^			input 		i_Rst,$/;"	p
+input	uart_tx.v	/^   input       i_Clock,$/;"	p
+input	uart_tx.v	/^   input [7:0] i_TX_Byte, $/;"	p
+input	wren.v	/^    input i_sel,$/;"	c
+input	wren.v	/^    input i_sel,$/;"	p
+internal_north_rden	internal_north_rden.v	/^module internal_north_rden#($/;"	m
+internal_north_wren	internal_north_wren.v	/^module internal_north_wren#($/;"	m
+internal_north_wren_gen	internal_north_wren_gen.v	/^module internal_north_wren_gen#($/;"	m
+internal_west_rden	internal_west_rden.v	/^module internal_west_rden#($/;"	m
+internal_west_wren	internal_west_wren.v	/^module internal_west_wren#($/;"	m
+internal_west_wren_gen	internal_west_wren_gen.v	/^module internal_west_wren_gen#($/;"	m
+is_mul	booth_partial_product.v	/^wire is_mul;$/;"	n
+is_neg	booth_partial_product.v	/^wire is_neg;$/;"	n
+is_shifted	booth_partial_product.v	/^wire is_shifted;$/;"	n
+last_ff_ctrl	last_ff_ctrl.v	/^module last_ff_ctrl#($/;"	m
+last_ff_data	abc.v	/^wire [(N_SA * W_ACC)-1 : 0] last_ff_data;$/;"	n
+last_ff_data	top.v	/^wire [W_ACC-1 : 0] last_ff_data;$/;"	n
+last_ff_data_out	top.v	/^wire [W_ACC-1 : 0] last_ff_data_out;$/;"	n
+last_ff_empty	abc.v	/^wire [N_SA-1 : 0] last_ff_empty;$/;"	n
+last_ff_empty	top.v	/^wire last_ff_empty;$/;"	n
+last_ff_rden	abc.v	/^wire [N_SA-1 : 0] last_ff_rden;$/;"	n
+last_ff_rden	top.v	/^wire last_ff_rden;$/;"	n
+last_ff_wren	top.v	/^wire last_ff_wren;$/;"	n
+last_fifo_data_in	abc.v	/^wire [W_ACC-1 : 0] last_fifo_data_in;$/;"	n
+last_fifo_wren	abc.v	/^wire last_fifo_wren;$/;"	n
+mem	memory_valid.v	/^reg [DATA_WIDTH-1:0] mem [RAM_DEPTH-1:0];$/;"	r
+memory_valid	memory_valid.v	/^module memory_valid$/;"	m
+mul_engines	mul_engines.v	/^module mul_engines#($/;"	m
+mul_fifo	mul_fifo.v	/^module mul_fifo#($/;"	m
+mul_receiver	mul_receiver.v	/^module mul_receiver#($/;"	m
+mul_transmitter	mul_transmitter.v	/^module mul_transmitter#($/;"	m
+north_data	abc.v	/^wire [(N_SA * W_DATA)-1 : 0] north_data;$/;"	n
+north_data	sa_engine.v	/^wire [(COL * W_DATA)-1 : 0] north_data;$/;"	n
+north_data	top.v	/^wire [(N_SA * W_DATA)-1 : 0] north_data;$/;"	n
+north_dv	abc.v	/^wire [N_SA-1 : 0] north_dv;$/;"	n
+north_dv	sa_engine.v	/^wire [COL-1 : 0] north_dv;$/;"	n
+north_dv	top.v	/^wire [N_SA-1 : 0] north_dv;$/;"	n
+north_empty	abc.v	/^wire [N_SA-1 : 0] north_empty;$/;"	n
+north_empty	sa_engine.v	/^wire [COL-1 : 0] north_empty;$/;"	n
+north_empty	top.v	/^wire [N_SA-1 : 0] north_empty;$/;"	n
+north_occ	abc.v	/^wire [(N_SA * (W_ADDR + 1))-1 : 0] north_occ;$/;"	n
+north_occ	top.v	/^wire [(N_SA * (W_ADDR + 1))-1 : 0] north_occ;$/;"	n
+north_occupants	sa_engine.v	/^wire [((W_ADDR + 1) * COL)-1 : 0] north_occupants;$/;"	n
+north_rden	abc.v	/^wire [N_SA-1 : 0] north_rden;$/;"	n
+north_rden	rden_controller.v	/^reg [COL-1 : 0] north_rden = 0;$/;"	r
+north_rden	sa_engine.v	/^wire [COL-1 : 0] north_rden;$/;"	n
+north_rden	top.v	/^wire [N_SA-1 : 0] north_rden;$/;"	n
+north_wren	abc.v	/^wire [N_SA-1 : 0] north_wren;$/;"	n
+north_wren	top.v	/^wire [N_SA-1 : 0] north_wren;$/;"	n
+o_RX_Byte	uart_rx.v	/^			output[7:0] o_RX_Byte$/;"	p
+o_acc_data	sa_engine.v	/^wire [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data;$/;"	n
+o_acc_dv	fc_block.v	/^    output [(COL * N_SA)-1 : 0] o_acc_dv,$/;"	p
+o_acc_dv	mul_engines.v	/^    output [(COL * N_SA)-1 : 0] o_acc_dv,$/;"	p
+o_acc_dv	sa_engine.v	/^wire [(COL * N_SA)-1 : 0] o_acc_dv;$/;"	n
+o_acc_dv2	sa_engine.v	/^    output [(COL * N_SA)-1 : 0] o_acc_dv2,$/;"	p
+o_ctrl_enb	acc_array.v	/^    output [COL-1 : 0] o_ctrl_enb$/;"	p
+o_ctrl_enb	sa_engine.v	/^wire [COL-1 : 0] o_ctrl_enb;$/;"	n
+o_data	accumulator.v	/^    output [W_ACC-1 : 0] o_data,$/;"	p
+o_data	col_fifo_data.v	/^    output [W_PSUM-1 : 0] o_data,$/;"	p
+o_data	data_valid_append.v	/^    output [W_DATA:0] o_data$/;"	p
+o_data	external_sa_input_ctrl.v	/^    output [(N_SA * W_DATA)-1 : 0] o_data,$/;"	p
+o_data	external_sa_output_ctrl.v	/^    output [(W_PSUM * N_SA)-1 : 0] o_data$/;"	p
+o_data	last_ff_ctrl.v	/^    output [W_ACC-1 : 0] o_data,$/;"	p
+o_dv	acc_array.v	/^    output [(COL * N_SA)-1 :0] o_dv,$/;"	p
+o_enable	accumulator.v	/^    output o_enable$/;"	p
+o_fifo_data_valid	fifo_west.v	/^    output [ROW-1:0] o_fifo_data_valid,$/;"	p
+o_fifo_dv	fifo_north.v	/^    output [COL-1:0] o_fifo_dv,$/;"	p
+o_fifo_empty	fifo_north.v	/^    output [COL-1:0] o_fifo_empty,$/;"	p
+o_fifo_empty	fifo_south.v	/^    output [COL-1:0] o_fifo_empty,$/;"	p
+o_fifo_empty	fifo_west.v	/^    output [ROW-1:0] o_fifo_empty,$/;"	p
+o_fifo_read_enable	external_ff_rden_ctrl.v	/^    output [N_SA-1 : 0] o_fifo_read_enable$/;"	p
+o_fifo_read_enable	external_sa_output_ctrl.v	/^    output [(COL * N_SA)-1 : 0] o_fifo_read_enable,$/;"	p
+o_fifo_read_enable	internal_north_rden.v	/^   output [COL-1:0] o_fifo_read_enable,$/;"	p
+o_north_data	sa_engine.v	/^wire [(COL * (W_DATA + 1))-1 : 0] o_north_data;$/;"	n
+o_occupants	mul_fifo.v	/^    output [(N_SA * (W_ADDR + 1))-1 : 0] o_occupants,$/;"	p
+o_p_sum	booth_pe_block.v	/^    output [W_PSUM : 0] o_p_sum$/;"	p
+o_p_sum	booth_pe_block.v	/^    output [W_PSUM : 0] o_p_sum,$/;"	p
+o_p_sum	pe_blocks.v	/^    output [W_PSUM :0] o_p_sum,$/;"	p
+o_p_sum	pe_blocks.v	/^    output [W_PSUM:0] o_p_sum$/;"	p
+o_partial_sum	booth_pe_grid.v	/^    output [(COL * (W_PSUM + 1))-1 : 0] o_partial_sum,$/;"	p
+o_partial_sum	pe_grid.v	/^    output [(COL * (W_PSUM + 1))-1 : 0] o_partial_sum,$/;"	p
+o_read_enable	col_fifo_data.v	/^    output [COL-1:0] o_read_enable$/;"	p
+o_rx_byte	mul_receiver.v	/^    output [(N_SA * W_DATA)-1 : 0] o_rx_byte$/;"	p
+o_tx_done	mul_transmitter.v	/^    output [N_SA-1 : 0] o_tx_done,$/;"	p
+o_tx_dv	tx_controller_gen.v	/^    output [N_SA-1 : 0] o_tx_dv,$/;"	p
+o_tx_serial	abc.v	/^    output [N_SA-1 : 0] o_tx_serial$/;"	p
+o_valid	mul_fifo.v	/^    output [N_SA-1 : 0] o_valid$/;"	p
+o_weight	booth_pe_block.v	/^    output [W_DATA : 0] o_weight,$/;"	p
+o_weight	pe_blocks.v	/^    output [W_DATA :0] o_weight,$/;"	p
+o_west_ctrl_enb	fc_block.v	/^    output [COL-1 : 0] o_west_ctrl_enb$/;"	p
+o_west_data	sa_engine.v	/^wire [((W_DATA + 1) * ROW)-1 : 0] o_west_data;$/;"	n
+o_west_rden	rden_controller.v	/^    output [ROW-1 : 0] o_west_rden$/;"	p
+o_west_rden	sa_engine.v	/^    output [ROW-1 : 0] o_west_rden,$/;"	p
+occupants	fifo_valid.v	/^            occupants,$/;"	c
+one_cycle	one_cycle.v	/^module one_cycle($/;"	m
+out_data_valid	rem_dv_array.v	/^    output [COL-1 : 0] out_data_valid$/;"	p
+out_east	systolic_array.v	/^    output [(ROW * (W_DATA + 1)) - 1:0] out_east,  \/\/8 bit data output from the last column$/;"	p
+out_partial_sums	fc_block.v	/^wire [((COL * (W_PSUM+1)) * N_SA)-1 : 0] out_partial_sums;$/;"	n
+out_south	booth_systolic_array.v	/^    output [(COL * (W_PSUM + 1)) - 1:0] out_south,    \/\/8 bit data output from the last column$/;"	p
+out_south_data	sa_engine.v	/^wire  [((W_PSUM + 1) * COL)-1 : 0] out_south_data;$/;"	n
+output	acc_array.v	/^    output [((COL * W_ACC) * N_SA)-1 : 0] o_data,$/;"	p
+output	accumulator.v	/^    output o_dv,$/;"	p
+output	append_dv.v	/^    output [((W_DATA + 1) * N_DIMENSION)-1:0] o_data$/;"	p
+output	booth_pe_block.v	/^    output [W_DATA : 0] o_data$/;"	p
+output	booth_pe_block.v	/^    output [W_DATA : 0] o_data,$/;"	p
+output	booth_pe_block.v	/^    output [W_DATA : 0] o_weight,$/;"	p
+output	booth_pe_block.v	/^    output [W_PSUM : 0] o_p_sum$/;"	p
+output	booth_pe_grid.v	/^    output [(ROW * (W_DATA + 1))-1 : 0] o_data $/;"	p
+output	booth_systolic_array.v	/^    output [(ROW * (W_DATA + 1)) - 1:0] out_east,  \/\/19 bit output from last row$/;"	p
+output	booth_systolic_array.v	/^    output last_row_i_data_valid    \/\/shows the validity of input 8 bit data which is going into the last row of systolic array$/;"	p
+output	col_fifo_data.v	/^    output reg wr_en_final_fifo = 0,$/;"	p
+output	controller_fifo_tx.v	/^    output [UART_WIDTH-1:0] o_data,$/;"	p
+output	controller_fifo_tx.v	/^    output o_valid_tx2,$/;"	p
+output	external_sa_input_ctrl.v	/^    output [N_SA-1 : 0] o_wren$/;"	p
+output	external_sa_output_ctrl.v	/^    output [N_SA-1 : 0] o_fifo_write_enable,$/;"	p
+output	external_west_rden.v	/^    output [N_SA-1 : 0] o_fifo_read_enable$/;"	p
+output	fc_block.v	/^    output [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data,$/;"	p
+output	fifo_north.v	/^    output [(((W_ADDR + 1) * COL) -1): 0] o_occupants$/;"	p
+output	fifo_north.v	/^    output [(COL * W_DATA) -1 : 0] o_data,$/;"	p
+output	fifo_north.v	/^    output [COL-1:0] o_fifo_full,$/;"	p
+output	fifo_south.v	/^    output [(W_DATA * COL)-1:0] o_data,$/;"	p
+output	fifo_south.v	/^    output [COL-1:0] o_data_valid$/;"	p
+output	fifo_west.v	/^    output [(((W_ADDR + 1) * ROW) -1): 0] o_occupants$/;"	p
+output	fifo_west.v	/^    output [(ROW * W_DATA) -1 : 0] o_data,$/;"	p
+output	fifo_west.v	/^    output [ROW-1:0] o_fifo_full,$/;"	p
+output	internal_north_wren.v	/^    output [COL-1:0] o_data $/;"	p
+output	internal_north_wren_gen.v	/^    output [(N_SA * COL)-1 : 0] o_wren$/;"	p
+output	internal_west_rden.v	/^    output [ROW-1:0] o_read_enable$/;"	p
+output	internal_west_wren.v	/^    output [ROW-1:0] o_data $/;"	p
+output	internal_west_wren_gen.v	/^    output [(N_SA * ROW)-1 : 0] o_wren$/;"	p
+output	last_ff_ctrl.v	/^    output o_ff_wren$/;"	p
+output	mul_engines.v	/^    output [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data$/;"	p
+output	mul_engines.v	/^    output [(N_SA * ROW)-1 : 0] o_west_rden,$/;"	p
+output	mul_fifo.v	/^    output [(N_SA * W_DATA)-1 : 0] o_data,$/;"	p
+output	mul_fifo.v	/^    output [N_SA-1 : 0] o_empty,$/;"	p
+output	mul_receiver.v	/^    output [N_SA-1 : 0] o_rx_dv,$/;"	p
+output	mul_transmitter.v	/^    output [N_SA-1 : 0] o_tx_serial$/;"	p
+output	one_cycle.v	/^    output reg b$/;"	p
+output	pe_blocks.v	/^    output [W_DATA :0] o_data$/;"	p
+output	pe_blocks.v	/^    output [W_DATA :0] o_data,$/;"	p
+output	pe_blocks.v	/^    output [W_DATA :0] o_weight,$/;"	p
+output	pe_blocks.v	/^    output [W_PSUM :0] o_p_sum$/;"	p
+output	pe_grid.v	/^    output [(ROW * (W_DATA + 1))-1 : 0] o_data $/;"	p
+output	rden_controller.v	/^    output [COL-1 : 0] o_north_rden,$/;"	p
+output	rem_dv_array.v	/^    output [(COL * W_PSUM)-1 : 0] out_data,$/;"	p
+output	rem_dv_array.v	/^    output [W_PSUM-1 : 0] o_data$/;"	c
+output	sa_engine.v	/^    output [((COL * W_ACC) * N_SA)-1 : 0] o_acc_data2$/;"	p
+output	systolic_array.v	/^    output [(COL * (W_PSUM + 1)) - 1:0] out_south    \/\/partial sum output from last row$/;"	p
+output	systolic_array.v	/^    output reg [W_DATA:0] o_data= 0$/;"	p
+output	top.v	/^    output [COL-1 : 0] o_tx_serial$/;"	p
+output	top_booth.v	/^	output reg signed [15:0] c);$/;"	p
+output	tx_controller_gen.v	/^    output [(N_SA * W_DATA)-1 : 0] o_tx_data$/;"	p
+output	tx_controller_gen.v	/^    output [N_SA-1 : 0] o_fifo_rden,$/;"	p
+output	uart_rx.v	/^			output		o_RX_DV,$/;"	p
+output	wren.v	/^    output [N_SA-1 : 0] o_wren$/;"	p
+output	wren.v	/^    output wren_o$/;"	p
+p_state	controller_fifo_tx.v	/^    reg [4:0] p_state = 0;$/;"	r
+p_sum_dv	accumulator.v	/^wire p_sum_dv;$/;"	n
+parameter	abc.v	/^    parameter COL = 4,$/;"	c
+parameter	abc.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	abc.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	abc.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	acc_array.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	acc_array.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	accumulator.v	/^    parameter COL = 4,$/;"	c
+parameter	accumulator.v	/^    parameter W_PSUM = 19$/;"	c
+parameter	append_dv.v	/^    parameter W_DATA = 8$/;"	c
+parameter	booth_pe_block.v	/^	parameter W_PSUM = 19$/;"	c
+parameter	booth_pe_grid.v	/^    parameter ROW = 9,$/;"	c
+parameter	booth_pe_grid.v	/^    parameter W_PSUM = 19$/;"	c
+parameter	booth_systolic_array.v	/^    parameter COL = 3, $/;"	c
+parameter	booth_systolic_array.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	col_fifo_data.v	/^    parameter W_PSUM = 8$/;"	c
+parameter	controller_fifo_tx.v	/^    parameter UART_WIDTH = 8$/;"	c
+parameter	external_ff_rden_ctrl.v	/^    parameter COL = 4$/;"	c
+parameter	external_ff_rden_ctrl.v	/^    parameter W_ADDR = 8,$/;"	c
+parameter	external_sa_input_ctrl.v	/^    parameter W_DATA = 8$/;"	c
+parameter	external_sa_output_ctrl.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	external_west_rden.v	/^    parameter W_ADDR = 8,$/;"	c
+parameter	fc_block.v	/^    parameter COL = 4,$/;"	c
+parameter	fc_block.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	fc_block.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	fc_block.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	fifo_north.v	/^    parameter ROW = 9,$/;"	c
+parameter	fifo_north.v	/^    parameter W_ADDR = 9,$/;"	c
+parameter	fifo_south.v	/^    parameter RAM_DEPTH = (1 << W_ADDR)$/;"	c
+parameter	fifo_south.v	/^    parameter W_DATA = 20,$/;"	c
+parameter	fifo_valid.v	/^            parameter ADDR_WIDTH = 8, $/;"	c
+parameter	fifo_west.v	/^    parameter RAM_DEPTH = (1 << W_ADDR)$/;"	c
+parameter	fifo_west.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	internal_north_rden.v	/^   parameter ROW = 9,$/;"	c
+parameter	internal_north_rden.v	/^   parameter W_DATA = 8$/;"	c
+parameter	internal_north_wren.v	/^    parameter N_SA = 2$/;"	c
+parameter	internal_north_wren_gen.v	/^    parameter N_SA = 1$/;"	c
+parameter	internal_west_rden.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	internal_west_wren.v	/^    parameter N_SA = 2$/;"	c
+parameter	internal_west_wren_gen.v	/^    parameter N_SA = 1$/;"	c
+parameter	last_ff_ctrl.v	/^    parameter COL = 32$/;"	c
+parameter	mul_engines.v	/^    parameter COL = 4,$/;"	c
+parameter	mul_engines.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	mul_engines.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	mul_engines.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	mul_fifo.v	/^    parameter N_SA = 4,$/;"	c
+parameter	mul_receiver.v	/^    parameter N_SA = 4$/;"	c
+parameter	mul_transmitter.v	/^    parameter N_SA = 4$/;"	c
+parameter	pe_blocks.v	/^    parameter W_DATA = 8$/;"	c
+parameter	pe_grid.v	/^    parameter ROW = 1,$/;"	c
+parameter	pe_grid.v	/^    parameter W_PSUM = 19$/;"	c
+parameter	rden_controller.v	/^    parameter ROW = 1,$/;"	c
+parameter	rden_controller.v	/^    parameter W_ADDR = 8$/;"	c
+parameter	rem_dv_array.v	/^    parameter W_PSUM = 19$/;"	c
+parameter	sa_engine.v	/^    parameter N_SA = 1,$/;"	c
+parameter	sa_engine.v	/^    parameter ROW = 1,$/;"	c
+parameter	sa_engine.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	sa_engine.v	/^    parameter W_ADDR = 8,$/;"	c
+parameter	systolic_array.v	/^    parameter COL = 4, $/;"	c
+parameter	systolic_array.v	/^    parameter W_DATA = 8$/;"	c
+parameter	systolic_array.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	top.v	/^    parameter COL = 32,$/;"	c
+parameter	top.v	/^    parameter W_ACC = 32,$/;"	c
+parameter	top.v	/^    parameter W_DATA = 8,$/;"	c
+parameter	top.v	/^    parameter W_PSUM = 19,$/;"	c
+parameter	tx_controller_gen.v	/^    parameter W_ACC = 19,$/;"	c
+pe_block	pe_blocks.v	/^module pe_block#($/;"	m
+pe_grid	pe_grid.v	/^module pe_grid#($/;"	m
+ps_dv	booth_pe_block.v	/^reg ps_dv = 0;$/;"	r
+ps_dv	pe_blocks.v	/^reg ps_dv = 0;$/;"	r
+psum_buff	booth_pe_block.v	/^reg [W_PSUM -1:0] psum_buff = 0;   \/\/register to store partial sum$/;"	r
+psum_buff	booth_pe_block.v	/^reg [W_PSUM-1 : 0] psum_buff = 0;   \/\/register to store partial sum$/;"	r
+psum_buff	pe_blocks.v	/^reg [W_PSUM - 1:0] psum_buff = 0;   \/\/register store partial sum$/;"	r
+r_Bit_Index	uart_rx.v	/^		reg[2:0] r_Bit_Index;$/;"	r
+r_Bit_Index	uart_tx.v	/^  reg [2:0] r_Bit_Index;$/;"	r
+r_Clock_Count	uart_rx.v	/^		reg[13:0] r_Clock_Count;$/;"	r
+r_Clock_Count	uart_tx.v	/^  reg [13:0] r_Clock_Count;$/;"	r
+r_RX_Byte	uart_rx.v	/^		reg[7:0] r_RX_Byte;$/;"	r
+r_RX_DV	uart_rx.v	/^		reg r_RX_DV;$/;"	r
+r_SM_Main	uart_rx.v	/^		reg[2:0] r_SM_Main;$/;"	r
+r_SM_Main	uart_tx.v	/^  reg [2:0] r_SM_Main;$/;"	r
+r_TX_Data	uart_tx.v	/^  reg [7:0] r_TX_Data;$/;"	r
+r_ext	booth_partial_product.v	/^reg [1:0] r_ext;$/;"	r
+r_is_mul	booth_partial_product.v	/^reg r_is_mul;$/;"	r
+r_is_neg	booth_partial_product.v	/^reg r_is_neg;   $/;"	r
+r_is_shifted	booth_partial_product.v	/^reg r_is_shifted;$/;"	r
+r_o_data	controller_fifo_tx.v	/^    reg [UART_WIDTH-1:0] r_o_data;       $/;"	r
+r_o_valid_tx2	controller_fifo_tx.v	/^    reg r_o_valid_tx2 = 0;$/;"	r
+r_rd_en	controller_fifo_tx.v	/^    reg r_rd_en = 0;$/;"	r
+r_start	rden_controller.v	/^reg r_start = 0;$/;"	r
+raddr	memory_valid.v	/^input [ADDR_WIDTH-1:0] raddr; $/;"	p
+rd_clk	memory_valid.v	/^input rd_clk;$/;"	p
+rd_en	controller_fifo_tx.v	/^    output rd_en,             $/;"	p
+rd_en	memory_valid.v	/^input rd_en;$/;"	p
+rd_pointer	fifo_valid.v	/^reg [ADDR_WIDTH:0]      rd_pointer = 0;$/;"	r
+rd_rst	memory_valid.v	/^input rd_rst; $/;"	p
+rdata	memory_valid.v	/^output [DATA_WIDTH-1:0] rdata; $/;"	p
+rdata	memory_valid.v	/^reg [DATA_WIDTH-1:0] rdata = 0;$/;"	r
+rden	col_fifo_data.v	/^reg [COL-1:0] rden = 0;$/;"	r
+rden	external_ff_rden_ctrl.v	/^reg [N_SA-1 : 0] rden = 0;$/;"	r
+rden	external_west_rden.v	/^reg [N_SA-1 : 0] rden = 0;$/;"	r
+rden	internal_north_rden.v	/^reg [COL-1:0] rden = 0;$/;"	r
+rden	internal_west_rden.v	/^reg [ROW-1:0] rden = 0;$/;"	r
+rden_controller	rden_controller.v	/^module rden_controller#($/;"	m
+rden_ctrl	top.v	/^wire [COL-1 : 0] rden_ctrl;$/;"	n
+re	fifo_valid.v	/^            re,$/;"	c
+re	fifo_valid.v	/^input re;$/;"	p
+reg	booth_partial_product.v	/^	output reg   [15:0] pp);$/;"	p
+reg	fifo_valid.v	/^output reg [ADDR_WIDTH:0] occupants = 0;$/;"	p
+reg	uart_tx.v	/^   output reg  o_TX_Active,$/;"	p
+reg	uart_tx.v	/^   output reg  o_TX_Done$/;"	p
+reg	uart_tx.v	/^   output reg  o_TX_Serial,$/;"	p
+rem_dv_array	rem_dv_array.v	/^module rem_dv_array#($/;"	m
+rem_psum_dv	rem_dv_array.v	/^module rem_psum_dv#($/;"	m
+replicated_value	internal_north_rden.v	/^reg [((W_ADDR+1) * COL) -1 : 0] replicated_value = 0;$/;"	r
+rst	fifo_valid.v	/^            rst,$/;"	c
+rst	fifo_valid.v	/^input rst;$/;"	p
+rst_in	abc.v	/^    input rst_in,$/;"	p
+rst_in	top.v	/^    input rst_in,$/;"	p
+rx_byte	abc.v	/^wire [(N_SA * W_DATA)-1 : 0] rx_byte;$/;"	n
+rx_byte	top.v	/^wire [(N_SA * W_DATA)-1 : 0] rx_byte;$/;"	n
+rx_dv	abc.v	/^wire [N_SA-1 : 0] rx_dv;$/;"	n
+rx_dv	top.v	/^wire [N_SA-1 : 0] rx_dv;$/;"	n
+sa_engine	sa_engine.v	/^module sa_engine#($/;"	m
+sa_last_row_dv	sa_engine.v	/^wire sa_last_row_dv;$/;"	n
+sa_north_data	abc.v	/^wire [(N_SA * W_DATA)-1 : 0] sa_north_data;$/;"	n
+sa_north_data	top.v	/^wire [(N_SA * W_DATA)-1 : 0] sa_north_data;$/;"	n
+sa_north_wren	abc.v	/^wire [N_SA-1 : 0] sa_north_wren;$/;"	n
+sa_north_wren	top.v	/^wire [N_SA-1 : 0] sa_north_wren;$/;"	n
+sel	internal_north_rden.v	/^reg sel = 0;$/;"	r
+sel1	abc.v	/^wire sel1;$/;"	n
+sel1	top.v	/^wire sel1;$/;"	n
+sel2	abc.v	/^wire sel2;$/;"	n
+sel2	top.v	/^wire sel2;$/;"	n
+signed	booth_partial_product.v	/^	input signed [7:0] b,$/;"	p
+signed	booth_partial_product.v	/^reg signed [9:0]r_pp;$/;"	r
+signed	pe_blocks.v	/^reg signed [(2 * W_DATA)-1 : 0] mul_out = 0;$/;"	r
+signed	pe_blocks.v	/^reg signed [(2 * W_DATA)-1:0] mul_out = 0;$/;"	r
+signed	top_booth.v	/^	input signed [7:0] b,$/;"	p
+signed	top_booth.v	/^reg signed [15:0] pp_1;$/;"	r
+signed	top_booth.v	/^reg signed [31:16] pp_2;$/;"	r
+signed	top_booth.v	/^reg signed [47:32] pp_3;$/;"	r
+signed	top_booth.v	/^reg signed [63:48] pp_4;$/;"	r
+signed	top_booth.v	/^wire signed [63:0] pp;$/;"	n
+signed	top_booth.v	/^wire signed [7:0] temp_b;$/;"	n
+signed	top_booth.v	/^wire signed [8:0] temp_a;$/;"	n
+south_data	top.v	/^wire [((COL * W_ACC) * N_SA)-1 : 0] south_data;$/;"	n
+south_empty	top.v	/^wire [COL-1 : 0] south_empty;$/;"	n
+south_rden	top.v	/^wire [COL-1 : 0] south_rden;$/;"	n
+state	accumulator.v	/^reg [1:0] state = 0;$/;"	r
+state	col_fifo_data.v	/^reg [1:0] state = 0;$/;"	r
+state	external_ff_rden_ctrl.v	/^reg [1:0] state = 0;$/;"	r
+state	external_west_rden.v	/^reg [1:0] state = 0;$/;"	r
+state	internal_north_rden.v	/^reg [2:0] state = 0;$/;"	r
+state	internal_west_rden.v	/^reg [1:0] state = 0;$/;"	r
+state	last_ff_ctrl.v	/^reg [1:0] state = 0;$/;"	r
+state	rden_controller.v	/^reg [1:0] state = 0;$/;"	r
+systolic_array	systolic_array.v	/^module systolic_array #($/;"	m
+temp	sa_engine.v	/^wire [(ROW * (W_DATA + 1))-1 : 0] temp;$/;"	n
+temp_a	one_cycle.v	/^reg temp_a,temp_b;$/;"	r
+temp_b	one_cycle.v	/^reg temp_a,temp_b;$/;"	r
+top	top.v	/^module top#($/;"	m
+top_booth	top_booth.v	/^module top_booth(input signed [7:0] a,$/;"	m
+top_pe_block	pe_blocks.v	/^module top_pe_block#($/;"	m
+trigg1	abc.v	/^wire trigg1;$/;"	n
+trigg1	top.v	/^wire trigg1;$/;"	n
+trigg2	abc.v	/^wire trigg2;$/;"	n
+trigger2	fc_block.v	/^    input trigger2,$/;"	p
+tx_byte	abc.v	/^wire [(W_DATA * N_SA)-1 : 0] tx_byte;$/;"	n
+tx_byte	top.v	/^wire [(N_SA * W_DATA)-1 : 0] tx_byte;$/;"	n
+tx_controller_gen	tx_controller_gen.v	/^module tx_controller_gen#($/;"	m
+tx_done	abc.v	/^wire [N_SA-1 : 0] tx_done;$/;"	n
+tx_done	top.v	/^wire [N_SA-1 : 0] tx_done;$/;"	n
+tx_dv	abc.v	/^wire [N_SA-1 : 0] tx_dv;$/;"	n
+tx_dv	top.v	/^wire [N_SA-1 : 0] tx_dv;$/;"	n
+uart_rx	uart_rx.v	/^module uart_rx$/;"	m
+uart_tx	uart_tx.v	/^module uart_tx $/;"	m
+valid	memory_valid.v	/^output valid;$/;"	p
+w_data	accumulator.v	/^wire [W_ACC -1 : 0] w_data;$/;"	n
+w_data	booth_pe_grid.v	/^            wire [W_DATA:0] w_data;$/;"	n
+w_data	pe_grid.v	/^            wire [W_DATA : 0] w_data;$/;"	n
+w_dv	rem_dv_array.v	/^        wire w_dv;$/;"	n
+w_psum	booth_pe_grid.v	/^            wire [W_PSUM : 0] w_psum;$/;"	n
+w_psum	pe_grid.v	/^            wire [W_PSUM : 0] w_psum;$/;"	n
+w_select	booth_pe_grid.v	/^            wire w_select;$/;"	n
+w_select	pe_grid.v	/^            wire w_select;$/;"	n
+w_trigger	internal_north_rden.v	/^wire w_trigger;$/;"	n
+w_trigger	rden_controller.v	/^wire w_trigger;$/;"	n
+w_weight	booth_pe_grid.v	/^            wire [W_DATA : 0] w_weight;$/;"	n
+w_weight	pe_grid.v	/^            wire [W_DATA : 0] w_weight;$/;"	n
+waddr	memory_valid.v	/^input [ADDR_WIDTH-1:0] waddr; $/;"	p
+wdata	memory_valid.v	/^input [DATA_WIDTH-1:0] wdata; $/;"	p
+we	fifo_valid.v	/^            we,$/;"	c
+we	fifo_valid.v	/^input we;$/;"	p
+west_async_data	top.v	/^wire [(N_SA * W_DATA)-1 : 0] west_async_data;$/;"	n
+west_async_dv	top.v	/^wire [(N_SA * ROW)-1 : 0] west_async_dv;$/;"	n
+west_async_empty	top.v	/^wire [(N_SA * ROW)-1 : 0] west_async_empty;$/;"	n
+west_async_occ	top.v	/^wire [(N_SA * (ROW * (W_ADDR + 1)))-1 : 0] west_async_occ;$/;"	n
+west_async_rden	top.v	/^wire [(N_SA * ROW)-1 : 0] west_async_rden;$/;"	n
+west_data	abc.v	/^wire [(N_SA * W_DATA)-1 : 0] west_data;$/;"	n
+west_data	top.v	/^wire [(N_SA * W_DATA)-1 : 0] west_data;$/;"	n
+west_dv	abc.v	/^wire [N_SA-1 : 0] west_dv;$/;"	n
+west_dv	top.v	/^wire [N_SA-1 : 0] west_dv;$/;"	n
+west_empty	abc.v	/^wire [N_SA-1 : 0] west_empty;$/;"	n
+west_empty	top.v	/^wire [N_SA-1 : 0] west_empty;$/;"	n
+west_ff_ctrl	abc.v	/^wire [COL-1 : 0] west_ff_ctrl;$/;"	n
+west_occ	abc.v	/^wire [(N_SA * (W_ADDR + 1))-1 : 0] west_occ;$/;"	n
+west_occ	top.v	/^wire [(N_SA * (W_ADDR + 1))-1 : 0] west_occ;$/;"	n
+west_rden	abc.v	/^wire [N_SA-1 : 0] west_rden;$/;"	n
+west_rden	rden_controller.v	/^reg [ROW-1 : 0] west_rden = 0;$/;"	r
+west_rden	top.v	/^wire [N_SA-1 : 0] west_rden;$/;"	n
+west_wren	abc.v	/^wire [N_SA-1 : 0] west_wren;$/;"	n
+west_wren	top.v	/^wire [N_SA-1 : 0] west_wren;$/;"	n
+wr_clk	memory_valid.v	/^input wr_clk; $/;"	p
+wr_en	memory_valid.v	/^input wr_en;$/;"	p
+wr_pointer	fifo_valid.v	/^reg [ADDR_WIDTH:0]      wr_pointer = 0;$/;"	r
+wr_rst	memory_valid.v	/^input wr_rst; $/;"	p
+wren	external_sa_input_ctrl.v	/^reg [N_SA-1 : 0] wren = 0;$/;"	r
+wren	last_ff_ctrl.v	/^reg wren = 0;$/;"	r
+wren	wren.v	/^module wren#($/;"	m

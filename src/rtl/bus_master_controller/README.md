@@ -1,6 +1,6 @@
 # Bus Master Controller
 
-The Bus Master Controller is a Verilog module designed to facilitate communication between a master device and multiple slave devices within a system. This README serves as a comprehensive guide to understanding its functionality and implementation details, particularly for testing purposes.
+The Bus Master Controller is a Verilog module that facilitates communication between a master device and multiple slave devices within a system. It transmits the instruction set from the config block to the operators.
 
 ## Modules Overview
 

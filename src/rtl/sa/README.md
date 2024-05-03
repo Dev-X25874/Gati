@@ -6,8 +6,6 @@ and then the image is sent into PE grid in broadcasting manner(same image is sen
 
 ## Explanation of how a systolic array engine (SA engine) operates:
 
- <img src="test/images/SA.png" alt="systolic array engine" width="700" height="400">
-
 ### Loading weights into PE grid:
 
 Weights are first read into the PE grid from the weight fifo array located in the fifo sharing controller.
@@ -49,9 +47,13 @@ The partial sum output of every column in the PE grid is stored in each fifo in 
 To read partial sums from the PE grid into the partial sum fifo array and to load images and weights from the fifo array into the PE grid, certain controllers are created.
 
 ### A variety of SA engines and multipliers:
-There are two ways for performing multiplication in the PE block:
-- Using DSP: The * operator in a design can be used to access the Muliplication operator, which utilises FPGA DSP elements. 
-- Using LUT-based multipliers: The * operator is used along with an attribute specified in the code to create the multiplication operator, which does not require any DSP blocks on the FPGA.
+In the PE block, multiplication can be done in two ways:
+- Using DSP based multipliers: To access the muliplication operator, which makes use of DSP blocks, a design requires the * operator. This operator uses DSP blocks by default. 
+- Using LUT based multipliers: Following attribute is applied to the multiplier output signal in order to generate adders and logic for the multiplication function rather than DSP blocks:<br>
+	```bash
+	(* syn_use_dsp = "no" *) signed [27:0] x;
+	```
+Note: To utilise a LUT-based multiplier, set it to false, no, or 0. However, if you want to use DSP multipliers, set its value to true, yes, or 1.
 
 Based on the various multipliers mentioned above, there are two distinct kinds of SA engines:
 - DSP SA engine: This SA engine makes use of DSP blocks in all of its multipliers.
@@ -72,3 +74,8 @@ The following design parameters are utilised to achieve various SA block configu
 - N_SA: Indicated total number of engines,it is a localparam,and will be automatically computed based on NSA_DSP and NSA_LUT parameter values.
 - IMG_FIFO_DEPTH: Depth of all the fifo in image fifo array.
 - PSUM_FIFO_DEPTH: Depth of all the fifo in partial sum fifo array.
+
+Below given is the diagram of one 9x4 systolic array engine architecture:
+
+ <img src="test/images/SA.png" alt="systolic array engine">
+

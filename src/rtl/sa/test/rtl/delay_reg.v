@@ -7,7 +7,7 @@ module delay_reg #(
     parameter ROW = 9,
     parameter W_DATA = 8
 )(  input in_clk,
-    input i_rst,
+    input i_rstn,
     input [(ROW * (W_DATA + 1)) - 1 : 0] in_west,
     output [(ROW * (W_DATA + 1)) - 1 : 0] pe_grid_image
 );
@@ -31,21 +31,21 @@ genvar i , j;
             if (j == 0 && j == i - 1) begin
 
                 always @(posedge in_clk) r_pe_grid_image[(ROW - i) * (W_DATA + 1) - 1 -: (W_DATA + 1)]
-                        <= i_rst ? 0 : in_west[(ROW - i) * (W_DATA + 1) - 1 -: (W_DATA + 1)];
+                        <= (~i_rstn) ? 0 : in_west[(ROW - i) * (W_DATA + 1) - 1 -: (W_DATA + 1)];
             
             end else if (j == 0) begin
             
-                always @(posedge in_clk) data_out_reg <= i_rst ? 0
+                always @(posedge in_clk) data_out_reg <= (~i_rstn) ? 0
                         : in_west[(ROW - i) * (W_DATA + 1) - 1 -: (W_DATA + 1)];
             
             end else if (j == i - 1) begin
             
                 always @(posedge in_clk) r_pe_grid_image[(ROW - i) * (W_DATA + 1) - 1 -: (W_DATA + 1)]
-                        <= i_rst ? 0 : FOR_ROW[i].FC_IN[j-1].data_out_reg;
+                        <= (~i_rstn) ? 0 : FOR_ROW[i].FC_IN[j-1].data_out_reg;
             
             end else begin
             
-                always @(posedge in_clk) data_out_reg <= i_rst ? 0 : FOR_ROW[i].FC_IN[j-1].data_out_reg;
+                always @(posedge in_clk) data_out_reg <= (~i_rstn) ? 0 : FOR_ROW[i].FC_IN[j-1].data_out_reg;
             
             end
         end

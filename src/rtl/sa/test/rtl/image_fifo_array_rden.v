@@ -9,7 +9,7 @@ module image_fifo_array_rden#(
 )(
     input i_clk,
     input i_trigger,
-    input i_rst,
+    input i_rstn,
     input [(((W_ADDR + 1) * ROW) -1): 0] i_occupants,
     input [ROW-1:0] i_fifo_empty,
     output [ROW-1:0] o_read_enable
@@ -21,7 +21,7 @@ reg [1:0] state = 0;
 assign o_read_enable = rden;
 
 always @(posedge i_clk)begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         rden <= 0;
         state <= 0;
     end else begin

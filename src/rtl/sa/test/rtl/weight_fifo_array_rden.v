@@ -14,14 +14,13 @@ module weight_fifo_aray_rden#(
    parameter W_DATA = 8
 ) (
    input i_clk,
-   input i_rst,
+   input i_rstn,
    input i_trigger,
    input [COL-1:0] i_fifo_empty,
    output [COL-1:0] o_fifo_read_enable,
    input [((W_ADDR + 1) * COL)-1 : 0] i_fifo_occupants,
    output image_read_ctrl_enable
 );
-
 /*
     The occupanct signal size in FIFO is 9 bits, 
     and the parameter size is 32 bits until explicitly mentioned. 
@@ -30,24 +29,22 @@ module weight_fifo_aray_rden#(
 */
 localparam S_ROW = ROW[8:0];
 wire w_trigger;
-
 //Generates one pulse from trigger sent externally
 pulse_gen one_pulse (
     .a(i_trigger),
-    .rst(i_rst),
+    .i_rstn(i_rstn),
     .clk(i_clk),
     .b(w_trigger)
 );
 
 reg [COL-1:0] rden = 0;
 reg [2:0] state = 0;
-reg [($clog2(COL * 32))-1 : 0] counter = 0;
+reg [($clog2(ROW)) : 0] counter = 0;
 reg read_img = 0;
 assign o_fifo_read_enable = rden;
 assign image_read_ctrl_enable = read_img;
-
 always @(posedge i_clk)begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         rden <= 0;
         state <= 0;
         counter <= 0;
@@ -65,7 +62,6 @@ always @(posedge i_clk)begin
                     end
                 end 
             end    
-
             1: begin
                 if(counter == (ROW-1))begin
                     rden <= 0;
@@ -78,7 +74,6 @@ always @(posedge i_clk)begin
                     counter <= counter + 1;
                 end
             end
-
             default : begin
                 state <= 0;
             end

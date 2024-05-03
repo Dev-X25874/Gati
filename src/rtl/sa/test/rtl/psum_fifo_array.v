@@ -10,7 +10,7 @@ module psum_fifo_array#(
     parameter RAM_DEPTH = (1 << W_ADDR)
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [(W_DATA * COL)-1:0] i_data,
     input [COL-1:0] i_write_enable,
     input [COL-1:0] i_read_enable,
@@ -35,7 +35,7 @@ generate
             .datacount_o(),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (COL - i))-1) -: W_DATA]),
-            .a_rst_i(i_rst),
+            .a_rst_i(~i_rstn),
             .o_valid(o_data_valid[i])
         );
     end

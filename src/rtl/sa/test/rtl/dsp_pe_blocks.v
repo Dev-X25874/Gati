@@ -3,7 +3,7 @@ module dsp_top_pe_block#(
     parameter W_PSUM = 19,
     parameter W_DATA = 8
 )(  input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA :0] i_weight,
     input [W_DATA :0] i_data,
     output [W_DATA :0] o_weight,
@@ -15,23 +15,26 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 
 reg [W_DATA - 1:0] wb = 0;           //register to store weight
 reg [W_PSUM - 1:0] psum_buff = 0;    //register to store partial sum
-reg w_dv = 0;         
+reg w_dv = 0;
+reg psum_dv =  0;         
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         mul_reg <= 0;
+        psum_dv <= 0;
     end else begin
         mul_reg <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+        psum_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 
-assign o_p_sum[W_PSUM] = (i_data[W_DATA] & w_dv);
+assign o_p_sum[W_PSUM] = psum_dv;
 assign o_p_sum[W_PSUM-1 : 0] = psum_buff + {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}};
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;
@@ -56,7 +59,7 @@ module dsp_middle_pe_block#(
     parameter W_DATA = 8
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA :0] i_weight,
     input [W_PSUM :0] i_p_sum,
     input [W_DATA :0] i_data,
@@ -71,23 +74,26 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 reg [W_DATA - 1:0] wb = 0;           //register store weight
 reg [W_PSUM - 1:0] psum_buff = 0;   //register store partial sum
 reg w_dv = 0;
+reg psum_dv = 0;
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         mul_reg <= 0;
+        psum_dv <= 0;
     end else begin
         mul_reg <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+        psum_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //32 bit computed output
-assign o_p_sum[W_PSUM] = (i_data[W_DATA] & w_dv);
+assign o_p_sum[W_PSUM] = psum_dv;
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;
@@ -111,7 +117,7 @@ module dsp_bottom_pe_block#(
     parameter W_DATA = 8
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_DATA :0] i_weight,
     input [W_PSUM :0] i_p_sum,
     input [W_DATA :0] i_data,
@@ -125,22 +131,25 @@ localparam W_APPEND = (W_PSUM - (2*W_DATA));
 reg [W_DATA - 1:0] wb = 0;           //register store weight
 reg [W_PSUM - 1:0] psum_buff = 0;   //register store partial sum
 reg w_dv = 0;
+reg psum_dv = 0;
 reg signed [(2 * W_DATA)-1 : 0] mul_reg = 0;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         mul_reg <= 0;
+        psum_dv <= 0;
     end else begin
         mul_reg <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
+        psum_dv <= (i_data[W_DATA] & w_dv);
     end
 end
 
 assign o_data = i_data;
 assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //32 bit computed output
-assign o_p_sum[W_PSUM] = (i_data[W_DATA] & w_dv);
+assign o_p_sum[W_PSUM] = psum_dv;
 
 always @(posedge i_clk) begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         wb <= 0;
         w_dv <= 0;
         psum_buff <= 0;    

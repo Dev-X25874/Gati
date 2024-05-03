@@ -225,7 +225,7 @@ mul_engines#(
 )multiple_sa_engines(
     .i_clk(i_clk),
     .s_clk(s_clk),
-    .i_rst(i_rst),
+    .i_rstn(~i_rst),
     .i_trigger_1(trigg1),
     .i_weight_fifo_array_data(data_weight_wren_ctrl_sa),
     .i_weight_fifo_array_write_en(engine_north_ff_wren),

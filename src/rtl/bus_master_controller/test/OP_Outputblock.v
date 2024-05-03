@@ -21,6 +21,8 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] stop_addr = 0
             );
 
+            `include "instructions.vh"
+
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
@@ -62,13 +64,13 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[3:0];
-            accumulantaddr <= data_instruction[35:4];
-            outputaddr <= data_instruction[67:36];
-            channelItr <= data_instruction[79:68];
-            kernelItr <= data_instruction[91:80];
-            imagedim <= data_instruction[107:92];
-            stop_addr <= data_instruction[139:108];
+            opcode <= data_instruction[Opcode];
+            accumulantaddr <= data_instruction[AccumulantAddr];
+            outputaddr <= data_instruction[OutputAddr];
+            channelItr <= data_instruction[ChannelItr];
+            kernelItr <= data_instruction[KernelItr];
+            imagedim <= data_instruction[ImageDim];
+            stop_addr <= data_instruction[stop_addr];
             //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end

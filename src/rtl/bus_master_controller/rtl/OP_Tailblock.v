@@ -28,6 +28,8 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [3:0] poolpadding = 0
         );
 
+        `include "instructions.vh"
+
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
@@ -74,21 +76,21 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[3:0];
-            BNchannels <= data_instruction[13:4];
-            BNaddress <= data_instruction[45:14];
-            BIASaddr <= data_instruction[77:46];
-            acttype <= data_instruction[81:78];
-            quantscale <= data_instruction[97:82];
-            quantshift <= data_instruction[102:98];
-            pooltype <= data_instruction[105:103];
-            poolwidth <= data_instruction[109:106];
-            poolheight <= data_instruction[113:110];
-            poolstride <= data_instruction[117:114];
-            poolpadding <= data_instruction[121:118];
-            relu_clip <= data_instruction[129:122];
-            maxpool_threshold <= data_instruction[137:130];
-            stop_addr <= data_instruction[169:138];
+            opcode <= data_instruction[Opcode];
+            BNchannels <= data_instruction[BNChannels];
+            BNaddress <= data_instruction[BNAddress];
+            BIASaddr <= data_instruction[BIASAddr];
+            acttype <= data_instruction[ActType];
+            quantscale <= data_instruction[QuantScale];
+            quantshift <= data_instruction[QuantShift];
+            pooltype <= data_instruction[PoolType];
+            poolwidth <= data_instruction[PoolWidth];
+            poolheight <= data_instruction[PoolHeight];
+            poolstride <= data_instruction[PoolStride];
+            poolpadding <= data_instruction[PoolPadding];
+            relu_clip <= data_instruction[129:122];          //needs to be changed
+            maxpool_threshold <= data_instruction[137:130]; //needs to be changed
+            stop_addr <= data_instruction[169:138]; //needs to be changed 
             //valid <= 1'b1;
             state <= IDLE;
         end

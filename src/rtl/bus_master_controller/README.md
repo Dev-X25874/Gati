@@ -9,10 +9,10 @@ The Bus Master Controller is a Verilog module that facilitates communication bet
 2. **Master's Controller**: Operating under the direction of the Master module, this component orchestrates the process of dividing the 256-bit data into manageable 8-bit chunks and dispatching them to the designated slave device.
 
 3. **Slaves**:
-   - **OP_CONV**: One of the slave modules, designed to handle convolution operations.
-   - **OP_FC**: Another slave module designed to handle Fully connected operations.
-   - **OP_OUTPUTBLOCK**: A slave module tasked with processing output data block.
-   - **OP_TAILBLOCK**: A slave module specialized in handling tailblocks(quantization, relu & maxpool).
+   - **OP_CONV**: One of the operator modules, designed to handle convolution operations.
+   - **OP_FC**: Another operator module designed to handle Fully connected operations.
+   - **OP_OUTPUTBLOCK**: A operator module tasked with processing output data block.
+   - **OP_TAILBLOCK**: A operator module for handling tailblocks(quantization, relu & maxpool).
 
 ## Functionality
 

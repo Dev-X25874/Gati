@@ -29,6 +29,9 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg ready = 0,
                 output reg [175:0] dout = 0
             );
+
+            `include "instructions.vh"
+
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
@@ -79,21 +82,21 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[3:0];
-            IW <= data_instruction[13:4];
-            IH <= data_instruction[23:14];
-            OW <= data_instruction[33:24];
-            OH <= data_instruction[43:34];
-            IC <= data_instruction[53:44];
-            KN <= data_instruction[63:54];
-            KW <= data_instruction[67:64];
-            KH <= data_instruction[71:68];
-            STRIDE <= data_instruction[75:72];
-            PAD <= data_instruction[78:76];
-            INPUT_ADDRESS <= data_instruction[110:79];
-            channelItr <= data_instruction[122:111];
-            kernelItr <= data_instruction[134:123];
-            stop_addr <= data_instruction[166:135];
+            opcode <= data_instruction[Opcode];
+            IW <= data_instruction[IW];
+            IH <= data_instruction[IH];
+            OW <= data_instruction[OW];
+            OH <= data_instruction[OH];
+            IC <= data_instruction[IC];
+            KN <= data_instruction[KN];
+            KW <= data_instruction[KW];
+            KH <= data_instruction[KH];
+            STRIDE <= data_instruction[STRIDE];
+            PAD <= data_instruction[PAD];
+            INPUT_ADDRESS <= data_instruction[INPUT_ADDRESS];
+            channelItr <= data_instruction[ChannelItr];
+            kernelItr <= data_instruction[KernelItr];
+            stop_addr <= data_instruction[stop_addr];
            //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end

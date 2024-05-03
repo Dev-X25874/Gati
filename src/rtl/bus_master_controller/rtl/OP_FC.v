@@ -24,6 +24,8 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] stop_addr = 0
             );
 
+            `include "instructions.vh"
+
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
 reg [17:0] count = 0;
@@ -68,17 +70,17 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[3:0];
-            weightrows <= data_instruction[19:4];
-            weightcols <= data_instruction[35:20];
-            inputrows <= data_instruction[51:36];
-            dropoutconstant <= data_instruction[59:52];
-            address <= data_instruction[91:60];
-            flatten <= data_instruction[92:92];
-            imagedim <= data_instruction[112:93];
-            imageendaddr <= data_instruction[144:113];
-            FCbias <= data_instruction[176:145];
-            stop_addr <= data_instruction[208:177];
+            opcode <= data_instruction[Opcode];
+            weightrows <= data_instruction[WeightRows];
+            weightcols <= data_instruction[WeightCols];
+            inputrows <= data_instruction[InputRows];
+            dropoutconstant <= data_instruction[DropoutConstant];
+            address <= data_instruction[Address];
+            flatten <= data_instruction[Flatten];
+            imagedim <= data_instruction[ImageDim];
+            imageendaddr <= data_instruction[ImageEndAddr];
+            FCbias <= data_instruction[FCBias];
+            stop_addr <= data_instruction[stop_addr];
             //valid <= 1'b1;
             state <= IDLE;
         end

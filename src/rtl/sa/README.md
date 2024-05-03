@@ -1,62 +1,74 @@
-# Systolic Array Design 
+# Systolic Array
 
-## Overview
+This systolic array architecture consist of fifo and PE grid, to store and do convolution of weights and images respectively.
+It features stationary weights, i.e., weights are first loaded and gets stored into PE grid, 
+and then the image is sent into PE grid in broadcasting manner(same image is sent to all PE blocks in a row at the same clock cycle).
 
-This repository contains the design and implementation details of a systolic array, a specialized grid of processors that collaboratively execute repetitive computations efficiently. Such arrays are notably advantageous in tasks involving matrix multiplication or signal processing.
+## Explanation of how a systolic array engine (SA engine) operates:
 
-### Purpose and Advantages
+ <img src="test/images/SA.png" alt="systolic array engine" width="700" height="400">
 
-The key motivation behind constructing a systolic array lies in its application for performing convolutions within Convolutional Neural Networks (CNNs). Systolic arrays are chosen for their specific advantages:
+### Loading weights into PE grid:
 
-- **Efficient Handling of Repetitive Computations:** Systolic arrays excel in efficiently managing repetitive computations, a critical aspect in convolution tasks.
-- **Parallel Processing Capability:** Utilizing parallel processors arranged in a grid allows simultaneous processing of multiple data components, enhancing computational speed.
-- **Alignment with Convolution's Nature:** The array's structure and operation are well-suited for convolution tasks, thereby boosting overall performance in CNNs.
-- **Performance Enhancement in CNN Convolutional Layers:** Particularly adept at accelerating computationally intensive tasks within CNN convolutional layers.
+Weights are first read into the PE grid from the weight fifo array located in the fifo sharing controller.
+The SA engine's current dimensions are 9x4, or 9 rows and 4 columns. Weights are simultaneously inserted into each PE block in a row.
+Thus, for a 9x4 grid, the first four weights that are read from the weight fifo array are loaded into the first row of the PE grid.
+The first set of four weights in the first row are pused downward and placed into the second row when the second set of weights is read from the weight fifo array.
+In the meantime, the second set of weights is stored into the topmost (first) row in the PE grid.
+This continues until all PE blocks are filled with weights. 
 
-## Abstract Data Flow
+### Loading image into PE grid:
 
-The flow of data within this systolic array design follows a specific sequence:
+Afterwards, the image is read from DDR into the image fifo array, and the im2col module handles the write enable signal of the image fifo array.
+The image is then loaded into delay routers from this array. In the diagram below, delay registers are generated in the manner shown.
+As we move vertically downward in PE grid,one clock cycle delay is added to load partial sums coming from above PE block, into it's next PE block.
+Since there is no need for a delay in the first row, the image is transmitted straight into the PE blocks without the need for a delay register.
+The number of registers continues to increase by one as we descend to the next row, delaying the image by one clock cycle as we move downwards through the image fifo array.
+And then from delay registers it goes into PE grid in broadcasting manner.
+Therefore, the image is sent through delay registers to ensure that the partial sum and image arrive at the same clock cycle into a PE block. 
 
-1. **Input Storage in FIFO:**
-    - Data is transmitted serially from UART.
-    - PySerial facilitates the transmission of two matrices (weights and image) via UART.
-    - The received data is stored in FIFOs, and the controller manages the transfer of data into the systolic array.
+### Convolution in PE grid:
 
-2. **Loading and Processing in Systolic Array:**
-    - The systolic array consists of a grid of processors (PEs) and interconnected pathways to perform convolution operations in a pipelined manner.
-    - Weight matrices are loaded in a top-to-bottom direction, while the image matrix is loaded from left to right simultaneously.
-    - Sub-modules within the systolic array:
-        - Grid of PE Blocks: Different configurations exist for PE blocks in various rows.
-        - Delay Registers: Introduce clock cycle delays for effective data handling within the array.
-    - Utilization of lut and dsp multipliers for computation within the array.
+Since the weights are pre-loaded into PE blocks, when an image is loaded into the one, it immediately accumulates the product of the weight and the image data with the partial sum coming from the PE block just above it.
+And transfers this partial sum to the PE block that is immediately below it.
+In the PE grid, this occurs simultaneously for every column. In this manner, the image and weights are computed inside the PE grid in parallel.
 
-3. **Output Storage in FIFO:**
-    - The resultant output is stored in a FIFO array (referred to as the south array), managed by dedicated controllers for write and read enable signals.
-    - Image data outputted from rows is stored in another FIFO array (east array) for subsequent serial reading through UART.
+There exists three different variants of PE blocks inside the PE grid in this architecture of SA engine:
+1. Top PE block:
+	This PE block, as its name implies, is situated on the top row of the PE grid.It takes weights and image as input, compute them, 
+	and gives partial sums and weights as output to PE blocks present in the next row below it.
+2. Middle PE block:
+	Except for the top and bottom rows, every row in the PE grid has this PE block. It computes the input weights, partial sum, and picture from its previous PE block in the row above, then sends the partial sums and weights to the following PE block in the row below.
+3. Bottom PE block:
+	This PE block only appears in the last row of the PE grid, as implied by its name.It receives partial sums, weights, and image, performs the multiplication and accumulation operation on them, and gives out partial sums. In contrast to all the other PE blocks, this one just sends out partial sums, weights are not given out because they are not needed further.
+These variations are therefore introduced as a result of the different input and output ports of PE blocks of different rows.
 
-## Detailed Sections Breakdown
+### Storing partial sums:
+The last row's output partial sums from the PE block come together at same clock cycle and are then stored in the partial sum fifo array.
+The partial sum output of every column in the PE grid is stored in each fifo in the partial sum fifo array.
+To read partial sums from the PE grid into the partial sum fifo array and to load images and weights from the fifo array into the PE grid, certain controllers are created.
 
-### Input FIFO Storage
-The storage of input data in FIFOs is a crucial initial step in the systolic array operation:
+### A variety of SA engines and multipliers:
+There are two ways for performing multiplication in the PE block:
+- Using DSP: The * operator in a design can be used to access the Muliplication operator, which utilises FPGA DSP elements. 
+- Using LUT-based multipliers: The * operator is used along with an attribute specified in the code to create the multiplication operator, which does not require any DSP blocks on the FPGA.
 
-- **Byte-by-Byte Sequential Storage:** The data transmission occurs serially, with each byte stored sequentially within a single FIFO. This ensures a structured data flow.
-- **Dual FIFO Management via UART:** The system employs two FIFOs, each managed by UART—one dedicated to weights and the other to image data.
-- **Array Configuration Correspondence:** To align with the systolic array's columns and rows, two arrays of FIFOs—namely, north_array (for weights) and west_array (for image data)—facilitate organized data storage.
+Based on the various multipliers mentioned above, there are two distinct kinds of SA engines:
+- DSP SA engine: This SA engine makes use of DSP blocks in all of its multipliers.
+- LUT SA engine: This SA engine replaces LUTs and ADDs with DSP blocks in all of its multipliers.
 
-### Systolic Array Processing
-The processing phase within the systolic array involves intricate operations and functional units:
+Number of rows, columns in a SA engine is parameterized and can be changed by chnaging values of respective parameters.
+Also, the number of DSP and LUT SA engines to be used, is also parameterized and can be changed by changing values of their respective parameters.
+Following are the parameters used in design to achieve different configuration of SA block:
 
-- **Grid of Processing Elements (PEs):** The heart of the systolic array consists of a grid of PEs and interconnects designed to execute convolution operations in a pipelined manner.
-- **Distinct PE Block Configurations:** Rows within the systolic array host PE blocks with unique configurations—top, middle, bottom—each exhibiting varying input/output characteristics.
-- **Clock Cycle Synchronization:** Delay registers are strategically employed to synchronize the data flow, introducing clock cycle delays for seamless data propagation within the array.
-
-### Output FIFO Storage
-The management of processed output data through FIFOs constitutes the final phase of the systolic array operation:
-
-- **Dedicated FIFO Arrays (South and East Arrays):** The processed output is stored in the south array, managed by controllers with specific functionalities for efficient write and read operations. Simultaneously, image data from array rows is stored in the east array for subsequent serial transmission through UART.
-
-For a visual representation of the connection setup of controllers and FIFOs within the systolic array, refer to the following diagram:
-
-  <img src="test/images/systolic_array.jpg" alt="systolic array engine" width="700" height="400">
-
-*Note: The description and diagram depicts a single systolic array engine. In the design, four systolic array engines run in parallel with identical connections.*
+### Parameters of SA engine:  
+A SA engine's number of rows and columns is parameterized, and its number can be changed by modifying the values of the associated parameters.
+It is also possible to modify the number of DSP and LUT SA engines to be implemented by adjusting the values of their corresponding parameters.
+The following design parameters are utilised to achieve various SA block configurations:
+- ROW: Total number of rows in one SA engine (default value is 9).
+- COL: Total number of columns in one SA engine (default value is 4).
+- NSA_DSP: Number of SA engines which uses only DSP multipliers.
+- NSA_LUT: Number of SA engines which strictly uses onyl Lut based multipliers.
+- N_SA: Indicated total number of engines,it is a localparam,and will be automatically computed based on NSA_DSP and NSA_LUT parameter values.
+- IMG_FIFO_DEPTH: Depth of all the fifo in image fifo array.
+- PSUM_FIFO_DEPTH: Depth of all the fifo in partial sum fifo array.

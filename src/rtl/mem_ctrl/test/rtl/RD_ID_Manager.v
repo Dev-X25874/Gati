@@ -91,7 +91,12 @@ always @ (posedge clk) begin
             select_rd <= 1 << current_sent ;
             ack_rd <= 1'b1 ;
         end 
-
+        
+        else if ((current_sent == rid) && rvalid && rlast ) begin 
+            select_rd  <= 0;
+            ack_rd <= 0 ;
+        end 
+        
         else begin 
             select_rd <= select_rd ;
             ack_rd <= ack_rd ;

@@ -46,6 +46,7 @@ always @(posedge clk) begin
                     select <= 4'b0000 ;
                 end
                 else begin 
+                    select <= 4'b0000 ;
                     w_en_ack <= 0 ;
                     state <= IDLE ;
                 end 

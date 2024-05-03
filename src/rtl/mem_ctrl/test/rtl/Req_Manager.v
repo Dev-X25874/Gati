@@ -52,7 +52,7 @@ always @ (posedge clk) begin
         end 
         
         else begin 
-            data_sel <= 0 ;
+            data_sel <= data_sel ;
             valid_req <= 0 ;
         end 
     end 

@@ -8,8 +8,11 @@ IC:10
 KN:10
 KW:4
 KH:4
-STRIDE:4
-PAD:3
-INPUT_ADDRESS:32
+Stride:4
+Pad:3
 ChannelItr:12
 KernelItr:12
+ImageStartAddress:32
+ImageEndAddress:32
+WeightStartAddress:32
+WeightEndAddress:32

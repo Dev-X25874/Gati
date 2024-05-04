@@ -4,4 +4,6 @@ AccumulantAddr:32
 OutputAddr:32
 ChannelItr:12
 KernelItr:12
-ImageDim:16
+ImageDimOutput:16
+ImageDimAcc:16
+AccEn:1

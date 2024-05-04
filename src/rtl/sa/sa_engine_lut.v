@@ -3,12 +3,13 @@
 */
 module sa_engine_lut#(
     parameter W_DATA = 8,
-    parameter W_ADDR = 9,
     parameter COL = 4,
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter N_SA = 1,
-    parameter RAM_DEPTH = (1 << W_ADDR),
+    parameter IMG_FF_DEPTH = 512,
+    parameter PSUM_FF_DEPTH = 1024,
+    parameter WEIGHT_FF_DEPTH = 512,
     parameter N_BRAM_BYTES = 32
 )(
     input i_clk,
@@ -20,7 +21,7 @@ module sa_engine_lut#(
     input [COL-1 : 0] i_weight_fifo_array_dv,
     input [(COL * W_DATA)-1 : 0] i_weight_fifo_array_data,
     input [COL-1 : 0] i_weight_fifo_array_empty,
-    input [((W_ADDR + 1) * COL)-1 : 0] i_weight_fifo_array_occ,
+    input [((WEIGHT_FF_ADDR + 1) * COL)-1 : 0] i_weight_fifo_array_occ,
     input [W_DATA-1 : 0] i_image_fifo_array_data,
     input [ROW-1 : 0] i_image_fifo_array_wren,
     input [COL-1 : 0] i_psum_ff_array_read_en,
@@ -30,6 +31,10 @@ module sa_engine_lut#(
     output [COL-1 : 0] o_weight_fifo_array_rden,
     output o_mux_sel
 );
+
+localparam IMG_FF_ADDR = $clog2(IMG_FF_DEPTH);
+localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
+localparam PSUM_FF_ADDR = $clog2(PSUM_FF_DEPTH);
 
 wire [(COL * (W_DATA + 1))-1 : 0] weights_append_dv_cdc;
 
@@ -48,7 +53,7 @@ wire enb_weight_rden_ctrl_image_rden_ctrl;
 //Control read enable signal of uart_rx_weight_fifo
 weight_fifo_aray_rden#(
     .COL(COL),
-    .W_ADDR(W_ADDR),
+    .W_ADDR(WEIGHT_FF_ADDR),
     .ROW(ROW),
     .N_SA(N_SA),
     .N_BRAM_BYTES(N_BRAM_BYTES)
@@ -69,7 +74,6 @@ wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
 wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
-// wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
 
 /*
     Each fifo in this array stores its corrosponding row's image 
@@ -78,8 +82,8 @@ wire [ROW-1:0] dv_image_ff_array_append_dv;
 fifo_array#(
     .DIMENSION(ROW),
     .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
+    .W_ADDR(IMG_FF_ADDR),
+    .RAM_DEPTH(IMG_FF_DEPTH)
 ) sa_engine_image_fifo_array (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
@@ -108,12 +112,11 @@ wire [((W_DATA + 1) * ROW)-1 : 0] image_append_dv_cdc;
 //Control read enable signal of uart_rx_image_fifo
 image_fifo_array_rden#(
     .ROW(ROW),
-    .W_ADDR(W_ADDR),
+    .W_ADDR(IMG_FF_ADDR),
     .W_DATA(W_DATA)
 ) image_fifo_array_rden_ctrl (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
-    // .i_occupants(occ_image_ff_array_rden_ctrl),
     .i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
@@ -149,8 +152,6 @@ delay_reg #(
 
 wire  [((W_PSUM + 1) * COL)-1 : 0] partial_sums_sa_cdc;
 //PE grid using DSP blocks as multipliers
-
-
 lut_pe_grid#(
     .COL(COL),
     .ROW(ROW),
@@ -196,8 +197,8 @@ seperate_psum_dv#(
 psum_fifo_array#(
     .COL(COL),
     .W_DATA(W_PSUM),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
+    .W_ADDR(PSUM_FF_ADDR),
+    .RAM_DEPTH(PSUM_FF_DEPTH)
 ) partial_sum_array (
     .i_clk(i_clk),
     .i_rstn(i_rstn),

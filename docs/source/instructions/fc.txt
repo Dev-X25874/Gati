@@ -4,8 +4,9 @@ WeightRows:16
 WeightCols:16
 InputRows:16
 DropoutConstant:8
-Address:32
 Flatten:1
 ImageDim:20
+ImageStartAddress:32
 ImageEndAddr:32
-FCBias:32
+KernelIteration:16
+RWAddressCountFlatten:16

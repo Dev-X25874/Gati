@@ -1,13 +1,13 @@
-module top_uart_flow#(
+module top#(
     parameter N_SA = (NSA_DSP + NSA_LUT),
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter COL = 8,
+    parameter COL = 4,
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1 << W_ADDR),
-    parameter NSA_DSP = 4,
-    parameter NSA_LUT = 4
+    parameter NSA_DSP = 2,
+    parameter NSA_LUT = 2
 )(
     input i_clk,
     input s_clk,

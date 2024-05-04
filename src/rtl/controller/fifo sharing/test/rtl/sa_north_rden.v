@@ -4,6 +4,7 @@
     the functionality of fifo sharing controller, 
     should be avoided while integration.
 */
+/*
 module sa_weight_ff_rden#(
     parameter COL_SA = 4,
     parameter W_ADDR = 8,
@@ -112,6 +113,7 @@ always @(posedge i_clk) begin
                     counter <= 0;
                     rden <= 0;
                     sel <= sel;
+                    read_img <= 1'b1;
                 end else begin
                     counter <= counter + 1;
                 end
@@ -119,7 +121,8 @@ always @(posedge i_clk) begin
 
             3: begin
                 if(i_done)begin
-                    if((COL * N_SA) < N_BRAM_BYTES)
+                    read_img <= 1'b0;
+                   if((COL * N_SA) < N_BRAM_BYTES)
                         sel <= ~sel;
                     else
                         sel <= sel;
@@ -144,3 +147,4 @@ end
 
     
 endmodule
+*/

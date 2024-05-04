@@ -6,10 +6,10 @@ module rden_mux#(
     parameter COL_FC = 32,
     parameter N_SA = 4,
     parameter COL_SA = 4,
-    parameter N_BRAM_BYTES = 32
+    parameter N_DRAM_BYTES = 32
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [COL_FC-1 : 0] i_fc_rden,
     input [(N_SA * COL_SA)-1 : 0] i_sa_rden,
     input i_sel_1,
@@ -21,7 +21,7 @@ reg [COL-1 : 0] north_rden = 0;
 assign o_north_rden = north_rden;
 
 always @(posedge i_clk)begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         north_rden <= 0;
     end else begin
         case (i_sel_1)
@@ -29,7 +29,7 @@ always @(posedge i_clk)begin
                 north_rden <= i_fc_rden;
             end
             1'b1: begin //Convolution layer
-                if((N_SA * COL_SA) < N_BRAM_BYTES)begin
+                if((N_SA * COL_SA) < N_DRAM_BYTES)begin
                     case (i_sel_2)
                         1'b0:begin  //First half of weight fifo array (starting from MSB)
                             north_rden <= {i_sa_rden, {(COL_SA * N_SA){1'b0}}};

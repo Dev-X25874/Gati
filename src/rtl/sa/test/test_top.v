@@ -1,4 +1,4 @@
-module top#(
+module test_top#(
     parameter N_SA = (NSA_DSP + NSA_LUT),
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
@@ -7,7 +7,10 @@ module top#(
     parameter W_PSUM = 19,
     parameter RAM_DEPTH = (1 << W_ADDR),
     parameter NSA_DSP = 2,
-    parameter NSA_LUT = 2
+    parameter NSA_LUT = 2,
+    parameter IMG_FF_DEPTH = 512,
+    parameter WEIGHT_FF_DEPTH = 512,
+    parameter PSUM_FF_DEPTH = 512
 )(
     input i_clk,
     input s_clk,
@@ -215,13 +218,14 @@ wire [(COL * N_SA)-1 : 0] psum_ff_array_empty_sa_psum_ff;
 mul_engines#(
     .N_SA(N_SA),
     .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
     .COL(COL),
     .ROW(ROW),
     .W_PSUM(W_PSUM),
-    .RAM_DEPTH(RAM_DEPTH),
     .NSA_LUT(NSA_LUT),
-    .NSA_DSP(NSA_DSP)
+    .NSA_DSP(NSA_DSP),
+    .IMG_FF_DEPTH(IMG_FF_DEPTH),
+    .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH),
+    .PSUM_FF_DEPTH(PSUM_FF_DEPTH)
 )multiple_sa_engines(
     .i_clk(i_clk),
     .s_clk(s_clk),

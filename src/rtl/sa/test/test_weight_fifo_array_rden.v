@@ -7,7 +7,7 @@
     and it will continue until all of the fifo in the array are filled, 
     with at least ROW number of occupants again.
 */
-module weight_fifo_aray_rden#(
+module test_weight_fifo_aray_rden#(
    parameter COL = 1,
    parameter ROW = 9,
    parameter W_ADDR = 8,

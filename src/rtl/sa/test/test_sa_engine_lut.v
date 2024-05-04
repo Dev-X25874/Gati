@@ -1,14 +1,15 @@
 /*
     Uart-to-uart flow of a single SA engine
 */
-module sa_engine_lut#(
+module test_sa_engine_lut#(
     parameter W_DATA = 8,
     parameter COL = 4,
-    parameter W_ADDR = 9,
     parameter ROW = 9,
     parameter W_PSUM = 19,
     parameter N_SA = 4,
-    parameter RAM_DEPTH = (1 << W_ADDR)
+    parameter IMG_FF_DEPTH = 512,
+    parameter WEIGHT_FF_DEPTH = 512,
+    parameter PSUM_FF_DEPTH = 512
 )(
     input i_clk,
     input s_clk,
@@ -24,11 +25,15 @@ module sa_engine_lut#(
     output [COL-1 : 0] o_psum_ff_array_dv
 );
 
+localparam IMG_FF_ADDR = $clog2(IMG_FF_DEPTH);
+localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
+localparam PSUM_FF_ADDR = $clog2(PSUM_FF_DEPTH);
+
 wire [COL-1 : 0] read_rden_ctrl_weight_ff_array;
 wire [COL-1 : 0] dv_weight_ff_array_append_dv;
 wire [COL-1 : 0] empty_weight_ff_array_rden_ctrl;
 wire [(COL * W_DATA)-1 : 0] data_weight_ff_array_append_dv;
-wire [((W_ADDR + 1) * COL)-1 : 0] occ_weight_ff_array_rden_ctrl;
+wire [((WEIGHT_FF_ADDR + 1) * COL)-1 : 0] occ_weight_ff_array_rden_ctrl;
 
 /*
     Each fifo in this array stores its corrosponding column's weights
@@ -37,8 +42,8 @@ wire [((W_ADDR + 1) * COL)-1 : 0] occ_weight_ff_array_rden_ctrl;
 fifo_array#(
     .DIMENSION(COL),
     .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
+    .W_ADDR(WEIGHT_FF_ADDR),
+    .RAM_DEPTH(WEIGHT_FF_DEPTH)
 ) sa_engine_weight_fifo_array (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
@@ -65,10 +70,10 @@ append_dv#(
 
 wire enb_weight_rden_ctrl_image_rden_ctrl;
 //Control read enable signal of uart_rx_weight_fifo
-weight_fifo_aray_rden#(
+test_weight_fifo_aray_rden#(
    .COL(COL),
    .ROW(ROW),
-   .W_ADDR(W_ADDR),
+   .W_ADDR(WEIGHT_FF_ADDR),
    .W_DATA(W_DATA)
 ) weight_fifo_array_rden_ctrl (
    .i_clk(i_clk),
@@ -84,7 +89,7 @@ wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
 wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
-wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
+// wire [(((WEIGHT_FF_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
 /*
     Each fifo in this array stores its corrosponding row's image 
     before sending it to delay registers
@@ -92,8 +97,8 @@ wire [(((W_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
 fifo_array#(
     .DIMENSION(ROW),
     .W_DATA(W_DATA),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
+    .W_ADDR(IMG_FF_ADDR),
+    .RAM_DEPTH(IMG_FF_DEPTH)
 ) sa_engine_image_fifo_array (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
@@ -104,7 +109,7 @@ fifo_array#(
     .o_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_fifo_full(),
     .o_fifo_dv(dv_image_ff_array_append_dv),
-    .o_occupants(occ_image_ff_array_rden_ctrl)
+    .o_occupants()
 );
 //Appends data valid signal with image before sending it to delay registers
 append_dv#(
@@ -119,12 +124,11 @@ wire [((W_DATA + 1) * ROW)-1 : 0] image_append_dv_cdc;
 //Control read enable signal of uart_rx_image_fifo
 image_fifo_array_rden#(
     .ROW(ROW),
-    .W_ADDR(W_ADDR),
+    .W_ADDR(IMG_FF_ADDR),
     .W_DATA(W_DATA)
 ) image_fifo_array_rden_ctrl (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
-    .i_occupants(occ_image_ff_array_rden_ctrl),
     .i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
@@ -194,8 +198,8 @@ seperate_psum_dv#(
 psum_fifo_array#(
     .COL(COL),
     .W_DATA(W_PSUM),
-    .W_ADDR(W_ADDR),
-    .RAM_DEPTH(RAM_DEPTH)
+    .W_ADDR(PSUM_FF_ADDR),
+    .RAM_DEPTH(PSUM_FF_DEPTH)
 ) partial_sum_array (
     .i_clk(i_clk),
     .i_rstn(i_rstn),

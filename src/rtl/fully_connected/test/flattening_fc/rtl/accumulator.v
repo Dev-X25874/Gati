@@ -55,8 +55,6 @@ assign w_data = {{W_IN_DATA{i_psum[W_PSUM-1]}},{i_psum[W_PSUM-1 : 0]}};
 wire p_sum_dv;
 assign p_sum_dv = i_psum[W_PSUM];
 
-reg [1:0] acc_debug_counter=0;
-
 reg [31:0] acc_reg = 0;
 reg [W_IMG_DIM-1 : 0] counter = 0;
 reg dv = 0;
@@ -93,7 +91,6 @@ always @(posedge i_clk)begin
                 if(counter == i_img_dim)begin
                     data <= acc_reg;
                     dv <= 1'b1;
-                    acc_debug_counter <= acc_debug_counter + 1;
                     counter <= 0;
                     acc_reg = 0;
                     state <= 0;

@@ -3,7 +3,7 @@
     for laoding weights either into SA or FC 
     block at a time.
 */
-module top#(
+module top_fifo_sharing#(
     parameter W_DATA = 8,
     parameter N_SA = 8,                 //Number of SA engines                 
     parameter COL_SA = 8,               //columns in one SA engine

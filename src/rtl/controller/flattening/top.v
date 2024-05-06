@@ -3,7 +3,7 @@
     Further, the data from BRAM is sent into a mux, which receives data 
     channel-wise, and send one byte at a time as output.
 */
-module flattening#(
+module top#(
     parameter W_DATA = 8,
     parameter N_BRAM = 8,                                       //number of brams in one bank
     parameter N_BANK = 4,                                       //total number of bram banks

@@ -1,7 +1,5 @@
 /*
-    Appends data valid bit with the data before sending it 
-    into rows or columns of systolic array. This will help to get 
-    correct data valid signal for partial sums.
+    Appends data valid bit along with the input data 
 */
 module append_dv#(
     parameter N_DIMENSION = 8,  //number of rows or columns

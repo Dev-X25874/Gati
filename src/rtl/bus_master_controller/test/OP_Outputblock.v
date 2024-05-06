@@ -16,9 +16,10 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] outputaddr = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
-                output reg [15:0] imagedim = 0,
-                output reg [138:0] dout = 0,
-                output reg [31:0] stop_addr = 0
+                output reg [15:0] ImageDimOutput = 0,
+                output reg [15:0] ImageDimAcc = 0,
+                output reg AccEn = 0,
+                output reg [124:0] dout = 0
             );
 
             `include "instructions.vh"
@@ -42,7 +43,10 @@ always @(posedge clk) begin
         outputaddr <= 0;
         channelItr <= 0;
         kernelItr <= 0;
-        imagedim <= 0;
+        ImageDimOutput <= 0;
+        ImageDimAcc <= 0;
+        AccEn <= 0;
+        count <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -69,14 +73,15 @@ always @(posedge clk) begin
             outputaddr <= data_instruction[OutputAddr];
             channelItr <= data_instruction[ChannelItr];
             kernelItr <= data_instruction[KernelItr];
-            imagedim <= data_instruction[ImageDim];
-            stop_addr <= data_instruction[stop_addr];
+            ImageDimOutput <= data_instruction[ImageDimOutput];
+            ImageDimAcc <= data_instruction[ImageDimAcc];
+            AccEn <= data_instruction[AccEn];
             //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {stop_addr,imagedim,kernelItr,channelItr,outputaddr,accumulantaddr,opcode}; //this concates the different output signals for checking purpose
+        dout <= {AccEn, ImageDimAcc, ImageDimOutput, kernelItr, channelItr, outputaddr, accumulantaddr, opcode}; //this concates the different output signals for checking purpose
         state <= IDLE;
         //valid <= 1'b1;
     end

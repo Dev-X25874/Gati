@@ -16,12 +16,12 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [15:0] weightcols = 0,
                 output reg [15:0] inputrows = 0,
                 output reg [7:0] dropoutconstant = 0,
-                output reg [31:0] address = 0,
                 output reg flatten = 0,
                 output reg [19:0] imagedim = 0,
-                output reg [31:0] imageendaddr = 0,
-                output reg [31:0] FCbias = 0,
-                output reg [31:0] stop_addr = 0
+                output reg [31:0] ImageStartAddress = 0,
+                output reg [31:0] ImageEndAddr = 0,
+                output reg [15:0] KernelIteration = 0,
+                output reg [15:0] RWAddressCountFlatten = 0
             );
 
             `include "instructions.vh"
@@ -44,11 +44,13 @@ always @(posedge clk) begin
         weightcols <= 0;
         inputrows <= 0;
         dropoutconstant <= 0;
-        address <= 0;
         flatten <= 0;
         imagedim <= 0;
-        imageendaddr <= 0;
-        FCbias <= 0;
+        ImageStartAddress <= 0;
+        ImageEndAddr <= 0;
+        KernelIteration <= 0;
+        RWAddressCountFlatten <= 0;
+        count <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -75,12 +77,12 @@ always @(posedge clk) begin
             weightcols <= data_instruction[WeightCols];
             inputrows <= data_instruction[InputRows];
             dropoutconstant <= data_instruction[DropoutConstant];
-            address <= data_instruction[Address];
             flatten <= data_instruction[Flatten];
             imagedim <= data_instruction[ImageDim];
-            imageendaddr <= data_instruction[ImageEndAddr];
-            FCbias <= data_instruction[FCBias];
-            stop_addr <= data_instruction[stop_addr];
+            ImageStartAddress <= data_instruction[ImageStartAddress];   
+            ImageEndAddr <= data_instruction[ImageEndAddr];
+            KernelIteration <= data_instruction[KernelIteration];
+            RWAddressCountFlatten <= data_instruction[RWAddressCountFlatten];
             //valid <= 1'b1;
             state <= IDLE;
         end

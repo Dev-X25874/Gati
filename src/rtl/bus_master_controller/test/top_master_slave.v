@@ -26,7 +26,7 @@ wire [175:0] dout_conv;
 wire [207:0] dout_FC;
 wire [138:0] dout_OB;
 wire [166:0] dout_TB;
-wire [209:0] dout;
+wire [272:0] dout;
 
 top_master top_master(
 .din(din),
@@ -57,9 +57,12 @@ OP_CONV OP_CONV(
 .KH(),
 .STRIDE(),
 .PAD(),
-.INPUT_ADDRESS(),
 .channelItr(),
 .kernelItr(),
+.ImageStartAddress(),
+.ImageEndAddress(), 
+.WeightStartAddress(),
+.WeightEndAddress(),
 .valid(valid_conv),
 .ready(ready_conv),
 .dout(dout_conv)
@@ -78,11 +81,12 @@ OP_FC OP_FC(
 .weightcols(),
 .inputrows(),
 .dropoutconstant(),
-.address(),
 .flatten(),
 .imagedim(),
-.imageendaddr(),
-.FCbias(),
+.ImageStartAddress(),
+.ImageEndAddr(),
+.KernelIteration(),
+.RWAddressCountFlatten(),
 .dout(dout_FC)
 );
 
@@ -99,7 +103,9 @@ OP_Outputblock OP_Outputblock(
 .outputaddr(),
 .channelItr(),
 .kernelItr(),
-.imagedim(),
+.ImageDimOutput(),
+.ImageDimAcc(),
+.AccEn(),
 .dout(dout_OB)
 );
 
@@ -112,17 +118,26 @@ OP_Tailblock OP_Tailblock(
 .ready(ready_TB),
 .valid(valid_TB),
 .opcode(),
+.BNEn(),
 .BNchannels(),
-.BNaddress(),
-.BIASaddr(),
+.BNStartAddress(),
+.BNEndAddress(),
+.ActEn(),
 .acttype(),
+.ActParam(),
+.QuantEn(),
 .quantscale(),
 .quantshift(),
+.PoolEn(),
 .pooltype(),
 .poolwidth(),
 .poolheight(),
 .poolstride(),
 .poolpadding(),
+.BiasEn(),
+.FCBiasEn(),
+.BiasStartAddress(),
+.BiasEndAddress(),
 .dout(dout_TB)
 );
 

@@ -9,23 +9,29 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output reg [7:0] relu_clip = 0,
-                output reg [7:0] maxpool_threshold = 0,
-                output reg [31:0] stop_addr = 0,
                 output reg ready = 0,
                 output valid,
                 output reg [3:0] opcode = 0,
+                output reg BNEn = 0,
                 output reg [9:0] BNchannels = 0,
-                output reg [31:0] BNaddress = 0,
-                output reg [31:0] BIASaddr = 0,
+                output reg [31:0] BNStartAddress = 0,
+                output reg [31:0] BNEndAddress = 0,
+                output reg ActEn = 0,
                 output reg [3:0] acttype = 0,
+                output reg [7:0] ActParam = 0,
+                output reg QuantEn = 0,
                 output reg [15:0] quantscale = 0,
                 output reg [4:0] quantshift = 0,
+                output reg PoolEn = 0,
                 output reg [2:0] pooltype = 0,
                 output reg [3:0] poolwidth = 0,
                 output reg [3:0] poolheight = 0,
                 output reg [3:0] poolstride = 0,
-                output reg [3:0] poolpadding = 0
+                output reg [3:0] poolpadding = 0,
+                output reg BiasEn = 0,
+                output reg FCBiasEn = 0,
+                output reg [31:0] BiasStartAddress = 0,
+                output reg [31:0] BiasEndAddress = 0
         );
 
         `include "instructions.vh"
@@ -45,16 +51,25 @@ always @(posedge clk) begin
         ready <= 0;
         opcode <= 0;
         BNchannels <= 0;
-        BNaddress <= 0;
-        BIASaddr <= 0;
+        BNStartAddress <= 0;
+        BNEndAddress <= 0;
+        ActEn <= 0;
+        ActParam <= 0;
         acttype <= 0;
+        QuantEn <= 0;
         quantscale <= 0;
         quantshift <= 0;
+        PoolEn <= 0;
         pooltype <= 0;
         poolwidth <= 0;
         poolheight <= 0;
         poolstride <= 0;
         poolpadding <= 0;
+        BiasEn <= 0;
+        FCBiasEn <= 0;
+        BiasStartAddress <= 0;
+        BiasEndAddress <= 0;
+        count <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -78,20 +93,25 @@ always @(posedge clk) begin
         if(done) begin
             opcode <= data_instruction[Opcode];
             BNchannels <= data_instruction[BNChannels];
-            BNaddress <= data_instruction[BNAddress];
-            BIASaddr <= data_instruction[BIASAddr];
+            BNEn <= data_instruction[BNEn];
+            BNStartAddress <= data_instruction[BNStartAddress];
+            BNEndAddress <= data_instruction[BNEndAddress];
+            ActEn <= data_instruction[ActEn];
+            ActParam <= data_instruction[ActParam]; 
             acttype <= data_instruction[ActType];
+            QuantEn <= data_instruction[QuantEn];
             quantscale <= data_instruction[QuantScale];
             quantshift <= data_instruction[QuantShift];
+            PoolEn <= data_instruction[PoolEn];
             pooltype <= data_instruction[PoolType];
             poolwidth <= data_instruction[PoolWidth];
             poolheight <= data_instruction[PoolHeight];
             poolstride <= data_instruction[PoolStride];
             poolpadding <= data_instruction[PoolPadding];
-            relu_clip <= data_instruction[129:122];          //needs to be changed
-            maxpool_threshold <= data_instruction[137:130]; //needs to be changed
-            stop_addr <= data_instruction[169:138]; //needs to be changed 
-            //valid <= 1'b1;
+            BiasEn <= data_instruction[BiasEn];
+            FCBiasEn <= data_instruction[FCBiasEn];
+            BiasStartAddress <= data_instruction[BiasStartAddress];
+            BiasEndAddress <= data_instruction[BiasEndAddress];
             state <= IDLE;
         end
     end

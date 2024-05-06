@@ -19,12 +19,14 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [9:0] KN = 0,
                 output reg [13:0] KW = 0,
                 output reg [3:0] KH = 0,
-                output reg [3:0] STRIDE = 0,
-                output reg [2:0] PAD = 0,
-                output reg [31:0] INPUT_ADDRESS = 0,
+                output reg [3:0] Stride = 0,
+                output reg [2:0] Pad = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
-                output reg [31:0] stop_addr = 0,
+                output reg [31:0] ImageStartAddress = 0,
+                output reg [31:0] ImageEndAddress = 0,
+                output reg [31:0] WeightStartAddress = 0,
+                output reg [31:0] WeightEndAddress = 0,
                 output valid,
                 output reg ready = 0
             );
@@ -54,11 +56,14 @@ always @(posedge clk) begin
         KN <= 0;
         KW <= 0;
         KH <= 0;
-        STRIDE <= 0;
-        PAD <= 0;
-        INPUT_ADDRESS <= 0;
+        Stride <= 0;
+        Pad <= 0;
         channelItr <= 0;
         kernelItr <= 0;
+        ImageStartAddress <= 0;
+        ImageEndAddress <= 0;
+        WeightStartAddress <= 0;
+        WeightEndAddress <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -89,12 +94,14 @@ always @(posedge clk) begin
             KN <= data_instruction[KN];
             KW <= data_instruction[KW];
             KH <= data_instruction[KH];
-            STRIDE <= data_instruction[STRIDE];
-            PAD <= data_instruction[PAD];
-            INPUT_ADDRESS <= data_instruction[INPUT_ADDRESS];
+            Stride <= data_instruction[Stride];
+            Pad <= data_instruction[Pad];
             channelItr <= data_instruction[ChannelItr];
             kernelItr <= data_instruction[KernelItr];
-            stop_addr <= data_instruction[stop_addr];
+            ImageStartAddress <= data_instruction[ImageStartAddress];
+            ImageEndAddress <= data_instruction[ImageEndAddress];
+            WeightStartAddress <= data_instruction[WeightStartAddress];
+            WeightEndAddress <= data_instruction[WeightEndAddress];
            //valid <= 1'b1;
             state <= IDLE;
         end

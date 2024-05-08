@@ -12,7 +12,7 @@ The implementation process involves several steps to ensure the proper transmiss
     ```bash
     ./<FILE_NAME> <PORT> <BAUDRATE>
     ```
-    Replace `<FILE_NAME>`, `<PORT>`, and `<BAUDRATE>` with appropriate values for your setup.
+    Replace `<FILE_NAME>`, `<PORT>`, and `<BAUDRATE>` with appropriate values.
 
 2. When prompted with "Enter to send weight matrix" in the terminal, connect the `sel_1` wire with ground on the board and press enter to send the weight matrix to the FIFO north array. Once the matrix is sent, disconnect the cable.
 

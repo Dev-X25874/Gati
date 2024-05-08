@@ -19,9 +19,8 @@ This continues until all PE blocks are filled with weights.
 
 Afterwards, the image is read from DDR into the image fifo array, and the im2col module handles the write enable signal of the image fifo array.
 The image is then loaded into delay routers from this array. In the diagram below, delay registers are generated in the manner shown.
-As we move vertically downward in PE grid,one clock cycle delay is added to load partial sums coming from above PE block, into it's next PE block.
-Since there is no need for a delay in the first row, the image is transmitted straight into the PE blocks without the need for a delay register.
-The number of registers continues to increase by one as we descend to the next row, delaying the image by one clock cycle as we move downwards through the image fifo array.
+Moving vertically downward in the PE grid results in the addition of one clock cycle delay to load partial sums from the preceding PE block into the subsequent one. In the first row, there's no necessity for a delay, allowing the image to be transmitted directly into the PE blocks without requiring a delay register.
+Moving downwards to the subsequent row, the number of registers increases by one, thereby delaying the image by one clock cycle as it traverses downwards through the image FIFO array.
 And then from delay registers it goes into PE grid in broadcasting manner.
 Therefore, the image is sent through delay registers to ensure that the partial sum and image arrive at the same clock cycle into a PE block. 
 
@@ -53,7 +52,7 @@ In the PE block, multiplication can be done in two ways:
 	```bash
 	(* syn_use_dsp = "no" *) signed [27:0] x;
 	```
-Note: To utilise a LUT-based multiplier, set it to false, no, or 0. However, if you want to use DSP multipliers, set its value to true, yes, or 1.
+Note: To utilise a LUT-based multiplier, set it to false, no, or 0. However, if DSP multipliers are needed, set its value to true, yes or 1.
 
 Based on the various multipliers mentioned above, there are two distinct kinds of SA engines:
 - DSP SA engine: This SA engine makes use of DSP blocks in all of its multipliers.

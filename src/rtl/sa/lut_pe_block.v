@@ -52,7 +52,7 @@ always @(posedge i_clk) begin
     mul_out <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
 end
 
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});     //W_PSUM bit computed output
 assign o_data = i_data;
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
@@ -112,7 +112,7 @@ always @(posedge i_clk) begin
     mul_out <= ($signed(i_data[W_DATA-1 : 0]) * $signed(wb));
 end
 
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});     //W_PSUM bit computed output
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA],wb};
 assign o_data = i_data;
@@ -170,7 +170,7 @@ always @(posedge i_clk) begin
 end
 
 assign o_data = i_data;
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff + {{W_APPEND{mul_out[(2*W_DATA)-1]}},{mul_out}});     //W_PSUM bit computed output
 assign o_p_sum[W_PSUM] = ps_dv;
 assign o_weight = {i_weight[W_DATA], wb};
 

@@ -16,7 +16,7 @@ module test_top#(
     input s_clk,
     input in_rst,
     input [N_SA-1 : 0] i_rx_serial,
-    input i_trigger_1,
+    input i_trigger_1,      //trigger to load weights from fifo array into PE blocks
     input i_weight_ff_sel,
     input i_image_ff_sel,
     output [N_SA-1 : 0] o_tx_serial
@@ -154,8 +154,8 @@ uart_rx_image_ff_rden#(
 wire [(N_SA * W_DATA)-1 : 0] data_weight_wren_ctrl_sa;
 wire [N_SA-1 : 0] enb_weight_wren_ctrl_wren_gen;
 
-//send weights from uart_rx_weight_fifo to sa_engine_weight_fifo_array
-sa_fifo_array_wren_ctrl#(    //TODO: Rename controller and signals
+//send weights from uart_rx_weight_fifo to sa_engine_weight_fifo_array and send valid signal to weight_fifo_array_wren_ctrl
+sa_fifo_array_data_ctrl#(
     .N_SA(N_SA),
     .W_DATA(W_DATA)
 )sa_engine_weight_fifo_array_data(
@@ -170,8 +170,8 @@ sa_fifo_array_wren_ctrl#(    //TODO: Rename controller and signals
 wire [(N_SA * W_DATA)-1 : 0] data_image_wren_ctrl_sa;
 wire [N_SA-1 : 0] enb_image_wren_ctrl_wren_gen;
 
-//send images from uart_rx_image_fifo to sa_engine_image_fifo_array
-sa_fifo_array_wren_ctrl#(    //TODO: Rename controller and signals
+//send images from uart_rx_image_fifo to sa_engine_image_fifo_array and send valid signal to image_fifo_array_wren_ctrl
+sa_fifo_array_data_ctrl#(
     .N_SA(N_SA),
     .W_DATA(W_DATA)
 )sa_engine_image_fifo_array_data(

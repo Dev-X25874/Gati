@@ -29,7 +29,7 @@ always @(posedge i_clk) begin
 end
 
 assign o_p_sum[W_PSUM] = psum_dv;
-assign o_p_sum[W_PSUM-1 : 0] = psum_buff + {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}};
+assign o_p_sum[W_PSUM-1 : 0] = psum_buff + {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}};       //W_PSUM bit computed output
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
 
@@ -87,7 +87,7 @@ always @(posedge i_clk) begin
     end
 end
 
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //32 bit computed output
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //W_PSUM bit computed output
 assign o_p_sum[W_PSUM] = psum_dv;
 assign o_weight = {i_weight[W_DATA], wb};
 assign o_data = i_data;
@@ -145,7 +145,7 @@ always @(posedge i_clk) begin
 end
 
 assign o_data = i_data;
-assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //32 bit computed output
+assign o_p_sum[W_PSUM-1 : 0] = (psum_buff +  {{W_APPEND{mul_reg[(2*W_DATA)-1]}},{mul_reg}});   //W_PSUM bit computed output
 assign o_p_sum[W_PSUM] = psum_dv;
 
 always @(posedge i_clk) begin

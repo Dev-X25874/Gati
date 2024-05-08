@@ -1,5 +1,5 @@
 /*
-    Uart-to-uart flow of a single SA engine
+    Single LUT based multipliers SA engine
 */
 module test_sa_engine_lut#(
     parameter W_DATA = 8,
@@ -53,7 +53,7 @@ fifo_array#(
     .o_data(data_weight_ff_array_append_dv),
     .o_fifo_empty(empty_weight_ff_array_rden_ctrl),
     .o_fifo_full(),
-    .o_fifo_dv(dv_weight_ff_array_append_dv),
+    .o_data_valid(dv_weight_ff_array_append_dv),
     .o_occupants(occ_weight_ff_array_rden_ctrl)
 );
 
@@ -89,12 +89,12 @@ wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
 wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
-// wire [(((WEIGHT_FF_ADDR + 1) * ROW) -1): 0] occ_image_ff_array_rden_ctrl;
+
 /*
     Each fifo in this array stores its corrosponding row's image 
     before sending it to delay registers
 */
-fifo_array#(
+image_fifo_array#(
     .DIMENSION(ROW),
     .W_DATA(W_DATA),
     .W_ADDR(IMG_FF_ADDR),
@@ -195,8 +195,8 @@ seperate_psum_dv#(
     Each fifo in this array stores its corrosponding column's partial sums after
     receiving it from PE blocks 
 */
-psum_fifo_array#(
-    .COL(COL),
+fifo_array#(
+    .DIMENSION(COL),
     .W_DATA(W_PSUM),
     .W_ADDR(PSUM_FF_ADDR),
     .RAM_DEPTH(PSUM_FF_DEPTH)
@@ -208,6 +208,8 @@ psum_fifo_array#(
     .i_read_enable(i_psum_ff_array_read_en),
     .o_data(o_psum_ff_array_partial_sums),
     .o_fifo_empty(o_psum_ff_array_empty),
-    .o_data_valid(o_psum_ff_array_dv)
+    .o_data_valid(o_psum_ff_array_dv),
+    .o_fifo_full(),
+    .o_occupants()
 );
 endmodule

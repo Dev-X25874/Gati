@@ -30,6 +30,7 @@ wire re_stp_addr;
 wire valid;
 wire re_rci;
 wire [7:0] tx_din;
+wire c_done;
 
 rx rx(
     .clk(clk),
@@ -45,6 +46,7 @@ controller_concate controller_concate(
     .stop_addr(stop_addr_fifo_in),
     .kernelitr(kernelitr_fifo_in),
     .clk(clk),
+    .c_done(c_done),
     .config_start(config_start_con),
     .valid_start_addr(valid_start_addr),
     .valid_stop_addr(valid_stop_addr),
@@ -105,6 +107,7 @@ request_controller_img request_controller_im2col(
     .config_start(config_start_con),
     .fifo_status(fifo_status_con), //occupancy check
     .clk(clk),
+    .c_done(c_done),
     .addr_out(addr_out_con),
     .wr_enable(),
     .valid(valid),

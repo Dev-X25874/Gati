@@ -6,18 +6,19 @@ module request_controller_img #(parameter BURST_LENGTH = 15, parameter OCCUPANCY
     input config_start,
     input fifo_status, //occupancy check
     input clk,
+    input c_done,
     output reg [7:0] addr_out  = 0,
     output reg wr_enable = 0,
     output reg valid = 0,
     output reg last = 0,
-    output [$clog2(AXI_DATA_BYTES) : 0] burst_length
+    output [7:0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
 reg [31:0] nxt_addr = 0;
 reg [2:0] state = 0;
 reg [4:0] count_kernel = 0;
-reg [$clog2(AXI_DATA_BYTES) : 0] r_burst_length = 0;
+reg [7:0] r_burst_length = 0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
@@ -72,7 +73,7 @@ always @(posedge clk) begin
         last <= 0;
         nxt_addr <= (nxt_addr + ((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)));
         if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed  
-            state <= KERNEL_ITR; 
+            state <= C_DONE; 
             addr_out <= 0;
             valid <= 0;  
             r_burst_length <= r_burst_length;
@@ -82,7 +83,7 @@ always @(posedge clk) begin
             state <= FIFO_STATUS;
             wr_enable <= 0;
             valid <= 0;
-            r_burst_length <= (r_burst_length - (nxt_addr - stop_addr));
+            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
             nxt_addr <= stop_addr;
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
@@ -92,9 +93,17 @@ always @(posedge clk) begin
             r_burst_length <= r_burst_length;
         end
     end
+    C_DONE: begin
+        if (c_done) begin
+            state <= KERNEL_ITR;
+        end
+        else begin
+            state <= C_DONE;
+        end
+    end
     KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
         if (count_kernel < kernelitr) begin
-            nxt_addr <= 0;
+            nxt_addr <= start_addr;
             state <= FIFO_STATUS;
             count_kernel <= count_kernel + 1;
         end

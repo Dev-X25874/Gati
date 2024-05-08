@@ -9,13 +9,13 @@ module request_controller_accumulator #(parameter BURST_LENGTH = 10, parameter O
     output reg wr_enable = 0,
     output reg valid = 0,
     output reg last = 0,
-    output [$clog2(AXI_DATA_BYTES) : 0] burst_length
+    output [7:0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
 reg [31:0] nxt_addr = 0;
 reg [2:0] state = 0;
-reg [$clog2(AXI_DATA_BYTES) : 0] r_burst_length = 0;
+reg [7:0] r_burst_length = 0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
@@ -89,7 +89,7 @@ always @(posedge clk) begin
                 state <= FIFO_STATUS;
                 wr_enable <= 0;
                 valid <= 0;
-                r_burst_length <= (r_burst_length - (nxt_addr - stop_addr));
+                r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
                 nxt_addr <= stop_addr;
             end
             else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again

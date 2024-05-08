@@ -8,7 +8,8 @@ module controller_concate #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 4
     output reg config_start = 0,
     output reg valid_start_addr = 0,
     output reg valid_stop_addr = 0,
-    output reg valid_kernelitr = 0
+    output reg valid_kernelitr = 0,
+    output reg c_done = 0
 );
 
 reg [2:0] state = 0;
@@ -103,6 +104,7 @@ always @(posedge clk) begin
                 r_kernelitr[16-(count_krnl_itr*8)-1 -:8] <= din;
                 count_krnl_itr <= 0;
                 valid_kernelitr <= 1;
+                c_done <= 1;
                 state <= 4;
             end
         end

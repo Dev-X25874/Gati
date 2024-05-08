@@ -16,7 +16,7 @@ module request_controller_img_tb;
   wire reg [7:0] addr_out;
   wire  wr_enable;
   wire  valid;
-  wire [$clog2(AXI_DATA_BYTES) : 0] burst_length;
+  wire [7:0] burst_length;
 
   request_controller_img # (
     .BURST_LENGTH(BURST_LENGTH),

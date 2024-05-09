@@ -3,7 +3,7 @@ module memory_controller_fake(
     input memory_request,
     output reg memory_acknowledgement
 );
-reg [20:0]counter=500;
+reg [20:0]counter=5;
 reg [3:0]state=0;
 always @(posedge clkin) begin
     case(state)
@@ -26,7 +26,7 @@ always @(posedge clkin) begin
     end
     4'd2:begin
         state<=0;
-        counter<=500;
+        counter<=5;
         memory_acknowledgement<=1;
     end
     endcase

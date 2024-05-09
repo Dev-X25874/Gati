@@ -1,18 +1,20 @@
 //`include "sync_fifo_config.v"
-module occupants_sim(
+module occupants_sim #(parameter N=8, DEPTH=512)(
     input clkin,
     input image_done,
+    input image_done_2,
     input fifo_read,
-    input [10:0]burst_length,
-    output [79:0]occupants
+    input [7:0]burst_length,
+    input [7:0]burst_length_2,
+    output [N*($clog2(DEPTH)+1)-1:0]occupants
   );
   synchronous_fifo #(.DEPTH(512),.DATA_WIDTH(32)) test1(
                      .clk(clkin),
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -25,8 +27,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -39,8 +41,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -53,8 +55,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -67,8 +69,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -81,8 +83,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -95,8 +97,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -109,8 +111,8 @@ module occupants_sim(
                      .rst_n(1'b1),
                      .w_en(write_fifo),
                      .r_en(fifo_read),
-                     .burst_len(burst_length),
-                     .data_in(1),
+                     //.burst_len(burst_length),
+                     .data_in(32'd1),
                      .data_out(),
                      .full(),
                      .empty(),
@@ -126,15 +128,19 @@ module occupants_sim(
     case(state)
       4'd0:
       begin
-        if(~image_done)
+        if(~image_done||(~image_done_2))
         begin
           write_fifo<=1;
           state<=0;
         end
-        else
+        else if(image_done)
         begin
           write_fifo<=0;
           state<=2;
+        end
+        else if(image_done_2)begin
+          write_fifo<=0;
+          state<=3;
         end
         if(occupants[79:70]>511)begin
           state<=1;
@@ -146,7 +152,12 @@ module occupants_sim(
         end
       end
       4'd2:begin
-        if(occupants[79:70]<=burst_length)begin
+        if(occupants[79:70]<=(burst_length+1))begin
+          state<=0;
+        end
+      end
+      4'd3:begin
+        if(occupants[79:70]<=(burst_length_2+1))begin
           state<=0;
         end
       end

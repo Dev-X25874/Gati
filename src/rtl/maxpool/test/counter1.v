@@ -33,7 +33,7 @@ module counter1(
     assign sel = toggle;
 
     always @ (posedge clk) begin
-      if(rst == 0) begin
+      if(rst) begin
         counter <= 14'd1;
         toggle <= 1'b0;
       end

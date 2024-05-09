@@ -24,7 +24,7 @@ module maxpool(
   input datavalid, // it is a valid data acknowledgment coming from a module before
   input [7:0] dina,
   input [7:0] dinb,
-  output reg [8:0] temp=0 //the greater of the two inputs gets assigned to this variable.
+  output reg [8:0] temp=0 //the greater of the tlwo inputs gets assigned to this variable.
     );
     
   always @(posedge clk)

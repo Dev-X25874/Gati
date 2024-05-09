@@ -125,7 +125,7 @@ module  Rd_ctrl
     if (!Reset_N)         AddrValid <= # TCo_C 1'h0;
     else if (RamRdStart)  AddrValid <= # TCo_C 1'h1;
     else if (AddrReady)   AddrValid <= # TCo_C 1'h0;
-  end */ 
+  end */
   
   always @( posedge SysClk)
   begin
@@ -223,7 +223,7 @@ module  Rd_ctrl
   
   
   /////////////////////////////////////////////////////////
-/*  always @( posedge SysClk)
+ /* always @( posedge SysClk)
   begin
     if (!Reset_N)             DataRdReady  <=  1'h0;
     else if (DataRdReadyClr)  DataRdReady  <=  1'h0;
@@ -235,7 +235,7 @@ module  Rd_ctrl
     else if (DataRdValid)     DataRdReady  <= 1'h1;
   end*/
   
-  always @( posedge SysClk)
+ always @( posedge SysClk)
   begin
     if (!Reset_N)             DataRdReady  <=  1'h0;
     else begin
@@ -244,7 +244,7 @@ module  Rd_ctrl
         else if (DataRdLast)  DataRdReady  <=  1'h0 ;
      end 
   end
-  
+ 
   
 
   /////////////////////////////////////////////////////////
@@ -307,3 +307,4 @@ module  Rd_ctrl
 //3333333333333333333333333333333333333333333333333333333
 
 endmodule
+

@@ -1,3 +1,4 @@
+////////////////////////////////////////////////////////////////////////////////////////////////
 module RD_ID_Manager (
     input clk,
     input rst,
@@ -9,6 +10,8 @@ module RD_ID_Manager (
     input [7:0] rid,
     output reg r_en_ack = 0,
     output reg [3:0] select_rd = 4'b0000,
+    output reg rd_r_valid = 0 ,
+    output reg rd_r_last = 0 ,
   //  output reg [7:0] status_rd_reg = 8'h00,
     output reg ack_rd = 0 
 );
@@ -25,6 +28,8 @@ reg [2:0] rd_ptr = 3'b000;
 reg [2:0] wr_ptr = 3'b000;
 reg [7:0] stored_rd_id = 0 ;
 reg [7:0] current_sent = 0 ;
+//reg rd_r_valid = 0 ;
+//reg rd_r_last = 0 ;
 
 // Default assignments
 //assign status_rd_reg = fifo[rd_ptr];
@@ -63,11 +68,19 @@ always @(posedge clk) begin
             
             STORED_RD_ID : begin 
                 if (rvalid ) begin 
-                    stored_rd_id <= rid;
-                    r_en_ack <= 1'b1 ;
-                   // status_rd_reg = fifo[rd_ptr] ;
-                   // rd_ptr <= (rd_ptr == FIFO_DEPTH - 1) ? 3'b000 : rd_ptr + 1 ;
-                    state <= IDLE ;
+                    if (current_sent == rid ) begin 
+                        stored_rd_id <= rid;
+                        r_en_ack <= 1'b1 ;
+                        // status_rd_reg = fifo[rd_ptr] ;
+                        // rd_ptr <= (rd_ptr == FIFO_DEPTH - 1) ? 3'b000 : rd_ptr + 1 ;
+                        state <= IDLE ;
+                     end 
+                     
+                     else begin 
+                        stored_rd_id <= stored_rd_id ;
+                        r_en_ack <= 0 ;
+                        state <= STORED_RD_ID ;
+                     end 
                 end 
                 
                 else  begin
@@ -86,13 +99,16 @@ always @ (posedge clk) begin
         ack_rd <= 1'b0 ;
     end
     else begin 
+    rd_r_valid <= rvalid ;
+    rd_r_last  <= rlast ;
         if ((current_sent == rid) && rvalid)  begin
          //   select_rd <= 1 << status_rd_reg ;
             select_rd <= 1 << current_sent ;
             ack_rd <= 1'b1 ;
         end 
         
-        else if ((current_sent == rid) && rvalid && rlast ) begin 
+      //  else if ((current_sent == rid) && rvalid && rlast ) begin 
+        else if (rd_r_last ) begin 
             select_rd  <= 0;
             ack_rd <= 0 ;
         end 

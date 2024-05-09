@@ -1,19 +1,19 @@
-module fifo_valid#(
-  parameter DATA_WIDTH = 41,
-  parameter ADDR_WIDTH = 10, 
-  parameter RAM_DEPTH = (1 << ADDR_WIDTH)
-  )(
-      clk,
-      rst_n ,
-      data_in,
-      we,
-      re,
-      data_out,
-      occupants,
-      empty,
-      full,
-      data_valid
-    );
+        module fifo_valid#(
+            parameter DATA_WIDTH = 41,
+            parameter ADDR_WIDTH = 10, 
+            parameter RAM_DEPTH = (1 << ADDR_WIDTH)
+        )(
+            clk,
+            rst_n ,
+            data_in,
+            we,
+            re,
+            data_out,
+            occupants,
+            empty,
+            full,
+            data_valid
+);
 
 input clk;
 input rst_n;

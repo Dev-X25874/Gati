@@ -198,29 +198,29 @@ module Axi4FullDeplex
 
   always @( posedge SysClk) if (aready)
   begin
-    if      (AWVALID ^ ARVALID)   OperateSel <= # TCo_C ~DDR_WRITE_FIRST  ;
-    else if (AWVALID & ARVALID)   OperateSel <= # TCo_C ~OperateSel       ;
+    if      (AWVALID ^ ARVALID)   OperateSel <= ~DDR_WRITE_FIRST  ;
+    else if (AWVALID & ARVALID)   OperateSel <= ~OperateSel       ;
   end
 
   /////////////////////////////////////////////////////////
   reg   [1:0] OprateAva = 2'h3;
 
-  always @( posedge SysClk or negedge Reset_N )
+  always @( posedge SysClk)
   begin
-    if ( ! Reset_N )      OprateAva <= # TCo_C  2'h3;
+    if ( ! Reset_N )      OprateAva <=  2'h3;
     else
     begin
       case (OprateAva)
-        2'h0:               OprateAva <= # TCo_C  2'h3;
-        2'h1: if (ARREADY)  OprateAva <= # TCo_C  {AWVALID  , 1'h0   };
-        2'h2: if (AWREADY)  OprateAva <= # TCo_C  {1'h0     , ARVALID};
+        2'h0:               OprateAva <=  2'h3;
+        2'h1: if (ARREADY)  OprateAva <=  {AWVALID  , 1'h0   };
+        2'h2: if (AWREADY)  OprateAva <=  {1'h0     , ARVALID};
         2'h3:
         begin
           case ({AWVALID , ARVALID})
-            2'h0:   OprateAva  <= # TCo_C 2'h3;
-            2'h1:   OprateAva  <= # TCo_C 2'h1;
-            2'h2:   OprateAva  <= # TCo_C 2'h2;
-            2'h3:   OprateAva  <= # TCo_C OperateSel ? 2'h2 : 2'h1;
+            2'h0:   OprateAva  <=  2'h3;
+            2'h1:   OprateAva  <=  2'h1;
+            2'h2:   OprateAva  <=  2'h2;
+            2'h3:   OprateAva  <=  OperateSel ? 2'h2 : 2'h1;
           endcase
         end
       endcase
@@ -233,10 +233,10 @@ module Axi4FullDeplex
   always @( * )
   begin
     case (AddrVal)
-      2'h0:   OpType  <= # TCo_C OperateSel;
-      2'h1:   OpType  <= # TCo_C 1'h0;
-      2'h2:   OpType  <= # TCo_C 1'h1;
-      2'h3:   OpType  <= # TCo_C OperateSel;
+      2'h0:   OpType  <=  OperateSel;
+      2'h1:   OpType  <=  1'h0;
+      2'h2:   OpType  <=  1'h1;
+      2'h3:   OpType  <=  OperateSel;
     endcase
   end
 

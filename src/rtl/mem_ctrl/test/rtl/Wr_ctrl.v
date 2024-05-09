@@ -1,4 +1,4 @@
-module  Wr_ctrl
+module Wr_ctrl
 (
   //System Signal
   SysClk      , //System Clock

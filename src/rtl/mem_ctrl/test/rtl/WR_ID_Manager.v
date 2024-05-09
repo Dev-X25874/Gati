@@ -1,3 +1,5 @@
+
+///////////////////////////////////////////////////////////////////////////////
 module WR_ID_Manager #(
   parameter NUM_PORTS = 4
 ) (
@@ -8,6 +10,8 @@ module WR_ID_Manager #(
     input atype,
     input wready,   ///// it is input in the ddr axi side so can i use the 
     input wlast ,
+    //input DataEnd ,
+    //input [7:0] WBlen ,
     input [7:0] wid, // Write controller ID
     output reg w_en_ack = 0 ,
     output reg [NUM_PORTS-1 :0] select = 0 ,
@@ -18,9 +22,10 @@ module WR_ID_Manager #(
 // Define states for FSM using local parameter as it is use only for this design 
 localparam IDLE = 2'b00;
 localparam STORE_ID = 2'b01;
-localparam WAIT_WLAST = 2'b10 ;
+localparam WAIT_DATAEND = 2'b10 ;
 
 reg [1:0] state = 0 ; // FSM state register
+//reg [4:0] count_wr = 0 ;
 //reg [7:0] stored_id = 0; // Store the ID when wready is high for the first time
 
 
@@ -29,6 +34,7 @@ always @(posedge clk) begin
     if (!rst) begin
         state <= IDLE;
         select <= 4'b0000 ;
+      //  count_wr<= 0 ;
      //   status_reg <= 8'h00; 
         ack <= 0 ;
         w_en_ack <= 0 ;
@@ -43,22 +49,24 @@ always @(posedge clk) begin
                     w_en_ack <= 0 ;
                     state <= STORE_ID;
                      ack <= 0 ;
+                   //  count_wr <= 0 ;
                     select <= 4'b0000 ;
                 end
                 else begin 
                     select <= 4'b0000 ;
                     w_en_ack <= 0 ;
+                   // count_wr <= 0 ;
                     state <= IDLE ;
                 end 
             end
             STORE_ID: begin
-                if (wready) begin
+              if (wready) begin
                     if ( wid == aid) begin 
                        select <= 1<< wid ;
                         w_en_ack <= 0 ;
                          ack <= 1'b1 ;
                        // status_reg <= wid;
-                        state <= WAIT_WLAST;
+                        state <= WAIT_DATAEND;
                      end
                 end  
                 else begin 
@@ -68,10 +76,33 @@ always @(posedge clk) begin
                 end
             end
             
-            WAIT_WLAST : begin 
-                if (wlast) begin 
-                    select  <= select ;
+             /*   if (count_wr == WBlen + 2) begin
+                    select <= 0 ;
                     ack <= 0 ;
+                    count_wr  <= 0 ;
+                    w_en_ack <= 1'b1;
+                    state  <= IDLE  ;
+                end 
+                
+                else begin 
+                    if (wready) begin
+                        if ( wid == aid) begin 
+                            count_wr <= count_wr + 1 ;
+                            select <= 1<< wid ;
+                            w_en_ack <= 0 ;
+                            ack <= 1'b1 ;
+                       // status_reg <= wid;
+                            state <=STORE_ID ;
+                        end
+                    end  
+                end
+            end*/
+            
+          WAIT_DATAEND : begin 
+              /*  if (DataEnd) begin 
+                    select  <= 0 ;
+                    ack <= 0 ;
+                   // count_wr  <= count_wr ;
                     w_en_ack <= 1'b1 ;
                     state <= IDLE ; 
                  end 
@@ -80,8 +111,25 @@ always @(posedge clk) begin
                 else begin
                     select  <= select ;
                     ack <= 0 ;
+                   // count_wr <= 0 ;
                     w_en_ack <= 0 ;
-                    state <= WAIT_WLAST ;
+                    state <= WAIT_DATAEND ;
+                end*/
+                if (wlast) begin 
+                    select  <= 0 ;
+                    ack <= 0 ;
+                   // count_wr  <= count_wr ;
+                    w_en_ack <= 1'b1 ;
+                    state <= IDLE ; 
+                 end 
+             
+                
+                else begin
+                    select  <= select ;
+                    ack <= 0 ;
+                   // count_wr <= 0 ;
+                    w_en_ack <= 0 ;
+                    state <= WAIT_DATAEND ;
                 end
             end 
         endcase

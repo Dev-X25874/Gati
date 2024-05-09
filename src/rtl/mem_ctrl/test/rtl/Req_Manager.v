@@ -16,6 +16,7 @@ module Req_Manager #(
     output  [PORT_ID_WIDTH-1:0] o_port_div ,
     output  o_rw_div ,
     input [NUM_PORTS-1:0] rd_valid ,
+    output [BIN_WIDTH-1 :0] rd_sel_binary,
     output reg valid_req = 0
 );
 
@@ -37,7 +38,7 @@ always @(*) begin
 end
 
 wire [BIN_WIDTH-1:0] rd_sel_binary;
-reg [(DATA_WIDTH*NUM_PORTS)-1:0] data_sel = 0 ;
+reg [(41*NUM_PORTS)-1:0] data_sel = 0 ;
 
 always @ (posedge clk) begin 
     if (!rst) begin 

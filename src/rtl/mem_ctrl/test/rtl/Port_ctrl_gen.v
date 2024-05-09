@@ -2,7 +2,7 @@
  
 module Port_ctrl_gen #(
     parameter NUM_PORTS = 4,
-    parameter PORT_ID = {4'd0, 4'd1, 4'd2, 4'd3}
+    parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011}
 ) (
     input    clk,
     input    rst, 
@@ -33,12 +33,14 @@ module Port_ctrl_gen #(
         .valid(valid[i]),  
         .last (last[i]), 
         .in_address(in_address[(8 * (NUM_PORTS - i))-1 -: 8]),        
+      //  .in_enable_rw(in_enable_rw[NUM_PORTS-1-i]),           
         .in_enable_rw(in_enable_rw[i]),           
         .in_burst_len(in_burst_len[(4 * (NUM_PORTS - i))- 1 -: 4]),
-        .o_valid (o_valid [i]),
+        .o_valid (o_valid[i]),
         .out_address (out_address [(32 * (NUM_PORTS - i))-1 -: 32]),
         .out_burst_len (out_burst_len [(4 * (NUM_PORTS - i))-1 -: 4]),
-        .out_enable_rw (out_enable_rw [i]) ,
+      //  .out_enable_rw (out_enable_rw[NUM_PORTS-1-i]) ,
+        .out_enable_rw (out_enable_rw[i]) ,
         .port_id (port_id[(4 * (NUM_PORTS - i))-1 -: 4]),
         .combined_out (combined_out [(41 * (NUM_PORTS - i))-1 -: 41])
       );
@@ -49,7 +51,3 @@ module Port_ctrl_gen #(
     //  assign combined_out = {out_address, out_burst_len, out_enable_rw, out_enable_rw};
 
 endmodule
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-

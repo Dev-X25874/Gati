@@ -19,7 +19,7 @@ module Top_mem_ctrl #(
     parameter  ABN_C               = AXI_BYTE_NUMBER   
 ) (
     input clk,
-    input rst,
+    input t_in,
     input   [ 1:0]  PllLocked ,
     
     //DDR Controner Control Signal
@@ -68,11 +68,28 @@ module Top_mem_ctrl #(
     input   [      7:0] bid     , 
     input               bvalid  , 
     output              bready  ,
-    output [255:0] r_data_out_1 
+    output [255:0] r_data_out_1 ,
+    output         rd_r_last ,
+    output         data_valid 
    // output [255:0] r_data_out_2 
  
 );
 
+/*always@(*) begin    
+if(t_in == 1)  rst <= 1;
+else rst  <= 0 ;
+end*/ 
+
+one_pulse
+one_pulse_inst(
+    .a(t_in),
+    .clk(clk),
+    .b(trigger)
+);
+
+assign rst = ~trigger ;
+wire trigger ;
+wire rst ;
 wire [NUM_PORTS-1:0] i_valid ;
 wire [(NUM_PORTS * 8)-1:0] in_address;
 wire [(NUM_PORTS * 4)-1:0] in_BLEN;
@@ -198,14 +215,14 @@ wire [7:0] blen_wr ;
   assign DdrResetCtrl = ~rst  ;
   always @( posedge clk) if (&PllLocked)    
   begin
-    PowerOnResetCnt <= # TCo_C PowerOnResetCnt + {7'h0,(~&PowerOnResetCnt)};
+    PowerOnResetCnt <=  PowerOnResetCnt + {7'h0,(~&PowerOnResetCnt)};
   end
   
   always @( posedge clk)  
   begin
-    ResetShiftReg[2] <= # TCo_C  ResetShiftReg[1] ;
-    ResetShiftReg[1] <= # TCo_C  ResetShiftReg[0] ;
-    ResetShiftReg[0] <= # TCo_C  (&PowerOnResetCnt) & (~DdrResetCtrl);
+    ResetShiftReg[2] <=   ResetShiftReg[1] ;
+    ResetShiftReg[1] <=   ResetShiftReg[0] ;
+    ResetShiftReg[0] <=  (&PowerOnResetCnt) & (~DdrResetCtrl);
   end    
   
   /////////////////////////////////////////////////////////
@@ -225,7 +242,7 @@ wire [7:0] blen_wr ;
     .ddr_cfg_seq_rst    ( DdrCtrl_CFG_SEQ_RST   ), // Sequencer Reset
     .ddr_cfg_seq_start  ( DdrCtrl_CFG_SEQ_START ), // Sequencer Start
     /* optional status monitor for user logic */
-    .ddr_init_done		  ( DdrInitDone           )  // Done status
+    .ddr_init_done		  (    DdrInitDone  )  // Done status
   );
   
   /////////////////////////////////////////////////////////
@@ -233,9 +250,9 @@ wire [7:0] blen_wr ;
   
   always @( posedge clk)  
   begin
-    SysClkResetReg[2] <= # TCo_C  SysClkResetReg[1] ;
-    SysClkResetReg[1] <= # TCo_C  SysClkResetReg[0] ;
-    SysClkResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+    SysClkResetReg[2] <=   SysClkResetReg[1] ;
+    SysClkResetReg[1] <=  SysClkResetReg[0] ;
+    SysClkResetReg[0] <=  (~DdrResetCtrl) & DdrInitDone;
   end
     
   wire    Reset_N  = SysClkResetReg[2]; //System Reset (Low Active)
@@ -245,9 +262,9 @@ wire [7:0] blen_wr ;
   
   always @( posedge clk)  
   begin
-    Axi0ResetReg[2] <= # TCo_C  Axi0ResetReg[1] ;
-    Axi0ResetReg[1] <= # TCo_C  Axi0ResetReg[0] ;
-    Axi0ResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+    Axi0ResetReg[2] <=   Axi0ResetReg[1] ;
+    Axi0ResetReg[1] <=   Axi0ResetReg[0] ;
+    Axi0ResetReg[0] <=  (~DdrResetCtrl) & DdrInitDone;
   end
     
   wire    Axi0Rst_N  ;
@@ -258,9 +275,9 @@ wire [7:0] blen_wr ;
    
   always @( posedge clk)  
   begin
-    Axi1ResetReg[2] <= # TCo_C  Axi1ResetReg[1] ;
-    Axi1ResetReg[1] <= # TCo_C  Axi1ResetReg[0] ;
-    Axi1ResetReg[0] <= # TCo_C  (~DdrResetCtrl) & DdrInitDone;
+    Axi1ResetReg[2] <=   Axi1ResetReg[1] ;
+    Axi1ResetReg[1] <=   Axi1ResetReg[0] ;
+    Axi1ResetReg[0] <=  (~DdrResetCtrl) & DdrInitDone;
   end
     
   wire    Axi1Rst_N  = Axi1ResetReg[2]; //System Reset (Low Active)
@@ -318,6 +335,10 @@ assign w_sel_1 = select_wr[0] |  select_wr[2];
 assign w_sel_2 = select_wr[1] | select_wr[3] ;
 wire w_sel_1  ;
 wire w_sel_2  ;
+wire DataWrEnd_1 ;
+wire DataWrEnd_2 ;
+wire wr_axi_end ;
+
 Mem_ctrl_wr # (
 .AXI_DATA_WIDTH (AXI_DATA_WIDTH)
 )
@@ -328,6 +349,7 @@ Mem_ctrl_wr_1(
     .wready_w (wready),
     .wvalid_w (valid_ctrl_1),
     .wlast_w (last_ctrl_1),
+   // .DataWrEnd (DataWrEnd_1),
     .in_Addr (o_addr_div),
     .wdata_out (wdata_ctrl_1),
     .BLEN_w (blen_wr)
@@ -343,6 +365,7 @@ Mem_ctrl_wr_2 (
     .wready_w (wready),
     .wvalid_w (valid_ctrl_2),
     .wlast_w (last_ctrl_2),
+   // .DataWrEnd (DataWrEnd_2),
     .in_Addr (o_addr_div),
     .wdata_out (wdata_ctrl_2),
     .BLEN_w (blen_wr)
@@ -355,10 +378,13 @@ Mem_ctrl_wr_2 (
     .w_valid_1 (valid_ctrl_1),
     .w_valid_2 (valid_ctrl_2),
    // .w_ready_sel (wready),
+  //  .DataWrEnd_1 (DataWrEnd_1) , 
+   // .DataWrEnd_2 (DataWrEnd_2) ,
     .w_last1 (last_ctrl_1),
     .w_last2 (last_ctrl_2),
     .sel_in1 (w_sel_1), 
     .sel_in2 (w_sel_2),
+  //  .FDataWrEnd (wr_axi_end) ,
     .data_in1 (wdata_ctrl_1),
     .data_in2 (wdata_ctrl_2),
     .w_valid_out (wr_axi_valid),
@@ -376,8 +402,10 @@ ID_MANAGER_inst(
     .aid ( aid ),
     .valid (avalid),
     .atype (atype),
+   // .WBlen (blen_wr) ,
     .wready (wready),   ///// it is input in the ddr axi side so can i use the 
     .wlast (wlast) ,
+   // .DataEnd (wr_axi_end) ,
     .wid (wid),       // Write controller ID
     .w_en_ack(w_en_ack) ,
     .select (select_wr),
@@ -386,15 +414,14 @@ ID_MANAGER_inst(
 );
 
 
-assign r_sel_1 = select_rd[0] | select_rd[1];
-assign r_sel_2 = select_rd[3] | select_rd[2] ;
-
+assign r_sel_1 = select_rd[2] | select_rd[1];
+assign r_sel_2 = select_rd[3] | select_rd[0] ;
+wire rd_r_valid ;
 RD_ID_Manager
 ID_manager_rd_inst (
     .clk (clk),
     .rst (Axi0Rst_N),
     .valid (avalid),
-   // .valid (avalid),
     .id_rd_in (aid),
     .atype (atype),
     .rvalid (rvalid),
@@ -402,6 +429,8 @@ ID_manager_rd_inst (
     .rid (rid),
     .r_en_ack (r_en_ack),
     .select_rd (select_rd),
+    .rd_r_valid (rd_r_valid),
+    .rd_r_last(rd_r_last),
    // .status_rd_reg (),
     .ack_rd () 
 );
@@ -411,9 +440,10 @@ Mem_Rd_inst_1 (
     .clk (clk),
     .rst (Axi0Rst_N),
     .select_rd (r_sel_1),
-    .rvalid_rd (rvalid) ,
-    .rlast_rd (rlast),
+    .rvalid_rd (rd_r_valid) ,
+   // .rlast_rd (rlast),
     .rdata_in (ram_data),
+    .data_valid (data_valid) ,
     .rdata_out (r_data_out_1)
 ) ;         
 

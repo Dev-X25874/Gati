@@ -1,3 +1,5 @@
+
+/////
 module Mem_ctrl_wr #(
 parameter   AXI_DATA_WIDTH = 256
 ) (
@@ -9,81 +11,127 @@ parameter   AXI_DATA_WIDTH = 256
     output reg wlast_w = 0,
     input [31:0] in_Addr ,
     output reg [255:0] wdata_out = 0,
+  //  output reg DataWrEnd = 0 ,
     input [7:0] BLEN_w
 ) ;
 
-
-reg [3:0] count_blen = 0 ;
+reg [4:0] count_blen = 0 ;
 reg [1:0] state = 0 ;
 reg WriteEn = 0;
 reg [31:0] addr = 0 ;
 
 localparam IDLE = 2'b00;
-localparam MEM_DATA = 2'b01;
-localparam COUNT_BLEN = 2'b10;
+localparam DELAY_SELECT = 2'b01 ;
+localparam MEM_DATA = 2'b10;
 
 always @ (posedge clk) begin 
     if (!rst) begin 
         wvalid_w <= 0;
         wlast_w <= 0 ;
-        addr <= 0 ;
         wdata_out <= 0 ;
         count_blen <= 0 ;
         state <= IDLE ;
     end
-
     else begin 
         case (state)
             IDLE : begin 
                 if (select == 1) begin 
-                    state <= MEM_DATA ;
-                    wdata_out <= 0 ; 
+                    state <= DELAY_SELECT ;
+                    wdata_out <= 0   ; 
                     count_blen <= 0 ;
-                    wvalid_w <= 1 ;
+                    wvalid_w <= 0 ;
                     addr <= in_Addr;
+                    WriteEn <= 0 ;
+                end
+
+                else begin
+                    wdata_out<= 0 ; 
                     WriteEn <= 0;
-                end
-
-                else 
+                    addr <= addr ;
+                    count_blen <= 0 ;
                     state <= IDLE ; 
+                end 
             end
-
+            
+            DELAY_SELECT  : begin 
+                if (select == 1) 
+                    state <=  MEM_DATA ;
+                
+                else 
+                    state <=  IDLE ;
+            end 
+            
             MEM_DATA : begin 
+                if (count_blen == BLEN_w +1) begin 
+                    wvalid_w <= 0 ;
+                    wlast_w  <= 0; 
+                    WriteEn <= 0;
+                    wdata_out  <= wdata_out ;
+                    state  <= IDLE ;
+                end 
+            
+              else if (count_blen == BLEN_w) begin 
                 if (wready_w == 1) begin 
-                    wvalid_w <= 1 ;
-                    wdata_out <= DdrWrData ;
+                    wvalid_w <= 1 ; 
                     count_blen <= count_blen + 1 ;
-                    WriteEn <= 1;
+                    wlast_w <=   1 ;
+                    WriteEn  <= 1 ;
+                    wdata_out  <= DdrWrData ;
                     addr <= addr + 32;
-                    if (count_blen == BLEN_w) begin
-                        wlast_w <= 1 ;
-                        WriteEn <= 1;
-                        wdata_out <= wdata_out ;
-                        state <= COUNT_BLEN ;
-                    end
-
-                end
-
-                else begin 
-                    WriteEn <= WriteEn;
-                    addr <= addr;
-                    wvalid_w <= wvalid_w ;
-                    wdata_out <= wdata_out ; 
                     state <= MEM_DATA ;
                 end 
+                else begin 
+                    wlast_w <= 0 ;
+                    WriteEn  <= 0 ;
+                    wvalid_w <= wvalid_w ;
+                    wdata_out  <= wdata_out ;
+                    count_blen <= count_blen ;
+                    addr <= addr ;
+                    state <= MEM_DATA ;
+                end 
+             end 
+             
+             else begin 
+                if (wready_w == 1)  begin 
+                   // if (select == 1) begin
+                    wlast_w  <= 0;
+                    wvalid_w  <= 1;
+                    WriteEn  <= 1 ;
+                    addr  <= addr + 32 ;
+                    wdata_out  <= DdrWrData ;
+                    count_blen  <= count_blen + 1 ;
+                    state  <= MEM_DATA;
+                    end 
+                    
+                  /*  else begin 
+                        wvalid_w <= 0 ;
+                        wlast_w <= 0 ;
+                        WriteEn <= 1 ;
+                        state <= IDLE ;
+                        addr <= addr ;
+                    end */
+               // end 
+                
+                else begin 
+                    addr <= addr ;
+                    wvalid_w  <= wvalid_w ;
+                    wdata_out  <= wdata_out ;
+                    WriteEn  <= 0 ;
+                    state  <= MEM_DATA ;
+               end 
             end 
-
-            COUNT_BLEN : begin 
-                wvalid_w <= 0 ; 
-                wlast_w <= 0 ;
-                WriteEn <= 0 ;
-                state <= IDLE ;
-                wdata_out <= 0 ;
-            end 
-
+         end 
         endcase 
     end
 end 
+
+/*always @( posedge clk) begin 
+    if ((wready_w == 1)&& (count_blen == BLEN_w -1)) begin
+        DataWrEnd <=  1'b1 ;
+     end 
+     
+     else DataWrEnd <=  1'b0 ;
+end */
 
 localparam  [15:0]  AXI_BYTE_NUM  =   AXI_DATA_WIDTH/8  ;
 localparam          ADW_C         =   AXI_DATA_WIDTH  ;
@@ -104,9 +152,12 @@ localparam          ADW_C         =   AXI_DATA_WIDTH  ;
       begin
         if (WriteEn)
         begin
+       //   wvalid_w  <= 1 ;
           AddrData[j*32+15:j*32   ]  <=   AddValue[j][15:0] + AXI_BYTE_NUM;
           AddrData[j*32+31:j*32+16]  <=   AddValue[j][2] ? 16'haaaa : 16'h5555;
         end
+        
+      //  else wvalid_w  <= 0 ;
       end 
       
     end
@@ -115,4 +166,3 @@ localparam          ADW_C         =   AXI_DATA_WIDTH  ;
   assign  DdrWrData   = AddrData; //(O)[DdrWrDataGen]DDR Write Data
 
 endmodule 
-

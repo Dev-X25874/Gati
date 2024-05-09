@@ -27,6 +27,7 @@
         <efx:design_file name="rtl/Top_Axi.v" version="default" library="default"/>
          <efx:design_file name="rtl/MUX_WR_SEL.v" version="default" library="default"/>
         <efx:design_file name="rtl/Mem_Rd_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="rtl/one_pulse.v" version="default" library="default"/>
          <efx:design_file name="rtl/Mem_ctrl_wr.v" version="default" library="default"/>
         <efx:design_file name="rtl/Test_data_ctrl_1.v" version="default" library="default"/>
         <efx:design_file name="rtl/ddr_reset_sequencer.v" version="default" library="default"/>

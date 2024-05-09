@@ -79,7 +79,7 @@ module Port_controller #(
         
         WAIT_DATA : begin 
             o_valid <= 1'b1 ;
-            burst_len_reg <= burst_len_reg;
+         //   burst_len_reg <= burst_len_reg;
             combined_out <= {address_reg, burst_len_reg, port_id_temp, enable_rw_reg};
            // combined_out <= {enable_rw_reg, port_id_temp, burst_len_reg, address_reg};
             state <= IDLE ;

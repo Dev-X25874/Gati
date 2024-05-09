@@ -17,7 +17,7 @@ module top_sa#(
     input i_clk,
     input s_clk,
     input i_rstn,
-    input i_trigger_1,      //trigger from flattening controller, to load weights into PE blocks
+    input i_trigger_1,      //start signal coming from config block
     input i_done,           //indicates completion of an iteration
     input i_layer_done,     //indicates completion of a layer
     input [(N_SA * (COL * W_DATA))-1 : 0] i_data_weight_ff_sharing,

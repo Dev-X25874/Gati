@@ -21,7 +21,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [31:0] ImageStartAddress = 0,
                 output reg [31:0] ImageEndAddr = 0,
                 output reg [15:0] KernelIteration = 0,
-                output reg [15:0] RWAddressCountFlatten = 0
+                output reg [15:0] RWAddressCountFlatten = 0,
                 output reg [207:0] dout = 0
             );
 
@@ -74,17 +74,17 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[Opcode];
-            weightrows <= data_instruction[WeightRows];
-            weightcols <= data_instruction[WeightCols];
-            inputrows <= data_instruction[InputRows];
-            dropoutconstant <= data_instruction[DropoutConstant];
-            flatten <= data_instruction[Flatten];
-            imagedim <= data_instruction[ImageDim];
-            ImageStartAddress <= data_instruction[ImageStartAddress];   
-            ImageEndAddr <= data_instruction[ImageEndAddr];
-            KernelIteration <= data_instruction[KernelIteration];
-            RWAddressCountFlatten <= data_instruction[RWAddressCountFlatten];
+            opcode <= data_instruction[`Opcode];
+            weightrows <= data_instruction[`WeightRows];
+            weightcols <= data_instruction[`WeightCols];
+            inputrows <= data_instruction[`InputRows];
+            dropoutconstant <= data_instruction[`DropoutConstant];
+            flatten <= data_instruction[`Flatten];
+            imagedim <= data_instruction[`ImageDim];
+            ImageStartAddress <= data_instruction[`ImageStartAddress];   
+            ImageEndAddr <= data_instruction[`ImageEndAddr];
+            KernelIteration <= data_instruction[`KernelIteration];
+            RWAddressCountFlatten <= data_instruction[`RWAddressCountFlatten];
             //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end

@@ -1,7 +1,9 @@
 module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
             parameter INPUT_WIDTH = 256,
-            parameter OUTPUT_WIDTH = 8) (
+            parameter OUTPUT_WIDTH = 8,
+            parameter NO_OF_OPERATOR = 4,
+            parameter APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR)) (
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input start,
                 input clk,
@@ -14,7 +16,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [9:0] OH = 0,
                 output [9:0] IC = 0,
                 output [9:0] KN = 0,
-                output [13:0] KW = 0,
+                output [3:0] KW = 0,
                 output [3:0] KH = 0,
                 output [3:0] Stride = 0,
                 output [2:0] Pad = 0,
@@ -68,7 +70,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     );
 
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
-wire select_line; 
+wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
 wire wr;
 wire done_top_master;
 wire [(OP_CODE_WIDTH)-1 : 0] ready;
@@ -129,7 +131,6 @@ OP_FC OP_FC(
     .weightcols(weightcols),
     .inputrows(inputrows),
     .dropoutconstant(dropoutconstant),
-    .address(address),
     .flatten(flatten),
     .imagedim(imagedim_FC),
     .ImageStartAddress(ImageStartAddress_FC),
@@ -187,6 +188,6 @@ OP_Tailblock OP_Tailblock(
     .BiasEndAddress(BiasEndAddress)
 );
 
-assign ready = (ready_conv | ready_FC | ready_OB | ready_TB);
+assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

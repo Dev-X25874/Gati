@@ -91,27 +91,27 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[Opcode];
-            BNchannels <= data_instruction[BNChannels];
-            BNEn <= data_instruction[BNEn];
-            BNStartAddress <= data_instruction[BNStartAddress];
-            BNEndAddress <= data_instruction[BNEndAddress];
-            ActEn <= data_instruction[ActEn];
-            ActParam <= data_instruction[ActParam]; 
-            acttype <= data_instruction[ActType];
-            QuantEn <= data_instruction[QuantEn];
-            quantscale <= data_instruction[QuantScale];
-            quantshift <= data_instruction[QuantShift];
-            PoolEn <= data_instruction[PoolEn];
-            pooltype <= data_instruction[PoolType];
-            poolwidth <= data_instruction[PoolWidth];
-            poolheight <= data_instruction[PoolHeight];
-            poolstride <= data_instruction[PoolStride];
-            poolpadding <= data_instruction[PoolPadding];
-            BiasEn <= data_instruction[BiasEn];
-            FCBiasEn <= data_instruction[FCBiasEn];
-            BiasStartAddress <= data_instruction[BiasStartAddress];
-            BiasEndAddress <= data_instruction[BiasEndAddress];
+            opcode <= data_instruction[`Opcode];
+            BNchannels <= data_instruction[`BNChannels];
+            BNEn <= data_instruction[`BNEn];
+            BNStartAddress <= data_instruction[`BNStartAddress];
+            BNEndAddress <= data_instruction[`BNEndAddress];
+            ActEn <= data_instruction[`ActEn];
+            ActParam <= data_instruction[`ActParam]; 
+            acttype <= data_instruction[`ActType];
+            QuantEn <= data_instruction[`QuantEn];
+            quantscale <= data_instruction[`QuantScale];
+            quantshift <= data_instruction[`QuantShift];
+            PoolEn <= data_instruction[`PoolEn];
+            pooltype <= data_instruction[`PoolType];
+            poolwidth <= data_instruction[`PoolWidth];
+            poolheight <= data_instruction[`PoolHeight];
+            poolstride <= data_instruction[`PoolStride];
+            poolpadding <= data_instruction[`PoolPadding];
+            BiasEn <= data_instruction[`BiasEn];
+            FCBiasEn <= data_instruction[`FCBiasEn];
+            BiasStartAddress <= data_instruction[`BiasStartAddress];
+            BiasEndAddress <= data_instruction[`BiasEndAddress];
             state <= IDLE;
         end
     end

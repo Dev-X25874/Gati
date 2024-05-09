@@ -22,21 +22,14 @@ always @(posedge clk) begin
     end
     1: begin
         if(rx_valid) begin
-            if(count_opcode < 3) begin
-                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
-                count_opcode <= count_opcode + 1;
-                state <= 1;
-            end
-            else begin
-                opcode[op_code_width-(count_opcode*8)-1 -:8] <= din;
-                count_opcode <= 0;
-                state <= 2;
-            end
+            opcode <= 3'd0;
+            state <= 2;
+            dout_valid <= 0;
         end
         else begin
             opcode <= opcode;
-            count_opcode <= count_opcode;
             state <= 1;
+            dout_valid <= 0;
         end
     end
     2: begin

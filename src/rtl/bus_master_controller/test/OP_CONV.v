@@ -17,10 +17,10 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [9:0] OH = 0,
                 output reg [9:0] IC = 0,
                 output reg [9:0] KN = 0,
-                output reg [13:0] KW = 0,
+                output reg [3:0] KW = 0,
                 output reg [3:0] KH = 0,
-                output reg [3:0] Stride = 0,
-                output reg [2:0] Pad = 0,
+                output reg [3:0] STRIDE = 0,
+                output reg [2:0] PAD = 0,
                 output reg [11:0] channelItr = 0,
                 output reg [11:0] kernelItr = 0,
                 output reg [31:0] ImageStartAddress = 0,
@@ -58,8 +58,8 @@ always @(posedge clk) begin
         KN <= 0;
         KW <= 0;
         KH <= 0;
-        Stride <= 0;
-        Pad <= 0;
+        STRIDE <= 0;
+        PAD <= 0;
         channelItr <= 0;
         kernelItr <= 0;
         ImageStartAddress <= 0;
@@ -87,29 +87,29 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[Opcode];
-            IW <= data_instruction[IW];
-            IH <= data_instruction[IH];
-            OW <= data_instruction[OW];
-            OH <= data_instruction[OH];
-            IC <= data_instruction[IC];
-            KN <= data_instruction[KN];
-            KW <= data_instruction[KW];
-            KH <= data_instruction[KH];
-            Stride <= data_instruction[Stride];
-            Pad <= data_instruction[Pad];
-            channelItr <= data_instruction[ChannelItr];
-            kernelItr <= data_instruction[KernelItr];
-            ImageStartAddress <= data_instruction[ImageStartAddress];
-            ImageEndAddress <= data_instruction[ImageEndAddress];
-            WeightStartAddress <= data_instruction[WeightStartAddress];
-            WeightEndAddress <= data_instruction[WeightEndAddress];
+            opcode <= data_instruction[`Opcode];
+            IW <= data_instruction[`IW];
+            IH <= data_instruction[`IH];
+            OW <= data_instruction[`OW];
+            OH <= data_instruction[`OH];
+            IC <= data_instruction[`IC];
+            KN <= data_instruction[`KN];
+            KW <= data_instruction[`KW];
+            KH <= data_instruction[`KH];
+            STRIDE <= data_instruction[`Stride];
+            PAD <= data_instruction[`Pad];
+            channelItr <= data_instruction[`ChannelItr];
+            kernelItr <= data_instruction[`KernelItr];
+            ImageStartAddress <= data_instruction[`ImageStartAddress];
+            ImageEndAddress <= data_instruction[`ImageEndAddress];
+            WeightStartAddress <= data_instruction[`WeightStartAddress];
+            WeightEndAddress <= data_instruction[`WeightEndAddress];
            //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {WeightEndAddress, WeightStartAddress, ImageEndAddress, ImageStartAddress, kernelItr, channelItr, INPUT_ADDRESS, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode}; //this concates the different output signals for checking purpose
+        dout <= {WeightEndAddress, WeightStartAddress, ImageEndAddress, ImageStartAddress, kernelItr, channelItr, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode}; //this concates the different output signals for checking purpose
         //valid <= 1'b1;
         state <= IDLE;
     end

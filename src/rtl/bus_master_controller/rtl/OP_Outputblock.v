@@ -67,14 +67,14 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[Opcode];
-            accumulantaddr <= data_instruction[AccumulantAddr];
-            outputaddr <= data_instruction[OutputAddr];
-            channelItr <= data_instruction[ChannelItr];
-            kernelItr <= data_instruction[KernelItr];
-            ImageDimOutput <= data_instruction[ImageDimOutput];
-            ImageDimAcc <= data_instruction[ImageDimAcc];
-            AccEn <= data_instruction[AccEn];
+            opcode <= data_instruction[`Opcode];
+            accumulantaddr <= data_instruction[`AccumulantAddr];
+            outputaddr <= data_instruction[`OutputAddr];
+            channelItr <= data_instruction[`ChannelItr];
+            kernelItr <= data_instruction[`KernelItr];
+            ImageDimOutput <= data_instruction[`ImageDimOutput];
+            ImageDimAcc <= data_instruction[`ImageDimAcc];
+            AccEn <= data_instruction[`AccEn];
             //valid <= 1'b1;
             state <= IDLE;
         end

@@ -1,0 +1,147 @@
+//Generate N_SA times uart rx module
+module uart_rx#(
+    parameter W_DATA = 8,
+    parameter N_SA = 4
+)(  
+    input i_clk,
+    input i_rst,
+    input [N_SA-1 : 0] i_rx_serial,
+    output [N_SA-1 : 0] o_rx_dv,
+    output [(N_SA * W_DATA)-1 : 0] o_rx_byte
+);
+  
+genvar i;
+generate
+    for (i = 0; i < N_SA; i = i + 1) begin
+        rx#(
+			.CLOCKS_PER_BIT(50)
+		)receiver(
+			.i_Clock(i_clk),
+            .i_Rst(i_rst),
+			.i_RX_Serial(i_rx_serial[i]),
+			.o_RX_DV(o_rx_dv[i]),
+			.o_RX_Byte(o_rx_byte[((W_DATA * (N_SA - i)) -1) -: W_DATA])
+		);
+    end
+endgenerate
+endmodule
+
+module rx
+		#(parameter CLOCKS_PER_BIT = 10416)
+		(
+			input 		i_Clock,
+			input 		i_Rst,
+			input 		i_RX_Serial,
+			output		o_RX_DV,
+			output[7:0] o_RX_Byte
+		);
+		
+		parameter IDLE = 3'b000;
+		parameter RX_START_BIT = 3'b001;
+		parameter RX_DATA_BITS = 3'b010;
+		parameter RX_STOP_BIT = 3'b011;
+		parameter CLEANUP = 3'b100;
+		
+		reg[13:0] r_Clock_Count;
+		reg[2:0] r_Bit_Index;
+		reg[7:0] r_RX_Byte;
+		reg r_RX_DV;
+		reg[2:0] r_SM_Main;
+		
+		always @(posedge i_Clock)
+		begin
+		if(i_Rst)begin
+			r_SM_Main <= 0;
+			r_Clock_Count <= 0;
+			r_RX_DV <= 0;
+			r_Bit_Index <= 0;
+			r_RX_Byte <= 0;
+		end else begin
+			case (r_SM_Main)
+				IDLE:
+					begin
+						r_RX_DV <= 1'b0;
+						r_Clock_Count <= 0;
+						r_Bit_Index <= 0;
+						
+						if (i_RX_Serial == 1'b0)
+							r_SM_Main <= RX_START_BIT;
+						else
+							r_SM_Main <= IDLE;
+					end
+					
+				RX_START_BIT:
+					begin
+						if (r_Clock_Count == CLOCKS_PER_BIT / 2)
+						begin
+							if (i_RX_Serial == 1'b0)
+							begin
+								r_Clock_Count <= 0;
+								r_SM_Main <= RX_DATA_BITS;
+							end
+							else
+								r_SM_Main <= IDLE;
+						end
+						else
+						begin
+							r_Clock_Count <= r_Clock_Count + 1'b1;
+							r_SM_Main <= RX_START_BIT;
+						end
+					end
+					
+				RX_DATA_BITS:
+					begin
+						if(r_Clock_Count < CLOCKS_PER_BIT - 1)
+						begin
+							r_Clock_Count <= r_Clock_Count + 1'b1;
+							r_SM_Main <= RX_DATA_BITS;
+						end
+						else
+						begin
+							r_Clock_Count <= 0;
+							r_RX_Byte[r_Bit_Index] <= i_RX_Serial;
+							
+							if (r_Bit_Index < 7)
+							begin
+								r_Bit_Index <= r_Bit_Index + 1'b1;
+								r_SM_Main <= RX_DATA_BITS;
+							end
+							else
+							begin
+								r_Bit_Index <= 0;
+								r_SM_Main <= RX_STOP_BIT;
+							end
+						end
+					end
+					
+				RX_STOP_BIT:
+					begin
+						if(r_Clock_Count < CLOCKS_PER_BIT - 1)
+						begin
+							r_Clock_Count <= r_Clock_Count + 1'b1;
+							r_SM_Main <= RX_STOP_BIT;
+						end
+						else
+						begin
+							r_RX_DV <= 1'b1;
+							r_Clock_Count <= 0;
+							r_SM_Main <= CLEANUP;
+						end
+					end
+				
+				CLEANUP:
+					begin
+						r_SM_Main <= IDLE;
+						r_RX_DV <= 1'b0;
+					end
+					
+				default:
+					r_SM_Main <= IDLE;
+					
+			endcase
+		end
+	end
+		
+		assign o_RX_Byte = r_RX_Byte;
+		assign o_RX_DV = r_RX_DV;
+endmodule

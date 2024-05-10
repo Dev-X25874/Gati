@@ -10,7 +10,7 @@ module top_master #(parameter OP_CODE_WIDTH = 4,
     input [(OP_CODE_WIDTH)-1 : 0] op_code,
     input [(OP_CODE_WIDTH)-1 : 0] ready_in,
     output [(OUTPUT_WIDTH)-1 : 0] dout,
-    output [(OP_CODE_WIDTH)-1 : 0] sel,
+    output [(1<<OP_CODE_WIDTH)-1 : 0] sel,
     output write,
     output done
 );

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="test" description="" last_change_date="Thu April 25 2024 17:58:41" location="/home/vansh/Documents/git/Gati/src/rtl/bus_master_controller/test" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="test" description="" last_change_date="Thu May 9 2024 19:32:03" location="/home/vansh/Documents/git/Gati/src/rtl/bus_master_controller/test" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
@@ -21,6 +21,7 @@
         <efx:design_file name="controller_rx.v" version="default" library="default"/>
         <efx:design_file name="../../common/fifo_valid.v" version="default" library="default"/>
         <efx:design_file name="../../common/memory_valid.v" version="default" library="default"/>
+        <efx:design_file name="instructions.vh" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
@@ -87,7 +88,7 @@
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
-        <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
-        <efx:param name="profile" value="NONE" value_type="e_string"/>
+        <efx:param name="auto_instantiation" value="on" value_type="e_bool"/>
+        <efx:param name="profile" value="debug_profile.wizard.json" value_type="e_string"/>
     </efx:debugger>
 </efx:project>

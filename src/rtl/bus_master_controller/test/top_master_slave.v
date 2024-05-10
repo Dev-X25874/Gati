@@ -14,7 +14,7 @@ parameter OUTPUT_WIDTH = 8) (
 );
 
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
-wire select_line; 
+wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
 wire wr;
 wire done_top_master;
 wire [(OP_CODE_WIDTH)-1 : 0] ready;

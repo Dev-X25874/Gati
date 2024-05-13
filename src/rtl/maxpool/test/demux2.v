@@ -31,10 +31,6 @@ module demux2(
     );
     reg dv = 0;
     reg [7:0] x=0;
-   /* assign fifo1 = (sel==1'b0)? {dv,x} : 9'b0_0000_0000; //total elements of the first matrix column, each of 1 byte, gets stored in fifo1
-    assign fifo2 = (sel==1'b1)? {dv,x} : 9'b0_0000_0000; //the next batch of elements of next matrix column, each of 1 byte, gets stored in fifo2
-*/
-
   always @(posedge clk) begin
     if (sel) begin
       fifo2 <= {dv, x};

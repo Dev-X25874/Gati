@@ -1,9 +1,42 @@
+module maxpool_gen #(parameter N_SA = 8,
+                    parameter DATA_IN = 8,
+                    parameter IMG_WIDTH = 10)
+                    (
+                      input clk,
+                      input [N_SA*DATA_IN-1:0] data_in,
+                      input rst,
+                      input maxpool_enable,
+                      input [N_SA -1:0]datavalid,
+                      input [IMG_WIDTH-1:0] IW,
+                      output [N_SA*DATA_IN-1:0] maxvalue_o,
+                      output [N_SA -1:0] datavalid_o
+                    );
+                  
+genvar i;
+generate 
+  for(i=0;i<N_SA;i=i+1)begin
+    top_design t1 ( 
+      .clk(clk),
+      .data_in(data_in[(DATA_IN*(N_SA -i)) -1 -:DATA_IN]),
+      .rst(rst),  
+      .enable(maxpool_enable),
+      .datavalid(datavalid[i]),
+      .IW(IW),
+      .maxvalue_o(maxvalue_o[(DATA_IN*(N_SA-i)) -1 -:DATA_IN]),
+      .datavalid_o(datavalid_o[i]));
+	end
+endgenerate 
+endmodule
+
+
+
 module top_design(
     input clk,
     input [7:0] data_in,
     input rst,
+    input enable,
     input datavalid,
-    input [7:0] dynamic_threshold,
+    input [IMG_WIDTH-1:0] IW, //it depends on the input dimension of the image width
     output [7:0] maxvalue_o,
     output datavalid_o
 );
@@ -21,13 +54,15 @@ wire selectline2;
 wire data_valid1;
 wire data_valid2;
 wire [8:0] maxvalue;
+wire empty1;
+wire empty2;
 
 counter1 c1(
   .clk(clk),
   .rst(rst),
   .datavalid(datavalid),
   .sel(selectline1),
-  .dynamic_threshold(dynamic_threshold)
+  .dynamic_threshold(IW)
 );
 
 demux1 dut0(
@@ -53,7 +88,7 @@ counter2 c2(
   .rst(rst),
   .datavalid(maxpool_o[8]),
   .sel(selectline2),
-  .dynamic_threshold(dynamic_threshold)
+  .dynamic_threshold(IW)
 );
 
 demux2 dut2(
@@ -103,7 +138,7 @@ maxpool dut5(
 
 assign re = ((~empty1) & (~empty2));
 
-assign maxvalue_o = maxvalue[7:0];
-assign datavalid_o = maxvalue[8];
+assign maxvalue_o =(enable==1)? maxvalue[7:0] : data_in ;
+assign datavalid_o = (enable==1)?maxvalue[8]:datavalid;
 
 endmodule

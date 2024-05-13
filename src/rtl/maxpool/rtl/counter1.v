@@ -24,7 +24,7 @@ module counter1(
   input clk,
   input rst,
   input datavalid,
-  input [7:0] dynamic_threshold,
+  input [7:0] dynamic_threshold, //it depends on the input dimension of the image width
   output sel, //toggles at every posedge of the clock
   output [13:0] count
     );
@@ -38,7 +38,7 @@ module counter1(
         toggle <= 1'b0;
       end
       else begin
-        if(counter <= (dynamic_threshold)) begin
+        if(counter < (dynamic_threshold)) begin
           if(datavalid) begin
             toggle <= ~toggle;
             counter <= counter + 1;

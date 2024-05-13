@@ -29,15 +29,6 @@ always @(posedge clk) begin
         else begin
             state <= IDLE;
         end
-        /*if(dgb_cnt == 8'd1) begin
-            state <= DYT;
-        end
-        else if(dgb_cnt > 8'd1) begin
-            state <= DATA;
-        end
-        else begin
-            state <= IDLE;
-        end*/
     end
     DYT: begin
         //if(rx_valid) begin
@@ -47,7 +38,7 @@ always @(posedge clk) begin
         //end
     end
     DATA: begin
-        if(count1 <= 28) begin
+        if(count1 <= dynamic_threshold) begin
             if(rx_valid) begin
                 d_out <= d_in;
                 datavalid <= 1'b1;

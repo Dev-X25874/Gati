@@ -35,10 +35,8 @@ module demux1(
   reg [8:0] temp = 0;
   reg [8:0] delay = 0;
   reg [7:0] x = 0;
- /* assign a = (sel==1'b1)? {datavalid, x} : 9'd0;  
-  assign b = (sel==1'b0)? {datavalid, x} : 9'd0; */
 
-  always @ (posedge clk) begin
+always @ (posedge clk) begin
     if(sel) begin
       a <= {datavalid, din};
       b <= {0, b[7:0]};
@@ -47,16 +45,11 @@ module demux1(
       a <= {0, a[7:0]};
       b <= {datavalid, din};
     end
-  end 
+end 
 
  // always @(posedge rx_valid)
-  always @(*)
-  begin
-  // temp <= a;  //the first input from the previous block gets assigned to a reg, hence waiting for the second input because the next module is maxpool. Maxpooling requires two input at the same time.
-  // c <= temp;
-  // x <= din;
-  //dv <= datavalid;
-    c <= a;
-  end
+always @(*)begin
+  c <= a;
+end
 
 endmodule

@@ -149,6 +149,7 @@ output_mux#(
 ) output_data_mux (
     .clk(clk),
     .rst(rst),
+    .i_weight_ff_array_empty(i_weight_ff_array_empty),
     .i_rden(mux_rden),
     .i_bank_en(mux_bank_en),
     .i_data(bram_array_data_out),

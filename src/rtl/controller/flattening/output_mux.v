@@ -11,6 +11,7 @@ module output_mux#(
 )(
     input clk,
     input rst,
+    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
     input [N_BRAM-1 : 0] i_rden,
     input [N_BANK-1 : 0] i_bank_en,
     input [(N_BANK * (N_BRAM * W_DATA))-1 : 0] i_data,
@@ -48,10 +49,12 @@ always @(posedge clk) begin
     if(rst)begin
         r_data <= 0;
     end else begin
+        if(i_weight_ff_array_empty === 0)begin
             if((i_rden!=0) && (i_bank_en!=0))begin
                 r_data <= i_data[((W_DATA) * ((N_BRAM * N_BANK) - select))-1 -: W_DATA];
                 r_dv <= 1;
-            end else begin
+            end
+        end else begin
                 r_data <= r_data;
                 r_dv <= 0;
             end

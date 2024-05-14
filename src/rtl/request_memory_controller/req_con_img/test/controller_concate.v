@@ -58,7 +58,7 @@ always @(posedge clk) begin
     end
     2: begin
         if(rx_valid) begin
-            if(enable) begin
+            /*if(enable) begin
                 stop_addr <= ((start_addr + (((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)) * 15)));
                 valid_stop_addr <= 1;
                 state <= 3;
@@ -71,8 +71,8 @@ always @(posedge clk) begin
         else begin
             stop_addr <= stop_addr;
             state <= 2;
-        end
-            /*if(count_stp_addr < 3) begin
+        end*/
+            if(count_stp_addr < 3) begin
                 stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= count_stp_addr + 1;
                 valid_stop_addr <= 0;
@@ -90,7 +90,7 @@ always @(posedge clk) begin
             count_stp_addr <= count_stp_addr;
             state <= 4;
             valid_stop_addr <= 0;
-        end*/
+        end
     end
     3: begin
         if(rx_valid) begin

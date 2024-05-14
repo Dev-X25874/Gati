@@ -4,7 +4,8 @@ module mux_final_pool(
     input [7:0] din_demux_for_fifo1,
     input datavalid_final_pool,
     input datavalid_demux_for_fifo1,
-    output [7:0] dout_fifo1
+    output reg dv = 0,
+    output reg [7:0] dout_fifo1 = 0
 );
 
 always @(posedge clk) begin
@@ -27,11 +28,13 @@ always @(posedge clk) begin
     2: begin
         if(sel) begin
             dout_fifo1 <= din_final_pool;
+            dv <= 1;
             state <= 0;
         end
         else begin
             dout_fifo1 <= din_demux_for_fifo1;
             state <= 0;
+            dv <= 1;
         end
     end
     endcase

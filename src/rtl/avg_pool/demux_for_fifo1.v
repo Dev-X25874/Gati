@@ -27,6 +27,9 @@ always @(posedge clk) begin
             if(datavalid_in) begin
                 state <= 1;
             end
+            else begin
+                state <= 0;
+            end
         end
         1: begin
             if(counter == 0) begin

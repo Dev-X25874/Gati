@@ -1,10 +1,10 @@
-module mux#(
+module demux#(
     parameter WEIGHT_FF_DEPTH = 512,
     parameter COL = 32,
-    parameter N_SA = 8,     //number of SA engines
-    parameter COL_SA = 8,   //columns in each SA engine
-    parameter COL_FC = 32,  //columns in FC engine
-    parameter N_DRAM_BYTES = 32,     //number of DRAM burst bytes
+    parameter N_SA = 8,             //number of SA engines
+    parameter COL_SA = 8,           //columns in each SA engine
+    parameter COL_FC = 32,          //columns in FC engine
+    parameter N_DRAM_BYTES = 32,    //number of DRAM burst bytes
     parameter SA_OPCODE = 0,
     parameter FC_OPCODE = 4,
     parameter W_DATA = 8
@@ -25,7 +25,7 @@ module mux#(
     output [(N_SA * COL_SA)-1 : 0] o_sa_empty,
     output [(N_SA * COL_SA * W_DATA)-1 : 0] o_sa_data,
     output [((WEIGHT_FF_ADDR + 1) * (N_SA * COL_SA))-1 : 0] o_sa_occupants,
-    output o_sel1
+    output demux_sel
 );
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
@@ -48,15 +48,15 @@ assign o_fc_data = r_fc_data;
 assign o_fc_dv = r_fc_dv;
 assign o_sa_dv = r_sa_dv;
 
-wire o_sel1;
+wire demux_sel;
 sel_gen#(
-.SA_OPCODE(SA_OPCODE),
-.FC_OPCODE(FC_OPCODE)
+    .SA_OPCODE(SA_OPCODE),
+    .FC_OPCODE(FC_OPCODE)
 )select1_gen(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
     .i_opcode(i_opcode),
-    .o_sel1(o_sel1)
+    .demux_sel(demux_sel)
 );
 
 always @(posedge i_clk)begin
@@ -70,30 +70,32 @@ always @(posedge i_clk)begin
         r_sa_dv <= 0;
         r_fc_dv <= 0;
     end else begin
-        case (o_sel1)
+        case (demux_sel)
             1'b0:begin      //Fully Connected layer
-               r_fc_empty <=  i_weight_ff_array_empty;
-               r_fc_occ <= i_weight_ff_array_occupants;
-               r_fc_data <= i_weight_ff_array_data;
-               r_fc_dv <= i_weight_ff_array_dv;
+            r_fc_empty <=  i_weight_ff_array_empty;
+            r_fc_occ <= i_weight_ff_array_occupants;
+            r_fc_data <= i_weight_ff_array_data;
+            r_fc_dv <= i_weight_ff_array_dv;
             end
+
             1'b1:begin      //Convolution layer
-                if((N_SA * COL_SA) < N_DRAM_BYTES) begin
+                if((N_SA * COL_SA) < N_DRAM_BYTES)begin
                     case (i_sel_sa_rden_ctrl)
-                        1'b0: begin     //First half of weight fifo array (starting from MSB)
-                            r_sa_empty <= i_weight_ff_array_empty[(COL-1) -: (N_SA * COL_SA)];
-                            r_sa_occ <= i_weight_ff_array_occupants[(COL * (WEIGHT_FF_ADDR + 1))-1 -: (N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))];
-                            r_sa_data <= i_weight_ff_array_data[(COL * W_DATA)-1 -: (N_SA * (COL_SA * W_DATA))];
-                            r_sa_dv <= i_weight_ff_array_dv[(COL-1) -: (N_SA * COL_SA)];
-                        end
-                        1'b1: begin     //Second half of weight fifo array
-                            r_sa_empty <= i_weight_ff_array_empty[(COL - (N_SA * COL_SA))-1 -: (N_SA * COL_SA)];
-                            r_sa_occ <= i_weight_ff_array_occupants[((COL * (WEIGHT_FF_ADDR + 1)) - (N_SA * COL_SA))-1 -: (N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))];
-                            r_sa_data <= i_weight_ff_array_data[((COL * W_DATA) - (N_SA * COL_SA))-1 -: (N_SA * (COL_SA * W_DATA))];
-                            r_sa_dv <= i_weight_ff_array_dv[(COL - (N_SA * COL_SA))-1 -: (N_SA * COL_SA)];
-                        end
+                    1'b0: begin     //First half of weight fifo array (starting from MSB)
+                        r_sa_empty <= i_weight_ff_array_empty[(COL-1) -: (N_SA * COL_SA)];
+                        r_sa_occ <= i_weight_ff_array_occupants[(COL * (WEIGHT_FF_ADDR + 1))-1 -: (N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))];
+                        r_sa_data <= i_weight_ff_array_data[(COL * W_DATA)-1 -: (N_SA * (COL_SA * W_DATA))];
+                        r_sa_dv <= i_weight_ff_array_dv[(COL-1) -: (N_SA * COL_SA)];
+                    end
+                    1'b1: begin     //Second half of weight fifo array
+                        r_sa_empty <= i_weight_ff_array_empty[(COL - (N_SA * COL_SA))-1 -: (N_SA * COL_SA)];
+                        r_sa_occ <= i_weight_ff_array_occupants[((COL * (WEIGHT_FF_ADDR + 1)) - (N_SA * COL_SA))-1 -: (N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))];
+                        r_sa_data <= i_weight_ff_array_data[((COL * W_DATA) - (N_SA * COL_SA))-1 -: (N_SA * (COL_SA * W_DATA))];
+                        r_sa_dv <= i_weight_ff_array_dv[(COL - (N_SA * COL_SA))-1 -: (N_SA * COL_SA)];
+                    end
                     endcase
-                end else begin
+                end 
+                else begin
                     r_sa_occ <= i_weight_ff_array_occupants;
                     r_sa_empty <= i_weight_ff_array_empty;
                     r_sa_data <= i_weight_ff_array_data;
@@ -111,26 +113,25 @@ endmodule
     whether to load weights into SA or FC block
 */
 module sel_gen#(
-        parameter SA_OPCODE = 0,
-        parameter FC_OPCODE = 4
+    parameter SA_OPCODE = 0,
+    parameter FC_OPCODE = 4
 )(
     input i_clk,
     input i_rstn,
     input [3:0] i_opcode,
-    output o_sel1
+    output demux_sel
 );
 
-reg sel1 = 0;   //Either send weight fifo data into SA or FC
-assign o_sel1 = sel1;
+reg sel = 0;    //select signal for demux
+assign demux_sel = sel;
 always @(posedge i_clk)begin
     if(~i_rstn)begin
-        sel1 <= 0;
+        sel <= 0;
     end else begin
-        //
         if(i_opcode == SA_OPCODE)         //For convolution layer
-            sel1 <= 1'b1;
+            sel <= 1'b1;
         else if(i_opcode == FC_OPCODE)    //For fully connected layer
-            sel1 <= 1'b0;
+            sel <= 1'b0;
     end
 end
     

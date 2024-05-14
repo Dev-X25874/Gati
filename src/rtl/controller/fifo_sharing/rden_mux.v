@@ -1,5 +1,6 @@
 /*
-    Mux to decide whether to load weights from weight fifo array into SA or FC
+    Receives read enable signal from weight fifo array controller present in SA and FC.
+    Further, this mux decides whether to send read enable signal of SA or FC into weight fifo array.
 */
 module rden_mux#(
     parameter COL = 16,

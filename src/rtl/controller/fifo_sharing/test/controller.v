@@ -1,6 +1,6 @@
 /*
     Contains interconnection of weight fifo array,
-    demux and read mux controllers for loading weights
+    demux and read enable mux controllers for loading weights
     either into SA or FC at a time.
 */
 module controller#(
@@ -53,11 +53,11 @@ weight_ff_array#(
 
 wire [(N_SA * COL_SA)-1 : 0] sa_empty;
 wire [(N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))-1 : 0] sa_occupants;
-wire w_sel1;
+wire o_demux_sel;
 wire [COL_FC-1 : 0] fc_empty;
 wire [(COL_FC * (WEIGHT_FF_ADDR + 1))-1 : 0] fc_occupants;
 //mux to load data into SA or FC block based upon the required conditions
-mux#(
+demux#(
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH),
     .COL(COL),
     .N_SA(N_SA),                    //number of SA engines
@@ -84,7 +84,7 @@ mux#(
     .o_sa_empty(sa_empty),
     .o_sa_data(out_sa_data),
     .o_sa_occupants(sa_occupants),
-    .o_sel1(w_sel1)
+    .demux_sel(o_demux_sel)
 );
 
 wire sel_sa_rden_mux;
@@ -123,7 +123,7 @@ fc_rden_controller#(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
     .i_trigger(i_start),
-    .i_sel_mux(w_sel1),
+    .i_sel_mux(o_demux_sel),
     .i_north_empty(fc_empty),
     .i_north_occ(fc_occupants),
     .i_img_dim(15'd10),
@@ -153,7 +153,7 @@ rden_mux#(
     .i_rstn(i_rstn),
     .i_fc_rden(fc_rden_req),
     .i_sa_rden(sa_rden_req),
-    .i_sel_1(w_sel1),
+    .i_sel_1(o_demux_sel),
     .i_sel_2(sel_sa_rden_mux),
     .o_north_rden(weight_ff_array_rden)
 );

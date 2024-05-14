@@ -30,7 +30,12 @@ localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
 
 wire [3:0] opcode;
 assign opcode = i_opcode ? 4'b1111 : 4'b0000;
-
+/*
+    The signals i_start and i_rstn are mapped to GPIOs that are connected to
+    LEDs on the board, so they are all configured for weak pullup,
+    which causes their inverted values to be sent into the blocks. 
+    However, the inversion of these inputs should be removed if these signals are mapped to any other GPIOs.
+*/
 wire start;
 wire rstn;
 assign start = ~i_start;

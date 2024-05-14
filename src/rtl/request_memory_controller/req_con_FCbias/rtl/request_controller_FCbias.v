@@ -6,7 +6,7 @@ module request_controller_FCbias #(parameter BURST_LENGTH = 10, parameter AXI_DA
     input clk,
     input FCbiasen,
     output reg [7:0] addr_out  = 0,
-    output reg wr_enable = 0,
+    output reg wr_enable = 0, //write-read enable
     output reg last = 0,
     output reg valid = 0,
     output [7:0] burst_length

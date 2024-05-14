@@ -8,7 +8,7 @@ module request_controller_img #(parameter BURST_LENGTH = 15, parameter AXI_DATA_
     input clk,
     input c_done,
     output reg [7:0] addr_out  = 0,
-    output reg wr_enable = 0,
+    output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
     output [7:0] burst_length

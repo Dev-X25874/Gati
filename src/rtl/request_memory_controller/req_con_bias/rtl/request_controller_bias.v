@@ -6,7 +6,7 @@ module request_controller_bias #(parameter BURST_LENGTH = 10, parameter AXI_DATA
     input clk,
     input Biasen,
     output reg [7:0] addr_out  = 0,
-    output reg wr_enable = 0,
+    output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
     output [7:0] burst_length

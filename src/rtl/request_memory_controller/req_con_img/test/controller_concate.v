@@ -76,19 +76,19 @@ always @(posedge clk) begin
                 stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= count_stp_addr + 1;
                 valid_stop_addr <= 0;
-                state <= 4;
+                state <= 2;
             end
             else begin
                 stop_addr[32-(count_stp_addr*8)-1 -:8] <= din;
                 count_stp_addr <= 0;
                 valid_stop_addr <= 1;
-                state <= 5;
+                state <= 3;
             end
         end
         else begin
             stop_addr <= stop_addr;
             count_stp_addr <= count_stp_addr;
-            state <= 4;
+            state <= 2;
             valid_stop_addr <= 0;
         end
     end

@@ -1,4 +1,4 @@
-module controller_concate #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32, parameter STP_ADDR = 1000) (
+module controller_concate #(parameter BURST_LENGTH = 15, parameter AXI_DATA_BYTES = 32) (
     input [7:0] din,
     input rx_valid,
     input clk,

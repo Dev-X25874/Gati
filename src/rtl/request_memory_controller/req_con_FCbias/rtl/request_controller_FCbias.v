@@ -1,4 +1,4 @@
-module request_controller_FCbias #(parameter BURST_LENGTH = 10, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
+module request_controller_FCbias #(parameter BURST_LENGTH = 10, parameter AXI_DATA_BYTES = 32) (
     input [31:0] start_addr,
     input [31:0] stop_addr,
     input config_start,

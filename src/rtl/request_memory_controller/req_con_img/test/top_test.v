@@ -1,4 +1,4 @@
-module top_test #(parameter BURST_LENGTH = 15, parameter OCCUPANCY = 40, parameter AXI_DATA_BYTES = 32) (
+module top_test #(parameter BURST_LENGTH = 15, parameter AXI_DATA_BYTES = 32) (
     input din,
     input clk,
     input rst,

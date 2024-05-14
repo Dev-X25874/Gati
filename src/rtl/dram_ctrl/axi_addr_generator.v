@@ -2,6 +2,7 @@ module axi_addr_generator#(
   parameter ADDR_WIDTH=32
 )(
   input clkin,
+  input i_rstn,
   input [ADDR_WIDTH-1:0]i_acc_address,
   input [ADDR_WIDTH-1:0]i_op_address,
   input i_acc_address_valid,
@@ -18,7 +19,15 @@ reg [31:0]internal_address;
 reg [7:0]counter=0;
 
 always @(posedge clkin)begin
-
+if(~i_rstn)begin
+  state <= 0;
+  internal_address <= 0;
+  counter <= 0;
+  o_address <= 0;
+  o_valid <= 0;
+  o_burst_len <= 0;
+  last <= 0;
+end else begin
   case(state)
   4'd0:
     begin
@@ -62,6 +71,6 @@ always @(posedge clkin)begin
     end
   end
   endcase
-
+end
 end
 endmodule

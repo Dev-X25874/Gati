@@ -1,73 +1,115 @@
 module dram_controller#(
   parameter N = 8,
-  parameter  DEPTH=512 ,
+  parameter DEPTH = 512 ,
   parameter BURST_LENGTH = 15,
-  parameter BURST_LENGTH_2 =7,
+  parameter BURST_LENGTH_2 = 7,
   parameter BURST_LEN_WIDTH = 8,
-  parameter  NUMBER_ACC=2 ,
-  parameter NUMBER_OP=8,
-  parameter IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1),
-  parameter IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1),
-  parameter AXI_DATA_BYTES=32
+  parameter NUMBER_ACC = 2,
+  parameter NUMBER_OP = 8,
+  parameter AXI_DATA_BYTES = 32,
+  parameter ADDR_WIDTH = 32,
+  parameter W_KERNEL_CNT = 16,
+  parameter IMAGE_DIM_WIDTH = 16
 )(
   input clkin,
-  input [31:0]i_acc_address,
-  input [31:0]i_op_start,
-  input [11:0]i_channel_itr,
-  input [11:0]i_kernel_itr,
-  input [15:0]i_imag_dim,
-  input [15:0]i_imag_dim_2,
+  input i_rstn,
+  input [ADDR_WIDTH-1:0]i_acc_address,
+  input [ADDR_WIDTH-1:0]i_op_start,
+  input [W_KERNEL_CNT-1:0]i_channel_itr,
+  input [W_KERNEL_CNT-1:0]i_kernel_itr,
+  input [IMAGE_DIM_WIDTH-1:0]i_imag_dim,
+  input [IMAGE_DIM_WIDTH-1:0]i_imag_dim_2,
   input slave_valid,
   input [N*($clog2(DEPTH)+1)-1:0]occupants,
   input last,
-  output reg [31:0]acc_address,
-  output [31:0] o_op_start_add,
+  output reg [ADDR_WIDTH-1:0]acc_address,
+  output [ADDR_WIDTH-1:0] o_op_start_add,
   output reg acc_address_valid,
   output reg op_valid_1,
   output reg memory_request,
-  output [7:0]o_burst_length,
-  output [7:0]o_burst_length_2,
+  output [BURST_LEN_WIDTH-1:0]o_burst_length,
+  output [BURST_LEN_WIDTH-1:0]o_burst_length_2,
   output o_image_done,
   output o_image_done_2
 );
 
-  reg [31:0] op_start_add1 = 0;
-  reg [11:0]channel_itr=0;
-  reg [11:0]kernel_itr=0;
-  reg [15:0]imag_dim=0;
-  reg [15:0]imag_dim_2=0;
-  reg [15:0]imag_dim_init=0;
-  reg [15:0]imag_dim_init_2=0;
-  reg [31:0]acc_address_init=0;
-  reg [31:0] r_output_address = 0;
-  reg [2:0]case_1_output=0;
-  reg [2:0]case_2_acc=0;
-  reg [2:0]case_2_output=0;
-  reg [2:0]imag_dim_case=0;
-  reg [2:0]imag_dim_case_2=0;
-  reg flag=1;
-  reg image_done=0;
-  reg image_done_2=0;
-  reg flag_2=0;
-  reg flag_3=0;
-  reg flag_4=1;
+localparam IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1);
+localparam IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1);
 
-  reg [11:0]kernel_count=0;
-  reg [11:0]channel_count=0;
-  reg [9:0]offset_acc=0;
-  reg [9:0]offset_op=0;
-  reg [3:0]top_state=0;
-  wire result_int;
-  wire result_int_2;
-  reg [BURST_LEN_WIDTH-1:0]burst_length=BURST_LENGTH+1;
-  reg [BURST_LEN_WIDTH-1:0]burst_length_2=BURST_LENGTH_2+1;
+reg [ADDR_WIDTH-1:0] op_start_add1 = 0;
+reg [W_KERNEL_CNT-1:0] channel_itr = 0;
+reg [W_KERNEL_CNT-1:0] kernel_itr = 0;
+reg [IMAGE_DIM_WIDTH-1:0] imag_dim = 0;
+reg [IMAGE_DIM_WIDTH-1:0] imag_dim_2 = 0;
+reg [IMAGE_DIM_WIDTH-1:0] imag_dim_init = 0;
+reg [IMAGE_DIM_WIDTH-1:0] imag_dim_init_2 = 0;
+reg [ADDR_WIDTH-1:0] acc_address_init = 0;
+reg [ADDR_WIDTH-1:0] r_output_address = 0;
+reg [2:0] case_1_output = 0;
+reg [2:0] case_2_acc = 0;
+reg [2:0] case_2_output = 0;
+reg [2:0] imag_dim_case = 0;
+reg [2:0] imag_dim_case_2 = 0;
+reg flag = 1;
+reg image_done = 0;
+reg image_done_2 = 0;
+reg flag_2 = 0;
+reg flag_3 = 0;
+reg flag_4 = 1;
 
-  assign result_int = (occupants>=({N{burst_length}}))?1:0;
-  assign result_int_2 = (occupants>=({N{burst_length_2}}))?1:0;
-  assign o_op_start_add = op_start_add1;
-  always@(posedge clkin)
-  begin
+reg [W_KERNEL_CNT-1:0]kernel_count=0;
+reg [W_KERNEL_CNT-1:0]channel_count=0;
+reg [9:0]offset_acc=0;
+reg [9:0]offset_op=0;
+reg [3:0]top_state=0;
+wire result_int;
+wire result_int_2;
+reg [BURST_LEN_WIDTH-1:0]burst_length=BURST_LENGTH+1;
+reg [BURST_LEN_WIDTH-1:0]burst_length_2=BURST_LENGTH_2+1;
 
+assign result_int = (occupants>=({N{burst_length}}))?1:0;
+assign result_int_2 = (occupants>=({N{burst_length_2}}))?1:0;
+assign o_op_start_add = op_start_add1;
+assign o_burst_length = burst_length-1;
+assign o_burst_length_2 = burst_length_2-1;
+assign o_image_done = image_done;
+assign o_image_done_2= image_done_2;
+
+always@(posedge clkin)
+begin
+  if(~i_rstn) begin
+    op_start_add1 <= 0;
+    channel_itr <= 0;
+    kernel_itr <= 0;
+    imag_dim <= 0;
+    imag_dim_2 <= 0;
+    imag_dim_init <= 0;
+    imag_dim_init_2 <= 0;
+    acc_address_init <= 0;
+    r_output_address <= 0;
+    case_1_output <= 0;
+    case_2_acc <= 0;
+    case_2_output <= 0;
+    imag_dim_case <= 0;
+    imag_dim_case_2 <= 0;
+    flag <= 1;
+    image_done <= 0;
+    image_done_2 <= 0;
+    flag_2 <= 0;
+    flag_3 <= 0;
+    flag_4 <= 1;
+    kernel_count <= 0;
+    channel_count <= 0;
+    offset_acc <= 0;
+    offset_op <= 0;
+    top_state <= 0;
+    burst_length <= 0;
+    burst_length_2 <= 0;
+    acc_address <= 0;
+    acc_address_valid <= 0;
+    op_valid_1 <= 0;
+    memory_request <= 0;
+  end else begin
     case(top_state)
       4'd0:
       begin
@@ -443,8 +485,6 @@ module dram_controller#(
     offset_acc<=((burst_length)<<$clog2(AXI_DATA_BYTES));
     offset_op<=((burst_length_2)<<$clog2(AXI_DATA_BYTES));
   end
-  assign o_burst_length=burst_length-1;
-  assign o_burst_length_2=burst_length_2-1;
-  assign o_image_done=image_done;
-  assign o_image_done_2=image_done_2;
+end
+
 endmodule

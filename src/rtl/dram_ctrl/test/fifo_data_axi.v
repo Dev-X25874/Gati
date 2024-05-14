@@ -1,5 +1,6 @@
 module fifo_data_axi(
     input clkin,
+    input i_rstn,
     input memory_acknowledgement,
     input [7:0]burst_length,
     output reg last,
@@ -9,6 +10,12 @@ module fifo_data_axi(
   reg [3:0]state=0;
   always @(posedge clkin)
   begin
+    if(~i_rstn)begin
+      count <= 0;
+      state <= 0;
+      last <= 0;
+      read_enable <= 0;
+    end else begin
     case(state)
       4'd0:
       begin
@@ -40,6 +47,7 @@ module fifo_data_axi(
         end
       end
     endcase
+  end
   end
 
 endmodule

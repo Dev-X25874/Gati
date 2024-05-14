@@ -58,6 +58,7 @@ always @(posedge clk) begin
             addr_out <= nxt_addr[32-(count*8)-1 -:8];
             wr_enable <= 0;
             valid <= 1;
+            last <= 1;
             r_burst_length <= r_burst_length;
             state <= ADDR_ITR;
             count <= 0;

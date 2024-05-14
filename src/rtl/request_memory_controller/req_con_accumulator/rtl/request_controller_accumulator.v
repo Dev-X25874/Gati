@@ -4,14 +4,14 @@ module request_controller_accumulator #(parameter BURST_LENGTH = 10, parameter O
     input config_start,
     input fifo_status, //occupancy check
     input clk,
-    input enable,
+    input enable, //this signal will be enabled/disabled by the config block when vector addition will be needed
+    input ENABLE, //this signal will be enabled/disabled by a local controller on basis of of iteration counter
     output reg [7:0] addr_out  = 0,
-    output reg wr_enable = 0,
+    output reg wr_enable = 0, //write-read enable signal
     output reg valid = 0,
     output reg last = 0,
     output [7:0] burst_length
 );
-//reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
 reg [31:0] nxt_addr = 0;
 reg [2:0] state = 0;
@@ -40,15 +40,19 @@ always @(posedge clk) begin
             end
         end
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
-            if(fifo_status) begin
-                state <= START_ADDR;
+            if(ENABLE) begin
+                if(fifo_status) begin
+                    state <= START_ADDR;
+                end
+                else begin
+                    state <= FIFO_STATUS;
+                end
             end
             else begin
                 state <= FIFO_STATUS;
             end
         end
         START_ADDR: begin
-            //if(enable) begin   //enable signal for request_controller_accumulator checks if the controller is needed or not, the signal is sent from config block
             if(count < 3) begin
                 addr_out <= nxt_addr[32-(count*8)-1 -:8];
                 wr_enable <= 0;
@@ -66,14 +70,6 @@ always @(posedge clk) begin
                 state <= ADDR_ITR;
                 count <= 0;
             end
-            //end
-            // else begin
-            //     addr_out <= 0;
-            //     wr_enable <= 0;
-            //     r_burst_length <= 0;
-            //     valid <= 0;
-            //     state <= START_ADDR;
-            // end
         end
         ADDR_ITR: begin
             last <= 0;

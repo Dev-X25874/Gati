@@ -4,6 +4,7 @@ module request_controller_FC #(parameter BURST_LENGTH = 15, parameter OCCUPANCY 
     input config_start,
     input fifo_status, //occupancy check
     input clk,
+    input data_last,
     output reg [7:0] addr_out  = 0,
     output reg wr_enable = 0,
     output reg valid = 0,
@@ -76,17 +77,28 @@ always @(posedge clk) begin
             wr_enable <= 0;
         end
         else if(nxt_addr > stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
-            state <= FIFO_STATUS;
-            wr_enable <= 0;
-            valid <= 0;
-            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
-            nxt_addr <= stop_addr;
+            if(data_last) begin
+                state <= FIFO_STATUS;
+                wr_enable <= 0;
+                valid <= 0;
+                r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
+                nxt_addr <= stop_addr;
+            end
+            else begin
+                state <= ADDR_ITR;
+            end
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
-            state <= FIFO_STATUS;
-            wr_enable <= 0;
-            valid <= 0;
-            r_burst_length <= r_burst_length;
+            if(data_last) begin
+                state <= FIFO_STATUS;
+                wr_enable <= 0;
+                valid <= 0;
+                nxt_addr <= (nxt_addr + ((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)));
+                r_burst_length <= r_burst_length;
+            end
+            else begin
+                state <= ADDR_ITR;
+            end
         end
     end
     endcase

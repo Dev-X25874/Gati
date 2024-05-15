@@ -18,43 +18,23 @@ always @(posedge clk) begin
         data_out_fifo2 <= 0;
     end
     else begin
-        case(state)
-        0: begin
-            data_out_fifo1 <= 0;
-            data_out_fifo2 <= 0;
-            counter <= 0;
-            sel <= 0;
-            if(datavalid_in) begin
-                state <= 1;
-            end
-            else begin
-                state <= 0;
-            end
-        end
-        1: begin
-            if(counter == 0) begin
-                sel <= 0;
-                state <= 1;
-            end 
-            else begin
-                sel <= 1;
-                counter <= counter + 1;
-                state <= 2;
-            end
-        end
-        2: begin
+        if(datavalid_in) begin
             if(sel) begin
                 data_out_fifo2 <= data_in;
                 datavalid_out <= 1;
                 state <= 0;
             end
             else begin
-                data_out_fifo2 <= data_in;
+                data_out_fifo1 <= data_in;
                 datavalid_out <= 1;
                 state <= 0;
             end
         end
-        endcase
+        else begin
+            data_out_fifo1 <= 0;
+            data_out_fifo2 <= 0;
+            datavalid_out <= 0;
+        end
     end
 end
 endmodule

@@ -51,7 +51,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_1 (
   .rst_n(rst),
   .we(we_mux),
   .re(re),
-  .data_in(dout_fifo1),
+  .data_in(),
   .occupants(),
   .full(),
   .empty(empty1),
@@ -86,24 +86,18 @@ pooling_second_stage #(.KERNEL_HEIGHT(KERNEL_HEIGHT)) pooling_second_stage_1 (
 
 mux_final_pool mux_final_pool_1 (
     .clk(clk),
-    .din_final_pool(dout_pooling_second_stage),
-    .din_demux_for_fifo1(data_in_fifo1),
+    .din_final_pool(),
+    .din_demux_for_fifo1(),
     .datavalid_final_pool(datavalid_final_pool),
     .datavalid_demux_for_fifo1(we_fifo),
-    .dout_fifo1(dout_fifo1),
+    .dout_fifo1(),
     .dv(we_mux)
 );
 
 assign re = ((~empty1) & (~empty2));
 
-
-always @(posedge clk) begin
-    if(counter == kernel_height) begin
-        dout <= dout_fifo1;
-    end
-    else begin
-        
-    end
-end
+//1. have to connect demux wala counter with the 2nd stage wala counter
+//2. have to connect mux ke inputs and outputs correctly to either fifo1 or top ka dout
+//3. have add a counter that will count till 256 or 112 or 56 etc height wise to reset this whole module
 
 endmodule

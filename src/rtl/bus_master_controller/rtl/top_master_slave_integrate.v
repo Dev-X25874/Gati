@@ -69,6 +69,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [31:0] BiasEndAddress
     );
 
+    `include "instructions.vh"
+
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
 wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
 wire wr;
@@ -93,7 +95,7 @@ top_master top_master(
 
 OP_CONV OP_CONV(
     .din(dout_top_master),
-    .sel(select_line[0]),
+    .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -120,7 +122,7 @@ OP_CONV OP_CONV(
 
 OP_FC OP_FC(
     .din(dout_top_master),
-    .sel(select_line[1]),
+    .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -141,7 +143,7 @@ OP_FC OP_FC(
 
 OP_Outputblock OP_Outputblock(
     .din(dout_top_master),
-    .sel(select_line[2]),
+    .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -159,7 +161,7 @@ OP_Outputblock OP_Outputblock(
 
 OP_Tailblock OP_Tailblock(
     .din(dout_top_master),
-    .sel(select_line[3]),
+    .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),

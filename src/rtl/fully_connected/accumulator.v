@@ -6,7 +6,7 @@ module accumulator#(
     parameter W_PSUM = 19
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_IMG_DIM-1 : 0] i_img_dim,
     input [(COL * (W_PSUM+1))-1 : 0] i_psum_data,
     output [COL-1 :0] o_dv,
@@ -23,7 +23,7 @@ generate
             .W_IMG_DIM(W_IMG_DIM)
         ) accumulator_array (
             .i_clk(i_clk),
-            .i_rst(i_rst),
+            .i_rstn(i_rstn),
             .i_img_dim(i_img_dim),
             .i_psum(i_psum_data[(((W_PSUM + 1) * (COL - i))-1) -: (W_PSUM+1)]),
             .o_data(o_data[((W_ACC * (COL - i))-1) -: W_ACC]),
@@ -41,7 +41,7 @@ module acc#(
     parameter W_PSUM = 19
 )(
     input i_clk,
-    input i_rst,
+    input i_rstn,
     input [W_IMG_DIM-1 : 0] i_img_dim,
     input [W_PSUM:0] i_psum,    
     output [W_ACC-1 : 0] o_data,
@@ -65,7 +65,7 @@ assign o_data = data;
 assign o_dv = dv;
 
 always @(posedge i_clk)begin
-    if(i_rst)begin
+    if(~i_rstn)begin
         data <= 0;
         dv <= 0;
         counter <= 0;

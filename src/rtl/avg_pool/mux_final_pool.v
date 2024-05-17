@@ -1,43 +1,35 @@
 module mux_final_pool(
     input clk,
-    input [7:0] din_final_pool,
+    input rst_n,
+    input ENABLE,
     input [7:0] din_demux_for_fifo1,
-    input datavalid_final_pool,
-    input datavalid_demux_for_fifo1,
+    input [7:0] din_pooling_second_stage_fifo1,
+    input datavalid_out_final = 0,
+    input datavalid_out_fifo1 = 0,
     output reg dv = 0,
     output reg [7:0] dout_fifo1 = 0
 );
 
+
 always @(posedge clk) begin
-    case(state)
-    0: begin
+    if(rst_n) begin
+        dv <= 0;
         dout_fifo1 <= 0;
-        state <= 1;
-        sel <= 0;
     end
-    1: begin
-        if(datavalid_final_pool) begin
-            sel <= 1;
-            state <= 2;
-        end 
-        else begin
-            sel <= 0;
-            state <= 2;
+    else begin
+        if(ENABLE) begin
+            if(datavalid_out_fifo1) begin
+                dout_fifo1 <= din_pooling_second_stage_fifo1;
+                dv <= 1;
+                state <= 0;
+            end
+            else begin
+                dout_fifo1 <= din_demux_for_fifo1;
+                state <= 0;
+                dv <= 1;
+            end
         end
     end
-    2: begin
-        if(sel) begin
-            dout_fifo1 <= din_final_pool;
-            dv <= 1;
-            state <= 0;
-        end
-        else begin
-            dout_fifo1 <= din_demux_for_fifo1;
-            state <= 0;
-            dv <= 1;
-        end
-    end
-    endcase
 end
 
 endmodule

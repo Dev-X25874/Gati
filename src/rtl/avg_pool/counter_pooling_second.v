@@ -11,18 +11,33 @@ module counter_pooling_second(
 );
 
 always @(posedge clk) begin
-    if(datavalid_in) begin
-        if(counter == (pool_height-1)) begin
-            dout_final <= dout_pooling_second_stage;
-            datavalid_out_final <= 1;
-            counter <= 0;
+    if(rst_n) begin
+        dout_final <= 0;
+        dout_fifo1 <= 0;
+        datavalid_out_final <= 0;
+        datavalid_out_fifo1 <= 0;
+    end
+    else begin
+        if(ENABLE) begin
+            if(datavalid_in) begin
+                if(counter == (pool_height-1)) begin
+                    dout_final <= dout_pooling_second_stage;
+                    datavalid_out_final <= 1;
+                    counter <= 0;
+                end
+                else begin
+                    dout_fifo1 <= dout_pooling_second_stage;
+                    datavalid_out_fifo1 <= 1;
+                    counter <= counter + 1;
+                end
+            end
         end
         else begin
-            dout_fifo1 <= dout_pooling_second_stage;
-            datavalid_out_fifo1 <= 1;
-            counter <= counter + 1;
+            dout_final <= 0;
+            dout_fifo1 <= 0;
+            datavalid_out_final <= 0;
+            datavalid_out_fifo1 <= 0;
         end
     end
 end
-
 endmodule

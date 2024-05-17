@@ -2,7 +2,7 @@
 
 module adder #(
     parameter WIDTH   = 20
-  , parameter O_WIDTH = 21
+  , parameter O_WIDTH = 20
 ) (
   input clk,
   input rst,

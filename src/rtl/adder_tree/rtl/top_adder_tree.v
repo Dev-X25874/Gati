@@ -1,49 +1,52 @@
-module top_data_arrangement_gen(
+module top_adder_tree_gen #(
     parameter W_PSUM = 20,
     parameter COL = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
     parameter NSA_DSP = 2,
     parameter NSA_LUT = 2,
+    parameter DATA_WIDTH_OB = 32
 )(
     input clk,
     input rst,
     input [(COL*W_PSUM)*N_SA-1:0] o_psum_ff_array,
-    input [(N_SA/2)*W_PSUM*COL-1:0] inp1,
-    input [(N_SA/2)*W_PSUM*COL-1:0] inp2,
     output [COL-1:0] valid_out,
-    input [(N_SA/2)*COL-1:0] valid_1,
-    input [(N_SA/2)*COL-1:0] valid_2
-    output [(UNIQUE_KERNELS* DATA_OUT_WIDTH) -1 : 0] result_final
+    output [COL*N_SA-1:0] valid_in,
+    output [(COL* DATA_WIDTH_OB) -1 : 0] result_final
 );
+
 genvar j;
   generate
     for (j = 0; j < N_SA / 2; j = j + 1) begin
-
-      assign inp1[COL*W_PSUM*j +:COL*W_PSUM]=o_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM];
-      assign inp2[COL*W_PSUM*j +:COL*W_PSUM]=o_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM];
+      assign inp1[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM];
+      assign inp2[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM];
       assign valid_1[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j)))-1-:COL];
       assign valid_2[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j+1)))-1-:COL];
     end
   endgenerate
 
-  top_adder_tree_gen #(
+  wire [(N_SA/2)*W_PSUM*COL-1:0] inp1;
+  wire [(N_SA/2)*W_PSUM*COL-1:0] inp2;
+  wire [(N_SA/2)*COL-1:0] valid_1;
+  wire [(N_SA/2)*COL-1:0] valid_2;
+
+  adder_tree_gen #(
     .DATA_OUT_WIDTH(DATA_WIDTH_OB),
     .DATA_IN_WIDTH(W_PSUM),
     .UNIQUE_KERNELS(COL),
     .DESIGN_NO(N_SA)
-) top_adder_tree_gen (
+) adder_tree_gen (
     .in1(inp1),
     .in2(inp2),
-    .clk(i_clk),
+    .clk(clk),
     .rst(rst),
     .valid_in_1(valid_1),
     .valid_in_2(valid_2),
-    .valid_out(valid_tree),
-    .result_final(result_tree)
+    .valid_out(valid_out),
+    .result_final(result_final)
 );
 endmodule
 
-module top_adder_tree_gen #(
+module adder_tree_gen #(
     parameter DATA_OUT_WIDTH = 32,
     parameter DATA_IN_WIDTH = 20,
     parameter UNIQUE_KERNELS = 4,
@@ -80,12 +83,12 @@ module top_adder_tree_gen #(
   genvar i;
   generate
     for (i = 0; i < UNIQUE_KERNELS; i = i + 1) begin
-      top_adder_tree #(
+      adder_tree #(
           .DATA_OUT_WIDTH(DATA_OUT_WIDTH),
           .DATA_IN_WIDTH(DATA_IN_WIDTH),
           .DESIGN_NO(DESIGN_NO),
           .UNIQUE_KERNELS(UNIQUE_KERNELS)
-      ) top_adder_tree (
+      )adder_tree (
           .clk(clk),
           .rst(rst),
           .valid_in_1(valid_in_temp[(UNIQUE_KERNELS/2)*i+:UNIQUE_KERNELS/2]),
@@ -99,7 +102,7 @@ module top_adder_tree_gen #(
   endgenerate
 endmodule
 
-module top_adder_tree #(
+module adder_tree #(
     parameter DATA_OUT_WIDTH = 21,
     parameter DATA_IN_WIDTH = 20,
     parameter HEIGHT = $clog2(DESIGN_NO),

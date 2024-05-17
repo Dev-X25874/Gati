@@ -1,7 +1,7 @@
-//this module is to generate 8 fifos
+//this module is to generate 16 fifos
 
-module top_fifo_gen #(parameter FIFO_NO = 8, 
-                    parameter DATA_WIDTH = 8, 
+module top_fifo_gen #(parameter FIFO_NO = 16, 
+                    parameter DATA_WIDTH = 20, 
                     parameter ADDR_WIDTH = 9)
                     (
 

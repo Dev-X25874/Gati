@@ -16,7 +16,8 @@ module test_top#(
     input i_rstn,
     output [7:0] o_address,
     output o_valid,
-    output o_last
+    output o_last,
+    output o_read_write_req
 );
 
 wire [79:0]ff_occupants;
@@ -84,7 +85,8 @@ axi_addr_generator#(
     .o_address(o_address),
     .o_valid(o_valid),
     .o_burst_len(o_burst_len),
-    .last(o_last)
+    .last(o_last),
+    .o_read_write_req(o_read_write_req)
 );
 
 occupants_controller occupants_ctrl(

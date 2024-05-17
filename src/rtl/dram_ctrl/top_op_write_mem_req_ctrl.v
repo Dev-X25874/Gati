@@ -28,7 +28,8 @@ module top_op_write_mem_req_ctrl#(
     output img_done_op,
     output o_valid,
     output [7:0]o_address,
-    output [7:0]o_burst_len
+    output [7:0]o_burst_len,
+    output o_read_write_req
 );
 
 wire [ADDR_WIDTH-1:0] acc_address;
@@ -88,7 +89,8 @@ axi_addr_generator#(
   .o_address(o_address),
   .o_valid(o_valid),
   .o_burst_len(o_burst_len),
-  .last(o_last)
+  .last(o_last),
+  .o_read_write_req(o_read_write_req)
 );
 
     

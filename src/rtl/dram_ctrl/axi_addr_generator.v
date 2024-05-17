@@ -12,11 +12,16 @@ module axi_addr_generator#(
   output reg[7:0]o_address,
   output reg o_valid,
   output reg [7:0]o_burst_len,
-  output reg last
+  output reg last,
+  output o_read_write_req
 );
 reg [3:0]state=0;
 reg [31:0]internal_address;
 reg [7:0]counter=0;
+reg [1:0] rw_state = 0;
+reg rd_wr_req = 0;
+
+assign o_read_write_req = rd_wr_req;
 
 always @(posedge clkin)begin
 if(~i_rstn)begin
@@ -27,6 +32,7 @@ if(~i_rstn)begin
   o_valid <= 0;
   o_burst_len <= 0;
   last <= 0;
+  // rd_wr_req <= 0;
 end else begin
   case(state)
   4'd0:
@@ -44,7 +50,8 @@ end else begin
     else begin
       state<=0;
     end
-      o_valid<=0;
+    o_valid <= 0;
+    // rd_wr_req <= 0;
   end
 
   4'd1:
@@ -53,18 +60,23 @@ end else begin
     counter<=counter+8;
     if(counter==0)begin
       o_valid<=1'b1;
+      // rd_wr_req <= 1'b1;
     end
-    else if(counter == 32)
+    else if(counter == 32)begin
       o_valid <= 1'b0;
+      // rd_wr_req <= 1'b0;
+    end
     if(counter<ADDR_WIDTH)begin
       state<=4'd1;
     end
     else begin
       state<=4'd0;
       counter<=0;
+      // rd_wr_req <= 1'b0;
     end
     if(counter==24)begin
       last<=1'b1;
+      // rd_wr_req <= 1'b0;
     end
     else begin
       last<=1'b0;
@@ -72,5 +84,25 @@ end else begin
   end
   endcase
 end
+end
+
+always @(posedge clkin)begin
+  if(~i_rstn)begin
+    rd_wr_req <= 0;
+  end else begin
+    case (rw_state)
+      0:begin
+        if(state == 1 && counter == 0)begin
+          rd_wr_req <= 1'b1;
+          rw_state <= 1;
+        end
+      end
+      1: begin
+        rd_wr_req <= 1'b0;
+        rw_state <= 0;
+      end
+      default: rw_state <= 0;
+    endcase
+  end
 end
 endmodule

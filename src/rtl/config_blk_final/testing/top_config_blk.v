@@ -12,10 +12,9 @@ module config_blk #(
     parameter BURST_LEN_AXI = 7, 
     parameter BURST_LEN_WIDTH=8,
     parameter OPCODE_W=4,
-    //parameter op_code_width = 4,
-    parameter CNT = (data_in/data_out),
-    parameter data_in = 256,
-    parameter data_out = 8,
+    parameter CNT = (DATA_IN/DATA_OUT),
+    parameter DATA_IN = 256,
+    parameter DATA_OUT = 8,
     parameter LAY_N=12,
     parameter DEPTH=100,
     parameter STATUS_DRAM_LIM=10)
@@ -49,8 +48,8 @@ module config_blk #(
   wire [2*NUM_INSTRUCTIONS-1:0]prev_6_4;
   wire [NUM_INSTRUCTIONS-1:0]ack_6_4;
   wire address_valid;
-  wire [31:0]global_start;
-  wire [31:0]global_stop;
+  wire [ADDR_W-1:0]global_start;
+  wire [ADDR_W-1:0]global_stop;
   //wire layer_done;
 
 
@@ -121,10 +120,10 @@ module config_blk #(
                    .read_signal(read_req_3_4)
                  );
 
-  top_master #( .op_code_width(OPCODE_W),
+  top_master #( .OP_CODE_WIDTH(OPCODE_W),
                 .CNT(CNT),
-                .data_in(data_in),
-                .data_out(data_out))
+                .DATA_IN(DATA_IN),
+                .DATA_OUT(DATA_OUT))
              master_controller_5(
                .din(o_instruction_3_5),
                .start(start_4_5),

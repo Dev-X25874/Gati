@@ -12,9 +12,6 @@ module config_blk #(
     parameter BURST_LEN_AXI = 7, //is default burst length
     parameter BURST_LEN_WIDTH=8,
     parameter OPCODE_W=4,
-    parameter CNT = (data_in/data_out),
-    parameter data_in = 256,
-    parameter data_out = 8,
     parameter LAY_N=12,
     parameter DEPTH=100,
     parameter STATUS_DRAM_LIM=10)
@@ -32,7 +29,7 @@ module config_blk #(
     input [NUM_INSTRUCTIONS-1:0]ack_signals, //acknowledgement signals from slave blocks
     output[NUM_INSTRUCTIONS-1:0]start_command,// start command to slave blocks after receiving start instruction
     output start_out,// start pulse that pulses for each start instruction
-    output [255:0]o_instruction_bus,//for bus master
+    output [ADDR_W-1:0]o_instruction_bus,//for bus master, we can use common for both opcode and data in ports of the bus master
     output o_instruction_bus_v,//for bus master
     output start_bus //for bus master
   );
@@ -49,8 +46,8 @@ module config_blk #(
   wire [2*NUM_INSTRUCTIONS-1:0]prev_6_4;
   wire [NUM_INSTRUCTIONS-1:0]ack_6_4;
   wire address_valid;
-  wire [31:0]global_start;
-  wire [31:0]global_stop;
+  wire [ADDR_W-1:0]global_start;
+  wire [ADDR_W-1:0]global_stop;
 
 
 //instantiation of DRAM Request Controller

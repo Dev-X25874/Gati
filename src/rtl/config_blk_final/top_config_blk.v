@@ -9,7 +9,7 @@ module config_blk #(
     parameter  ADDR_W=32,
     parameter  INST_W=256,
     parameter NUM_INSTRUCTIONS =4,
-    parameter BURST_LEN_AXI = 7,
+    parameter BURST_LEN_AXI = 7, //is default burst length
     parameter BURST_LEN_WIDTH=8,
     parameter OPCODE_W=4,
     parameter CNT = (data_in/data_out),
@@ -29,9 +29,9 @@ module config_blk #(
     output [7:0]mem_address,
     output mem_last,
     output [BURST_LEN_WIDTH-1:0]mem_burst_len,
-    input [NUM_INSTRUCTIONS-1:0]ack_signals,
-    output[NUM_INSTRUCTIONS-1:0]start_command,
-    output start_out,
+    input [NUM_INSTRUCTIONS-1:0]ack_signals, //acknowledgement signals from slave blocks
+    output[NUM_INSTRUCTIONS-1:0]start_command,// start command to slave blocks after receiving start instruction
+    output start_out,// start pulse that pulses for each start instruction
     output [255:0]o_instruction_bus,//for bus master
     output o_instruction_bus_v,//for bus master
     output start_bus //for bus master
@@ -53,7 +53,7 @@ module config_blk #(
   wire [31:0]global_stop;
 
 
-
+//instantiation of DRAM Request Controller
   ctrl_dram_req #(.ADDR_W(ADDR_W),
                   .BURST_LEN_AXI(BURST_LEN_AXI),
                   .BURST_LEN_WIDTH(BURST_LEN_WIDTH))
@@ -70,6 +70,8 @@ module config_blk #(
                  .last(mem_last),
                  .burst_len(mem_burst_len));
 
+
+//Instruction Queue Controller Instantiation                 
   controller_inst_q #(.INSTRUCT_W(INST_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
@@ -82,6 +84,7 @@ module config_blk #(
                       .o_global_stop(global_stop)
                     );
 
+//INtruction Queue Instatiation                    
   instruct_q #(.INSTRUCT_W(INST_W),
                .DEPTH(DEPTH),
                .DATA_WIDTH(INST_W),
@@ -99,6 +102,7 @@ module config_blk #(
                .o_status_inst(status_3_4)
              );
 
+//Instruction Read Controller Instantiation             
   inst_read_ctrl #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
                    .OPCODE_W(OPCODE_W),
                    .LAY_N(LAY_N))inst_read_ctrl_4(
@@ -118,23 +122,7 @@ module config_blk #(
                    .read_signal(read_req_3_4)
                  );
 
-/*   top_master #( .op_code_width(OPCODE_W),
-                .CNT(CNT),
-                .data_in(data_in),
-                .data_out(data_out))
-             master_controller_5
-             (
-               .din(o_instruction_3_5),
-               .start(start_4_5),
-               .clk(clkin),
-               .op_code(o_instruction_3_5[`Opcode]),
-               .ready_in(16'b11111111111), //for testing
-               .dout(),
-               .sel(),
-               .write(),
-               .done(done_5_4)
-             ); */
-
+//Instantiation of Acknowledgment Controller
   ctrl_ack #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))ack_block_6(
              .clkin(clkin),
              .inst_signals(ack_signals),

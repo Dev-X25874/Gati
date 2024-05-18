@@ -138,22 +138,22 @@ begin
     end
     4'd5:
     begin
-      if(((internal_reg_stop-((burst_len+1)<<5))>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
+      if(((internal_reg_stop-((burst_len+1)<<$clog2(ADDR_W)))>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
       begin
         if(status)
         begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; // update internal reg
+          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
           state<=4'd4;
         end
         else
         begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<5);//for testing 32'h200;   //+//32'h10000; // update internal reg
+          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
           state<=4'd3; //Back to check status of instruction queue
         end
       end
       else
       begin
-        burst_len_reg<=((global_reg_address_stop-internal_reg_start)>>5)-1;
+        burst_len_reg<=((global_reg_address_stop-internal_reg_start)>>$clog2(ADDR_W))-1;
         state<=4'd7;
       end
     end

@@ -9,7 +9,7 @@ module config_blk #(
     parameter  ADDR_W=32,
     parameter  INST_W=256,
     parameter NUM_INSTRUCTIONS =4,
-    parameter BURST_LEN_AXI = 7,
+    parameter BURST_LEN_AXI = 7, 
     parameter BURST_LEN_WIDTH=8,
     parameter OPCODE_W=4,
     //parameter op_code_width = 4,

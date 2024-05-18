@@ -12,7 +12,7 @@ The DRAM controller is initially idle. After receiving a user start it loads sta
 It then transmits the 32 bit addresses in chunks of 8 bits along with a read request signal to the DRAM Memory.
 
 ### Instruction Queue Controller:
-The INstruction Queue Controller receives the instructions from the DRAM and writes it into the instruction queue.
+The Instruction Queue Controller receives the instructions from the DRAM and writes it into the instruction queue.
 
 ### Instruction Queue
 The Instruction Queue contains an instantiated submodule sync_fifo_config. It stores all instructions sent by the DRAM.
@@ -23,10 +23,10 @@ When it receives a Read Enable signal from Instruction Read COntroller it sends 
 The Instruction Read Controller sends a read enable signal to the Instruction Queue by reading the Done Status of the Bus Master and the not_empty status of the Instruction Queue.
 It also contains status registers to show the status of the various slave blocks of the bus master.
 These status registers are:
-1. Previous Registers
-2. Next Registers
+1. Previous Sent Registers
+2. Next Sent Registers
 3. Acknowledgement Registers
-These registers decide wheter to send a start signal to the Bus Master Controller.
+These registers decide whether to send a start signal to the Bus Master Controller.
 It also sends a start command when it receives a start instruction i.e opcode =1111.
 
 ### Bus Master Controller

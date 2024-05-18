@@ -42,9 +42,9 @@ module inst_read_ctrl#(
   reg flag=1; //for the first instruction
   reg flag_2=1; //used to stop loopback from last instruction
 
-  reg [(NUM_INSTRUCTIONS*2)-1:0]prev_reg=0; //shows the previous instructions
-  reg [(NUM_INSTRUCTIONS*2)-1:0]next_reg=0; //shows the next instructions
-  reg [NUM_INSTRUCTIONS-1:0]ack_reg=0; //shows status of the slave blocks
+  reg [(NUM_INSTRUCTIONS*2)-1:0]prev_reg=0; //shows the previous instructions, is set to 11 by ack block and 01 from next reg
+  reg [(NUM_INSTRUCTIONS*2)-1:0]next_reg=0; //shows the next instructions, is set to 01 based on the opcode received
+  reg [NUM_INSTRUCTIONS-1:0]ack_reg=0; //shows status of the slave blocks, is 1 if the slave block is busy is 0 if slave block is free/done
   reg [NUM_INSTRUCTIONS-1:0]psedo_ack_reg=0; //interim register
   reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0;
 

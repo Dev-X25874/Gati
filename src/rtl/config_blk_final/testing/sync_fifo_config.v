@@ -6,7 +6,9 @@
 //It also sends status signals to the DRAM controller and the Instruction Read Controller.
 //It also counts number of instructions stored in the FIFO.
 //////////////////////////////////////////////////////////////////////////////////
-module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
+module synchronous_fifo #(parameter DEPTH=100, 
+parameter DATA_WIDTH=256,
+parameter  STATUS_DRAM_LIM=10 ) (
     input clk, rst_n,
     input w_en, r_en,
     input [(DATA_WIDTH-1):0] data_in,
@@ -81,6 +83,6 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
   assign occupants=occupants_reg;
   assign full = ((w_ptr+1'b1) == r_ptr);
   assign empty = (w_ptr == r_ptr);
-  assign ten_trigg=(occupants<10); //should be 10 is 1 for testing
+  assign ten_trigg=(occupants<STATUS_DRAM_LIM); //should be 10 is 1 for testing
   assign not_empty=~(w_ptr == r_ptr);
 endmodule

@@ -47,7 +47,9 @@ module Port_ctrl_gen #(
     end
   endgenerate
   
-
-    //  assign combined_out = {out_address, out_burst_len, out_enable_rw, out_enable_rw};
-
 endmodule
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+

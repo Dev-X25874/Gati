@@ -3,7 +3,6 @@ module MUX_WR_SEL (
     input rst, 
     input w_valid_1,
     input w_valid_2,
-   // input w_ready_sel,
     input w_last1,
     input w_last2,
     input sel_in1,
@@ -30,21 +29,18 @@ always @ (posedge clk) begin
             w_last_out <= w_last1 ;
         end 
         
-        else begin
-            if (sel_in2 == 1) begin
+        else if (sel_in2 == 1) begin
                 w_valid_out <= w_valid_2;
                 w_odata_sel <= data_in2;
                 w_last_out <= w_last2 ;
-            end 
+        end 
             
-            else begin 
-                w_valid_out <= 0 ;
-                w_odata_sel <= 0 ;
-                w_last_out <= 0 ;
-            end 
+        else begin 
+            w_valid_out <= 0 ;
+            w_odata_sel <= 0 ;
+            w_last_out <=  0 ;
         end 
     end 
 end 
 
 endmodule 
-            

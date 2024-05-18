@@ -40,3 +40,21 @@ generate
 endgenerate
 
 endmodule
+ 
+
+    /*req_queue
+    req_que_mod_inst (
+        .prog_full_o (),
+        .full_o (),
+        .empty_o (empty_flag [i]),
+        .clk_i (clk),
+        .wr_en_i (Wr_en[i]),
+        .rd_en_i (rd_en [i]),
+        .wdata (data_in [(41*(NUM_QUEUE - i))-1 -: 41]),
+        .datacount_o (),
+        .rst_busy (),
+        .rdata (data_out [(41*(NUM_QUEUE - i))-1 -: 41]),
+        .a_rst_i (rst),
+        .rd_valid_o (rd_out [i])
+);*/
+

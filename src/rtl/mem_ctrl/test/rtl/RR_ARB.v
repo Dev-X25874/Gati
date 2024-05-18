@@ -4,6 +4,7 @@ module RR_ARB #(
   parameter PORT_ID_WIDTH = 4 ,
   parameter ADDRESS_WIDTH = 32,
   parameter BURST_LENGTH_WIDTH = 4 ,
+  parameter BIN_WIDTH = $clog2(NUM_PORTS),
   parameter DATA_WIDTH = 41
   )  (
 input		    rst_an,
@@ -17,10 +18,12 @@ output [ADDRESS_WIDTH-1 : 0] o_addr_div,
 output [(BURST_LENGTH_WIDTH-1) : 0]  o_burst_div, 
 output [(N-1) : 0] o_port_div ,
 output o_rw_div ,
+output [BIN_WIDTH-1 : 0] rd_sel_binary,
 input [NUM_PORTS-1 : 0] r_valid,
 output valid_req 
 
 );
+
 
 assign grant_out = grant ;
 
@@ -89,18 +92,18 @@ endgenerate
 
 // grant generation logic
 assign no_mask_req = ~|mask_req[N-1:0];
-assign grant_comb[N-1:0] = mask_grant[N-1:0] | (nomask_grant[N-1:0] & {N{no_mask_req}});
+assign grant_comb[N-1:0] = (mask_grant[N-1:0] | (nomask_grant[N-1:0] & {N{no_mask_req}}))&{N{en_pin}};
 
 always @ (posedge clk)
 begin
 	if (!rst_an)	grant[N-1:0] <= {N{1'b0}};
 	else 
     begin 
-            if (en_pin == 1) 
+            //if (en_pin == 1) 
                  grant[N-1:0] <= grant_comb[N-1:0] & ~grant[N-1:0];
                  
-            else 
-                 grant [N-1:0] <= 0 ;
+           // else 
+            //     grant [N-1:0] <= 0 ;
     end 
 end
 
@@ -109,11 +112,13 @@ Req_Manager #(
     .DATA_WIDTH (DATA_WIDTH),
     .ADDRESS_WIDTH (ADDRESS_WIDTH),
     .BURST_WIDTH (BURST_LENGTH_WIDTH),
+    .BIN_WIDTH (BIN_WIDTH),
     .PORT_ID_WIDTH (PORT_ID_WIDTH)
 ) req_manager_inst(
     .clk (clk) ,
     .rst (rst_an) ,
     .req_in (grant_out),
+    .rd_sel_binary (rd_sel_binary) ,
     .req_out (req_out) ,
     .in_data_div (in_data_div),
     .o_addr_div (o_addr_div) ,

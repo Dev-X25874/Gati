@@ -22,25 +22,16 @@ localparam IDLE = 2'b00 ;
 localparam STORED_RD_ID = 2'b01 ;
 
 reg [1:0] state = 0 ;
-// FIFO storage and pointers
-//reg [7:0] fifo[FIFO_DEPTH-1 :0];
-reg [2:0] rd_ptr = 3'b000;
-reg [2:0] wr_ptr = 3'b000;
 reg [7:0] stored_rd_id = 0 ;
 reg [7:0] current_sent = 0 ;
-//reg rd_r_valid = 0 ;
-//reg rd_r_last = 0 ;
 
-// Default assignments
-//assign status_rd_reg = fifo[rd_ptr];
-//assign ack_rd = 1'b0;
+
 
 // Write operation
 always @(posedge clk) begin 
 
     if (!rst) begin 
-        wr_ptr <= 0 ;
-        rd_ptr <= 0 ;
+
         r_en_ack <= 0 ;
         state <= IDLE ;
     end 
@@ -53,9 +44,6 @@ always @(posedge clk) begin
                     r_en_ack <= 0 ;
                     current_sent <= id_rd_in ;
                     state <= STORED_RD_ID ;
-                  /*  wr_ptr <= (wr_ptr == FIFO_DEPTH - 1) ? 3'b000 : wr_ptr + 1;
-                    fifo[wr_ptr] <= id_rd_in;
-                   
                     state <= STORED_RD_ID ;*/
                 end 
                 
@@ -71,8 +59,6 @@ always @(posedge clk) begin
                     if (current_sent == rid ) begin 
                         stored_rd_id <= rid;
                         r_en_ack <= 1'b1 ;
-                        // status_rd_reg = fifo[rd_ptr] ;
-                        // rd_ptr <= (rd_ptr == FIFO_DEPTH - 1) ? 3'b000 : rd_ptr + 1 ;
                         state <= IDLE ;
                      end 
                      
@@ -120,3 +106,4 @@ always @ (posedge clk) begin
     end 
 end 
 endmodule
+

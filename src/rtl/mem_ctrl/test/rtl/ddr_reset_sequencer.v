@@ -62,8 +62,9 @@ output reg ddr_init_done		// Done status
 parameter FREQ = 100;			// default is 100 MHz.  Redefine as needed.
 
 
-localparam CNT_INIT = 1.5*FREQ*1000 ;
-
+localparam CNT_INIT = 1.5*FREQ*1000;
+//localparam CNT_INIT = FREQ;
+//localparam CNT_INIT = 20;
 
 reg [1:0] rstn_dly;
 always @(posedge clk or negedge ddr_rstn_i) begin

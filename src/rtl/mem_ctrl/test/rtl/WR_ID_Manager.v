@@ -10,8 +10,9 @@ module WR_ID_Manager #(
     input atype,
     input wready,   ///// it is input in the ddr axi side so can i use the 
     input wlast ,
+    output reg wready_out = 0,
     //input DataEnd ,
-    //input [7:0] WBlen ,
+   // input [7:0] WBlen ,
     input [7:0] wid, // Write controller ID
     output reg w_en_ack = 0 ,
     output reg [NUM_PORTS-1 :0] select = 0 ,
@@ -49,13 +50,13 @@ always @(posedge clk) begin
                     w_en_ack <= 0 ;
                     state <= STORE_ID;
                      ack <= 0 ;
-                   //  count_wr <= 0 ;
+                     //count_wr <= 0 ;
                     select <= 4'b0000 ;
                 end
                 else begin 
                     select <= 4'b0000 ;
                     w_en_ack <= 0 ;
-                   // count_wr <= 0 ;
+                    //count_wr <= 0 ;
                     state <= IDLE ;
                 end 
             end
@@ -76,45 +77,9 @@ always @(posedge clk) begin
                 end
             end
             
-             /*   if (count_wr == WBlen + 2) begin
-                    select <= 0 ;
-                    ack <= 0 ;
-                    count_wr  <= 0 ;
-                    w_en_ack <= 1'b1;
-                    state  <= IDLE  ;
-                end 
-                
-                else begin 
-                    if (wready) begin
-                        if ( wid == aid) begin 
-                            count_wr <= count_wr + 1 ;
-                            select <= 1<< wid ;
-                            w_en_ack <= 0 ;
-                            ack <= 1'b1 ;
-                       // status_reg <= wid;
-                            state <=STORE_ID ;
-                        end
-                    end  
-                end
-            end*/
-            
+
           WAIT_DATAEND : begin 
-              /*  if (DataEnd) begin 
-                    select  <= 0 ;
-                    ack <= 0 ;
-                   // count_wr  <= count_wr ;
-                    w_en_ack <= 1'b1 ;
-                    state <= IDLE ; 
-                 end 
-             
-                
-                else begin
-                    select  <= select ;
-                    ack <= 0 ;
-                   // count_wr <= 0 ;
-                    w_en_ack <= 0 ;
-                    state <= WAIT_DATAEND ;
-                end*/
+
                 if (wlast) begin 
                     select  <= 0 ;
                     ack <= 0 ;
@@ -134,6 +99,8 @@ always @(posedge clk) begin
             end 
         endcase
     end
-end    
+end  
+
  
 endmodule
+

@@ -113,18 +113,18 @@ module  Rd_ctrl
     else RdBurstLen  <=  RdBurstLen ;
   end
   always @( posedge SysClk) begin 
-    if(RamRdStart)  RdStartAddr   <= CfgRdAddr;
+    if(RamRdStart)  RdStartAddr   <=  CfgRdAddr;
     else RdStartAddr  <=  RdStartAddr ;
   end
 
   /////////////////////////////////////////////////////////
   reg     AddrValid = 1'h0; //(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.
 
- /* always @( posedge SysClk or negedge Reset_N)
+/*  always @( posedge SysClk or negedge Reset_N)
   begin
-    if (!Reset_N)         AddrValid <= # TCo_C 1'h0;
-    else if (RamRdStart)  AddrValid <= # TCo_C 1'h1;
-    else if (AddrReady)   AddrValid <= # TCo_C 1'h0;
+    if (!Reset_N)         AddrValid <=  1'h0;
+    else if (RamRdStart)  AddrValid <=  1'h1;
+    else if (AddrReady)   AddrValid <=  1'h0;
   end */
   
   always @( posedge SysClk)
@@ -174,13 +174,13 @@ module  Rd_ctrl
 
   always @( posedge SysClk or negedge Reset_N)
   begin
-    if (~Reset_N)       DataRdAddrAva <= # TCo_C 1'h0;
-    else if (DataRdEnd) DataRdAddrAva <= # TCo_C 1'h0;
-    else if (AddrRdEn)  DataRdAddrAva <= # TCo_C DataRdReady;
+    if (~Reset_N)       DataRdAddrAva <=  1'h0;
+    else if (DataRdEnd) DataRdAddrAva <=  1'h0;
+    else if (AddrRdEn)  DataRdAddrAva <=  DataRdReady;
   end
 
-  always @( posedge SysClk)  DataRdNextBrst <= # TCo_C (AddrRdEn | DataRdAddrAva ) & DataRdEnd;
-  always @( posedge SysClk)  DataRdStart    <= # TCo_C (AddrRdEn & (~DataRdReady)) | DataRdNextBrst;
+  always @( posedge SysClk)  DataRdNextBrst <=  (AddrRdEn | DataRdAddrAva ) & DataRdEnd;
+  always @( posedge SysClk)  DataRdStart    <=  (AddrRdEn & (~DataRdReady)) | DataRdNextBrst;
 
 //  wire  RamRdALoad =  DataRdStart; //(O)Ram Read Address Load;
 
@@ -190,11 +190,11 @@ module  Rd_ctrl
 
   always @( posedge SysClk)
   begin
-    if (DataRdValid)  DataRdTimeOut <= # TCo_C 8'hff;
-    else              DataRdTimeOut <= # TCo_C DataRdTimeOut - {7'h0, (|DataRdTimeOut)};
+    if (DataRdValid)  DataRdTimeOut <=  8'hff;
+    else              DataRdTimeOut <=  DataRdTimeOut - {7'h0, (|DataRdTimeOut)};
   end
 
-  always @( posedge SysClk)  DataRdReadyClr <= # TCo_C (DataRdTimeOut == 5'h1);
+  always @( posedge SysClk)  DataRdReadyClr <=  (DataRdTimeOut == 5'h1);
 
   /////////////////////////////////////////////////////////
   reg [7:0] RdBurstCnt      = 8'h0;
@@ -202,16 +202,16 @@ module  Rd_ctrl
 
   always @( posedge SysClk or negedge Reset_N)
   begin
-    if (! Reset_N)          RdBurstCnt <= # TCo_C 8'h0;
-    else if (DataRdStart)   RdBurstCnt <= # TCo_C RdBurstLen;
-    else if (DataRdEn)      RdBurstCnt <= # TCo_C RdBurstCnt - {7'h0,(|RdBurstCnt)};
+    if (! Reset_N)          RdBurstCnt <=  8'h0;
+    else if (DataRdStart)   RdBurstCnt <=  RdBurstLen;
+    else if (DataRdEn)      RdBurstCnt <=  RdBurstCnt - {7'h0,(|RdBurstCnt)};
   end
 
   always @( posedge SysClk)
   begin
-    if (DataRdStart)    DataRdLastFlag <= # TCo_C (RdBurstLen == 8'h0);
-    else if (DataRdEn)  DataRdLastFlag <= # TCo_C (RdBurstCnt == 8'h1);
-    else if (DataRdEnd) DataRdLastFlag <= # TCo_C (RdBurstCnt == 8'h0);
+    if (DataRdStart)    DataRdLastFlag <=  (RdBurstLen == 8'h0);
+    else if (DataRdEn)  DataRdLastFlag <=  (RdBurstCnt == 8'h1);
+    else if (DataRdEnd) DataRdLastFlag <=  (RdBurstCnt == 8'h0);
   end
 
   wire  DataRdEndFlag = DataRdLastFlag & DataRdEn;
@@ -219,7 +219,7 @@ module  Rd_ctrl
   /////////////////////////////////////////////////////////
   reg   DataRdEndReg;
   
-  always @( posedge SysClk)  DataRdEndReg <= # TCo_C DataRdEnd;
+  always @( posedge SysClk)  DataRdEndReg <=  DataRdEnd;
   
   
   /////////////////////////////////////////////////////////
@@ -230,18 +230,18 @@ module  Rd_ctrl
     else if (DataRdEndReg)    DataRdReady  <=  1'h0;
     else if (DataRdEnd  )     DataRdReady  <=  1'h0;
     else if (DataRdEndFlag)   DataRdReady  <=  1'h0;
- //   else if (DataRdStart)     DataRdReady  <= # TCo_C 1'h1;
+ //   else if (DataRdStart)     DataRdReady  <=  1'h1;
     else if (RamRdStart)     DataRdReady  <=  1'h1;
     else if (DataRdValid)     DataRdReady  <= 1'h1;
   end*/
   
  always @( posedge SysClk)
   begin
-    if (!Reset_N)             DataRdReady  <=  1'h0;
+    if (!Reset_N)             DataRdReady  <=   1'h0;
     else begin
-        if (RamRdStart)     DataRdReady  <=  1'h1;
-        else if (DataRdValid)     DataRdReady  <= 1'h1;
-        else if (DataRdLast)  DataRdReady  <=  1'h0 ;
+        if (RamRdStart)     DataRdReady  <=   1'h1;
+        else if (DataRdValid)     DataRdReady  <=  1'h1;
+        else if (DataRdEnd)  DataRdReady  <=   1'h0 ;
      end 
   end
  
@@ -267,8 +267,8 @@ module  Rd_ctrl
 
   always @( posedge SysClk)
   begin
-    if (DataRdStart)    RdAddrCnt <= # TCo_C RdStartAddr;
-    else  if (DataRdEn) RdAddrCnt <= # TCo_C RdAddrCnt + {24'h0,RdByteNum};
+    if (DataRdStart)    RdAddrCnt <=  RdStartAddr;
+    else  if (DataRdEn) RdAddrCnt <=  RdAddrCnt + {24'h0,RdByteNum};
   end
 
   /////////////////////////////////////////////////////////
@@ -282,24 +282,24 @@ module  Rd_ctrl
 
   always @( posedge SysClk)
   begin
-    if (DataRdEnd)      DataRdBusy <= # TCo_C 1'h0;
-    else if (DataRdEn)  DataRdBusy <= # TCo_C 1'h1;
+    if (DataRdEnd)      DataRdBusy <=  1'h0;
+    else if (DataRdEn)  DataRdBusy <=  1'h1;
   end
 
   /////////////////////////////////////////////////////////
  // reg   RamRdEnd = 1'h0;   //(O)[DdrRdCtrl]Ram Read End
   
- // always @( posedge SysClk)  RamRdEnd  <= # TCo_C DataRdEnd & (DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
- // always @( posedge SysClk)  RamRdEnd  <= # TCo_C DataRdEn & (~DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
+ // always @( posedge SysClk)  RamRdEnd  <=  DataRdEnd & (DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
+ // always @( posedge SysClk)  RamRdEnd  <=  DataRdEn & (~DataRdBusy) ;   //(O)[DdrRdCtrl]Ram Read End
 
   /////////////////////////////////////////////////////////
   //reg                 RamRdDAva ; //(O)[DdrRdCtrl]Ram Read Available
   reg   [ADW_C-1:0]   RamRdData ; //(O)[DdrRdCtrl]Ram Read Data
   //reg   [     31:0]   RamRdAddr ; //(O)[DdrRdCtrl]Ram Read Addrdss
 
- // always @( posedge SysClk)                 RamRdDAva <= # TCo_C DataRdEn   ; //(O)[DdrRdCtrl]Ram Read Available
-  always @( posedge SysClk)  if (DataRdEn)  RamRdData <= # TCo_C DataRdData ; //(O)[DdrRdCtrl]Ram Read Data
- // always @( posedge SysClk)  if (DataRdEn)  RamRdAddr <= # TCo_C RdAddrCnt  ; //(O)[DdrRdCtrl]Ram Read Addrdss
+ // always @( posedge SysClk)                 RamRdDAva <=  DataRdEn   ; //(O)[DdrRdCtrl]Ram Read Available
+  always @( posedge SysClk)  if (DataRdEn)  RamRdData <=  DataRdData ; //(O)[DdrRdCtrl]Ram Read Data
+ // always @( posedge SysClk)  if (DataRdEn)  RamRdAddr <=  RdAddrCnt  ; //(O)[DdrRdCtrl]Ram Read Addrdss
 
 
   /////////////////////////////////////////////////////////

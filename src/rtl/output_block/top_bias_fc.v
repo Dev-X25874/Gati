@@ -3,14 +3,14 @@
 //`include "adder.v"
 //`include "controller_fifo.v"
 
-module top_output_block #(
-    parameter BIAS=1,
-    parameter DATA_WIDTH     = 32,
+module top_bias_fc #(
+
+    parameter DATA_WIDTH     = 8,
+    parameter ADDR_WIDTH     = 8,
+    parameter DRAM_BW=32,
     parameter N              = 4,
     parameter FIFO_NO        = 8,
-    parameter W_ADDR         = 9,
-    parameter OUT_DATA_WIDTH = 32,
-    parameter TOGGLE=1,
+    parameter OUT_DATA_WIDTH = 8,
     parameter NO_PORT=2
 
 
@@ -23,11 +23,11 @@ module top_output_block #(
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
     input  [      (DATA_WIDTH*N)-1:0] top_data_in_adder_tree,
     input                             rst,
-    input channel_done,
+   // input channel_done,
     output [             FIFO_NO-1:0] w_empty_flag,
     input  [                   N-1:0] top_in_data_valid,
     output [                   N-1:0] top_out_data_valid,
-    output [((W_ADDR+1)*FIFO_NO)-1:0] fifo_occupants
+    output [((ADDR_WIDTH+1)*FIFO_NO)-1:0] fifo_occupants
 );
 
 
@@ -49,8 +49,8 @@ assign w_empty_flag=empty_flag;
   dram_fifo #(
       .DIMENSION(FIFO_NO),
       .W_DATA(DATA_WIDTH),
-      .W_ADDR(W_ADDR),
-      .RAM_DEPTH(1 << W_ADDR)
+      .W_ADDR(ADDR_WIDTH),
+      .RAM_DEPTH(1 << ADDR_WIDTH)
   
       ) fifo_vector_add (
       .i_clk(top_clk),
@@ -65,50 +65,48 @@ assign w_empty_flag=empty_flag;
       .o_occupants(fifo_occupants)
   );
   wire [FIFO_NO -1:0] full;
-//   wire [(W_ADDR+1)*FIFO_NO -1:0] occ;
+//   wire [(ADDR_WIDTH+1)*FIFO_NO -1:0] occ;
 
   wire [(DATA_WIDTH*N)-1:0] mux_out;
 
   wire [N-1:0] valid_mux;
-  vector_mux #(
+  vector_mux_param #(
       .PORT_SIZE(N * DATA_WIDTH),
 
       .NO_PORT(NO_PORT)
   ) mux_data (
-      .clk(top_clk),
+     // .clk(top_clk),
       .in (w_data_out),
       .out(mux_out),
       .sel(sel)
   );
 
-  vector_mux #(
+  vector_mux_param #( 
       .PORT_SIZE(N),
 
       .NO_PORT(NO_PORT)
   ) mux_valid (
-      .clk(top_clk),
+     // .clk(top_clk),
       .in (w_valid_fifo),
       .out(valid_mux),
       .sel(sel)
   );
 
 
-  new_controller #(
+ bias_controller #(
       .FIFO_NO(FIFO_NO),
-      .BIAS(BIAS),
-      .TOGGLE(1))
+.DRAM_BW(DRAM_BW))
    controller 
   (
       .clk(top_clk),
       .rst(rst),
-	  .empty_fifo(empty_flag),
-      .channel_done(channel_done),
+      .empty_fifo(empty_flag),
       .enable(vector_add_enable),
-      .mux_toggle(sel),
       .data_valid_tree(top_in_data_valid[0]),
-      .valid_rd_en(w_rd_en)
+      .valid_rd_en(w_rd_en),
+      .sel(sel)
   );
- wire sel;
+ wire [NO_PORT-1:0]sel;
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),

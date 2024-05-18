@@ -118,7 +118,7 @@ module inst_read_ctrl#(
             end
             4'd4:
             begin
-              if(r_opcode!=4'b1111) //based on opcode and prev_reg  set next reg
+              if(r_opcode!=ALL_ONES) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)
                   4'b0:
@@ -249,7 +249,6 @@ module inst_read_ctrl#(
           begin
             start_command<=psedo_ack_reg;
             start_out<=1;
-            //read_signal_reg<=1'b1;
             state_start_2<=4'd2;
             bus_master_valid<=1'b1;
 
@@ -266,7 +265,6 @@ module inst_read_ctrl#(
             super_state<=4'd0;
             state0<=0;
             state_start<=0;
-            //layer_done<=1;
           end
         endcase
 

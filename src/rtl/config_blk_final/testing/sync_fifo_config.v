@@ -24,7 +24,6 @@ parameter  STATUS_DRAM_LIM=10 ) (
   reg [($clog2(DEPTH)-1):0] r_ptr=0;
   reg [DATA_WIDTH-1:0] fifo[DEPTH:0];
   reg [$clog2(DEPTH):0]occupants_reg=9'd0;
-  //reg [3:0]whatever;
   // Set Default values on reset.
   always@(posedge clk)
   begin

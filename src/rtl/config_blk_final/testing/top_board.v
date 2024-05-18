@@ -22,7 +22,6 @@ module top_board #(
   (
     input clkin,
     input user_start,
-    //output random,
     output test_output,
     output start_out
   );
@@ -61,8 +60,6 @@ module top_board #(
              config_block_mod_1(
                .clkin(clkin),
                .user_start(pulse_4_1),
-               //.global_start(32'h00001000),
-               //.global_stop(32'h00001800),
                .valid(valid_8_1),
                .sel(1'b1),
                .instruction_data(instruct_8_1),
@@ -76,12 +73,6 @@ module top_board #(
                .start_out(start_out)
              );
 
-  /* what box_2(
-      .re(pulse_5_2),
-      .addr(address_1_2),
-      .clk(clkin),
-      .rdata_a(instruct_2_1)
-  ); */
 
   burst_mem_module memory_module_8(
                      .clkin(clkin),
@@ -90,17 +81,6 @@ module top_board #(
                      .mem_instruction(instruct_8_1),
                      .valid_signal(valid_8_1)
                    );
-  /* one_clock_delay box_3(
-      .clkin(clkin),
-      .i_data(read_1_3),
-      .o_data(valid_3_6)
-  );
-   
-  one_pulse_generator box_6(
-      .clkin(clkin),
-      .signal(valid_3_6),
-      .pulse_signal(pulse_6_1)
-  ); */
 
   one_pulse_generator one_pulse_generator_4(
                         .clkin(clkin),
@@ -119,9 +99,4 @@ module top_board #(
                       .ack_signals(ack_7_1)
                     );
 
-  one_pulse_generator pulse_gen_9(
-                        .clkin(clkin),
-                        .signal(read_1_3),
-                        .pulse_signal(pulse_9_8)
-                      ); //might comment this out
 endmodule

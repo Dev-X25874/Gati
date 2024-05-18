@@ -53,27 +53,4 @@ module burst_mem_module(
       end
     endcase
   end
-  /*     /*     case(state_2)
-            4'd0:
-            begin
-              counter2<=0;
-              if(burst_read_trigger)
-              begin
-                state_2<=1;
-              end
-            end
-            4'd1:
-            begin
-       
-              //if(counter2>=30)
-              //begin
-              state_2<=0;
-              state<=1;
-              //end
-              /*         else begin
-                        counter2<=counter2+1;
-                      end */
-  //end
-  //endcase */ */
-  //end
 endmodule

@@ -240,12 +240,6 @@ module inst_read_ctrl#(
             bus_master_valid<=1'b0;
             if(ack_reg==0)
             begin
-              /*           prev_reg<=8'd0;
-                        next_reg<=8'd0;
-                        top_state<=4'd0;
-                        state0<=4'd0;
-                        state_start_2<=4'd1;
-                        psedo_ack_reg<=4'b0; //reset full cycle and wait for user start again */
               ack_reg<=psedo_ack_reg;
               prev_reg<=next_reg;
               next_reg<=8'd0;

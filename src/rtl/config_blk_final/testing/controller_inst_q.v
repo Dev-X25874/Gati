@@ -17,7 +17,6 @@ module controller_inst_q #(
     output [31:0]o_global_start,
     output [31:0]o_global_stop
   );
-  //reg [INSTRUCT_W-1:0]internal_reg=0;
   reg [3:0]state=0;
   reg [31:0]internal_start;
   reg [31:0]internal_stop;
@@ -53,7 +52,6 @@ module controller_inst_q #(
             internal_start<=i_instruction_data[31:0];
             internal_stop<=i_instruction_data[63:32];
             o_instruction_valid<=1;
-            //flag<=0;
             state<=0;
         end
         else

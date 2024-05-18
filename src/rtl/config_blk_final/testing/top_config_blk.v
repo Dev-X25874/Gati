@@ -119,7 +119,6 @@ module config_blk #(
                    .start_command(start_command),
                    .start_out(start_out),
                    .read_signal(read_req_3_4)
-                   //.layer_done(layer_done)
                  );
 
   top_master #( .op_code_width(OPCODE_W),

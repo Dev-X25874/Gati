@@ -6,12 +6,16 @@
 //It also sends status signals to the DRAM controller and the Instruction Read Controller.
 //It also counts number of instructions stored in the FIFO.
 //////////////////////////////////////////////////////////////////////////////////
-module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
+module synchronous_fifo #(parameter DEPTH=100, 
+parameter DATA_WIDTH=256,
+parameter  STATUS_DRAM_LIM=10 ) (
     input clk, rst_n,
     input w_en, r_en,
     input [(DATA_WIDTH-1):0] data_in,
     output reg [(DATA_WIDTH-1):0] data_out,
+    output reg [(DATA_WIDTH-1):0] data_out_2,
     output reg data_out_valid,
+    output reg data_out_valid_2,
     output full, empty,
     output [($clog2(DEPTH)):0] occupants,
     output ten_trigg,
@@ -22,7 +26,6 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
   reg [($clog2(DEPTH)-1):0] r_ptr=0;
   reg [DATA_WIDTH-1:0] fifo[DEPTH:0];
   reg [$clog2(DEPTH):0]occupants_reg=9'd0;
-  //reg [3:0]whatever;
   // Set Default values on reset.
   always@(posedge clk)
   begin
@@ -31,7 +34,9 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
       w_ptr <= 0;
       r_ptr <= 0;
       data_out <= 0;
+      data_out_2<=0;
       data_out_valid<=0;
+      data_out_valid_2<=0;
       occupants_reg<=0;
     end
 
@@ -48,13 +53,17 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
       if(r_en & !empty)
       begin
         data_out <= fifo[r_ptr];
+        data_out_2<=fifo[r_ptr];
         data_out_valid=1'b1;
+        data_out_valid_2=1'b1;
         r_ptr <= r_ptr + 1;
       end
       else
       begin
         data_out_valid<=1'b0;
+        data_out_valid_2<=1'b0;
         data_out<=256'd0;
+        data_out_2<=256'd0;
       end
       
       case((w_en&&!full)+(r_en&&!empty)) //occupants logic
@@ -81,6 +90,6 @@ module synchronous_fifo #(parameter DEPTH=100, parameter DATA_WIDTH=256) (
   assign occupants=occupants_reg;
   assign full = ((w_ptr+1'b1) == r_ptr);
   assign empty = (w_ptr == r_ptr);
-  assign ten_trigg=(occupants<10); //should be 10 is 1 for testing
+  assign ten_trigg=(occupants<STATUS_DRAM_LIM); //should be 10 is 1 for testing
   assign not_empty=~(w_ptr == r_ptr);
 endmodule

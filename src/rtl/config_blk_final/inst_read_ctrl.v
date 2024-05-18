@@ -2,28 +2,32 @@
 // Design Name: Config Block
 // Module Name: Instruction Read Controller
 // Project Name: Gati
-// Description: 
+// Description:
 //Responsible for sending read signal to instruction q based on done status of bus master
 // Also has 3 registers which show the status of the slave blocks for respective instructions and the next and previous instructions to be executed.
 // These are status reg, prev reg and next reg.
 //////////////////////////////////////////////////////////////////////////////////
 module inst_read_ctrl#(
-    parameter  NUM_INSTRUCTIONS=4
+    parameter  NUM_INSTRUCTIONS=4,
+    parameter  OPCODE_W=4,
+    parameter LAY_N=12
   )(
     input clkin,
     input [NUM_INSTRUCTIONS-1:0]valid_ack,
     input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
     input [NUM_INSTRUCTIONS-1:0]ack_in,
-    input [11:0]layer_number, //data from instruction
-    input [11:0]total_layers, //data from instruction
+    input [LAY_N-1:0]layer_number, //data from instruction
+    input [LAY_N-1:0]total_layers, //data from instruction
     input status_inst_q,
     input user_start,
     input done_status,
-    input [3:0]opcode, //opcode received from instruction data
+    input [OPCODE_W-1:0]opcode, //opcode received from instruction data
     output reg bus_master_valid, //valid signal for bus master(start)
     output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
-    output read_signal //read signal for instruction queue
+    output reg start_out,//pulses start for one cycle every time we get a start instruction
+    output read_signal//read signal for instruction queue
   );
+  localparam [OPCODE_W-1:0]ALL_ONES ={OPCODE_W{1'b1}} ;
 
   integer i;
   integer k;
@@ -31,25 +35,32 @@ module inst_read_ctrl#(
   reg [3:0]top_state=4'd0;
   reg [3:0]state0=4'd0;
   reg [1:0] counter=2;
-  reg [3:0]r_opcode=0;
-  reg [3:0]super_state=4'd0; 
-  reg [3:0]state_start=4'd0; 
-  reg flag=1;
+  reg [OPCODE_W-1:0]r_opcode=0;
+  reg [3:0]super_state=4'd0;
+  reg [3:0]state_start=4'd0;
+  reg [3:0]state_start_2=4'd0;
+  reg flag=1; //for the first instruction
+  reg flag_2=1; //used to stop loopback from last instruction
 
   reg [(NUM_INSTRUCTIONS*2)-1:0]prev_reg=0; //shows the previous instructions
   reg [(NUM_INSTRUCTIONS*2)-1:0]next_reg=0; //shows the next instructions
   reg [NUM_INSTRUCTIONS-1:0]ack_reg=0; //shows status of the slave blocks
   reg [NUM_INSTRUCTIONS-1:0]psedo_ack_reg=0; //interim register
-  reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0; 
+  reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0;
 
   always @(posedge clkin)
   begin
-    case(super_state) 
+    case(super_state)
       4'd0:
       begin
-        if((layer_number==total_layers)&&(opcode==4'b1111)) //if conditions match make config block wait for user start again
+        //layer_done<=0;
+        if((layer_number==total_layers)&&(opcode==ALL_ONES)) //if conditions match make config block wait for user start again
         begin
-          super_state<=4'd1; 
+          if(flag_2)
+          begin
+            super_state<=4'd1;
+            flag_2<=0;
+          end
         end
         valid_ack_reg<=valid_ack;
         if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
@@ -72,6 +83,10 @@ module inst_read_ctrl#(
               if(user_start)
               begin
                 top_state<=4'd1;//shift to nonidle state
+                flag_2<=1;
+                ack_reg<=0;
+                prev_reg<=0;
+                next_reg<=0;
               end
               else
                 top_state<=4'd0;
@@ -161,24 +176,25 @@ module inst_read_ctrl#(
                 endcase
 
               end
-              if(r_opcode==4'b1111) //if start signal prefetch and wait for ack reg 0
+              if(r_opcode==ALL_ONES) //if start signal prefetch and wait for ack reg 0
               begin
-                if(ack_reg==0)
-                begin
-                  ack_reg<=psedo_ack_reg;
-                  prev_reg<=next_reg;
-                  next_reg<=8'd0;
-                  state_start<=4'd1;
-                end
                 case(state_start)
                   4'd0:
                   begin
                     read_signal_reg<=1'b0;
                     bus_master_valid<=1'b0;
+                    if(ack_reg==0)
+                    begin
+                      ack_reg<=psedo_ack_reg;
+                      prev_reg<=next_reg;
+                      next_reg<=8'd0;
+                      state_start<=4'd1;
+                    end
                   end
                   4'd1:
                   begin
                     start_command<=psedo_ack_reg;
+                    start_out<=1;
                     read_signal_reg<=1'b1;
                     state_start<=4'd2;
                     bus_master_valid<=1'b1;
@@ -187,6 +203,7 @@ module inst_read_ctrl#(
                   4'd2:
                   begin
                     start_command<=0;
+                    start_out<=0;
                     state_start<=4'd0;
                     read_signal_reg<=1'b0;
                     top_state<=4'd3;
@@ -214,15 +231,45 @@ module inst_read_ctrl#(
 
           end
         end
-        if(ack_reg==0)
-        begin
-          prev_reg<=8'd0;
-          next_reg<=8'd0;
-          super_state<=4'd0;
-          top_state<=4'd0;
-          state0<=4'd0;
-          psedo_ack_reg<=4'b0; //reset full cycle and wait for user start again
-        end
+
+        case(state_start_2)
+          4'd0:
+          begin
+            read_signal_reg<=1'b0;
+            bus_master_valid<=1'b0;
+            if(ack_reg==0)
+            begin
+              ack_reg<=psedo_ack_reg;
+              prev_reg<=next_reg;
+              next_reg<=8'd0;
+              state_start_2<=4'd1;
+            end
+          end
+          4'd1:
+          begin
+            start_command<=psedo_ack_reg;
+            start_out<=1;
+            //read_signal_reg<=1'b1;
+            state_start_2<=4'd2;
+            bus_master_valid<=1'b1;
+
+          end
+          4'd2:
+          begin
+            start_command<=0;
+            start_out<=0;
+            state_start_2<=4'd0;
+            read_signal_reg<=1'b0;
+            top_state<=4'd0;
+            psedo_ack_reg<=0;
+            bus_master_valid<=1'b0;
+            super_state<=4'd0;
+            state0<=0;
+            state_start<=0;
+            //layer_done<=1;
+          end
+        endcase
+
       end
     endcase
   end

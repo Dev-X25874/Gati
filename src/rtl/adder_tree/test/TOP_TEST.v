@@ -1,4 +1,17 @@
-module TOP_TEST #(parameter FIFO_NO = 8, parameter ADDR_WIDTH = 9, parameter DATA_WIDTH = 20, parameter COL = 4, parameter UNIQUE_KERNELS = 4, parameter DESIGN_NO = 8, parameter DATA_OUT_WIDTH = 32, parameter N_FIFO = 16) (
+module TOP_TEST #(parameter FIFO_NO = 16, 
+                parameter ADDR_WIDTH = 9, 
+                parameter DATA_WIDTH = 20, 
+                parameter COL = 4, 
+                parameter UNIQUE_KERNELS = 4, 
+                parameter DESIGN_NO = 8, 
+                parameter DATA_OUT_WIDTH = 32, 
+                parameter N_FIFO = 16, 
+                parameter N_SA = NSA_DSP + NSA_LUT,
+                parameter NSA_DSP = 2,
+                parameter NSA_LUT = 2,
+                parameter W_PSUM = 20)
+                (
+
     input clk,
     input rst,
     input din,
@@ -13,10 +26,10 @@ wire [((ADDR_WIDTH*FIFO_NO)-1):0] occupants;
 wire [FIFO_NO-1 : 0] re_en;
 wire [FIFO_NO-1 : 0] wr_en;
 wire [FIFO_NO-1:0] datavalid;
-wire [(DESIGN_NO * DATA_WIDTH)-1:0] fifo_data_out;
+wire [(COL*W_PSUM)*N_SA-1:0] fifo_data_out;
 wire [(UNIQUE_KERNELS* DATA_OUT_WIDTH) -1 : 0] result_final;
 wire [COL-1:0] valid_out;
-wire [19:0] data_tx_con;
+wire [(UNIQUE_KERNELS* DATA_OUT_WIDTH) -1 : 0]  data_tx_con;
 wire [N_FIFO-1:0] empty;
 wire [7:0] data_tx;
 wire re_tx;
@@ -38,7 +51,7 @@ CONTROLLER_CONCATE controller_concate(
     .valid(valid_concate)
 );
 
-controller_rw controller_rw_inp1(
+controller_rw controller_rw_inp (
     .i_clk(clk),
     .i_rx_valid(valid_concate),
     .i_fifo_empty(empty),
@@ -47,7 +60,7 @@ controller_rw controller_rw_inp1(
     .o_fifo_rden(re_en)
 );
 
-top_fifo_gen fifo_gen_inp1(
+top_fifo_gen fifo_gen_inp(
     .clk(clk),
     .rst_n(rst),
     .we(wr_en),
@@ -69,7 +82,7 @@ top_adder_tree_gen top_adder_tree_gen(
     .result_final(result_final)
 );
 
-fifo_valid #(.DATA_WIDTH(20), .ADDR_WIDTH(10)) fifo_tx(
+fifo_valid #(.DATA_WIDTH(128), .ADDR_WIDTH(10)) fifo_tx(
     .clk(clk),
     .rst_n(rst),
     .data_in(result_final),
@@ -82,12 +95,13 @@ fifo_valid #(.DATA_WIDTH(20), .ADDR_WIDTH(10)) fifo_tx(
     .data_valid()
 );
 
-controller_fifo_tx #(.DATA_WIDTH(20)) fifo_tx_con(
+CONTROLLER_TX controller_tx(
     .clk(clk),
+    .i_rst(rst),
     .i_fifo_data(data_tx_con),
     .i_empty_flag(empty_con_tx),
     .o_data(data_tx),
-    .rd_en(re_tx),
+    .rd_en(re_tx),             
     .o_valid_tx2(dv),
     .i_trans_done_tx2(done_tx)
 );

@@ -6,13 +6,13 @@ module CONTROLLER_CONCATE(
     output reg valid = 0
 );
 
-reg [3:0] counter_rx = 0;
-reg [3:0] count_concate = 0;
+reg [13:0] counter_rx = 0;
+reg [4:0] count_concate = 0;
 reg [23:0] r_dout = 0;
 assign dout = r_dout[19:0];
 
 always @(posedge clk) begin
-    if(counter_rx < 15) begin
+    if(counter_rx < 998) begin
         if(rx_valid) begin
             if(count_concate < 2) begin
                 r_dout[24-(count_concate*8)-1 -:8] <= din;

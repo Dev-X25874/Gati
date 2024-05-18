@@ -8,8 +8,8 @@ module adder #(
   input rst,
   input valid_in_1,
   input valid_in_2,
-  input [WIDTH-1:0] first_k,
-  input [WIDTH-1:0] second_k,
+  input [WIDTH-1:0] first_k,  //FIRST INPUT
+  input [WIDTH-1:0] second_k, //SECOND INPUT
   output reg valid = 0,
   output reg [O_WIDTH-1 : 0] result = 0
 );
@@ -21,9 +21,8 @@ always @(posedge clk) begin
     valid  <= 1'b0;
   end 
   else begin
-    
-    if (valid_in_1 & valid_in_2) begin
-      result <= first_k + second_k;
+    if (valid_in_1 & valid_in_2) begin  //WHEN BOTH INP VALIDS ARE 1
+      result <= first_k + second_k;  //SIMPLE ADDITION OPERATION
       valid  <= 1'b1;
     end else begin
       result <= result;

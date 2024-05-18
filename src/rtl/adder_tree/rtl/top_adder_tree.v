@@ -1,3 +1,7 @@
+//THIS MODULE IS THE TOP LEVEL OF THE ADDER TREE
+
+//FOR TAKING THE DATA IN FROM THE ENGINES AND PROCESSING IT TO SUIT THE INPUT STRUCTURE OF THE ADDER TREE
+
 module top_adder_tree_gen #(
     parameter W_PSUM = 20,
     parameter COL = 4,
@@ -8,19 +12,19 @@ module top_adder_tree_gen #(
 )(
     input clk,
     input rst,
-    input [(COL*W_PSUM)*N_SA-1:0] o_psum_ff_array,
+    input [(COL*W_PSUM)*N_SA-1:0] o_psum_ff_array,  //input from the engines
     output [COL-1:0] valid_out,
-    output [COL*N_SA-1:0] valid_in,
+    input [COL*N_SA-1:0] valid_in,
     output [(COL* DATA_WIDTH_OB) -1 : 0] result_final
 );
 
 genvar j;
   generate
     for (j = 0; j < N_SA / 2; j = j + 1) begin
-      assign inp1[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM];
-      assign inp2[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM];
-      assign valid_1[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j)))-1-:COL];
-      assign valid_2[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j+1)))-1-:COL];
+      assign inp1[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM]; //the first half of the o_psum_ff_array      
+      assign inp2[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM]; //the second half of the o_psum_ff_array
+      assign valid_1[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j)))-1-:COL];    //the valid_in halfs
+      assign valid_2[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j+1)))-1-:COL]; //the valid_in halfs
     end
   endgenerate
 
@@ -45,6 +49,11 @@ genvar j;
     .result_final(result_final)
 );
 endmodule
+
+//FOR UPPER LAYERS OF ADDER TREE
+
+//int i: FOR CALCULATING THE NUMBER OF LAYERS(HEIGHT-WISE) IN THE ADDER TREE
+//int j: FOR CALCULATING THE NUMBER OF ADDERS IN A LAYER
 
 module adder_tree_gen #(
     parameter DATA_OUT_WIDTH = 32,
@@ -101,6 +110,8 @@ module adder_tree_gen #(
     end
   endgenerate
 endmodule
+
+//FOR LOWER LAYER OF ADDER TREE
 
 module adder_tree #(
     parameter DATA_OUT_WIDTH = 21,

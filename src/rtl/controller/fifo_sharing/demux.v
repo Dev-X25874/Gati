@@ -1,3 +1,8 @@
+/*
+    Based on the opcode signal coming from instructions,
+    this demux switches between SA and FC to load weights into
+    either of them at a time.
+*/
 module demux#(
     parameter WEIGHT_FF_DEPTH = 512,
     parameter COL = 32,
@@ -7,11 +12,12 @@ module demux#(
     parameter N_DRAM_BYTES = 32,    //number of DRAM burst bytes
     parameter SA_OPCODE = 0,
     parameter FC_OPCODE = 4,
-    parameter W_DATA = 8
+    parameter W_DATA = 8,
+    parameter W_OPCODE = 4          //width of opcode
 )(
     input i_clk,
     input i_rstn,
-    input [3:0] i_opcode,
+    input [W_OPCODE-1:0] i_opcode,
     input i_sel_sa_rden_ctrl,
     input [(COL * W_DATA)-1 : 0] i_weight_ff_array_data,
     input [COL-1 : 0] i_weight_ff_array_empty,
@@ -51,7 +57,8 @@ assign o_sa_dv = r_sa_dv;
 wire demux_sel;
 sel_gen#(
     .SA_OPCODE(SA_OPCODE),
-    .FC_OPCODE(FC_OPCODE)
+    .FC_OPCODE(FC_OPCODE),
+    .W_OPCODE(W_OPCODE)
 )select1_gen(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
@@ -74,11 +81,18 @@ always @(posedge i_clk)begin
             1'b0:begin      //Fully Connected layer
             r_fc_empty <=  i_weight_ff_array_empty;
             r_fc_occ <= i_weight_ff_array_occupants;
-            r_fc_data <= i_weight_ff_array_data;
+            r_fc_data <= i_weight_ff_array_data[(COL * W_DATA)-1 : ((COL - COL_FC) * W_DATA)];
             r_fc_dv <= i_weight_ff_array_dv;
             end
 
             1'b1:begin      //Convolution layer
+                /*
+                    When the total number of columns across all SA engines is less than the number DRAM bytes,
+                    the weights are loaded from the first half of the weight fifo array,
+                    and then the remaining fifo weights are loaded at the next request that comes from the SA engines.
+                    Until SA continues to send read enable to the weight fifo array,
+                    this toggling between the two sides of the weights fifo array will continue in the same manner.
+                */
                 if((N_SA * COL_SA) < N_DRAM_BYTES)begin
                     case (i_sel_sa_rden_ctrl)
                     1'b0: begin     //First half of weight fifo array (starting from MSB)
@@ -95,6 +109,10 @@ always @(posedge i_clk)begin
                     end
                     endcase
                 end 
+                /*
+                    Else,there won't be any toggling in weight fifo array.
+                    And weights will be loaded together into each column of every SA engine.
+                */
                 else begin
                     r_sa_occ <= i_weight_ff_array_occupants;
                     r_sa_empty <= i_weight_ff_array_empty;
@@ -114,11 +132,12 @@ endmodule
 */
 module sel_gen#(
     parameter SA_OPCODE = 0,
-    parameter FC_OPCODE = 4
+    parameter FC_OPCODE = 4,
+    parameter W_OPCODE = 4
 )(
     input i_clk,
     input i_rstn,
-    input [3:0] i_opcode,
+    input [W_OPCODE-1:0] i_opcode,
     output demux_sel
 );
 

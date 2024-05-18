@@ -13,7 +13,8 @@ module test_top#(
     parameter W_FC_CNT = 15,
     parameter WEIGHT_FF_DEPTH = 1024,
     parameter SA_OPCODE = 0,
-    parameter FC_OPCODE = 4
+    parameter FC_OPCODE = 4,
+    parameter W_OPCODE = 4
 )(
     input clk,
     input i_rstn,
@@ -48,13 +49,14 @@ wire [W_DATA-1 : 0] rx_byte;
 
 //uart receiver
 uart_rx#(
-    .CLOCKS_PER_BIT(50)
-)receiver(
-    .i_Clock(clk),
-    .i_Rst(~rstn),
-    .i_RX_Serial(rx_serial),
-    .o_RX_DV(rx_dv),
-    .o_RX_Byte(rx_byte)
+    .W_DATA(W_DATA),
+    .N_SA (1)
+)rec(  
+    .i_clk(clk),
+    .i_rst(~rstn),
+    .i_rx_serial(rx_serial),
+    .o_rx_dv(rx_dv),
+    .o_rx_byte(rx_byte)
 );
 
 wire rx_ff_dv;
@@ -111,11 +113,12 @@ weight_ff_array_data#(
 
 wire [COL-1 : 0] weight_ff_array_write_en;
 //asserts write enable signal of one fifo at a time (in weight fifo array)
-weight_ff_array_wren#(
-    .COL(COL)
+sa_fifo_array_wren_gen#(
+    .DIMENSION(COL),
+    .N_SA(1)
 )weight_ff_array_wren_ctrl(
     .i_clk(clk),
-    .i_rstn(rstn),
+    .i_rst(~rstn),
     .i_enb(wren_rx_fifo_weight_fifo_array),
     .o_wren(weight_ff_array_write_en)
 );
@@ -131,8 +134,9 @@ controller#(
     .N_DRAM_BYTES(N_BRAM_BYTES),
     .COL(COL),
     .SA_OPCODE(SA_OPCODE),
-    .FC_OPCODE(FC_OPCODE)
-)block(
+    .FC_OPCODE(FC_OPCODE),
+    .W_OPCODE(W_OPCODE)
+)test_fifo_sharing(
     .i_clk(clk),
     .i_rstn(rstn),
     .i_start(start),        //trigger for SA read enable controller

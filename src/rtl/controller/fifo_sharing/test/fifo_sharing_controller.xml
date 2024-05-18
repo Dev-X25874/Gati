@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="fifo_sharing_controller" description="" last_change="1715249572" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="fifo_sharing_controller" description="" last_change="1716035027" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
@@ -9,18 +9,18 @@
         <efx:top_module name="test_top"/>
         <efx:design_file name="../rden_mux.v" version="default" library="default"/>
         <efx:design_file name="../weight_ff_array.v" version="default" library="default"/>
-        <efx:design_file name="weight_ff_array_wren.v" version="default" library="default"/>
-        <efx:design_file name="one_pulse.v" version="default" library="default"/>
         <efx:design_file name="test_top.v" version="default" library="default"/>
         <efx:design_file name="weight_ff_array_data.v" version="default" library="default"/>
         <efx:design_file name="sa_rden_controller.v" version="default" library="default"/>
         <efx:design_file name="counters.v" version="default" library="default"/>
         <efx:design_file name="rx_ff_rden.v" version="default" library="default"/>
         <efx:design_file name="fc_rden_controller.v" version="default" library="default"/>
-        <efx:design_file name="uart_rx.v" version="default" library="default"/>
         <efx:design_file name="controller.v" version="default" library="default"/>
-        <efx:design_file name="uart_tx.v" version="default" library="default"/>
         <efx:design_file name="../demux.v" version="default" library="default"/>
+        <efx:design_file name="test_weight_ff_array.v" version="default" library="default"/>
+        <efx:design_file name="../../../sa/test/uart_rx.v" version="default" library="default"/>
+        <efx:design_file name="../../../sa/test/sa_fifo_array_wren_gen.v" version="default" library="default"/>
+        <efx:design_file name="../../../sa/pulse_gen.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

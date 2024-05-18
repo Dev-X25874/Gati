@@ -22,7 +22,7 @@ ser = Serial(port, baudrate)
 
 np.random.seed(24)
 w_rows = 1
-w_cols = 16
+w_cols = 64
 
 def write_thread():
     while True:

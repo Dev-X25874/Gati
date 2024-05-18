@@ -25,9 +25,11 @@ wire [WEIGHT_FF_ADDR : 0] image_dim;
 assign image_dim = i_img_dim[WEIGHT_FF_ADDR : 0];
 
 wire w_trigger;
-one_pulse one_pulse (
+//generate one pulse as output from input trigger given from GPIOs
+pulse_gen pulse_generator_fc(
     .a(i_trigger),
     .clk(i_clk),
+    .i_rstn(i_rstn),
     .b(w_trigger)
 );
 

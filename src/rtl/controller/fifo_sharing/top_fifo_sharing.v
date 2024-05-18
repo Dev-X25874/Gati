@@ -11,7 +11,8 @@ module top_fifo_sharing#(
     parameter N_DRAM_BYTES = 32,        //number of DRAM bytes
     parameter SA_OPCODE = 0,            
     parameter FC_OPCODE = 4,
-    parameter WEIGHT_FF_DEPTH = 512
+    parameter WEIGHT_FF_DEPTH = 512,
+    parameter W_OPCODE = 4
 )(
     input clk,
     input i_rstn,
@@ -73,7 +74,8 @@ demux#(
     .N_DRAM_BYTES(N_DRAM_BYTES),
     .SA_OPCODE(SA_OPCODE),
     .FC_OPCODE(FC_OPCODE),
-    .W_DATA(W_DATA)
+    .W_DATA(W_DATA),
+    .W_OPCODE(W_OPCODE)
 )sa_fc_demux(
     .i_clk(clk),
     .i_rstn(i_rstn),

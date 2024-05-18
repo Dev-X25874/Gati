@@ -1,6 +1,7 @@
 module counters(
     input i_clk,
     input i_start,
+    input i_rstn,
     output o_layer_done,
     output o_done
 );
@@ -15,10 +16,12 @@ assign o_done = done;
 assign o_layer_done = (count3 == 2);
 
 wire w_start;
-one_pulse start_pulse(
+//generate one pulse as output from input trigger given from GPIOs
+pulse_gen pulse_generator_cnt(
     .a(i_start),
     .clk(i_clk),
-    .b(w_start)
+    .b(w_start),
+    .i_rstn(i_rstn)
 );
 
 always @(posedge i_clk) begin

@@ -13,7 +13,8 @@ module controller#(
     parameter COL = 32,
     parameter WEIGHT_FF_DEPTH = 512,
     parameter SA_OPCODE = 0,
-    parameter FC_OPCODE = 4
+    parameter FC_OPCODE = 4,
+    parameter W_OPCODE = 4
 )(
     input i_clk,
     input i_rstn,
@@ -34,7 +35,7 @@ wire [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] occ_weight_ff_array_mux;
 wire [COL-1 : 0] o_weight_ff_array_dv;
 wire [(COL * W_DATA)-1 : 0] o_weight_ff_array_data;
 //north fifo array
-weight_ff_array#(
+test_weight_ff_array#(
     .COL(COL),
     .W_DATA(W_DATA),
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH)
@@ -66,8 +67,9 @@ demux#(
     .N_DRAM_BYTES(N_DRAM_BYTES),    //number of DRAM burst bytes
     .SA_OPCODE(SA_OPCODE),
     .FC_OPCODE(FC_OPCODE),
-    .W_DATA(W_DATA)
-)(
+    .W_DATA(W_DATA),
+    .W_OPCODE(W_OPCODE)
+)sa_fc_demux(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
     .i_opcode(i_opcode),
@@ -135,6 +137,7 @@ wire w_done;
 //test counters to generate done and layer done flags
 counters test_counters(
     .i_clk(i_clk),
+    .i_rstn(i_rstn),
     .i_start(i_start),
     .o_layer_done(w_layer_done),
     .o_done(w_done)

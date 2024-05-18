@@ -75,9 +75,11 @@ reg sel = 1;
 reg [COL-1 : 0] rden = 0;
 
 wire w_start;
-one_pulse start_pulse (
+//generate one pulse as output from input trigger given from GPIOs
+pulse_gen pulse_generator_sa(
     .a(i_start),
     .clk(i_clk),
+    .i_rstn(i_rstn),
     .b(w_start)
 );
 

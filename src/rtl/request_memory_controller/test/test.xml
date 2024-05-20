@@ -1,51 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="sa" description="" last_change="1715770475" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="test" description="" last_change_date="Mon April 29 2024 10:39:56" location="/home/vansh/Documents/git/Gati/src/rtl/request_memory_controller/req_con_img/test" sw_version="2023.1.150" last_run_state="pass" last_run_tool="efx_pgm" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="test_top"/>
-        <efx:design_file name="mul_fifo.v" version="default" library="default"/>
-        <efx:design_file name="psum_fifo_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="test_sa_engine_lut.v" version="default" library="default"/>
-        <efx:design_file name="uart_rx_image_ff_rden.v" version="default" library="default"/>
-        <efx:design_file name="uart_rx_ff_array_wren.v" version="default" library="default"/>
-        <efx:design_file name="sa_fifo_array_wren_gen.v" version="default" library="default"/>
-        <efx:design_file name="test_sa_engine_dsp.v" version="default" library="default"/>
-        <efx:design_file name="test_top.v" version="default" library="default"/>
-        <efx:design_file name="uart_rx_weight_ff_rden.v" version="default" library="default"/>
-        <efx:design_file name="mul_engines.v" version="default" library="default"/>
-        <efx:design_file name="sa_fifo_array_data_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="uart_rx.v" version="default" library="default"/>
-        <efx:design_file name="uart_tx.v" version="default" library="default"/>
-        <efx:design_file name="controller_psum_fifo_tx.v" version="default" library="default"/>
-        <efx:design_file name="test_weight_fifo_array_rden.v" version="default" library="default"/>
-        <efx:design_file name="../fifo_array.v" version="default" library="default"/>
-        <efx:design_file name="../delay_reg.v" version="default" library="default"/>
-        <efx:design_file name="../append_dv.v" version="default" library="default"/>
-        <efx:design_file name="../lut_pe_block.v" version="default" library="default"/>
-        <efx:design_file name="../dsp_pe_blocks.v" version="default" library="default"/>
-        <efx:design_file name="../pulse_gen.v" version="default" library="default"/>
-        <efx:design_file name="../image_fifo_array.v" version="default" library="default"/>
-        <efx:design_file name="../image_fifo_array_rden.v" version="default" library="default"/>
-        <efx:design_file name="../lut_pe_grid.v" version="default" library="default"/>
-        <efx:design_file name="../dsp_pe_grid.v" version="default" library="default"/>
-        <efx:design_file name="../seperate_psum_dv.v" version="default" library="default"/>
+        <efx:top_module name="top_test"/>
+        <efx:design_file name="controller_fifo_tx.v" version="default" library="default"/>
+        <efx:design_file name="top_test.v" version="default" library="default"/>
+        <efx:design_file name="controller_fifo_status.v" version="default" library="default"/>
+        <efx:design_file name="top_fifo_dram_mimic_con.v" version="default" library="default"/>
+        <efx:design_file name="request_controller_img.v" version="default" library="default"/>
+        <efx:design_file name="controller_concate.v" version="default" library="default"/>
+        <efx:design_file name="controller_request_receive.v" version="default" library="default"/>
+        <efx:design_file name="../../../uart/rx.v" version="default" library="default"/>
+        <efx:design_file name="../../../uart/tx.v" version="default" library="default"/>
+        <efx:design_file name="../../../common/fifo_valid.v" version="default" library="default"/>
+        <efx:design_file name="../../../common/memory_valid.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
-        <efx:sdc_file name="const_file.sdc"/>
+        <efx:sdc_file name="const.sdc"/>
         <efx:inter_file name=""/>
     </efx:constraint_info>
     <efx:sim_info/>
     <efx:misc_info/>
-    <efx:ip_info>
-        <efx:ip instance_name="sync_fifo" path="ip/sync_fifo/settings.json">
-            <efx:ip_src_file name="sync_fifo.v"/>
-        </efx:ip>
-    </efx:ip_info>
+    <efx:ip_info/>
     <efx:synthesis tool_name="efx_map">
         <efx:param name="work_dir" value="work_syn" value_type="e_string"/>
         <efx:param name="write_efx_verilog" value="on" value_type="e_bool"/>
@@ -54,7 +35,7 @@
         <efx:param name="blast_const_operand_adders" value="1" value_type="e_option"/>
         <efx:param name="bram_output_regs_packing" value="1" value_type="e_option"/>
         <efx:param name="create-onehot-fsms" value="0" value_type="e_option"/>
-        <efx:param name="fanout-limit" value="100" value_type="e_integer"/>
+        <efx:param name="fanout-limit" value="0" value_type="e_integer"/>
         <efx:param name="hdl-compile-unit" value="1" value_type="e_option"/>
         <efx:param name="infer-clk-enable" value="3" value_type="e_option"/>
         <efx:param name="infer-sync-set-reset" value="1" value_type="e_option"/>
@@ -72,20 +53,15 @@
         <efx:param name="seq-opt-sync-only" value="0" value_type="e_option"/>
         <efx:param name="mult_input_regs_packing" value="1" value_type="e_option"/>
         <efx:param name="mult_output_regs_packing" value="1" value_type="e_option"/>
-        <efx:param name="mult-auto-pipeline" value="0" value_type="e_option"/>
-        <efx:param name="use-logic-for-small-mem" value="64" value_type="e_integer"/>
-        <efx:param name="use-logic-for-small-rom" value="64" value_type="e_integer"/>
-        <efx:param name="include" value="ip/sync_fifo" value_type="e_string"/>
     </efx:synthesis>
     <efx:place_and_route tool_name="efx_pnr">
         <efx:param name="work_dir" value="work_pnr" value_type="e_string"/>
         <efx:param name="verbose" value="off" value_type="e_bool"/>
         <efx:param name="load_delaym" value="on" value_type="e_bool"/>
-        <efx:param name="optimization_level" value="TIMING_3" value_type="e_option"/>
+        <efx:param name="optimization_level" value="NULL" value_type="e_option"/>
         <efx:param name="seed" value="1" value_type="e_integer"/>
         <efx:param name="placer_effort_level" value="2" value_type="e_option"/>
         <efx:param name="max_threads" value="-1" value_type="e_integer"/>
-        <efx:param name="print_critical_path" value="10" value_type="e_integer"/>
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
         <efx:param name="mode" value="active" value_type="e_string"/>

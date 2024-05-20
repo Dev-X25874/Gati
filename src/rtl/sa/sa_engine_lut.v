@@ -51,7 +51,7 @@ append_dv#(
 wire enb_weight_rden_ctrl_image_rden_ctrl;
 
 //Control read enable signal of uart_rx_weight_fifo
-weight_fifo_aray_rden#(
+weight_fifo_array_rden#(
     .COL(COL),
     .W_ADDR(WEIGHT_FF_ADDR),
     .ROW(ROW),

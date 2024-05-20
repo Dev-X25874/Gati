@@ -1,0 +1,1051 @@
+`include "instructions.vh"
+`include "portid.vh"
+
+module top_gati_module #(
+    
+    // FIFO Depth varies between operators to avoid overflow and underflow 
+    parameter INST_QUEUE_DEPTH = 512,
+    parameter DRAM_IMG_FIFO_DEPTH = 512,
+    parameter IM2COL_FIFO_DEPTH = 1024,
+    parameter WEIGHT_FIFO_DEPTH = 512,
+    parameter PSUM_FIFO_DEPTH = 8192,
+    parameter ACC_FIFO_DEPTH = 512,
+    parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
+    parameter OP_WRITE_FIFO_DEPTH = 2048,
+    
+    //Default burst lenghts for various memory request controllers
+    parameter CONFIG_REQ_BLEN = 7,
+    parameter IMG_REQ_BLEN = 15,
+    parameter WEIGHT_REQ_BLEN = 15,
+    parameter ACC_REQ_BLEN = 15,
+    parameter BIAS_REQ_BLEN = 15,
+    parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
+
+    parameter CONFIG_FIFO_OCCUPANCY = 10,
+    parameter LAYERCNT_WIDTH = 12,
+    //parameters related to DRAM controller
+    parameter NUM_PORTS = 4, //Number of read and write requestors
+    /*
+    parameter PORT_ID_WIDTH = 4, 
+    parameter ADDR_WIDTH_MEM_CTRL = 8, //address width to the input of DRAM ctrl from operator mem request ctrlers
+    parameter PORT_ID = {4'd10, 4'd11, 4'd12, 4'd13, 4'd14} // Depends on the port_id_width and number of requestors
+    */
+
+    //parameters related to AXI
+    parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
+    parameter AXI_ADDR_W = 32,          // Axi Address width
+    parameter BURST_LENGTH_WIDTH =8,
+   
+    //Config blk param
+    parameter NUM_INSTRUCTIONS = 4,
+    parameter INST_W = 256,
+
+    //Operators param
+    parameter OPCODE_WIDTH = 4,
+    parameter N_SA = NSA_DSP + NSA_LUT,
+    parameter DATA_WIDTH = 8,
+    parameter COL_SA = 4,
+    parameter COL_FC = 32,
+    parameter W_QUANT_SHIFT = 5,
+    parameter W_QUANT_SCALE = 16,
+    parameter ROW = 9,
+    parameter W_PSUM = 20,
+    parameter MOD1 = 2,
+    parameter MOD2 = 8,
+    parameter DATA_WIDTH_OB = 32,
+    parameter IMAGE_DIM = 224,
+    parameter SHFT_REG_X = 4, // Number of shift register blocks
+    parameter BIAS_FIFO = 8, // Number of bias FIFOs
+    parameter OP_FIFO = 8,  // Number of output write FIFOs
+    parameter NSA_DSP = 4, 
+    parameter N_FC_MUX = 4,
+    parameter NO_PORT_FC = 8,
+    parameter RELU_CLIP_WIDTH = 8,
+    parameter NSA_LUT = 0,
+    parameter BIAS_FIFO_FC = 32, // Number of FC bias FIFOs
+    parameter NO_PORT_VA = 2,
+    parameter NO_PORT_BAC = 2,
+    parameter NO_PORT_BAFC = 8,
+    parameter POP_THRESHOLD = 5,
+    parameter I_SIZE_WIDTH=20, // bit width of input image dimension
+    //FC related parameters
+    parameter ACC_DW = 32,
+    parameter N_BANK = 4,
+    parameter N_BRAM = 8,
+    parameter W_FC_RW_COUNTER = 10, //width of fc r/w address counter
+    parameter FC_BRAM_DEPTH = 1024,
+    parameter W_KERNEL_CNT = 16,
+    parameter W_IMAG_DIM = 20,
+    parameter ACC_DATA_REORDER = 1
+) (
+    ///global
+    input i_clk,
+    input s_clk,
+    input i_rst,
+    
+    ///////config block input
+    input user_start,
+
+    //signals to DRAM ctrler
+    ////config
+    output [7:0] mc_config_addr,
+    output mc_config_rdreq,
+    output mc_config_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
+    output mc_config_last,
+
+    ////img
+    output [7:0] mc_img_addr,
+    output mc_img_rdreq,
+    output mc_img_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl,
+    output mc_img_last,
+
+    /////conv
+    output [7:0] mc_wghts_addr,
+    output mc_wghts_rdreq,
+    output mc_wghts_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_wghts_bl,
+    output mc_wghts_last,
+    
+    ///////fc
+    output [7:0] mc_fc_addr,
+    output mc_fc_rdreq,
+    output mc_fc_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bl,
+    output mc_fc_last,
+
+    //////////bias 
+    output [7:0] mc_bias_addr,
+    output mc_bias_rdreq,
+    output mc_bias_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_bias_bl,
+    output mc_bias_last,
+
+    ///////////////fc_bias 
+    output [7:0] mc_fc_bias_addr,
+    output mc_fc_bias_rdreq,
+    output mc_fc_bias_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bias_bl,
+    output mc_fc_bias_last,
+
+    /////////////acc
+    output [7:0] mc_acc_addr,
+    output mc_acc_rdreq,
+    output mc_acc_valid,
+    output [BURST_LENGTH_WIDTH-1: 0] mc_acc_bl,
+    output mc_acc_last,
+
+    /////////////output write ctrl
+    output [7:0] mc_op_write_addr,
+    output mc_op_writereq,
+    output mc_op_write_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl,
+    output mc_op_write_bl,
+    
+    ///////////////////////operators data
+    
+    //Signals from DRAM ctrl to internal operator blocks
+    input [NUM_PORTS-1:0] select;
+    //Read block signals
+    // input sel_rd
+    input dram_rd_datavalid,
+    input dram_rd_data_last,
+    input [AXI_DATA_WIDTH - 1 : 0] dram_rd_data,
+
+    //op_write block signals
+    // input sel_op_write, // Todo: have to check , wheteher sel is common or not
+    input [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len,
+    output dv_op_write,
+    output data_last_op_write,
+    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
+
+);
+
+    localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
+    localparam BUS_DATA_OUT = 8;
+    localparam CNT = INST_W/BUS_DATA_OUT;
+
+    Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(1) // Instruction queue in config blk
+    ) Config_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(), // select signal of config blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(instruction_config), //o-wire: to config blk
+        .o_dram_fifo_wren(valid), //o-wire: to config blk
+        .o_data_last()
+    );
+
+    wire [INST_W-1:0] instruction_config;
+    wire valid_config;
+  
+  config_blk#(
+      .ADDR_W(AXI_ADDR_W),
+      .INST_W(INST_W),
+      .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
+      .BURST_LEN_AXI(CONFIG_REQ_BLEN),
+      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+      .OPCODE_W(OPCODE_WIDTH),
+      .DEPTH(INST_QUEUE_DEPTH),
+      .STATUS_DRAM_LIM(CONFIG_FIFO_OCCUPANCY),
+      .LAY_N(LAYERCNT_WIDTH)
+  ) (
+      .clkin(i_clk),
+      .user_start(user_start),
+      .valid(valid),
+      .sel(select[`Config]),
+      .instruction_data(instruction_data),
+      .memory_read_r(mc_config_rdreq),
+      .memory_valid(mc_config_valid),
+      .mem_address(mc_config_addr),
+      .mem_last(mc_config_last),
+      .mem_burst_len(mc_config_bl),
+      .ack_signals(ack_signals),
+      .start_command(start_command),
+      .start_out(start_out), //o-wire: start signal to the operators 
+      .done(|(valid_inst)), //i-wire: from bus master
+      .o_instruction_bus(instruction),
+      .start_bus(start_bus), //o-wire: goes to bus master
+      .o_instruction_bus_v() 
+  );
+  
+  wire [NUM_INSTRUCTIONS-1:0] ack_signals; //Ack from various operators = number of instructions
+  assign ack_signals[`OP_CONV] = Conv_Ack;
+  assign ack_signals[`OP_FC] = FC_Ack;
+  assign ack_signals[`OP_OutputBlock] = OpBlock_Ack;
+  assign ack_signals[`OP_TailBlock] = Tail_Ack;
+
+  wire [INST_W-1 : 0] instruction;
+  wire start_bus;   //start signal to bus master to dispatch inst. to the corresponding slave blocks
+  wire [OPCODE_WIDTH-1:0] opcode_config; //opcode to bus master to select the appropriate slave
+  wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack; // Acknowledgment signals to config blk to prefetch the inst.
+  
+  assign opcode_config = instruction[`Opcode];
+
+  localparam APPEND = ((1<<OP_CODE_WIDTH) - NUM_INSTRUCTIONS);
+
+  // top_master_slave_integrate
+  top_master_slave_integrate#(
+    .OP_CODE_WIDTH(OPCODE_WIDTH),
+    .INPUT_WIDTH(INST_W),
+    .OUTPUT_WIDTH(BUS_DATA_OUT),
+    .NO_OF_OPERATOR(NUM_INSTRUCTIONS),
+    .CNT(CNT),
+    .APPEND(APPEND)
+  )
+  bus_inst(
+    .din(instruction), //i-wire : instruction from config blk
+    .start(start_bus), //i-wire: start from config blk
+    .clk(i_clk),
+    .opcode(opcode_config), //i-wire: opcode form config blk,
+    .valid(valid_inst),
+
+    //OP_CONV inst signals
+    .opcode_conv(conv_opcode),
+    .IW(input_img_width),
+    .IH(input_img_height),
+    .OW(conv_op_width),
+    .OH(conv_op_height),
+    .IC(),
+    .KN(n_kernels),
+    .KW(kernel_width),
+    .KH(kernel_height),
+    .Stride(stride),
+    .Pad(conv_zeropad),
+    .channelItr(channel_iteration),
+    .kernelItr(kernel_iteration),
+    .ImageStartAddress_conv(img_start_address),
+    .ImageEndAddress_conv(img_stop_address),
+    .WeightStartAddress_conv(weight_start_addr_conv),
+    .WeightEndAddress_conv(weight_stop_addr_conv),
+
+    //FC inst. signals
+    .opcode_FC(fc_opcode),
+    .weightrows(fc_weightrows),
+    .weightcols(fc_weightcols),
+    .inputrows(fc_image_rows), //o-wire: goes to flattening controller/FC (check with roshini)
+    .dropoutconstant(),
+    .flatten(flatten_enable),
+    .imagedim_FC(fc_imagedim), //o-wire: goes to flatten ctrler
+    .ImageStartAddress_FC(fc_img_start_address),
+    .ImageEndAddr_FC(fc_img_stop_address),
+    .KernelIteration(fc_kernel_iter),
+    .RWAddressCountFlatten(fc_rw_address_counter), //read/write address cnt goes to flattening
+
+    //OP block inst. signals
+    .opcode_OB(Op_code_OB),
+    .accumulantaddr(acc_start_address),
+    .outputaddr(op_start_address),
+    .channelItr_OB(channel_iteration_OB),
+    .kernelItr_OB(kernel_iteration_OB),
+    .ImageDimOutput(img_dim_Op),
+    .ImageDimAcc(img_dim_Acc),
+    .AccEn(ACC_EN),
+
+    //Tail inst. signals
+    .opcode_TB(Op_code_TB),
+    .BNEn(),
+    .BNchannels(),
+    .BNStartAddress(),
+    .BNEndAddress(),
+    .ActEn(ACT_EN),
+    .acttype(),
+    .ActParam(relu_clip_value),
+    .QuantEn(QUANT_EN), // goes to iteration cter
+    .quantscale(tail_quantscale),
+    .quantshift(tail_quantshift),
+    .PoolEn(POOL_EN), //goes to iteration cter
+    .pooltype(),
+    .poolwidth(),
+    .poollheight(),
+    .poolstride(),
+    .poolpadding(),
+    .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
+    .FCBiasEn(FC_BIAS_EN), //goes to iteration cter and fc_bias req ctrler
+    .BiasStartAddress(bias_start_address),
+    .BiasEndAddress(bias_stop_address)
+  );
+  
+  wire [1<<OPCODE_WIDTH-1 : 0] valid_inst;
+  assign valid_conv = valid_inst[`OP_CONV];
+  assign valid_fc   = valid_inst[`OP_FC];
+
+  //CONV inst. signals
+  wire [9:0] input_img_width, input_img_height;
+  wire [9:0] conv_op_width, conv_op_height; 
+  wire [9:0] n_kernels;
+  wire [3:0] kernel_width, kernel_height;
+  wire [3:0] stride;
+  wire [2:0] conv_zeropad;
+
+  //FC inst. signals
+  wire [15:0] fc_weightcols;
+  wire [15:0] fc_weightrows;
+  wire [I_SIZE_WIDTH-1:0] fc_imagedim;  //goes to FC block and accumulator
+  wire [W_KERNEL_CNT-1:0] fc_kernel_iter;
+  wire [W_FC_RW_COUNTER-1:0] fc_rw_address_counter; 
+  wire [15:0] fc_image_rows; 
+
+  //OP block inst. signals
+  wire [OPCODE_WIDTH-1:0] Op_code_OB;
+  wire [I_SIZE_WIDTH-1:0] img_dim_Acc;
+  wire [I_SIZE_WIDTH-1:0] img_dim_Op;
+
+  //Tail inst. signals
+  wire [OPCODE_WIDTH-1:0] Op_code_TB;
+  wire [RELU_CLIP_WIDTH-1:0] relu_clip_value;
+  wire [W_QUANT_SHIFT-1:0] tail_quantshift;
+  wire [W_QUANT_SCALE-1:0] tail_quantscale;
+
+
+
+  // start and end address signals for memory request controllers
+
+  wire [AXI_ADDR_W-1:0] img_start_address;
+  wire [11:0] channel_iteration;
+  wire [11:0] kernel_iteration;
+  wire [AXI_ADDR_W-1:0] img_stop_address;
+  wire [NUM_INSTRUCTIONS-1:0] start_command;
+
+  wire start = start_out;
+
+  // fifo status signals for memory request controllers
+  wire img_fifo_status;
+  wire weight_fifo_status;
+  wire acc_fifo_status;
+  wire bias_fifo_status;
+  wire fc_bias_fifo_status;
+  wire fc_img_fifo_status;
+  // wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
+
+  // Memory request controllers - img, weight, bias etc
+  request_controller_img #(
+      .BURST_LENGTH(IMG_REQ_BLEN),
+      .AXI_DATA_BYTES  (AXI_DATA_BYTES)
+  ) image_req_ctrl (
+      .start_addr(img_start_address),
+      .channelitr(channel_iteration),
+      .kernelitr(kernel_iteration),
+      .stop_addr(img_stop_address),
+      .config_start(start_SA),
+      .fifo_status(img_fifo_status),
+      .clk(i_clk),
+      .c_done(channel_done),
+      
+      //signals goes to memory controller
+      .addr_out(mc_img_addr),
+      .wr_enable(mc_img_rdreq),
+      .valid(mc_img_valid),
+      .burst_length(mc_img_bl),
+      .last(mc_img_last)
+  );
+  
+  wire [AXI_ADDR_W-1:0] start_address_weights;
+  wire [AXI_ADDR_W-1:0] stop_address_weights;
+  wire [AXI_ADDR_W-1:0] weight_start_add_conv;
+  wire [AXI_ADDR_W-1:0] weight_stop_add_conv;
+  wire [AXI_ADDR_W-1:0] weight_start_addr_fc;
+  wire [AXI_ADDR_W-1:0] weight_stop_addr_fc;
+  
+  //CONV_FC = 1 => FC mode , else CONV mode
+  assign start_address_weights  = CONV_FC ? weight_start_addr_fc : weight_start_addr_conv;
+  assign stop_address_weights   = CONV_FC ? weight_stop_addr_fc  : weight_stop_add_conv;
+
+  request_controller_weights #(
+      .BURST_LENGTH(WEIGHT_REQ_BLEN),
+      .AXI_DATA_BYTES  (AXI_DATA_BYTES)
+  ) weight_req_ctrl (
+      .start_addr(start_address_weights),
+      .stop_addr(stop_address_weights),
+      .config_start(start),
+      .fifo_status(weight_fifo_status),
+      .data_last(weight_data_last),
+      .clk(clk),
+      .addr_out(mc_wghts_addr),
+      .wr_enable(mc_wghts_rdreq),
+      .valid(mc_wghts_valid),
+      .burst_length(mc_wghts_bl),
+      .last(mc_wghts_last)
+  );
+
+  wire [AXI_ADDR_W-1:0] fc_img_start_address;
+  wire [AXI_ADDR_W-1:0] fc_img_stop_address;
+
+  request_controller_FC #(
+      .BURST_LENGTH(IMG_REQ_BLEN),
+      .AXI_DATA_BYTES  (AXI_DATA_BYTES)
+  ) fc_image_req_ctrl (
+      .start_addr(fc_img_start_address),
+      .stop_addr(fc_img_stop_address),
+      .config_start(start_FC),
+      .fifo_status(fc_img_fifo_status),
+      .clk(i_clk),
+      .addr_out(mc_fc_addr),
+      .wr_enable(mc_fc_rdreq),
+      .valid(mc_fc_valid),
+      .burst_length(mc_fc_bl),
+      .last(mc_fc_last)
+  );
+
+
+  wire [AXI_ADDR_W-1:0] bias_start_address;
+  wire [AXI_ADDR_W-1:0] bias_stop_address;
+
+  request_controller_bias #(
+      .BURST_LENGTH(BIAS_REQ_BLEN),
+      .AXI_DATA_BYTES(AXI_DATA_BYTES)
+  ) bias_req_ctrl (
+      .start_addr(bias_start_address),
+      .stop_addr(bias_stop_address),
+      .config_start(start_SA),
+      .fifo_status(bias_fifo_status),
+      .Biasen(BIAS_EN), 
+      .clk(i_clk),
+      .addr_out(mc_bias_addr),
+      .wr_enable(mc_bias_rdreq),
+      .valid(mc_bias_valid),
+      .burst_length(mc_bias_bl),
+      .last(mc_bias_last)
+  );
+
+  request_controller_FCbias #(
+      .BURST_LENGTH(BIAS_REQ_BLEN),
+      .AXI_DATA_BYTES(AXI_DATA_BYTES)
+  ) FCbias_req_ctrl (
+      .start_addr(bias_start_address),
+      .stop_addr(bias_stop_address),
+      .config_start(start_FC),
+      .fifo_status(fc_bias_fifo_status),
+      .FCbiasen(FC_BIAS_EN), 
+      .clk(i_clk),
+      .addr_out(mc_fc_bias_addr),
+      .wr_enable(mc_fc_bias_rdreq),
+      .valid(mc_fc_bias_valid),
+      .burst_length(mc_fc_bias_bl),
+      .last(mc_fc_bias_last)
+  );
+
+  wire [AXI_ADDR_W-1:0] acc_start_address;
+  wire [AXI_ADDR_W-1:0] acc_stop_address;
+
+  assign acc_stop_address = acc_start_address + (ImageDimAcc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
+
+  request_controller_accumulator #(
+      .BURST_LENGTH(ACC_REQ_BLEN),
+      .AXI_DATA_BYTES  (AXI_DATA_BYTES)
+  ) acc_req_ctrl (
+      .start_addr(acc_start_address),
+      .stop_addr(acc_stop_address),
+      .config_start(im2col_global_start), //start from im2col start ctrler
+      .fifo_status(acc_fifo_status),
+      .clk(i_clk),
+      .enable(ACC_EN), // ACC_EN comes from inst. whether is enabled in this layer or not
+      .ENABLE(acc_en), // acc_en comes from iteration cter to enable it in current iteration based on the instruction field
+      .addr_out(mc_acc_addr),
+      .wr_enable(mc_acc_rdreq),
+      .valid(mc_acc_valid),
+      .burst_length(mc_acc_bl),
+      .last(mc_acc_last)
+  );
+
+  wire [11:0] channel_iteration_OB;
+  wire [11:0] kernel_iteration_OB;
+
+  top_op_write_mem_req_ctrl#(
+    .N(OP_FIFO),
+    .DEPTH(OP_WRITE_FIFO_DEPTH),
+    .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
+    .BURST_LENGTH_2(OP_WRITE_REQ_QUA_BLEN),
+    .NUMBER_ACC(MOD1),
+    .NUMBER_OP(MOD2),
+    .AXI_DATA_BYTES(AXI_DATA_BYTES),
+    .ADDR_WIDTH(AXI_ADDR_W),
+    .W_KERNEL_CNT(W_KERNEL_CNT),
+    .IMAGE_DIM_WIDTH(I_SIZE_WIDTH)
+  )
+  op_write_mem_req_ctrler(
+    .clkin(i_clk),
+    .i_rstn(i_rst),
+    .i_start(start),
+    .i_data_last(data_last_op_write), //i-wire: data last signal from dram write controller
+    .i_acc_address(acc_start_address), //i-wire: accumulant start address from inst.
+    .i_op_start(op_start_address), //i-wire: start address of quantized o/p from inst.
+    .i_channel_itr(channel_iteration_OB),
+    .i_kerenel_itr(kernel_iteration_OB),
+    .i_imag_dim(img_dim_Acc),
+    .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
+    .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
+    // .mem_req(), //not required
+    // .img_done_acc(), //not required
+    // .img_done_op(), //not required
+    .o_read_write_req(mc_op_writereq) //Todo: to be added in the block
+    .o_valid(mc_op_write_valid),
+    .o_address(mc_op_write_addr),
+    .o_burst_len(mc_op_write_bl),
+    .o_last(mc_op_write_last),
+  );
+
+  ////////////////////////////////FIFO FOR IMAGE FROM DDR////////////////
+  
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(AXI_DATA_BYTES) // Image FIFOs = 32
+  )Image_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`Image]), // select signal of image fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(image_fifo_in_data), //o-wire: to image fifo blk
+        .o_dram_fifo_wren(image_wren),  //o-wire: to image fifo blk
+        .o_data_last(),
+  );
+   
+   //fifo img
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] image_fifo_in_data;
+  wire [AXI_DATA_BYTES-1:0] image_wren;
+
+  dram_fifo #(
+      .DIMENSION(AXI_DATA_BYTES),
+      .W_DATA(DATA_WIDTH),
+      .W_ADDR($clog2(DRAM_IMG_FIFO_DEPTH)),
+      .RAM_DEPTH(DRAM_IMG_FIFO_DEPTH)
+  ) image_ddr_fifo (
+      .i_clk(i_clk),
+      .i_rst(i_rst),
+      .i_data(image_fifo_in_data),
+      .i_read_enable(image_rden),
+      .i_write_enable(image_wren),
+      .o_data(fifo_imgo_data),
+      .o_fifo_empty(image_fifo_empty),
+      .o_fifo_full(),
+      .o_fifo_dv(),
+      .o_occupants()
+  );
+  wire [AXI_DATA_BYTES-1:0] image_rden;
+  wire [AXI_DATA_BYTES-1:0] image_fifo_empty;
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
+  wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
+
+  assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width<<3}})? 1 : 0;
+  
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(AXI_DATA_BYTES) 
+  )Weight_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`Weight]), // select signal of weight fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(weight_fifo_in_dram), //o-wire: to weight fifo blk
+        .o_dram_fifo_wren(dv_dram_weight), //o-wire: to weight fifo blk
+        .o_data_last(weight_data_last)
+  );
+
+  //fifo weight 
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] weight_fifo_in_dram;
+  wire [AXI_DATA_BYTES-1:0] dv_dram_weight;
+  wire weight_data_last; 
+
+  fifo_sharing_weight_wren_ctrl#(
+    .SA_OPCODE(`OP_CONV),
+    .FC_OPCODE(`OP_FC),
+    .OPCODE_WIDTH(OPCODE_WIDTH),
+    .N_SA(N_SA),
+    .COL_SA(COL_SA),
+    .COL_FC(COL_FC),
+    .DRAM_BW(AXI_DATA_BYTES),
+    .DATA_WIDTH(DATA_WIDTH)
+  ) fifo_sharing_wren(
+    .i_clk(i_Clk),
+    .rst(rst),
+    .opcode(opcode),
+    .valid_inst_CONV_FC(valid_inst_CONV_FC),
+    .i_datavalid_dram_weight(dv_dram_weight), //i-wire: datavalid for weights from DDR
+    .i_dram_weight(weight_fifo_in_dram), //i-wire: weights from DDR
+    .weight_fifo_wren(weight_write_en_fifosharing), //o-wire: write enable signal to weight fifo array
+    .o_dram_weight(weight_dram_fifosharing) //o-wire: weights to be written into weight fifo array 
+  );
+
+  //////////////FIFO SHARING FOR SYSTOLIC ARRAY AND FC//////////
+  
+   //Controller for FIFO sharing between Conv(SA) and FC
+  top_fs_controller#(
+    .W_DATA(DATA_WIDTH),
+    .N_SA(N_SA),
+    .COL_SA(COL_SA),
+    .COL_FC(COL_FC),
+    .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
+    .N_BRAM_BYTES(AXI_DATA_BYTES),
+    .SA_OPCODE(`OP_CONV), // CONV opcode from instructions.vh
+    .FC_OPCODE(`OP_FC), // FC opcode from instructions.vh
+    .OPCODE_WIDTH(OPCODE_WIDTH)
+  ) fifo_Sharing_controller(
+    .clk(i_clk),
+    .i_rstn(i_rst),
+    .i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
+    .i_opcode(opcode), // i-wire - check it how to get this opcode from slave blocks
+    .i_data_weight_ff_array(weight_dram_fifosharing),         //i-wire - from fifo sharing wren ctrler
+    .i_write_en_weight_ff_array(weight_write_en_fifosharing), //i-wire - from fifo sharing wren ctrler
+    .i_read_en_fc(weight_read_en_fc), // i-wire: wt readen from fc
+    .i_read_en_sa(weight_read_en_sa), // i-wire: wt read en from SA
+    .o_sel_mux(fc_mux_Sel), // o-wire: goes to FC block for selecting the fifo array weights to FC block
+    .o_occupants_mux_fc(weight_occupants_fc), //o-wire: fifo occupants applied to FC
+    .o_empty_mux_fc(weight_empty_fc), //o-wire: fifo empty status to FC
+    .o_dv_mux_fc(weight_dv_fc), //o-wire: wt datavalid to FC
+    .o_data_mux_fc(weight_data_fc), //o-wire: weight inputs to FC
+    .o_occupants_mux_sa(weight_occupants_sa), //o-wire: fifo occupants applied to SA
+    .o_empty_mux_sa(weight_empty_sa), //o-wire: fifo empty status to SA
+    .o_dv_mux_sa(weight_dv_sa), //o-wire: wt datavalid to SA
+    .o_data_mux_sa(weight_data_sa), //o-wire: weight inputs to SA
+    .o_weight_fifo_occupants(weight_fifo_occupants) //o-wire: weight fifo occupants to weight req ctrler
+  );
+
+  localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
+
+  wire [(COL * DATA_WIDTH)-1 : 0] weight_dram_fifosharing;
+  wire [COL-1 : 0] weight_write_en_fifosharing;
+  // signals from Top_CONV_FC Block
+  wire fc_mux_Sel;
+  wire [COL_FC-1 : 0] weight_read_en_fc;
+  wire [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc;
+  wire [COL_FC-1 : 0] weight_empty_fc;
+  wire [COL_FC-1 : 0] weight_dv_fc;
+  wire [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc;
+
+  wire sel_sa_rden;
+  wire [(N_SA * COL_SA)-1 : 0] weight_read_en_sa;
+  wire [(N_SA * COL_SA)-1 : 0] weight_dv_sa;
+  wire [(N_SA * (COL_SA * ($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa;
+  wire [(N_SA * COL_SA)-1 : 0] weight_empty_sa;
+  wire [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa;
+
+  wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
+
+  assign weight_fifo_status = (CONV_FC==0)? 
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{4*ROW}})? 1 : 0) : 
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{(3/4)*(WEIGHT_FIFO_DEPTH)}})? 1 : 0);
+
+  
+  assign fc_img_fifo_status = 1'b1;
+
+  wire [(($clog2(ACC_FIFO_DEPTH)+1)*OP_FIFO)-1:0] acc_fifo_occupants;
+  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*OP_FIFO)-1:0] bias_fifo_occupants;
+  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
+
+  //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
+  assign acc_fifo_status = (acc_fifo_occupants<={OP_FIFO{8}})? 1 : 0;
+  assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA}})? 1 : 0;
+  assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC}})? 1 : 0;
+
+
+  wire zero_pad_enable;
+
+  assign zero_pad_enable = |(conv_zeropad);
+  
+  reg [OPCODE_WIDTH-1:0] opcode;
+  reg valid_inst_CONV_FC;
+  reg CONV_FC;
+
+  //Generation of CONV_FC signal
+  always@(posedge i_clk) begin
+    if(!rst) begin
+        valid_inst_CONV_FC <= 0;
+        CONV_FC <= 0;
+    end
+    else begin
+        if(valid_conv) begin
+            opcode <= conv_opcode;
+            valid_inst_CONV_FC <= 1;
+            CONV_FC <= 0;
+        end
+        else if(valid_fc) begin
+            opcode <= fc_opcode;
+            valid_inst_CONV_FC <= 1;
+            CONV_FC <= 1;
+        end
+        else begin
+            opcode <= op_code;
+            valid_inst_CONV_FC <= 0;
+            CONV_FC <= 0;
+        end
+    end
+  end
+
+  //Generation of start_SA and start_FC
+  wire start_SA,start_FC;
+  assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
+  //assign start_FC = (CONV_FC==1)? start : 1'b0;
+
+  // DRAM Data write ctlers for accumulants, bias, fcbias
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(OP_FIFO) //Accumulant FIFOs = 8, each 32-bit 
+  )Accumulant_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`Acc]), // select signal of vector add fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(vector_add_values), //o-wire: to vector add fifo blk
+        .o_dram_fifo_wren(vector_add_wren), //o-wire: to vector add fifo blk
+        .o_data_last()
+  ); 
+
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
+  wire [OP_FIFO-1:0] vector_add_wren;
+
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(BIAS_FIFO) //Bias FIFOs = 8, each 32-bit 
+  )Bias_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`Bias]), // select signal of bias fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(bias_data_in),   //o-wire: to bias fifo blk
+        .o_dram_fifo_wren(bias_wren), //o-wire: to bias fifo blk
+        .o_data_last()
+  );
+  
+  wire [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in;
+  wire [BIAS_FIFO -1:0] bias_wren;
+
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(BIAS_FIFO_FC) //FC_Bias FIFOs = 32, each 8-bit 
+  )Bias_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`FCBias]), // select signal of fc_bias fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(bias_data_in_fc),   //o-wire: to fc_bias fifo blk
+        .o_dram_fifo_wren(bias_wren_fc), //o-wire: to fc_bias fifo blk
+        .o_data_last()
+  );
+
+  wire [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc,
+  wire [BIAS_FIFO_FC -1:0] bias_wren_fc;
+  
+  // DRAM Data write ctlers for FC image data
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(AXI_DATA_BYTES) //FC BRAMs = 32, each 8-bit 
+  )FC_image_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`FullyConn]), // select signal of FC image (flattening) blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        
+        .o_dram_data(fc_image_in_data), //o-wire: to vector add fifo blk
+        .o_dram_fifo_wren(dv_fc_image_data), //o-wire: to vector add fifo blk
+        .o_data_last()
+  );
+
+  wire [AXI_DATA_BYTES*DATA_WIDTH-1 : 0] fc_image_in_data;
+  wire [AXI_DATA_BYTES-1 : 0] dv_fc_image_data;
+  
+  // Top module of CONV and FC Blocks
+  Top_CONV_FC #(
+      .OPCODE_WIDTH(OPCODE_WIDTH),
+      .N_SA(N_SA),
+      .DATA_WIDTH(DATA_WIDTH),
+      .COL_SA(COL_SA),
+      .COL_FC(COL_FC),
+      .QUANT_SHIFT(W_QUANT_SHIFT),
+      .QUANT_SCALE(W_QUANT_SCALE),
+      .ROW(ROW),
+      .DRAM_BW(AXI_DATA_BYTES),
+      .W_PSUM(W_PSUM),
+      .MOD1(MOD1),
+      .MOD2(MOD2),
+      .DATA_WIDTH_OB(DATA_WIDTH_OB),
+      .IMAGE_DIM(IMAGE_DIM),
+      .SHFT_REG_X(SHFT_REG_X),
+      .BIAS_FIFO(BIAS_FIFO),
+      .OP_FIFO(OP_FIFO),
+      .WEIGHT_FIFO_DEPTH(WEIGHT_FIFO_DEPTH),
+      .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
+      .PSUM_FIFO_DEPTH(PSUM_FIFO_DEPTH),
+      .ACC_FIFO_DEPTH(ACC_FIFO_DEPTH),
+      .BIAS_FIFO_DEPTH(BIAS_FIFO_DEPTH),
+      .NSA_DSP(NSA_DSP),
+      .N_FC_MUX(N_FC_MUX),
+      .NO_PORT_FC(NO_PORT_FC),
+      .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
+      .NSA_LUT(NSA_LUT),
+      .BIAS_FIFO_FC(BIAS_FIFO_FC),
+      .NO_PORT_VA(NO_PORT_VA),
+      .NO_PORT_BAC(NO_PORT_BAC),
+      .NO_PORT_BAFC(NO_PORT_BAFC),
+      .POP_THRESHOLD(POP_THRESHOLD),
+      .I_SIZE_WIDTH(I_SIZE_WIDTH),
+
+      //FC realated parameters
+      .ACC_DW(ACC_DW),
+      .N_BANK(N_BANK),
+      .N_BRAM(N_BRAM),
+      .W_FC_RW_COUNTER(W_FC_RW_COUNTER),
+      .FC_BRAM_DEPTH(FC_BRAM_DEPTH),
+      .W_KERNEL_CNT(W_KERNEL_CNT),
+      .W_IMAG_DIM(W_IMAG_DIM),
+      .ACC_DATA_REORDER(ACC_DATA_REORDER)
+  ) top_CONV_FC_Block (
+      .i_clk(i_clk),
+      .s_clk(s_clk),
+      .i_img_dim_Acc(img_dim_Acc), // image dimension of accumulant o/p
+      .i_img_dim_Op(img_dim_Op), // image dimension of quantized o/p
+      .image_fifo_empty(image_fifo_empty),
+      .switch_enable(switch_enable),
+      .fifo_o(fifo_imgo_data),
+      //fifo sharing signals
+      .sel_sa_rden(sel_sa_rden),
+      .weight_read_en_fc(weight_read_en_fc),
+      .weight_occupants_fc(weight_occupants_fc),
+      .weight_empty_fc(weight_empty_fc),
+      .weight_dv_fc(weight_dv_fc),
+      .weight_data_fc(weight_data_fc),
+      .weight_read_en_sa(weight_read_en_sa),
+      .weight_dv_sa(weight_dv_sa),
+      .weight_occupants_sa(weight_occupants_sa),
+      .weight_empty_sa(weight_empty_sa),
+      .weight_data_sa(weight_data_sa),
+
+      //Flattening and FC signals
+      .flatten_enable(flatten_enable), //comes from FC instruction
+      .start_FC(start_FC),
+      .i_rw_addr_cnt_flatten(fc_rw_address_counter), //r/w address cnt from FC inst.
+      .i_kernel_cnt_FC(fc_kernel_iter), //kernel cnt from FC inst.
+      .i_img_dim_flatten(fc_imagedim), //img dim for flattening-comes from FC inst.
+      .i_data_valid_flatten(dv_fc_image_data), //valid of data from DDR
+      .i_data_FC(fc_image_in_data), //data from DDR
+      .i_img_dim_fc(fc_image_rows), // image dim of FC i/p (input rows-FC inst.) goes to FC engine
+      .i_sel_fc_fifosharing(fc_mux_Sel) //o-wire: select to signal to FC for reading weights from fifo sharing ctrl
+      
+      //vector addition and tail block signals    
+      .vector_add_values(vector_add_values),
+      .vector_add_wren(vector_add_wren),
+      .maxpool_threshold(conv_op_width), //output matrix width of SA engine
+      .layer_done(layer_done),
+      .iteration_Done(iter_done),
+      .channel_done(channel_done),
+      .shift_reg_sel(shift_reg_sel),
+      .systolic_array_trigger(start_SA),
+      .rst(i_rst),
+      .relu_clip_value(relu_clip_value),
+      .bias_enable(bias_enable),
+      .quant_enable(quant_enable),
+      .bias_fc_enable(bias_fc_enable),
+      .zero_pad_enable(zero_pad_enable),
+      .image_size(input_img_width),
+      .valid_img_size_im2col(valid_conv), //valid inst conv
+      .im2col_global_start(im2col_global_start),
+      .relu_enable(relu_enable),
+      .bias_data_in(bias_data_in),
+      .bias_wren(bias_wren),
+      .bias_data_in_fc(bias_data_in_fc),
+      .bias_wren_fc(bias_wren_fc),
+      .shift_value(({COL_SA{tail_quantshift}})),
+      .quant_scale(({COL_SA{tail_quantscale}})),
+      .vector_add_enable(vector_add_enable),
+      .maxpool_enable(maxpool_enable),
+      .image_rden(image_rden),
+      .data_b(data_b),
+      .data_c(data_c),
+      .op_wren(op_wren),
+
+      .im2col_done(im2col_done),
+      .SA_psum_fifo_empty(SA_psum_fifo_empty),
+      .Tail_done(Tail_done), // Generated in integration block
+      .FC_done(FC_done), //accumulator valid signal of FC engine
+      .FC_layerdone(FC_layerdone),
+
+      .acc_fifo_occupants(acc_fifo_occupants),
+      .bias_fifo_occupants(bias_fifo_occupants),
+      .fc_bias_fifo_occupants(fc_bias_fifo_occupants)
+  );
+
+  wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b;
+  wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c;
+
+  wire [OP_FIFO-1:0] op_wren;
+
+  wire [(DATA_WIDTH_OB*OP_FIFO)-1:0] data_op_write_dram_fifo;
+  assign data_op_write_dram_fifo = switch_enable? {data_b, data_c} : data_b;
+
+  wire [OP_FIFO-1:0] op_dram_fifo_empty;
+  wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
+  //o/p write FIFO to DDR
+  dram_fifo #(
+      .DIMENSION(OP_FIFO),
+      .W_DATA(DATA_WIDTH_OB),
+      .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
+      .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
+  ) op_write_dram_fifo (
+      .i_clk(i_clk),
+      .i_rst(i_rst),
+      .i_data(data_op_write_dram_fifo),
+      .i_read_enable(op_dram_rden),
+      .i_write_enable(op_wren),
+      .o_data(op_dram_fifo),
+      .o_fifo_empty(op_dram_fifo_empty),
+      .o_fifo_full(),
+      .o_fifo_dv(),
+      .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
+  );
+
+  wire [OP_FIFO-1:0] op_dram_rden;
+
+  Mem_write_ctrl#(
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+    .N_FIFO(OP_FIFO)
+  ) op_dram_fifo_rden_ctrl(
+    .clk(i_clk),
+    .rst(i_rst),
+    .select(select[`OPWrite]), //select signal from DRAM ctrler (WR_ID mger)
+    .wready(wready), // from DRAM ctrler (WR_ID mger)
+    .blen(wr_burst_len), // from DRAM ctler ()
+    .data_valid(dv_op_write),
+    .data_last(data_last_op_write),
+    .fifo_rd_en(op_dram_rden)
+  );
+
+
+ /* Iteration counter module that generates iteration 'done' signals based on the status
+    of various operators. Also generates 'enable'signals to various tail blocks
+    based on the instruction fields. Also generates 'acc_en' signal that specifies
+    wheteher to add the accumulamts in current iteration.
+    
+    It also generates 'ack' signals for config blk in last channel and kernel iteration.
+*/
+  // Iteration counter module
+    wire SA_done;
+    wire SA_psum_fifo_empty;
+    wire Tail_done;
+    wire op_fifo_empty;
+
+    assign op_fifo_empty = &(op_dram_fifo_empty);
+    wire [SHFT_REG_X-1:0] shift_reg_sel;
+    assign shift_reg_sel = {SHFT_REG_X{shift_reg_en}};
+    iteration_cnt iteration_counter_inst
+    (
+        .i_clk(i_clk),
+        .rst(i_rst),
+        .start(start),
+        .CONV_FC(CONV_FC),
+        .im2col_done(im2col_done), // i-wire : from im2col block
+        .SA_psum_fifo_empty(SA_psum_fifo_empty),
+        .Tail_done(Tail_done),
+        .op_fifo_empty(op_fifo_empty),
+        .FC_done(FC_done),
+
+        .c_iter(channel_iteration_OB), //channel iteration
+        .k_iter(kernel_iteration_OB), //kernel iteration
+
+        .o_iter_done(iter_done),
+        .o_c_done(channel_done),
+        .o_layer_done(layer_done),
+
+        .BIAS_EN(BIAS_EN),
+        .RELU_EN(ACT_EN),
+        .QUANT_EN(QUANT_EN),
+        .POOL_EN(POOL_EN),
+        .ACC_EN(ACC_EN),  
+        .FC_BIAS_EN(FC_BIAS_EN), //above six signals comes from instruction fields
+
+        .acc_en(vector_add_enable),
+        .relu_en(relu_enable),
+        .quant_en(quant_enable),
+        .bias_en(bias_enable),
+        .fc_bias_en(bias_fc_enable), 
+        .pool_en(maxpool_enable),
+        .en(shift_reg_en),
+
+        //Ack signals to config blk.
+        .Conv_Ack(Conv_Ack),
+        .OpBlock_Ack(OpBlock_Ack),
+        .Tail_Ack(Tail_Ack)
+        //.FC_Ack(FC_Ack)
+    );
+
+    wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;
+    //o_done_rden_ctrl from flattening indicates data read from BRAM for k_iter times
+    assign FC_Ack = FC_layerdone;  
+
+/* 
+    im2col needs start in each iteration.
+    im2col soft start controller waits for 'iter_done' and generates a 
+    next 'start_im2col' signal to im2col block in each iteration till 
+    kernel counter reaches maximum. 
+*/
+    im2col_start_ctrler im2col_start_ctrler_inst
+    (
+        .clk(i_clk),
+        .rst(rst),
+        .start(start_SA), //start_SA
+
+        .iter_done(iter_done),
+        .c_iter(channel_iteration),
+        .k_iter(kernel_iteration),
+
+        .start_im2col(im2col_global_start)
+    );
+
+
+endmodule

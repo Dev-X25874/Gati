@@ -24,8 +24,8 @@ Note: If `i_rstn` is connected to ground, no output would be achieved as the des
 ## Output Analysis
 
 Matrix sent by the script serially to the controller:
-![matrix](images/matrix.png)
+<br>![matrix](images/matrix.png)<br>
 
 Output coming from flattening controller, if flattening input is 1:
-![output when flattening is needed](images/output.png)
+<br>![output when flattening is needed](images/output.png)<br>
 

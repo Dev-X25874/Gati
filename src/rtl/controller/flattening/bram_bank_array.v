@@ -1,8 +1,12 @@
+/*
+    Array of BRAM to store image coming from DDR,
+    before sending it into fully connected
+*/
 module bram_bank_array#(
-    parameter N_BANK = 4,       //number of banks of bram
-    parameter N_BRAM = 8, //total brams in one bank
-    parameter W_ADDR = 9,       //bram address width
-    parameter W_DATA = 8        //bram data width
+    parameter N_BANK = 4,   //number of banks of bram
+    parameter N_BRAM = 8,   //total brams in one bank
+    parameter W_ADDR = 9,   //bram address width
+    parameter W_DATA = 8    //bram data width
 )(
     input clk,
     input [N_BANK-1 : 0] i_bank_en,

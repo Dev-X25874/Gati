@@ -14,8 +14,8 @@ The implementation process involves several steps to ensure the proper transmiss
     ```
     Replace `<FILE_NAME>`, `<PORT>`, and `<BAUDRATE>` with appropriate values.
 
-2. When prompted with "Enter to send weight matrix" in the terminal, connect the `i_opcode` wire with ground on the board if flattening is not required,
-    else, connect it with VCC if flattening is required.
+2. When prompted with "Enter to send weight matrix" in the terminal, connect the `i_opcode` wire with ground on the board if switching is not required,
+    else, connect it with VCC if switching is required.
 
 3. Now, connect `i_start` to ground on the board to give a trigger pulse to the read enable controller present inside SA and FC block.
     If this input's GPIO is other than LED, then connect it to VCC to send a trigger pulse. Once done, disconnect the cable.

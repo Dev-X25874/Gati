@@ -10,7 +10,7 @@ module output_mux#(
     parameter W_DATA = 8
 )(
     input clk,
-    input rst,
+    input rstn,
     input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
     input [N_BRAM-1 : 0] i_rden,
     input [N_BANK-1 : 0] i_bank_en,
@@ -46,7 +46,7 @@ wire [BIN_WIDTH-1 : 0] select;
 assign select = {bank_en_bin, read_en_bin};
 
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         r_data <= 0;
     end else begin
         if(i_weight_ff_array_empty === 0)begin

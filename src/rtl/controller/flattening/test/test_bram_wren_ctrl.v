@@ -10,7 +10,7 @@ module test_bram_wren_ctrl#(
     parameter W_IMG_BRAM_ADDR = 10
 )(
     input clk,
-    input rst,
+    input rstn,
     input data_valid,
     input [W_KERNAL_CNT-1 : 0] i_kernal_counter,    //input from instruction
     input [W_KERNAL_CNT-1 : 0] kernal_counter,      //input from read enable controller
@@ -34,7 +34,7 @@ assign o_data = data;
 assign o_waddr = {N_BANK{waddr}};
 
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         data <= 0;
         w_done <= 0;
         wren <= 0;

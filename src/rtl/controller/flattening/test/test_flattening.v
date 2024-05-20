@@ -13,7 +13,7 @@ module test_flattening#(
     parameter W_IMG_BRAM_ADDR = 10
 )(
     input clk,
-    input rst,
+    input rstn,
     input flatten,                                             
     input i_acc_valid,                                         
     input [W_IMG_BRAM_ADDR-1 : 0] i_addr_counter,              
@@ -34,13 +34,13 @@ wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] flattened_data;
     Controller to rewire the incoming data from DDR,
     in order to flatten it
 */
-flattening_controller#(
+conv_output_reorder#(
     .N_BRAM(N_BRAM),
     .N_BANK(N_BANK),
     .W_DATA(W_DATA)
 )data_flattening(
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .i_valid(i_data_valid),
     .flatten(flatten),
     .i_data(i_data),
@@ -65,7 +65,7 @@ test_bram_wren_ctrl#(
     .W_IMG_BRAM_ADDR(W_IMG_BRAM_ADDR)
 )bram_array_wren(
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl),
     .i_kernal_counter(i_kernal_counter),
     .data_valid(flattened_data_valid),
@@ -122,7 +122,7 @@ bram_rden_controller#(
     .W_IMG_BRAM_ADDR(W_IMG_BRAM_ADDR)
 )bram_read_controller(
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .w_done(wren_done_bram_we_ctrl_bram_re_ctrl),
     .accumulator_valid(i_acc_valid),
     .flatten(flatten),
@@ -148,7 +148,7 @@ output_mux#(
     .W_DATA(W_DATA)
 ) output_data_mux (
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .i_weight_ff_array_empty(i_weight_ff_array_empty),
     .i_rden(mux_rden),
     .i_bank_en(mux_bank_en),

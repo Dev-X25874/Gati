@@ -1,7 +1,7 @@
 /*
-    image dimension is 7x7x16 = 784
-    counting 7 0's for each bank, after every 49 elements in a bank, 7x16 = 112
-    784 + 112 = 896 (total elements for first set of kernals)
+    Reads data from BRAM array. Based on flattening input,
+    the way data is read changes in both the case, whether flattening
+    is required or not.
 */
 module bram_rden_controller#(
     parameter W_KERNAL_CNT = 10,
@@ -12,7 +12,7 @@ module bram_rden_controller#(
     parameter W_IMG_BRAM_ADDR = 10
 )(
     input clk,
-    input rst,
+    input rstn,
     input w_done,
     input accumulator_valid,
     input flatten,
@@ -63,7 +63,7 @@ assign temp_value = (image_dimension >> ($clog2(N_BRAM))) + ((image_dimension % 
 
 //Asserts bank enable signal and handles address incrementation
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         bank_en <= 0;
         addr <= 0;
         bank_shift_counter <= 0;

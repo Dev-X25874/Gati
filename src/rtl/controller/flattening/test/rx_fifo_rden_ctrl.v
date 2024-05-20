@@ -9,7 +9,7 @@ module rx_fifo_rden_ctrl#(
     parameter W_ADDR = 8
 )(
     input clk,
-    input rst,
+    input rstn,
     input i_fifo_empty,
     input [W_ADDR : 0] i_fifo_occupants,
     output o_fifo_read_enable
@@ -21,7 +21,7 @@ reg rden = 0;
 assign o_fifo_read_enable = rden;
 
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         rden <= 0;
         state <= 0;
     end else begin

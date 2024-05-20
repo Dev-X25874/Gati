@@ -8,7 +8,7 @@ module uart_fifo_array_data#(
     parameter W_DATA = 8
 )(
     input clk,
-    input rst,
+    input rstn,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
     output o_enable,
@@ -21,7 +21,7 @@ assign o_enable = enb;
 assign o_data = data;
 
 always @(*) begin
-    if(rst)begin
+    if(~rstn)begin
         enb <= 1'b0;
     end else begin
         if(i_data_valid)begin
@@ -33,7 +33,7 @@ always @(*) begin
 end
 
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         data <= 0;    
     end else begin
         if(i_data_valid)begin

@@ -1,5 +1,6 @@
 /*
-    Controls write enable signal of bram array
+    Controls write enable signal of bram array.
+    Data is written into all the fifo in BRAM array, one after another.
 */
 module bram_wren_ctrl#(
     parameter N_BRAM = 8,
@@ -10,7 +11,7 @@ module bram_wren_ctrl#(
     parameter W_IMG_BRAM_ADDR = 10
 )(
     input clk,
-    input rst,
+    input rstn,
     input start,
     input data_valid,
     input [W_KERNAL_CNT-1 : 0] i_kernal_counter,    //input from instruction
@@ -35,15 +36,16 @@ assign o_data = data;
 assign o_waddr = {N_BANK{waddr}};
 
 wire w_start;
-one_pulse start_pulse(
+//gives out one pulse output of trigger received as input from GPIO
+pulse_gen one_pulse_generator(
     .a(start),
-    .rst(rst),
+    .i_rstn(rstn),
     .clk(clk),
     .b(w_start)
 );
 
 always @(posedge clk) begin
-    if(rst)begin
+    if(~rstn)begin
         data <= 0;
         w_done <= 0;
         wren <= 0;

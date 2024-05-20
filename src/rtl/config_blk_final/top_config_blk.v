@@ -29,7 +29,7 @@ module config_blk #(
     input [NUM_INSTRUCTIONS-1:0]ack_signals, //acknowledgement signals from slave blocks
     output[NUM_INSTRUCTIONS-1:0]start_command,// start command to slave blocks after receiving start instruction
     output start_out,// start pulse that pulses for each start instruction
-    output [ADDR_W-1:0]o_instruction_bus,//for bus master, we can use common for both opcode and data in ports of the bus master
+    output [INST_W-1:0]o_instruction_bus,//for bus master, we can use common for both opcode and data in ports of the bus master
     output o_instruction_bus_v,//for bus master
     output start_bus //for bus master
   );
@@ -69,7 +69,7 @@ module config_blk #(
 
 
 //Instruction Queue Controller Instantiation                 
-  controller_inst_q #(.INSTRUCT_W(INST_W)) inst_q_controller_2(
+  controller_inst_q #(.INSTRUCT_W(INST_W),.ADDR_W(ADDR_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
                       .sel(sel),
@@ -84,7 +84,6 @@ module config_blk #(
 //Instruction Queue Instatiation                    
   instruct_q #(.INSTRUCT_W(INST_W),
                .DEPTH(DEPTH),
-               .DATA_WIDTH(INST_W),
                .STATUS_DRAM_LIM(STATUS_DRAM_LIM))
              inst_q_3(
                .clkin(clkin),

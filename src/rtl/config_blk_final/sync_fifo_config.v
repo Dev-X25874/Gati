@@ -7,15 +7,13 @@
 //It also counts number of instructions stored in the FIFO.
 //////////////////////////////////////////////////////////////////////////////////
 module synchronous_fifo #(parameter DEPTH=100, 
-parameter DATA_WIDTH=256,
+parameter INSTRUCT_W=256,
 parameter  STATUS_DRAM_LIM=10 ) (
     input clk, rst_n,
     input w_en, r_en,
-    input [(DATA_WIDTH-1):0] data_in,
-    output reg [(DATA_WIDTH-1):0] data_out,
-    //output reg [(DATA_WIDTH-1):0] data_out_2,
+    input [(INSTRUCT_W-1):0] data_in,
+    output reg [(INSTRUCT_W-1):0] data_out,
     output reg data_out_valid,
-    //output reg data_out_valid_2,
     output full, empty,
     output [($clog2(DEPTH)):0] occupants,
     output ten_trigg,
@@ -24,7 +22,7 @@ parameter  STATUS_DRAM_LIM=10 ) (
 
   reg [($clog2(DEPTH)-1):0] w_ptr=0;
   reg [($clog2(DEPTH)-1):0] r_ptr=0;
-  reg [DATA_WIDTH-1:0] fifo[DEPTH:0];
+  reg [INSTRUCT_W-1:0] fifo[DEPTH:0];
   reg [$clog2(DEPTH):0]occupants_reg=9'd0;
   // Set Default values on reset.
   always@(posedge clk)

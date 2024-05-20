@@ -18,7 +18,7 @@ module ctrl_ack #(
 
 genvar i;
 generate
-  for(i=0;i<NUM_INSTRUCTIONS;i=i+1)
+  for(i=0;i<NUM_INSTRUCTIONS;i=i+1) //generate the logic for the required number of instructions
   begin
     always @(posedge clkin)
     begin

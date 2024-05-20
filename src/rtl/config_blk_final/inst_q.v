@@ -9,7 +9,6 @@
 module instruct_q #(
     parameter INSTRUCT_W=256,
     parameter DEPTH=100,
-    parameter DATA_WIDTH=256,
     parameter  STATUS_DRAM_LIM=10
   )(
     input clkin,
@@ -17,13 +16,11 @@ module instruct_q #(
     input read_req_inst, //talking to inst read controller
     input instruct_valid, //talking to isnt q controller
     output [INSTRUCT_W-1:0]o_instruction,
-    output [DATA_WIDTH-1:0]o_instruction_2,
     output o_instruction_valid,
-    output o_instruction_valid_2,
     output o_status_dram,
     output o_status_inst
   );
-  synchronous_fifo  #(.DEPTH(DEPTH),.DATA_WIDTH(DATA_WIDTH),.STATUS_DRAM_LIM(STATUS_DRAM_LIM))
+  synchronous_fifo  #(.DEPTH(DEPTH),.INSTRUCT_W(INSTRUCT_W),.STATUS_DRAM_LIM(STATUS_DRAM_LIM))
                     instant(.clk(clkin),
                             .rst_n(1'b1),
                             .w_en(instruct_valid),

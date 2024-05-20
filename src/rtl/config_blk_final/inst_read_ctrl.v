@@ -86,6 +86,7 @@ module inst_read_ctrl#(
                 flag_2<=1;
                 ack_reg<=0;
                 prev_reg<=0;
+                flag<=1;
                 next_reg<=0;
               end
               else

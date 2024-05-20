@@ -5,7 +5,8 @@
 // Description:Takes instruction data from DRAM memory and checks its validity before passing to Instruction Queue 
 //////////////////////////////////////////////////////////////////////////////////
 module controller_inst_q #(
-  parameter INSTRUCT_W=256
+  parameter INSTRUCT_W=256,
+  parameter ADDR_W=32
 )(
     input clkin,
     input valid,
@@ -14,12 +15,12 @@ module controller_inst_q #(
     input [INSTRUCT_W-1:0]i_instruction_data,
     output reg [INSTRUCT_W-1:0]o_instruction,
     output reg o_instruction_valid, //also used as address valid
-    output [31:0]o_global_start,
-    output [31:0]o_global_stop
+    output [ADDR_W-1:0]o_global_start,
+    output [ADDR_W-1:0]o_global_stop
   );
   reg [3:0]state=0;
-  reg [31:0]internal_start;
-  reg [31:0]internal_stop;
+  reg [ADDR_W-1:0]internal_start;
+  reg [ADDR_W-1:0]internal_stop;
   always@(posedge clkin)
   begin
     case(state)
@@ -28,7 +29,6 @@ module controller_inst_q #(
         if(user_start)
         begin
           state<=1;
-          //flag<=1;
         end
         else
         begin
@@ -48,10 +48,9 @@ module controller_inst_q #(
       begin
         if(sel && valid) 
         begin
-            internal_start<=i_instruction_data[31:0];
-            internal_stop<=i_instruction_data[63:32];
+            internal_start<=i_instruction_data[ADDR_W-1:0];
+            internal_stop<=i_instruction_data[2*ADDR_W-1:ADDR_W];
             o_instruction_valid<=1;
-            //flag<=0;
             state<=0;
         end
         else

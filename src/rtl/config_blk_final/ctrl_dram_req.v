@@ -17,7 +17,6 @@ module ctrl_dram_req #(
   input [ADDR_W-1:0] global_reg_address_start, //start address
   input [ADDR_W-1:0] global_reg_address_stop, //stop address
   input address_valid, //for telling dram to take in global start and stop
-  //input layer_done,
   output read_req, //read req for dram
   output valid, //valid signal
   output [7:0]o_address, //8 bit chunks of address
@@ -34,11 +33,7 @@ reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
 
-always @(posedge clkin)
-begin
-/*   if(layer_done)begin
-    state<=0;
-  end */
+always @(posedge clkin)begin
   case(state)
     4'd0:
     begin

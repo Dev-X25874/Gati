@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="output_block" description="" last_change_date="Sat May 18 2024 14:39:41" location="F:/Vicharak/Gati/Gati/src/rtl" sw_version="2023.1.150.6.14" last_run_state="" last_run_tool="" last_run_flow="" config_result_in_sync="true" design_ood="new" place_ood="" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="output_block" description="" last_change_date="Sat May 18 2024 15:47:59" location="F:/Vicharak/Gati/Gati/src/rtl" sw_version="2023.1.150.6.14" last_run_state="" last_run_tool="" last_run_flow="" config_result_in_sync="true" design_ood="change" place_ood="" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>

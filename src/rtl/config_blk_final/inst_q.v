@@ -30,9 +30,7 @@ module instruct_q #(
                             .r_en(read_req_inst),
                             .data_in(instruct_mem),
                             .data_out(o_instruction),
-                            .data_out_2(o_instruction_2)
                             .data_out_valid(o_instruction_valid),
-                            .data_out_valid_2(o_instruction_valid_2),
                             .full(),
                             .empty(),
                             .ten_trigg(o_status_dram),

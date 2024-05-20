@@ -26,24 +26,13 @@ module top_board #(
     output start_out
   );
 
-  wire read_1_3;
-  wire [7:0] address_1_2;
-  wire [INST_W-1:0]instruct_2_1;
-  wire valid_3_6;
+
   wire pulse_4_1;
-  wire pulse_6_1;
-  wire pulse_5_2;
-  wire inst1_7_1;
-  wire inst2_7_1;
-  wire inst3_7_1;
-  wire inst4_7_1;
-  wire pulse_9_8;
   wire [NUM_INSTRUCTIONS-1:0]start_cmd_1_7;
   wire [INST_W-1:0]instruct_8_1;
-  wire read_1_9;
   wire [BURST_LEN_WIDTH-1:0]burst_length;
-  wire random;
-  //wire valid_8_1;
+  wire last_signal;
+  wire valid_8_1;
   wire [NUM_INSTRUCTIONS-1:0]ack_7_1;
   config_blk #(.INST_W(INST_W),
                .ADDR_W(ADDR_W),
@@ -63,10 +52,10 @@ module top_board #(
                .valid(valid_8_1),
                .sel(1'b1),
                .instruction_data(instruct_8_1),
-               .memory_read_r(read_1_3),
+               .memory_read_r(),
                .memory_valid(),
-               .mem_address(address_1_2),
-               .mem_last(random),
+               .mem_address(),
+               .mem_last(last_signal),
                .mem_burst_len(burst_length),
                .ack_signals(ack_7_1),
                .start_command(start_cmd_1_7),
@@ -76,7 +65,7 @@ module top_board #(
 
   burst_mem_module memory_module_8(
                      .clkin(clkin),
-                     .burst_read_trigger(random),
+                     .burst_read_trigger(last_signal),
                      .burst_length(burst_length),
                      .mem_instruction(instruct_8_1),
                      .valid_signal(valid_8_1)

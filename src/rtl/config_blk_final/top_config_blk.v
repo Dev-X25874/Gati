@@ -81,7 +81,7 @@ module config_blk #(
                       .o_global_stop(global_stop)
                     );
 
-//INtruction Queue Instatiation                    
+//Instruction Queue Instatiation                    
   instruct_q #(.INSTRUCT_W(INST_W),
                .DEPTH(DEPTH),
                .DATA_WIDTH(INST_W),
@@ -92,9 +92,7 @@ module config_blk #(
                .read_req_inst(read_req_3_4),
                .instruct_valid(instruction_v_2_3),
                .o_instruction(o_instruction_3_5),
-               .o_instruction_2(o_instruction_bus),
                .o_instruction_valid(o_instruction_3_5_v),
-               .o_instruction_valid_2(o_instruction_bus_v),
                .o_status_dram(status_3_1),
                .o_status_inst(status_3_4)
              );
@@ -127,5 +125,7 @@ module config_blk #(
              .status_prev(prev_6_4),
              .o_valid_sig(valid_6_4)
            );
+assign o_instruction_bus=o_instruction_3_5;
+assign o_instruction_bus_v=o_instruction_3_5_v;
 
 endmodule

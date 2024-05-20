@@ -13,9 +13,9 @@ parameter  STATUS_DRAM_LIM=10 ) (
     input w_en, r_en,
     input [(DATA_WIDTH-1):0] data_in,
     output reg [(DATA_WIDTH-1):0] data_out,
-    output reg [(DATA_WIDTH-1):0] data_out_2,
+    //output reg [(DATA_WIDTH-1):0] data_out_2,
     output reg data_out_valid,
-    output reg data_out_valid_2,
+    //output reg data_out_valid_2,
     output full, empty,
     output [($clog2(DEPTH)):0] occupants,
     output ten_trigg,
@@ -34,9 +34,7 @@ parameter  STATUS_DRAM_LIM=10 ) (
       w_ptr <= 0;
       r_ptr <= 0;
       data_out <= 0;
-      data_out_2<=0;
       data_out_valid<=0;
-      data_out_valid_2<=0;
       occupants_reg<=0;
     end
 
@@ -53,17 +51,13 @@ parameter  STATUS_DRAM_LIM=10 ) (
       if(r_en & !empty)
       begin
         data_out <= fifo[r_ptr];
-        data_out_2<=fifo[r_ptr];
         data_out_valid=1'b1;
-        data_out_valid_2=1'b1;
         r_ptr <= r_ptr + 1;
       end
       else
       begin
         data_out_valid<=1'b0;
-        data_out_valid_2<=1'b0;
         data_out<=256'd0;
-        data_out_2<=256'd0;
       end
       
       case((w_en&&!full)+(r_en&&!empty)) //occupants logic

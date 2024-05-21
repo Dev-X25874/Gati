@@ -26,7 +26,6 @@ wire empty2;
 wire dv_pooling_secong_satge;
 wire [7:0] dout_pooling_second_stage;
 wire datavalid_final_pool;
-wire [7:0] dout_fifo1;
 wire we_mux;
 wire enable_rowwise;
 wire [7:0] dout_final_mux;

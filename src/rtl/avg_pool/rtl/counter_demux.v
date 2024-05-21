@@ -14,7 +14,7 @@ always @(posedge clk) begin
         sel <= 0;
     end  
     else begin
-        if(datavalid) begin
+        if(datavalid_in) begin
             if(counter_demux == 0) begin
                 sel <= 0;
                 datavalid_out <= 1;

@@ -24,7 +24,7 @@ always @(posedge clk) begin
     end
     else begin
         if(ENABLE) begin
-            if(datavalid) begin
+            if(datavalid_in) begin
                 case(pooling_type)
                 AVG_POOL: begin
                     if(counter == 0) begin

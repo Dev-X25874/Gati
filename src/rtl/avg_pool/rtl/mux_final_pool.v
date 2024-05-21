@@ -4,8 +4,8 @@ module mux_final_pool(
     input ENABLE,
     input [7:0] din_demux_for_fifo1,
     input [7:0] din_pooling_second_stage_fifo1,
-    input datavalid_out_final = 0,
-    input datavalid_out_fifo1 = 0,
+    output reg datavalid_out_final = 0,
+    output reg datavalid_out_fifo1 = 0,
     output reg dv = 0,
     output reg [7:0] dout_fifo1 = 0
 );
@@ -21,11 +21,9 @@ always @(posedge clk) begin
             if(datavalid_out_fifo1) begin
                 dout_fifo1 <= din_pooling_second_stage_fifo1;
                 dv <= 1;
-                state <= 0;
             end
             else begin
                 dout_fifo1 <= din_demux_for_fifo1;
-                state <= 0;
                 dv <= 1;
             end
         end

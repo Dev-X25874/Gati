@@ -394,7 +394,7 @@ Configuration Block
 
 .. note::
 
-   This is block is still under development.
+   This block is still under development.
 
 .. include:: instructions/inst.rst
 
@@ -403,9 +403,9 @@ programs input, output, and tail blocks ahead of time so that they can
 immediately switch to new settings after completion of the current layer
 and start processing next layer. 
 
-Each table above shows a config packet of 128 bits. Understand these
-packets as instructions where the instruction width is 128. None of the
-above configs currently take all 128 bits, this is not a problem, these
+Each table above shows a config packet of 256 bits. Understand these
+packets as instructions where the instruction width is 256. None of the
+above configs currently take all 256 bits, this is not a problem, these
 least significant remaining bits can be assumed to be reserved.
 
 .. sectionauthor:: Shreeyash Pandey (@bojle)

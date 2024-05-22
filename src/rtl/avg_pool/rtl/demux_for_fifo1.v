@@ -4,17 +4,16 @@ module demux_for_fifo1(
     input ENABLE,
     input datavalid_in, 
     input [7:0] data_in,
+    input sel,
     output reg [7:0] data_out_fifo1 = 0,
     output reg [7:0] data_out_fifo2 = 0,
     output reg datavalid_out = 0
 );
 
 reg [1:0] state = 0;
-reg [3:0] counter = 0;
-reg sel = 0; 
 
 always @(posedge clk) begin
-    if(rst_n) begin
+    if(~rst_n) begin
         data_out_fifo1 <= 0;
         data_out_fifo2 <= 0;
     end

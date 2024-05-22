@@ -2,7 +2,7 @@ module counter_demux(
     input clk,
     input rst_n,
     input datavalid_in,
-    input pool_height,
+    input [3:0] pool_height,
     output reg datavalid_out = 0,
     output reg sel = 0
 );
@@ -10,7 +10,7 @@ module counter_demux(
 reg [3:0] counter_demux = 0;
 
 always @(posedge clk) begin
-    if(rst_n) begin
+    if(~rst_n) begin
         sel <= 0;
     end  
     else begin
@@ -18,16 +18,17 @@ always @(posedge clk) begin
             if(counter_demux == 0) begin
                 sel <= 0;
                 datavalid_out <= 1;
+                counter_demux <= 1;
             end
-            else if(counter_demux < pool_height) begin
+            else if(counter_demux == (pool_height - 1)) begin
                 sel <= 1;
-                counter_demux <= counter_demux + 1;
+                counter_demux <= 0;
                 datavalid_out <= 1;
             end
             else begin
-                sel <= 0;
-                counter_demux <= 0;
-                datavalid_out <= 0;
+                sel <= 1;
+                counter_demux <= counter_demux + 1;
+                datavalid_out <= 1;
             end
         end
     end

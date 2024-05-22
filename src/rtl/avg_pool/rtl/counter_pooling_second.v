@@ -14,7 +14,7 @@ module counter_pooling_second(
 reg [3:0] counter = 0;
 
 always @(posedge clk) begin
-    if(rst_n) begin
+    if(~rst_n) begin
         dout_final <= 0;
         dout_fifo1 <= 0;
         datavalid_out_final <= 0;

@@ -13,7 +13,7 @@ reg enable = 0;
 reg [1:0] state = 0;
 
 always @(posedge clk) begin
-    if(rst_n) begin
+    if(~rst_n) begin
         enable <= 0;
         done <= 0;
     end

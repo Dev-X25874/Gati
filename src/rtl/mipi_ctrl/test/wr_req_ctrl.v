@@ -35,8 +35,10 @@ reg [W_BURST_LEN-1 : 0] r_burst_len = BURST_LEN;   //reg to hold updated burst l
 reg [W_DATA-1 : 0] data_size = 0;
 reg [W_DATA-1 : 0] offset = 0;
 reg [2:0] addr_counter = 0;
+wire [W_ADDR:0] replicated_value;
+assign replicated_value = burst_len + 1;
 wire [((W_ADDR + 1) * N_FIFO)-1 : 0] fifo_occupants;
-assign fifo_occupants = {N_FIFO{burst_len+1}};
+assign fifo_occupants = {N_FIFO{replicated_value}};
 
 assign o_address = addr;
 assign o_request = req;

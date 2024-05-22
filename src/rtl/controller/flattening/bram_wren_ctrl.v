@@ -24,7 +24,7 @@ module bram_wren_ctrl#(
     output [(N_BANK * (W_ADDR + 1))-1 : 0] o_waddr
 );
 
-reg [6:0] counter = 0;
+reg [W_IMG_BRAM_ADDR-1:0] counter = 0;
 reg [1:0] state = 0;
 reg w_done = 0;
 reg [(N_BANK * N_BRAM)-1 : 0] wren = 0;

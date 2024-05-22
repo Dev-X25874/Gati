@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="round_robin_ARB" description="" last_change_date="Thu April 11 2024 09:42:52" location="/home/prapti/Gati/src/rtl/mem_ctrl/test" sw_version="2023.1.150" last_run_state="fail" last_run_tool="efx_map" last_run_flow="syn" config_result_in_sync="true" design_ood="new" place_ood="" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="round_robin_ARB" description="" last_change="1716359360" sw_version="2023.2.307" last_run_state="fail" last_run_flow="place" config_result_in_sync="true" design_ood="sync" place_ood="" route_ood="new" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
-        <efx:device name="T85F324"/>
-        <efx:timing_model name="C3"/>
+        <efx:device name="T120F324"/>
+        <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="Top_mem_ctrl"/>
-        <efx:design_file name="rtl/RR_ARB.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Port_controller.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Port_ctrl_gen.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Req_Queue_gen.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Top_mem_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/fifo_valid.v" version="default" library="default"/>
-        <efx:design_file name="rtl/memory_valid.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Req_Manager.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Wr_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/WR_ID_Manager.v" version="default" library="default"/>
-        <efx:design_file name="rtl/onehot_to_bin.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Rd_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Axi4FullDeplex.v" version="default" library="default"/>
-        <efx:design_file name="rtl/RD_ID_Manager.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Test_data_ctrl_2.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Test_data_ctrl_3.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Test_data_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Top_Axi.v" version="default" library="default"/>
-         <efx:design_file name="rtl/MUX_WR_SEL.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Mem_Rd_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="rtl/one_pulse.v" version="default" library="default"/>
-         <efx:design_file name="rtl/Mem_ctrl_wr.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Test_data_ctrl_1.v" version="default" library="default"/>
-        <efx:design_file name="rtl/ddr_reset_sequencer.v" version="default" library="default"/>
-        <efx:design_file name="rtl/Top_test_data_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="RD_ID_Manager.v" version="default" library="default"/>
+        <efx:design_file name="Req_Queue_gen.v" version="default" library="default"/>
+        <efx:design_file name="MUX_WR_SEL.v" version="default" library="default"/>
+        <efx:design_file name="Top_mem_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="Top_test_data_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="one_pulse.v" version="default" library="default"/>
+        <efx:design_file name="Top_Axi.v" version="default" library="default"/>
+        <efx:design_file name="Mem_Rd_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="Mem_ctrl_wr.v" version="default" library="default"/>
+        <efx:design_file name="onehot_to_bin.v" version="default" library="default"/>
+        <efx:design_file name="Port_controller.v" version="default" library="default"/>
+        <efx:design_file name="Test_data_ctrl_2.v" version="default" library="default"/>
+        <efx:design_file name="ddr_reset_sequencer.v" version="default" library="default"/>
+        <efx:design_file name="Test_data_ctrl_1.v" version="default" library="default"/>
+        <efx:design_file name="Test_data_ctrl_3.v" version="default" library="default"/>
+        <efx:design_file name="Axi4FullDeplex.v" version="default" library="default"/>
+        <efx:design_file name="Port_ctrl_gen.v" version="default" library="default"/>
+        <efx:design_file name="RR_ARB.v" version="default" library="default"/>
+        <efx:design_file name="Wr_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="Req_Manager.v" version="default" library="default"/>
+        <efx:design_file name="Rd_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="Test_data_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="WR_ID_Manager.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
+        <efx:sdc_file name="controller.sdc"/>
         <efx:inter_file name=""/>
     </efx:constraint_info>
     <efx:sim_info>
         <efx:sim_file name="RR_tb.v"/>
         <efx:sim_file name="top_tb.v"/>
+        <efx:sim_file name="bin_onehot_tb.v"/>
     </efx:sim_info>
     <efx:misc_info/>
     <efx:ip_info>
-        <efx:ip instance_name="req_que_mod" path="ip/req_que_mod/settings.json">
-            <efx:ip_src_file name="req_que_mod.v"/>
+        <efx:ip instance_name="data_fifo" path="ip/data_fifo/settings.json">
+            <efx:ip_src_file name="data_fifo.v"/>
         </efx:ip>
     </efx:ip_info>
     <efx:synthesis tool_name="efx_map">
@@ -73,16 +73,20 @@
         <efx:param name="seq-opt-sync-only" value="0" value_type="e_option"/>
         <efx:param name="mult_input_regs_packing" value="1" value_type="e_option"/>
         <efx:param name="mult_output_regs_packing" value="1" value_type="e_option"/>
-        <efx:param name="include" value="ip/req_que_mod" value_type="e_string"/>
+        <efx:param name="mult-auto-pipeline" value="0" value_type="e_option"/>
+        <efx:param name="use-logic-for-small-mem" value="64" value_type="e_integer"/>
+        <efx:param name="use-logic-for-small-rom" value="64" value_type="e_integer"/>
+        <efx:param name="include" value="ip/data_fifo" value_type="e_string"/>
     </efx:synthesis>
     <efx:place_and_route tool_name="efx_pnr">
         <efx:param name="work_dir" value="work_pnr" value_type="e_string"/>
         <efx:param name="verbose" value="off" value_type="e_bool"/>
         <efx:param name="load_delaym" value="on" value_type="e_bool"/>
-        <efx:param name="optimization_level" value="NULL" value_type="e_option"/>
+        <efx:param name="optimization_level" value="TIMING_2" value_type="e_option"/>
         <efx:param name="seed" value="1" value_type="e_integer"/>
-        <efx:param name="placer_effort_level" value="2" value_type="e_option"/>
+        <efx:param name="placer_effort_level" value="4" value_type="e_option"/>
         <efx:param name="max_threads" value="-1" value_type="e_integer"/>
+        <efx:param name="print_critical_path" value="10" value_type="e_integer"/>
     </efx:place_and_route>
     <efx:bitstream_generation tool_name="efx_pgm">
         <efx:param name="mode" value="active" value_type="e_string"/>
@@ -105,7 +109,7 @@
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
-        <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
-        <efx:param name="profile" value="NONE" value_type="e_string"/>
+        <efx:param name="auto_instantiation" value="on" value_type="e_bool"/>
+        <efx:param name="profile" value="debug_profile.wizard.json" value_type="e_string"/>
     </efx:debugger>
 </efx:project>

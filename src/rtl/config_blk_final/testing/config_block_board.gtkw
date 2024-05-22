@@ -1,0 +1,87 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Sat May 18 06:19:23 2024
+[*]
+[dumpfile] "/home/aditya/Downloads/efinity/2023.2/project/may_13_proj/la0_waveform.vcd"
+[dumpfile_mtime] "Sat May 18 06:17:27 2024"
+[dumpfile_size] 53317
+[savefile] "/home/aditya/Desktop/verilog_inter/New_Config_May_18.gtkw"
+[timestart] 317
+[size] 1850 1016
+[pos] -83 -83
+*-6.000000 455 512 1536 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 233
+[signals_width] 603
+[sst_expanded] 1
+[sst_vpaned_height] 289
+@22
+top.config_block_mod_1/ack_block_6/status_ack[3:0]
+top.config_block_mod_1/ack_block_6/status_prev[7:0]
+@28
+top.config_block_mod_1/dram_controller_1/address_valid
+@22
+top.config_block_mod_1/dram_controller_1/burst_len[3:0]
+@28
+top.config_block_mod_1/dram_controller_1/clkin
+top.config_block_mod_1/dram_controller_1/dv
+@22
+top.config_block_mod_1/dram_controller_1/global_reg_address_start[31:0]
+top.config_block_mod_1/dram_controller_1/global_reg_address_stop[31:0]
+top.config_block_mod_1/dram_controller_1/internal_reg_start[31:0]
+top.config_block_mod_1/dram_controller_1/internal_reg_stop[31:0]
+@28
+top.config_block_mod_1/dram_controller_1/last
+top.config_block_mod_1/dram_controller_1/last_reg
+@22
+top.config_block_mod_1/dram_controller_1/o_address[7:0]
+top.config_block_mod_1/dram_controller_1/o_address_reg[7:0]
+@28
+top.config_block_mod_1/dram_controller_1/read_req
+top.config_block_mod_1/dram_controller_1/read_req_reg
+@22
+top.config_block_mod_1/dram_controller_1/state[3:0]
+@28
+top.config_block_mod_1/dram_controller_1/status
+top.config_block_mod_1/dram_controller_1/user_start
+top.config_block_mod_1/dram_controller_1/valid
+@22
+top.config_block_mod_1/inst_q_3/instant/occupants[7:0]
+top.config_block_mod_1/inst_q_3/instruct_mem[255:0]
+@28
+top.config_block_mod_1/inst_q_3/instruct_valid
+@22
+top.config_block_mod_1/inst_q_3/o_instruction[255:0]
+@29
+top.config_block_mod_1/inst_q_3/o_instruction_valid
+@28
+top.config_block_mod_1/inst_q_3/o_status_dram
+top.config_block_mod_1/inst_q_3/o_status_inst
+top.config_block_mod_1/inst_q_3/read_req_inst
+@22
+top.config_block_mod_1/inst_q_controller_2/i_instruction_data[255:0]
+top.config_block_mod_1/inst_q_controller_2/internal_start[31:0]
+top.config_block_mod_1/inst_q_controller_2/internal_stop[31:0]
+top.config_block_mod_1/inst_q_controller_2/o_global_start[31:0]
+top.config_block_mod_1/inst_q_controller_2/o_global_stop[31:0]
+top.config_block_mod_1/inst_q_controller_2/o_instruction[255:0]
+@28
+top.config_block_mod_1/inst_q_controller_2/o_instruction_valid
+@22
+top.config_block_mod_1/inst_read_ctrl_4/ack_reg[3:0]
+@28
+top.config_block_mod_1/inst_read_ctrl_4/flag_2
+@22
+top.config_block_mod_1/inst_read_ctrl_4/layer_number[11:0]
+top.config_block_mod_1/inst_read_ctrl_4/next_reg[7:0]
+top.config_block_mod_1/inst_read_ctrl_4/opcode[3:0]
+top.config_block_mod_1/inst_read_ctrl_4/prev_reg[7:0]
+top.config_block_mod_1/inst_read_ctrl_4/r_opcode[3:0]
+top.config_block_mod_1/inst_read_ctrl_4/start_command[3:0]
+top.config_block_mod_1/inst_read_ctrl_4/super_state[3:0]
+top.config_block_mod_1/inst_read_ctrl_4/total_layers[11:0]
+top.config_block_mod_1/master_controller_5/din[255:0]
+top.config_block_mod_1/master_controller_5/op_code[3:0]
+@28
+top.config_block_mod_1/start_out
+[pattern_trace] 1
+[pattern_trace] 0

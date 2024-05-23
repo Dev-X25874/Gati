@@ -99,7 +99,7 @@ module inst_read_ctrl#(
               begin
                 read_signal_reg<=1'b1;
                 flag<=0;
-                top_state=4'd2;
+                top_state<=4'd2;
               end
               else
               begin

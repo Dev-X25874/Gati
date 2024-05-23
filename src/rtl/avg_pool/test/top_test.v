@@ -77,6 +77,7 @@ top top_pool(
     .pooling_type(pooling_type),
     .pool_width(pool_width),
     .pool_height(pool_height),
+    .rx_valid(rx_valid),
     .OH(OH),
     .OW(OW),
     .dout(data_out_tx),

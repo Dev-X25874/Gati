@@ -9,6 +9,7 @@ module top(
     input [3:0] pool_height,
     input [9:0] OH,
     input [9:0] OW,
+    input rx_valid,
     output [7:0] dout,
     output done,
     output datavalid_out
@@ -33,7 +34,9 @@ wire [7:0] dout_final_mux;
 wire [7:0] dout_fifo1_mux;
 wire [7:0] dout_fifo1;
 wire sel;
-wire dv_counter_demux;
+wire dv_demux_counter;
+wire we_fifo1;
+wire we_fifo2;
 
 pooling_first_stage pooling_first_stage (
     .clk(clk),
@@ -44,15 +47,16 @@ pooling_first_stage pooling_first_stage (
     .pool_width(pool_width),
     .pooling_type(pooling_type),
     .dout(dout_pooling_first_stage),
-    .datavalid_out(dv_counter_demux)
+    .datavalid_out(dv_pooling_first_stage)
 );
 
 counter_demux counter_demux (
     .clk(clk),
     .rst_n(rst_n),
-    .datavalid_in(dv_counter_demux),
+    .datavalid_in(dv_demux_counter),
     .pool_height(pool_height),
-    .datavalid_out(dv_pooling_first_stage),
+    .rx_valid(rx_valid),
+    .datavalid_out(),
     .sel(sel)
 );
 
@@ -65,7 +69,8 @@ demux_for_fifo1 demux_for_fifo1 (
     .data_out_fifo1(data_in_fifo1),
     .data_out_fifo2(data_in_fifo2),
     .datavalid_in(dv_pooling_first_stage),
-    .datavalid_out(we_fifo)
+    .datavalid_out_fifo1(we_fifo1),
+    .datavalid_out_fifo2(we_fifo2)
 );
 
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_1 (
@@ -84,7 +89,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_1 (
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_2 (
     .clk(clk),
     .rst_n(rst_n),
-    .we(we_fifo),
+    .we(we_fifo2),
     .re(re),
     .data_in(data_in_fifo2),
     .occupants(),
@@ -126,7 +131,7 @@ mux_final_pool mux_final_pool (
     .din_demux_for_fifo1(data_in_fifo1),
     .din_pooling_second_stage_fifo1(dout_fifo1_mux),
     .datavalid_out_final(dv_mux),
-    .datavalid_out_fifo1(we_fifo),
+    .datavalid_out_fifo1(we_fifo1),
     .dv(dv),
     .dout_fifo1(dout_fifo1)
 );
@@ -137,6 +142,8 @@ counter_rowwise_columnwise counter_rowwise_columnwise (
     .OW(OW),
     .OH(OH),
     .ENABLE(ENABLE),
+    .rx_valid(rx_valid),
+    .dv_demux_counter(dv_demux_counter),
     .done(done)  
 );
 

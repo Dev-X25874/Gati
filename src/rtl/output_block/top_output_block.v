@@ -89,7 +89,7 @@ assign w_empty_flag=empty_flag;
       .sel(sel)
   );
 
-  //same as bias_controller, Todo: replace with it
+ 
   bias_controller #(
     .DRAM_BW(DRAM_BW),
     .FIFO_NO(FIFO_NO),

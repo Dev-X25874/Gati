@@ -13,6 +13,7 @@ while read line; do
   name="$(echo $line | cut -d ":" -f 1)"
   upper_bound="$(( upper_bound + $(echo $line | cut -d ":" -f 2) ))"
   printf "\t\`define "$op_name"_$name "$(( upper_bound - 1 )):$lower_bound"\n"
+  printf "\t\`define "$op_name"_"$name"_WIDTH "$(( upper_bound - lower_bound ))"\n"
   lower_bound=$upper_bound
 done <<< $(tail -n +2 $file_name)
 echo 

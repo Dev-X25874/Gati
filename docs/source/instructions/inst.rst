@@ -78,7 +78,7 @@
 	`define OutputBlock_AccEn 124:124
 	`define OutputBlock_AccEn_WIDTH 1
 
-	`define OP_START 'h11
+	`define OP_START 'hff
 	`define START_Opcode 3:0
 	`define START_Opcode_WIDTH 4
 	`define START_LayerNumber 15:4
@@ -246,7 +246,7 @@
 	#define OutputBlock_AccEn_HIGH 124
 	#define OutputBlock_AccEn_COUNT 1
 
-	#define OP_START 0x11
+	#define OP_START 0xff
 	#define START_Opcode_LOW 0
 	#define START_Opcode_HIGH 3
 	#define START_Opcode_COUNT 4

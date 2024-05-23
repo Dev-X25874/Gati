@@ -1,4 +1,4 @@
-CONV:'h00
+CONV:HEX00
 Opcode:4
 IW:10  
 IH:10

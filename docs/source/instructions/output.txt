@@ -1,4 +1,4 @@
-OutputBlock:'h03
+OutputBlock:HEX03
 Opcode:4
 AccumulantAddr:32
 OutputAddr:32

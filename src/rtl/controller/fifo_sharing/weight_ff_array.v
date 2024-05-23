@@ -29,7 +29,6 @@ generate
             .W_DATA(W_DATA),
             .W_ADDR(WEIGHT_FF_ADDR)
         ) fifo_array (
-            .prog_full_o(),
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),
             .clk_i(i_clk),

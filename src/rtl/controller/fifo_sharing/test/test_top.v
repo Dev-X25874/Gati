@@ -66,7 +66,6 @@ sync_fifo #(
     .W_DATA(W_DATA),
     .W_ADDR(WEIGHT_FF_ADDR)
 )rx_sync_fifo(
-    .prog_full_o(),
     .full_o(),
     .empty_o(rx_ff_empty),
     .clk_i(clk),

@@ -48,7 +48,6 @@ sync_fifo#(
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR)
 )rx_fifo(
-    .prog_full_o(),
     .full_o(),
     .empty_o(rx_fifo_empty),
     .clk_i(clk),

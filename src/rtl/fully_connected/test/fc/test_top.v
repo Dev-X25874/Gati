@@ -166,29 +166,27 @@ sa_fifo_array_wren_gen#(
     .o_wren(engine_north_ff_wren)
 );
 
-wire [W_DATA-1 : 0] west_async_data;
-wire [ROW-1 : 0] west_async_empty;
-wire [ROW-1 : 0] west_async_rden;
-wire [ROW-1 : 0] west_async_dv;
-wire [(ROW * (IMAGE_FF_ADDR + 1))-1 : 0] west_async_occ;
+wire [W_DATA-1 : 0] west_sync_data;
+wire [ROW-1 : 0] west_sync_empty;
+wire [ROW-1 : 0] west_sync_rden;
+wire [ROW-1 : 0] west_sync_dv;
+wire [(ROW * (IMAGE_FF_ADDR + 1))-1 : 0] west_sync_occ;
 
-async_ff #(
-    .W_DATA(W_DATA)
-) external_west_async_ff (
-    .prog_full_o(),
+sync_fifo #(
+    .W_DATA(W_DATA),
+    .W_ADDR(WEIGHT_FF_ADDR)
+)external_west_sync_ff(
     .full_o(),
-    .empty_o(west_async_empty),
-    .wr_clk_i(i_clk),
-    .rd_clk_i(s_clk),
+    .empty_o(west_sync_empty),
+    .clk_i(i_clk),
     .wr_en_i(west_dv),
-    .rd_en_i(west_async_rden),
+    .rd_en_i(west_sync_rden),
     .wdata(west_data),
-    .wr_datacount_o(west_async_occ),
+    .datacount_o(west_sync_occ),
     .rst_busy(),
-    .rdata(west_async_data),
-    .rd_datacount_o(),
+    .rdata(west_sync_data),
     .a_rst_i(~i_rstn),
-    .o_valid(west_async_dv)
+    .o_valid(west_sync_dv)
 );
 
 wire [COL-1 : 0] acc_dv;
@@ -212,11 +210,11 @@ test_fc_engine#(
     .i_img_dim(15'd15),
     .i_weight_ff_array_data(sa_north_data),
     .i_weight_ff_array_wren(engine_north_ff_wren),
-    .i_image_ff_array_data(west_async_data),
-    .i_image_ff_array_empty(west_async_empty),
-    .i_image_ff_array_occ(west_async_occ),
-    .o_image_ff_array_rden(west_async_rden),
-    .i_image_ff_array_dv(west_async_dv),
+    .i_image_ff_array_data(west_sync_data),
+    .i_image_ff_array_empty(west_sync_empty),
+    .i_image_ff_array_occ(west_sync_occ),
+    .o_image_ff_array_rden(west_sync_rden),
+    .i_image_ff_array_dv(west_sync_dv),
     .o_acc_data_valid(acc_dv),
     .o_acc_data(acc_data)
 );

@@ -13,7 +13,7 @@ module demux_for_fifo1(
 );
 
 
-always @(posedge rx_valid) begin
+always @(posedge clk) begin
     if(~rst_n) begin
         data_out_fifo1 <= 0;
         data_out_fifo2 <= 0;

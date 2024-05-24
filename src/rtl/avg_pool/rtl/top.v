@@ -70,7 +70,8 @@ demux_for_fifo1 demux_for_fifo1 (
     .data_out_fifo2(data_in_fifo2),
     .datavalid_in(dv_pooling_first_stage),
     .datavalid_out_fifo1(we_fifo1),
-    .datavalid_out_fifo2(we_fifo2)
+    .datavalid_out_fifo2(we_fifo2),
+    .rx_valid(rx_valid)
 );
 
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_1 (

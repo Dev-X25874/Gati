@@ -3,7 +3,14 @@
 module OP_Outputblock #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
             parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256)(
+            parameter OUTPUT_WIDTH = 256,
+            parameter ADDRESS_WIDTH = 32,
+            parameter CHANNELITR_WIDTH = 12,
+            parameter KERNELITR_WIDTH = 12,
+            parameter IMAGEDIMOUTPUT_WIDTH = 16,
+            parameter IMAGEDIMACC_WIDTH = 16,
+            parameter ACCEN_WIDTH = 1)
+            (
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -11,14 +18,14 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 input clk,
                 output valid,
                 output reg ready = 0,
-                output reg [3:0] opcode = 0,
-                output reg [31:0] accumulantaddr = 0,
-                output reg [31:0] outputaddr = 0,
-                output reg [11:0] channelItr = 0,
-                output reg [11:0] kernelItr = 0,
-                output reg [15:0] ImageDimOutput = 0,
-                output reg [15:0] ImageDimAcc = 0,
-                output reg AccEn = 0
+                output reg [OP_CODE_WIDTH -1 : 0] opcode = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] accumulantaddr = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] outputaddr = 0,
+                output reg [CHANNELITR_WIDTH -1 : 0] channelItr = 0,
+                output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
+                output reg [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput = 0,
+                output reg [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc = 0,
+                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0
             );
 
             `include "instructions.vh"
@@ -67,14 +74,14 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[`Opcode];
-            accumulantaddr <= data_instruction[`AccumulantAddr];
-            outputaddr <= data_instruction[`OutputAddr];
-            channelItr <= data_instruction[`ChannelItr];
-            kernelItr <= data_instruction[`KernelItr];
-            ImageDimOutput <= data_instruction[`ImageDimOutput];
-            ImageDimAcc <= data_instruction[`ImageDimAcc];
-            AccEn <= data_instruction[`AccEn];
+            opcode <= data_instruction[`OUTPUTBLOCK_Opcode];
+            accumulantaddr <= data_instruction[`OUTPUTBLOCK_AccumulantAddr];
+            outputaddr <= data_instruction[`OUTPUTBLOCK_OutputAddr];
+            channelItr <= data_instruction[`OUTPUTBLOCK_ChannelItr];
+            kernelItr <= data_instruction[`OUTPUTBLOCK_KernelItr];
+            ImageDimOutput <= data_instruction[`OUTPUTBLOCK_ImageDimOutput];
+            ImageDimAcc <= data_instruction[`OUTPUTBLOCK_ImageDimAcc];
+            AccEn <= data_instruction[`OUTPUTBLOCK_AccEn];
             //valid <= 1'b1;
             state <= IDLE;
         end

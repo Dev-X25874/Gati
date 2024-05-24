@@ -3,7 +3,16 @@
 module OP_FC #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
             parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256)(
+            parameter OUTPUT_WIDTH = 256,
+            parameter ADDRESS_WIDTH = 32,
+            parameter WEIGHTROWS_WIDTH = 16,
+            parameter WEIGHTCOLS_WIDTH = 16,
+            parameter INPUTROWS_WIDTH = 16,
+            parameter DROPOUTCONSTANT_WIDTH = 8,
+            parameter FLATTEN_WIDTH = 1,
+            parameter IMAGEDIN_WIDTH = 20
+            parameter KERNELITERATION_WIDTH = 16,
+            parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -11,17 +20,17 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 input clk,
                 output valid,
                 output reg ready = 0,
-                output reg [3:0] opcode = 0,
-                output reg [15:0] weightrows = 0,
-                output reg [15:0] weightcols = 0,
-                output reg [15:0] inputrows = 0,
-                output reg [7:0] dropoutconstant = 0,
-                output reg flatten = 0,
-                output reg [19:0] imagedim = 0,
-                output reg [31:0] ImageStartAddress = 0,
-                output reg [31:0] ImageEndAddr = 0,
-                output reg [15:0] KernelIteration = 0,
-                output reg [15:0] RWAddressCountFlatten = 0
+                output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+                output reg [WEIGHTROWS_WIDTH - 1 : 0] weightrows = 0,
+                output reg [WEIGHTCOLS_WIDTH - 1 : 0] weightcols = 0,
+                output reg [INPUTROWS_WIDTH - 1 : 0] inputrows = 0,
+                output reg [DROPOUTCONSTANT_WIDTH -1 : 0] dropoutconstant = 0,
+                output reg [FLATTEN_WIDTH -1 : 0] flatten = 0,
+                output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
+                output reg [KERNELITERATION_WIDTH - 1 : 0] KernelIteration = 0,
+                output reg [RWADDRESSCOUNTFLATTEN_WIDTH -1 : 0] RWAddressCountFlatten = 0
             );
 
             `include "instructions.vh"
@@ -72,17 +81,17 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[`Opcode];
-            weightrows <= data_instruction[`WeightRows];
-            weightcols <= data_instruction[`WeightCols];
-            inputrows <= data_instruction[`InputRows];
-            dropoutconstant <= data_instruction[`DropoutConstant];
-            flatten <= data_instruction[`Flatten];
-            imagedim <= data_instruction[`ImageDim];
-            ImageStartAddress <= data_instruction[`ImageStartAddress];   
-            ImageEndAddr <= data_instruction[`ImageEndAddr];
-            KernelIteration <= data_instruction[`KernelIteration];
-            RWAddressCountFlatten <= data_instruction[`RWAddressCountFlatten];
+            opcode <= data_instruction[`FC_Opcode];
+            weightrows <= data_instruction[`FC_WeightRows];
+            weightcols <= data_instruction[`FC_WeightCols];
+            inputrows <= data_instruction[`FC_InputRows];
+            dropoutconstant <= data_instruction[`FC_DropoutConstant];
+            flatten <= data_instruction[`FC_Flatten];
+            imagedim <= data_instruction[`FC_ImageDim];
+            ImageStartAddress <= data_instruction[`FC_ImageStartAddress];   
+            ImageEndAddr <= data_instruction[`FC_ImageEndAddr];
+            KernelIteration <= data_instruction[`FC_KernelIteration];
+            RWAddressCountFlatten <= data_instruction[`FC_RWAddressCountFlatten];
             //valid <= 1'b1;
             state <= IDLE;
         end

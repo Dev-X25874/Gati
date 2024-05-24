@@ -30,7 +30,7 @@ endmodule
 
 
 
-module top_design(
+module top_design #(parameter DATA_IN = 8, IMG_WIDTH = 10) (
     input clk,
     input [DATA_IN -1 : 0] data_in,
     input rst,
@@ -57,7 +57,7 @@ wire [DATA_IN : 0] maxvalue;
 wire empty1;
 wire empty2;
 
-counter1 c1(
+counter1 #(.DATA_IN(DATA_IN)) c1(
   .clk(clk),
   .rst(rst),
   .datavalid(datavalid),
@@ -65,7 +65,7 @@ counter1 c1(
   .dynamic_threshold(IW)
 );
 
-demux1 dut0(
+demux1 #(.DATA_IN(DATA_IN)) dut0(
   .clk(clk),
   .din(data_in),
   .sel(selectline1),
@@ -75,27 +75,27 @@ demux1 dut0(
   .c(demux1_o1)
 );
 
-maxpool dut1(
+maxpool #(.DATA_IN(DATA_IN)) dut1(
   .clk(clk),
-  .datavalid(demux1_o2[8]), 
-  .dina(demux1_o1[7:0]),
-  .dinb(demux1_o2[7:0]),
+  .datavalid(demux1_o2[DATA_IN]), 
+  .dina(demux1_o1[DATA_IN - 1 : 0]),
+  .dinb(demux1_o2[DATA_IN - 1 : 0]),
   .temp(maxpool_o)
 );
 
-counter2 c2(
+counter2 #(.DATA_IN(DATA_IN)) c2(
   .clk(clk),
   .rst(rst),
-  .datavalid(maxpool_o[8]),
+  .datavalid(maxpool_o[DATA_IN]),
   .sel(selectline2),
   .dynamic_threshold(IW)
 );
 
-demux2 dut2(
-  .data_in(maxpool_o[7:0]),
+demux2 #(.DATA_IN(DATA_IN)) dut2(
+  .data_in(maxpool_o[DATA_IN - 1 : 0]),
   .clk(clk),
   .rst(rst),
-  .datavalid(maxpool_o[8]),
+  .datavalid(maxpool_o[DATA_IN]),
   .sel(selectline2),
   .fifo1(demux2_o1),
   .fifo2(demux2_o2)
@@ -104,9 +104,9 @@ demux2 dut2(
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
   .clk(clk),
   .rst_n(rst),
-  .we(demux2_o1[8]),
+  .we(demux2_o1[DATA_IN]),
   .re(re),
-  .data_in(demux2_o1[7:0]),
+  .data_in(demux2_o1[DATA_IN - 1 : 0]),
   .occupants(),
   .full(),
   .empty(empty1),
@@ -118,9 +118,9 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut4(
   .clk(clk),
   .rst_n(rst),
-  .we(demux2_o2[8]),
+  .we(demux2_o2[DATA_IN]),
   .re(re),
-  .data_in(demux2_o2[7:0]),
+  .data_in(demux2_o2[DATA_IN - 1 : 0]),
   .occupants(),
   .full(),
   .empty(empty2),
@@ -128,7 +128,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut4(
   .data_valid(data_valid2)
 );
 
-maxpool dut5(
+maxpool #(.DATA_IN(DATA_IN)) dut5(
   .clk(clk),
   .datavalid(data_valid1&data_valid2),
   .dina(fifo1_out),
@@ -138,7 +138,7 @@ maxpool dut5(
 
 assign re = ((~empty1) & (~empty2));
 
-assign maxvalue_o =(enable==1)? maxvalue[7:0] : data_in ;
-assign datavalid_o = (enable==1)?maxvalue[8]:datavalid;
+assign maxvalue_o =(enable==1)? maxvalue[DATA_IN - 1 : 0] : data_in ;
+assign datavalid_o = (enable==1)?maxvalue[DATA_IN]:datavalid;
 
 endmodule

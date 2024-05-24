@@ -32,8 +32,8 @@ assign re = ~empty;
 assign pooling_type = 3'd0;
 assign pool_width = 4'd3;
 assign pool_height = 4'd3;
-assign OH = 10'd28;
-assign OW = 10'd28;
+assign OH = 10'd27;
+assign OW = 10'd27;
 
 rx rx(
   .clk(clk),

@@ -15,7 +15,9 @@ module maxpool_gen #(parameter N_SA = 8,
 genvar i;
 generate 
   for(i=0;i<N_SA;i=i+1)begin
-    top_design t1 ( 
+    top_design t1 #(parameter N_SA = 8,
+    parameter DATA_IN = 8,
+    parameter IMG_WIDTH = 10) ( 
       .clk(clk),
       .data_in(data_in[(DATA_IN*(N_SA -i)) -1 -:DATA_IN]),
       .rst(rst),  
@@ -57,7 +59,7 @@ wire [DATA_IN : 0] maxvalue;
 wire empty1;
 wire empty2;
 
-counter1 #(.DATA_IN(DATA_IN)) c1(
+counter1 #(.IMG_WIDTH(IMG_WIDTH)) c1(
   .clk(clk),
   .rst(rst),
   .datavalid(datavalid),
@@ -83,7 +85,7 @@ maxpool #(.DATA_IN(DATA_IN)) dut1(
   .temp(maxpool_o)
 );
 
-counter2 #(.DATA_IN(DATA_IN)) c2(
+counter2 #(.IMG_WIDTH(IMG_WIDTH)) c2(
   .clk(clk),
   .rst(rst),
   .datavalid(maxpool_o[DATA_IN]),
@@ -101,7 +103,7 @@ demux2 #(.DATA_IN(DATA_IN)) dut2(
   .fifo2(demux2_o2)
 );
 
-fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) dut3(
+fifo_valid #(.DATA_WIDTH(DATA_IN), .ADDR_WIDTH(9)) dut3(
   .clk(clk),
   .rst_n(rst),
   .we(demux2_o1[DATA_IN]),

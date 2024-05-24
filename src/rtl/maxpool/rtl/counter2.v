@@ -19,11 +19,11 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module counter2 #(parameter DATA_IN = 8) (
+module counter2 #(parameter IMG_WIDTH = 10) (
   input clk,
   input datavalid,
   input rst,
-  input [DATA_IN - 1 : 0] dynamic_threshold, //it depends on the input dimension of the image width
+  input [IMG_WIDTH - 1 : 0] dynamic_threshold, //it depends on the input dimension of the image width
   output sel
 );
 reg [13:0] counter=14'd0;

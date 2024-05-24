@@ -18,11 +18,12 @@ module relu #(
 )
 (
     input                           clk,
+    input                           enable,
     input signed [DATA_WIDTH-1:0]   i_data,
     input                           i_valid,
     output signed [DATA_WIDTH-1:0]  o_data,   
     output                          o_valid,
-    input  [CLIP_WIDTH-1:0]   i_clip
+    input  [CLIP_WIDTH-1:0]         i_clip
 );
 
     reg signed [DATA_WIDTH-1:0] o_data_r = 0;
@@ -33,24 +34,30 @@ module relu #(
     
     //To check the freq
     
-    reg signed [DATA_WIDTH-1:0] r_i_data;
-    always @(posedge clk) begin
-        r_i_data <= i_data;
-    end
+    // reg signed [DATA_WIDTH-1:0] r_i_data;
+    // always @(posedge clk) begin
+    //     r_i_data <= i_data;
+    // end
 
     always @(posedge clk) begin
-        if (i_valid) begin
+        if (i_valid & enable) begin
             if (i_data[DATA_WIDTH-1] == 1) begin
                 o_data_r <= 0;
             end else if(i_data > i_clip) begin
                 o_data_r <= i_clip;
             end else begin
-//                o_data_r <= i_data;
-                  o_data_r <= r_i_data;
+               o_data_r <= i_data;
+                //   o_data_r <= r_i_data;
             end
         o_valid_r <= i_valid;
-        end else begin
-        o_valid_r <= 0;
+        end 
+        else if(i_valid & ~enable)
+        begin
+            o_data_r <= i_data;
+            o_vaid_r <= i_valid;
+        end
+        else begin
+            o_valid_r <= 0;
         end
     end
 endmodule
@@ -64,6 +71,7 @@ module top_relu_gen#(
     input                               top_clk,
     input  [N*DATA_WIDTH-1:0]           top_i_data,
     input  [N-1:0]                      top_i_valid,
+    input                               relu_enable,
     output [N*DATA_WIDTH-1:0]           top_o_data,
     output [N-1:0]                      top_o_valid,
     input  [N*CLIP_WIDTH-1:0]           top_i_clip
@@ -82,6 +90,7 @@ generate
         .i_data  (top_i_data[i*DATA_WIDTH+:DATA_WIDTH]),
         .i_valid (top_i_valid[i]),
         .o_data  (top_o_data[i*DATA_WIDTH+:DATA_WIDTH]),
+        .enable  (relu_enable),
         .o_valid (top_o_valid[i]),
         .i_clip  (top_i_clip[i*CLIP_WIDTH+:CLIP_WIDTH])
 );

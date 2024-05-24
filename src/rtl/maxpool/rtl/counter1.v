@@ -20,13 +20,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module counter1(
+module counter1 #(parameter DATA_IN = 8) (
   input clk,
   input rst,
   input datavalid,
-  input [7:0] dynamic_threshold, //it depends on the input dimension of the image width
+  input [DATA_IN - 1 : 0] dynamic_threshold, //it depends on the input dimension of the image width
   output sel, //toggles at every posedge of the clock
-  output [13:0] count
     );
     reg [13:0] counter = 14'd1;
     reg toggle = 0;    
@@ -54,27 +53,6 @@ module counter1(
         end
       end
     end
-    assign count = counter;
 
 endmodule
-    
-
-//   reg [0:0] counter=0;
-//   reg [0:0] toggle=0;    
-//   assign sel = toggle;
-    
-//   always @ (posedge clk)
-//   begin
-//     if(rst==1'b0) begin
-//       counter <= 1'b0; 
-//       toggle <= 1'b0;
-//     end
-//     else begin
-//       toggle <= ~toggle;
-//       counter <= counter + 1;
-//     end
-//   end
-//   assign count = counter;   
-// endmodule
-
 

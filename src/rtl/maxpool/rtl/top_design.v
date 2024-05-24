@@ -32,28 +32,28 @@ endmodule
 
 module top_design(
     input clk,
-    input [7:0] data_in,
+    input [DATA_IN -1 : 0] data_in,
     input rst,
     input enable,
     input datavalid,
-    input [IMG_WIDTH-1:0] IW, //it depends on the input dimension of the image width
-    output [7:0] maxvalue_o,
+    input [IMG_WIDTH - 1 : 0] IW, //it depends on the input dimension of the image width
+    output [DATA_IN - 1 : 0] maxvalue_o,
     output datavalid_o
 );
 wire re;    
-wire [8:0] demux1_o1;
-wire [8:0] demux1_o2;
-wire [8:0] maxpool_o;
-wire [8:0] demux2_o1;
-wire [8:0] demux2_o2;
+wire [DATA_IN : 0] demux1_o1;
+wire [DATA_IN : 0] demux1_o2;
+wire [DATA_IN : 0] maxpool_o;
+wire [DATA_IN : 0] demux2_o1;
+wire [DATA_IN : 0] demux2_o2;
 wire ne;
-wire [7:0] fifo1_out;
-wire [7:0] fifo2_out;
+wire [DATA_IN - 1 : 0] fifo1_out;
+wire [DATA_IN - 1 : 0] fifo2_out;
 wire selectline1;
 wire selectline2;
 wire data_valid1;
 wire data_valid2;
-wire [8:0] maxvalue;
+wire [DATA_IN : 0] maxvalue;
 wire empty1;
 wire empty2;
 

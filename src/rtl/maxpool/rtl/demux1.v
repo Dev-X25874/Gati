@@ -21,22 +21,20 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module demux1(
-  input [7:0] din,
+module demux1 #(parameter DATA_IN = 8) (
+  input [DATA_IN - 1 : 0] din,
   input sel,   //counter1 toggles the select line 
   input clk,
   input rx_valid,
   input datavalid, //this 'datavalid' is a valid data acknowledgement from the block prior to the maxpool block
-  output reg [8:0] a = 0 ,
-  output reg [8:0] b = 0 ,
-  output reg [8:0] c = 0
+  output reg [DATA_IN : 0] a = 0 ,
+  output reg [DATA_IN : 0] b = 0 ,
+  output reg [DATA_IN : 0] c = 0
 );
   reg dv = 0;
   reg [8:0] temp = 0;
   reg [8:0] delay = 0;
   reg [7:0] x = 0;
- /* assign a = (sel==1'b1)? {datavalid, x} : 9'd0;  
-  assign b = (sel==1'b0)? {datavalid, x} : 9'd0; */
 
   always @ (posedge clk) begin
     if(sel) begin
@@ -52,10 +50,6 @@ module demux1(
  // always @(posedge rx_valid)
   always @(posedge datavalid)
   begin
-  // temp <= a;  //the first input from the previous block gets assigned to a reg, hence waiting for the second input because the next module is maxpool. Maxpooling requires two input at the same time.
-  // c <= temp;
-  // x <= din;
-  //dv <= datavalid;
     c <= a;
   end
 

@@ -18,13 +18,17 @@ always @(posedge clk) begin
     end
     else begin
         if(ENABLE) begin
-            if(datavalid_out_fifo1) begin
+            if(datavalid_out_final) begin
                 dout_fifo1 <= din_pooling_second_stage_fifo1;
                 dv <= 1;
             end
-            else begin
+            else if(datavalid_out_fifo1) begin
                 dout_fifo1 <= din_demux_for_fifo1;
                 dv <= 1;
+            end
+            else begin
+                dv <= 0;
+                dout_fifo1 <= 0;
             end
         end
     end

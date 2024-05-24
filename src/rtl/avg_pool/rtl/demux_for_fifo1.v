@@ -12,7 +12,6 @@ module demux_for_fifo1(
     output reg datavalid_out_fifo2 = 0
 );
 
-reg [1:0] state = 0;
 
 always @(posedge rx_valid) begin
     if(~rst_n) begin
@@ -26,13 +25,15 @@ always @(posedge rx_valid) begin
             if(datavalid_in) begin
                 if(sel) begin
                     data_out_fifo2 <= data_in;
+                    data_out_fifo1 <= 0;
                     datavalid_out_fifo2 <= 1;
-                    state <= 0;
+                    datavalid_out_fifo1 <= 0;
                 end
                 else begin
                     data_out_fifo1 <= data_in;
                     datavalid_out_fifo1 <= 1;
-                    state <= 0;
+                    datavalid_out_fifo2 <= 0;
+                    data_out_fifo2 <= 0;
                 end
             end
             else begin

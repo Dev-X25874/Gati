@@ -1,3 +1,11 @@
+/*
+    Important:
+    ********* 
+    The test files in this folder got outdated, Refer to the src/rtl/quantization 
+    folder for updated design files.
+
+    This test folder will be updated in due course of time.
+*/
 module top_test_quant #(
     parameter     DATA_WIDTH = 18,
     parameter     N = 3,

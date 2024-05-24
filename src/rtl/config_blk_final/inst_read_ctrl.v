@@ -10,14 +10,15 @@
 module inst_read_ctrl#(
     parameter  NUM_INSTRUCTIONS=4,
     parameter  OPCODE_W=4,
-    parameter LAY_N=12
+    parameter LAY_N=12,
+    parameter TOTAL_LAY_N=12
   )(
     input clkin,
     input [NUM_INSTRUCTIONS-1:0]valid_ack,
     input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
     input [NUM_INSTRUCTIONS-1:0]ack_in,
     input [LAY_N-1:0]layer_number, //data from instruction
-    input [LAY_N-1:0]total_layers, //data from instruction
+    input [TOTAL_LAY_N-1:0]total_layers, //data from instruction
     input status_inst_q,
     input user_start,
     input done_status,

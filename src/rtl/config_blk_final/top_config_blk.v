@@ -12,7 +12,8 @@ module config_blk #(
     parameter BURST_LEN_AXI = 7, //is default burst length
     parameter BURST_LEN_WIDTH=8,
     parameter OPCODE_W=4,
-    parameter LAY_N=12,
+    parameter LAY_N=12, //WIDTH OF LAYER NUMBER
+    parameter TOTAL_LAY_N=12, //WIDTH OF TOTAL NO.OF LAYERS
     parameter DEPTH=100,
     parameter STATUS_DRAM_LIM=10)
   (
@@ -99,17 +100,18 @@ module config_blk #(
 //Instruction Read Controller Instantiation             
   inst_read_ctrl #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
                    .OPCODE_W(OPCODE_W),
-                   .LAY_N(LAY_N))inst_read_ctrl_4(
+                   .LAY_N(LAY_N),
+                   .TOTAL_LAY_N(TOTAL_LAY_N))inst_read_ctrl_4(
                    .clkin(clkin),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
                    .ack_in(ack_6_4),
-                   .layer_number(o_instruction_3_5[`LayerNumber]),
-                   .total_layers(o_instruction_3_5[`TotalLayers]),
+                   .layer_number(o_instruction_3_5[`START_LayerNumber]),
+                   .total_layers(o_instruction_3_5[`START_TotalLayers]),
                    .status_inst_q(status_3_4),
                    .user_start(user_start),
                    .done_status(done),
-                   .opcode(o_instruction_3_5[`Opcode]),
+                   .opcode(o_instruction_3_5[OPCODE_W-1:0]),
                    .bus_master_valid(start_bus),
                    .start_command(start_command),
                    .start_out(start_out),

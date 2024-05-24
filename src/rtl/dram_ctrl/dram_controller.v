@@ -9,16 +9,18 @@ module dram_controller#(
   parameter AXI_DATA_BYTES = 32,
   parameter ADDR_WIDTH = 32,
   parameter W_KERNEL_CNT = 16,
-  parameter IMAGE_DIM_WIDTH = 16
+  parameter W_CHANNEL_CNT =16,
+  parameter IMAGE_DIM_WIDTH_ACC = 16,
+  parameter IMAGE_DIM_WIDTH_OP=16 I
 )(
   input clkin,
   input i_rstn,
   input [ADDR_WIDTH-1:0]i_acc_address,
   input [ADDR_WIDTH-1:0]i_op_start,
-  input [W_KERNEL_CNT-1:0]i_channel_itr,
+  input [W_CHANNEL_CNT-1:0]i_channel_itr,
   input [W_KERNEL_CNT-1:0]i_kernel_itr,
-  input [IMAGE_DIM_WIDTH-1:0]i_imag_dim,
-  input [IMAGE_DIM_WIDTH-1:0]i_imag_dim_2,
+  input [IMAGE_DIM_WIDTH_ACC-1:0]i_imag_dim,
+  input [IMAGE_DIM_WIDTH_OP-1:0]i_imag_dim_2,
   input slave_valid,
   input [N*($clog2(DEPTH)+1)-1:0]occupants,
   input last,
@@ -37,12 +39,12 @@ localparam IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1);
 localparam IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1);
 
 reg [ADDR_WIDTH-1:0] op_start_add1 = 0;
-reg [W_KERNEL_CNT-1:0] channel_itr = 0;
+reg [W_CHANNEL_CNT-1:0] channel_itr = 0;
 reg [W_KERNEL_CNT-1:0] kernel_itr = 0;
-reg [IMAGE_DIM_WIDTH-1:0] imag_dim = 0;
-reg [IMAGE_DIM_WIDTH-1:0] imag_dim_2 = 0;
-reg [IMAGE_DIM_WIDTH-1:0] imag_dim_init = 0;
-reg [IMAGE_DIM_WIDTH-1:0] imag_dim_init_2 = 0;
+reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim = 0;
+reg [IMAGE_DIM_WIDTH_OP-1:0] imag_dim_2 = 0;
+reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim_init = 0;
+reg [IMAGE_DIM_WIDTH_OP-1:0] imag_dim_init_2 = 0;
 reg [ADDR_WIDTH-1:0] acc_address_init = 0;
 reg [ADDR_WIDTH-1:0] r_output_address = 0;
 reg [2:0] case_1_output = 0;
@@ -58,7 +60,7 @@ reg flag_3 = 0;
 reg flag_4 = 1;
 
 reg [W_KERNEL_CNT-1:0]kernel_count=0;
-reg [W_KERNEL_CNT-1:0]channel_count=0;
+reg [W_CHANNEL_CNT-1:0]channel_count=0;
 reg [9:0]offset_acc=0;
 reg [9:0]offset_op=0;
 reg [3:0]top_state=0;

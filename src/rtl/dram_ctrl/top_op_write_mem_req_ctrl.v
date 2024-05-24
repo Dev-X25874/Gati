@@ -9,7 +9,9 @@ module top_op_write_mem_req_ctrl#(
     parameter AXI_DATA_BYTES = 32,
     parameter ADDR_WIDTH = 32,
     parameter W_KERNEL_CNT = 16,
-    parameter IMAGE_DIM_WIDTH = 16
+    parameter W_CHANNEL_CNT=16,
+    parameter IMAGE_DIM_WIDTH_ACC = 16,
+    parameter IMAGE_DIM_WIDTH_OP=16
 )(
     input clkin,
     input i_rstn,
@@ -17,10 +19,10 @@ module top_op_write_mem_req_ctrl#(
     input i_data_last,  //comes from DDR memory controller
     input [ADDR_WIDTH-1:0]i_acc_address,
     input [ADDR_WIDTH-1:0]i_op_start,
-    input [W_KERNEL_CNT-1:0]i_channel_itr,
+    input [W_CHANNEL_CNT-1:0]i_channel_itr,
     input [W_KERNEL_CNT-1:0]i_kernel_itr,
-    input [IMAGE_DIM_WIDTH-1:0]i_imag_dim,
-    input [IMAGE_DIM_WIDTH-1:0]i_imag_dim_2,
+    input [IMAGE_DIM_WIDTH_ACC-1:0]i_imag_dim,
+    input [IMAGE_DIM_WIDTH_OP-1:0]i_imag_dim_2,
     input [N*($clog2(DEPTH)+1)-1:0]occupants,
     output mem_req,
     output o_last,
@@ -51,7 +53,9 @@ dram_controller#(
   .AXI_DATA_BYTES(AXI_DATA_BYTES),
   .ADDR_WIDTH(ADDR_WIDTH),
   .W_KERNEL_CNT(W_KERNEL_CNT),
-  .IMAGE_DIM_WIDTH(IMAGE_DIM_WIDTH)
+  .W_CHANNEL_CNT(W_CHANNEL_CNT),
+  .IMAGE_DIM_WIDTH_ACC(IMAGE_DIM_WIDTH_ACC),
+  .IMAGE_DIM_WIDTH_OP(IMAGE_DIM_WIDTH_OP)
 )dram_ctrl (
   .clkin(clkin),
   .i_rstn(i_rstn),

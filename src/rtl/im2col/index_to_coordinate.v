@@ -39,8 +39,8 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size,
     input                                   zero_pad,
     output                                  o_valid_buff,
-    output                                  o_valid_data
-
+    output                                  o_valid_data,
+    output                                  im2col_done
 
 );
 
@@ -116,6 +116,8 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
             {i_valid_data,i_data}) : {i_valid_data,i_data}) : {0, 8'd0};              
 
     assign o_mat_size = r_start_im2col? (valid_mat_size ?(zero_pad ? mat_size + 2 : mat_size) : 0) : 0; 
+
+    assign im2col_done = (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
 
 endmodule
 

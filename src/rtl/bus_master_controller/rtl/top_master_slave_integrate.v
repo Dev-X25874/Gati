@@ -3,8 +3,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter INPUT_WIDTH = 256,
             parameter OUTPUT_WIDTH = 8,
             parameter NO_OF_OPERATOR = 4,
-            parameter ADDRESS_WIDTH = 32
-            parameter APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR),
+            parameter ADDRESS_WIDTH = 32,
             parameter IW_WIDTH = 10,
             parameter IH_WIDTH = 10,
             parameter OW_WIDTH = 10,
@@ -15,8 +14,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter KH_WIDTH = 4,
             parameter STRIDE_WIDTH = 4,
             parameter PAD_WIDTH = 3,
-            parameter CHANNELITR_WIDTH = 12,
-            parameter KERNELITR_WIDTH = 12,
+            parameter CONV_CHANNELITR_WIDTH = 12,
+            parameter CONV_KERNELITR_WIDTH = 12,
             parameter WEIGHTROWS_WIDTH = 16,
             parameter WEIGHTCOLS_WIDTH = 16,
             parameter INPUTROWS_WIDTH = 16,
@@ -25,8 +24,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter IMAGEDIN_WIDTH = 20
             parameter KERNELITERATION_WIDTH = 16,
             parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16,
-            parameter CHANNELITR_WIDTH = 12,
-            parameter KERNELITR_WIDTH = 12,
+            parameter OB_CHANNELITR_WIDTH = 12,
+            parameter OB_KERNELITR_WIDTH = 12,
             parameter IMAGEDIMOUTPUT_WIDTH = 16,
             parameter IMAGEDIMACC_WIDTH = 16,
             parameter ACCEN_WIDTH = 1,
@@ -64,8 +63,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [KH_WIDTH - 1 : 0] KH,
                 output [STRIDE_WIDTH - 1 : 0] Stride,
                 output [PAD_WIDTH - 1 : 0] Pad,
-                output [CHANNELITR_WIDTH - 1 : 0] channelItr,
-                output [KERNELITR_WIDTH - 1 : 0] kernelItr,
+                output [CONV_CHANNELITR_WIDTH - 1 : 0] channelItr,
+                output [CONV_KERNELITR_WIDTH - 1 : 0] kernelItr,
                 output [ADDRESS_WIDTH - 1 : 0] ImageStartAddress_conv,
                 output [ADDRESS_WIDTH - 1 : 0] ImageEndAddress_conv,
                 output [ADDRESS_WIDTH - 1 : 0] WeightStartAddress_conv,
@@ -84,8 +83,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [OP_CODE_WIDTH -1 : 0] opcode_OB,
                 output [ADDRESS_WIDTH - 1 : 0] accumulantaddr,
                 output [ADDRESS_WIDTH - 1 : 0] outputaddr,
-                output [CHANNELITR_WIDTH -1 : 0] channelItr_OB,
-                output [KERNELITR_WIDTH - 1 : 0] kernelItr_OB,
+                output [OB_CHANNELITR_WIDTH -1 : 0] channelItr_OB,
+                output [OB_KERNELITR_WIDTH - 1 : 0] kernelItr_OB,
                 output [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput,
                 output [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc,
                 output [ACCEN_WIDTH -1 : 0] AccEn,
@@ -113,18 +112,21 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     );
 
     `include "instructions.vh"
-
+localparam APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR);
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
 wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
 wire wr;
 wire done_top_master;
-wire [(OP_CODE_WIDTH)-1 : 0] ready;
+wire [(1<<OP_CODE_WIDTH)-1 : 0] ready;
 wire ready_conv;
 wire ready_FC;
 wire ready_OB;
 wire ready_TB;
 
-top_master top_master(
+top_master  #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
+ .CNT(CNT),
+ .INPUT_WIDTH(INPUT_WIDTH),
+ .OUTPUT_WIDTH(OUTPUT_WIDTH)) top_master(
     .din(din),
     .start(start),
     .clk(clk),
@@ -136,7 +138,24 @@ top_master top_master(
     .done(done_top_master)
 );
 
-OP_CONV OP_CONV(
+OP_CONV #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
+.CNT(CNT),
+.INPUT_WIDTH(INPUT_WIDTH),
+.OUTPUT_WIDTH(OUTPUT_WIDTH),
+.IW_WIDTH(IW_WIDTH),
+.IH_WIDTH(IH_WIDTH),
+.OW_WIDTH(OW_WIDTH),
+.OH_WIDTH(OH_WIDTH),
+.IC_WIDTH(IC_WIDTH),
+.KN_WIDTH(KN_WIDTH),
+.KW_WIDTH(KW_WIDTH),
+.KH_WIDTH(KH_WIDTH),
+.STRIDE_WIDTH(STRIDE_WIDTH),
+.PAD_WIDTH(PAD_WIDTH),
+.CHANNELITR_WIDTH(CONV_CHANNELITR_WIDTH),
+.KERNELITR_WIDTH(CONV_KERNELITR_WIDTH),
+.ADDRESS_WIDTH(ADDRESS_WIDTH))
+OP_CONV(
     .din(dout_top_master),
     .sel(select_line[`Opcode]),
     .write(wr),
@@ -159,18 +178,31 @@ OP_CONV OP_CONV(
     .ImageEndAddress(ImageEndAddress_conv),
     .WeightStartAddress(WeightStartAddress_conv),
     .WeightEndAddress(WeightEndAddress_conv),
-    .valid(valid[0]),
-    .ready(ready_conv)
+    .valid(valid[`Opcode]),
+    .ready(ready_conv[`Opcode])
 );
 
-OP_FC OP_FC(
+OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
+.CNT = (CNT),
+.INPUT_WIDTH(INPUT_WIDTH),
+.OUTPUT_WIDTH(OUTPUT_WIDTH),
+.ADDRESS_WIDTH(ADDRESS_WIDTH),
+.WEIGHTROWS_WIDTH(WEIGHTCOLS_WIDTH),
+.WEIGHTCOLS_WIDTH(WEIGHTCOLS_WIDTH),
+.INPUTROWS_WIDTH(INPUTROWS_WIDTH),
+.DROPOUTCONSTANT_WIDTH(DROPOUTCONSTANT_WIDTH),
+.FLATTEN_WIDTH(FLATTEN_WIDTH),
+.IMAGEDIN_WIDTH(IMAGEDIN_WIDTH),
+.KERNELITERATION_WIDTH(KERNELITERATION_WIDTH),
+.RWADDRESSCOUNTFLATTEN_WIDTH(RWADDRESSCOUNTFLATTEN_WIDTH)) 
+OP_FC(
     .din(dout_top_master),
     .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[1]),
-    .ready(ready_Fc),
+    .valid(valid[`Opcode]),
+    .ready(ready_Fc[`Opcode]),
     .opcode(opcode_FC),
     .weightrows(weightrows),
     .weightcols(weightcols),
@@ -184,14 +216,24 @@ OP_FC OP_FC(
     .RWAddressCountFlatten(RWAddressCountFlatten)
 );
 
-OP_Outputblock OP_Outputblock(
+OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
+.CNT = (CNT),
+.INPUT_WIDTH(INPUT_WIDTH),
+.OUTPUT_WIDTH(OUTPUT_WIDTH),
+.ADDRESS_WIDTH(ADDRESS_WIDTH),
+.CHANNELITR_WIDTH(OB_CHANNELITR_WIDTH),
+.KERNELITR_WIDTH(OB_KERNELITR_WIDTH),
+.IMAGEDIMOUTPUT_WIDTH(IMAGEDIMOUTPUT_WIDTH),
+.IMAGEDIMACC_WIDTH(IMAGEDIMACC_WIDTH),
+.ACCEN_WIDTH(ACCEN_WIDTH))
+OP_Outputblock(
     .din(dout_top_master),
     .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[2]),
-    .ready(ready_OB),
+    .valid(valid[`Opcode]),
+    .ready(ready_OB[`Opcode]),
     .opcode(opcode_OB),
     .accumulantaddr(accumulantaddr),
     .outputaddr(outputaddr),
@@ -202,14 +244,35 @@ OP_Outputblock OP_Outputblock(
     .AccEn(AccEn)
 );
 
-OP_Tailblock OP_Tailblock(
+OP_Tailblock #(.OP_CODE_WIDTH = 4, 
+.CNT(CNT),
+.INPUT_WIDTH(INPUT_WIDTH),
+.OUTPUT_WIDTH (OUTPUT_WIDTH),
+.ADDRESS_WIDTH(ADDRESS_WIDTH),
+.BNEN_WIDTH(BNEN_WIDTH),
+.ACTEN_WIDTH(ACTEN_WIDTH),
+.ACTTYPE_WIDTH(ACTTYPE_WIDTH),
+.ACTPARAM_WIDTN(ACTPARAM_WIDTN),
+.QUANTEN_WIDTH(QUANTEN_WIDTH),
+.QUANTSCALE_WIDTH(QUANTSCALE_WIDTH),
+.QUANTSHIFT_WIDTH(QUANTSHIFT_WIDTH),
+.POOLEN_WIDTH(POOLEN_WIDTH),
+.POOLTYPE_WIDTH(POOLTYPE_WIDTH),
+.POOLWIDTH_WIDTH(POOLWIDTH_WIDTH),
+.POOLHEIGHT_WIDTH(POOLHEIGHT_WIDTH),
+.POOLSTRIDE_WIDTH(POOLSTRIDE_WIDTH),
+.POOLPADDING_WIDTH(POOLPADDING_WIDTH),
+.BIASEN_WIDTH(BIASEN_WIDTH),
+.BNCHANNELS_WIDTH(BNCHANNELS_WIDTH),
+.FCBIASEN(FCBIASEN)) 
+OP_Tailblock(
     .din(dout_top_master),
     .sel(select_line[`Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .ready(ready_TB),
-    .valid(valid[3]),
+    .ready(ready_TB[`Opcode]),
+    .valid(valid[`Opcode]),
     .opcode(opcode_TB),
     .BNEn(BNEn),
     .BNchannels(BNchannels),

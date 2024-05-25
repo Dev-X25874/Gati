@@ -1,15 +1,13 @@
-//`include "fifo.v"
-//`include "mux.v"
-//`include "adder.v"
-//`include "controller_fifo.v"
 
-module top_output_block #(
-    parameter DRAM_BW        = 32,
+
+module top_bias_block #(
+    parameter BIAS=1,
     parameter DATA_WIDTH     = 32,
     parameter N              = 4,
     parameter FIFO_NO        = 8,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
+    parameter TOGGLE=1,
     parameter NO_PORT=2
 
 
@@ -69,42 +67,29 @@ assign w_empty_flag=empty_flag;
   wire [(DATA_WIDTH*N)-1:0] mux_out;
 
   wire [N-1:0] valid_mux;
+  vector_mux #(
+      .PORT_SIZE(N * DATA_WIDTH),
 
-  vector_mux_param #(
-    .PORT_SIZE(N*DATA_WIDTH),
-    .NO_PORT(NO_PORT)
+      .NO_PORT(NO_PORT)
   ) mux_data (
-      .in(w_data_out),
+      .clk(top_clk),
+      .in (w_data_out),
       .out(mux_out),
       .sel(sel)
-
   );
 
-  vector_mux_param #(
+  vector_mux #(
       .PORT_SIZE(N),
+
       .NO_PORT(NO_PORT)
   ) mux_valid (
+      .clk(top_clk),
       .in (w_valid_fifo),
       .out(valid_mux),
       .sel(sel)
   );
 
- 
-  bias_controller #(
-    .DRAM_BW(DRAM_BW),
-    .FIFO_NO(FIFO_NO),
-    .NO_PORT(NO_PORT)
-  ) vector_add_controller (
-    .clk(top_clk),
-    .rst(rst),
-    .enable(vector_add_enable),
-    .empty_fifo(empty_flag),
-    .data_valid_tree(top_in_data_valid[0]),
-    .sel(sel),
-    .valid_rd_en(w_rd_en)
-  );
 
-  /*
   new_controller #(
       .FIFO_NO(FIFO_NO),
       .BIAS(BIAS),
@@ -120,9 +105,7 @@ assign w_empty_flag=empty_flag;
       .data_valid_tree(top_in_data_valid[0]),
       .valid_rd_en(w_rd_en)
   );
-  */
-
- wire [NO_PORT-1:0] sel;
+ wire sel;
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),

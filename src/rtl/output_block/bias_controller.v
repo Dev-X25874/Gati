@@ -5,7 +5,7 @@ mux select lines are also controlled here.
 */
 
 module bias_controller #(
-   parameter DRAM_BW=32,
+    parameter DRAM_BW=32,
     parameter FIFO_NO = 8,
 	parameter NO_PORT=8
 ) (
@@ -51,17 +51,22 @@ reg[$clog2(NO_PORT)-1:0] i=0;
 		begin 
   
 	case(state)
-IDLE:
-			begin
-				if(((~empty_fifo)&data_valid_tree) & enable)
-	  begin 
-		  valid_rd_en<={FIFO_NO{1'b1}};
-		  state<=NEXT;	
+	IDLE:begin
+	
+	if(((~empty_fifo)&data_valid_tree) & enable)
+	begin 
+	  valid_rd_en<={FIFO_NO{1'b1}};
+	  state<=NEXT;	
 	 
-	 end
-				else valid_rd_en<=0;
-			end
-NEXT:begin
+	end
+	else if(empty_fifo) begin
+		count <= 0;
+		valid_rd_en<=0;
+	end
+	else valid_rd_en<=0;
+	end
+	
+	NEXT:begin
 	valid_rd_en<={FIFO_NO{1'b0}};	
 	if(count==1)
 	begin 

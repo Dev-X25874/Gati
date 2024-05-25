@@ -94,8 +94,10 @@ assign w_empty_flag=empty_flag;
 
 
  bias_controller #(
-      .FIFO_NO(FIFO_NO),
-.DRAM_BW(DRAM_BW))
+    .FIFO_NO(FIFO_NO),
+    .DRAM_BW(DRAM_BW),
+    .NO_PORT(NO_PORT),
+  )
    controller 
   (
       .clk(top_clk),

@@ -24,17 +24,13 @@
 `define CONV_Stride_WIDTH 4
 `define CONV_Pad 78:76
 `define CONV_Pad_WIDTH 3
-`define CONV_ChannelItr 90:79
-`define CONV_ChannelItr_WIDTH 12
-`define CONV_KernelItr 102:91
-`define CONV_KernelItr_WIDTH 12
-`define CONV_ImageStartAddress 134:103
+`define CONV_ImageStartAddress 110:79
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 166:135
+`define CONV_ImageEndAddress 142:111
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 198:167
+`define CONV_WeightStartAddress 174:143
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 230:199
+`define CONV_WeightEndAddress 206:175
 `define CONV_WeightEndAddress_WIDTH 32
 
 `define OP_FC 'h04
@@ -56,9 +52,7 @@
 `define FC_ImageStartAddress_WIDTH 32
 `define FC_ImageEndAddr 144:113
 `define FC_ImageEndAddr_WIDTH 32
-`define FC_KernelIteration 160:145
-`define FC_KernelIteration_WIDTH 16
-`define FC_RWAddressCountFlatten 176:161
+`define FC_RWAddressCountFlatten 160:145
 `define FC_RWAddressCountFlatten_WIDTH 16
 
 `define OP_OutputBlock 'h03
@@ -79,7 +73,7 @@
 `define OutputBlock_AccEn 124:124
 `define OutputBlock_AccEn_WIDTH 1
 
-`define OP_START 'h11
+`define OP_START 'hff
 `define START_Opcode 3:0
 `define START_Opcode_WIDTH 4
 `define START_LayerNumber 15:4

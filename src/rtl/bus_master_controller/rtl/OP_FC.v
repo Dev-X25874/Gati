@@ -11,7 +11,6 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
             parameter DROPOUTCONSTANT_WIDTH = 8,
             parameter FLATTEN_WIDTH = 1,
             parameter IMAGEDIN_WIDTH = 20
-            parameter KERNELITERATION_WIDTH = 16,
             parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
@@ -29,7 +28,6 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
-                output reg [KERNELITERATION_WIDTH - 1 : 0] KernelIteration = 0,
                 output reg [RWADDRESSCOUNTFLATTEN_WIDTH -1 : 0] RWAddressCountFlatten = 0
             );
 
@@ -57,7 +55,6 @@ always @(posedge clk) begin
         imagedim <= 0;
         ImageStartAddress <= 0;
         ImageEndAddr <= 0;
-        KernelIteration <= 0;
         RWAddressCountFlatten <= 0;
         count <= 0;
         state <= REGISTER;
@@ -90,7 +87,6 @@ always @(posedge clk) begin
             imagedim <= data_instruction[`FC_ImageDim];
             ImageStartAddress <= data_instruction[`FC_ImageStartAddress];   
             ImageEndAddr <= data_instruction[`FC_ImageEndAddr];
-            KernelIteration <= data_instruction[`FC_KernelIteration];
             RWAddressCountFlatten <= data_instruction[`FC_RWAddressCountFlatten];
             //valid <= 1'b1;
             state <= IDLE;

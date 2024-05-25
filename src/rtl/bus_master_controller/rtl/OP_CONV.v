@@ -15,8 +15,6 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
             parameter KH_WIDTH = 4,
             parameter STRIDE_WIDTH = 4,
             parameter PAD_WIDTH = 3,
-            parameter CHANNELITR_WIDTH = 12,
-            parameter KERNELITR_WIDTH = 12,
             parameter ADDRESS_WIDTH = 32)
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
@@ -35,8 +33,6 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [KH_WIDTH - 1 : 0] KH = 0,
                 output reg [STRIDE_WIDTH - 1 : 0] Stride = 0,
                 output reg [PAD_WIDTH - 1 : 0] Pad = 0,
-                output reg [CHANNELITR_WIDTH - 1 : 0] channelItr = 0,
-                output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
@@ -72,8 +68,6 @@ always @(posedge clk) begin
         KH <= 0;
         Stride <= 0;
         Pad <= 0;
-        channelItr <= 0;
-        kernelItr <= 0;
         ImageStartAddress <= 0;
         ImageEndAddress <= 0;
         WeightStartAddress <= 0;
@@ -110,8 +104,6 @@ always @(posedge clk) begin
             KH <= data_instruction[`CONV_KH];
             Stride <= data_instruction[`CONV_Stride];
             Pad <= data_instruction[`CONV_Pad];
-            channelItr <= data_instruction[`CONV_ChannelItr];
-            kernelItr <= data_instruction[`CONV_KernelItr];
             ImageStartAddress <= data_instruction[`CONV_ImageStartAddress];
             ImageEndAddress <= data_instruction[`CONV_ImageEndAddress];
             WeightStartAddress <= data_instruction[`CONV_WeightStartAddress];

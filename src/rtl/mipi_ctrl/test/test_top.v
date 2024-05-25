@@ -12,12 +12,12 @@ module test_top#(
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
     output [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
-    output o_data_last, //comes from dram wr ctrl
+    output final_o_data_last, //comes from dram wr ctrl
     output o_data_valid, //comes from dram wr ctrl
     output req_wr_req_ctrl,
     output [7:0] address_wr_req_ctrl,
-    output [W_BURST_LEN-1 : 0] burst_len_wr_req_ctrl,
-    output last_wr_req_ctrl,
+    output [W_BURST_LEN-1 : 0] final_burst_len_wr_req_ctrl,
+    output final_last_wr_req_ctrl,
     output valid_wr_req_ctrl
 );
 
@@ -26,6 +26,9 @@ wire [W_DATA-1 : 0] data_size;
 wire [N_FIFO-1 : 0] ff_write_enable;
 wire [W_DATA-1 : 0] data_ff_wr_ctrl;
 wire dv_ff_wr_ctrl;
+	assign final_o_data_last=o_data_last;
+	assign final_last_wr_req_ctrl=last_wr_req_ctrl;
+	assign finaL_burst_len_wr_req_ctrl=burst_len_wr_req_ctrl;
 
 fifo_wr_ctrl#(
     .W_DATA(W_DATA),

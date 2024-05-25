@@ -53,12 +53,12 @@ test_top#(
     .i_data_valid(fifo_dv),
     .i_data(fifo_data),
     .o_fifo_data(o_fifo_data),  //comes from fifo array
-    .o_data_last(o_data_last), //comes from dram wr ctrl
+	.final_o_data_last(o_data_last), //comes from dram wr ctrl
     .o_data_valid(o_data_valid), //comes from dram wr ctrl
     .req_wr_req_ctrl(req_wr_req_ctrl),
     .address_wr_req_ctrl(address_wr_req_ctrl),
-    .burst_len_wr_req_ctrl(burst_len_wr_req_ctrl),
-    .last_wr_req_ctrl(last_wr_req_ctrl),
+    .final_burst_len_wr_req_ctrl(burst_len_wr_req_ctrl),
+    .final_last_wr_req_ctrl(last_wr_req_ctrl),
     .valid_wr_req_ctrl(valid_wr_req_ctrl)
 );
     

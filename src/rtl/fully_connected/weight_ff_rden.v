@@ -17,8 +17,8 @@ module weight_ff_rden#(
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
 
-wire [WEIGHT_FF_ADDR : 0] image_dim;
-assign image_dim = i_img_dim[WEIGHT_FF_ADDR : 0];
+// wire [WEIGHT_FF_ADDR : 0] image_dim;
+// assign image_dim = i_img_dim[WEIGHT_FF_ADDR : 0];
 
 wire w_trigger;
 pulse_gen one_pulse (

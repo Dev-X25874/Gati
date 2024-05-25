@@ -71,7 +71,8 @@ always @(posedge i_clk)begin
                     //reset everything once all the data from mipi packet is written
                     if(counter == (data_size >> 2))begin
                         counter <= 0;
-                        state <= 0;
+						state <= 1;
+						start_addr<=i_data;
                         wr_counter <= 0;
                         wren <= 0;
                         data <= 0;
@@ -80,19 +81,23 @@ always @(posedge i_clk)begin
                         data <= i_data;
                         valid <= 1'b1;
                         //asserting write enable signal, one by one,for each fifo in fifo array
-                        if (wr_counter == N_FIFO - 1)
+						if (wr_counter == N_FIFO-1 ) begin 
                             wr_counter <= 0;
-                        else
-                            wr_counter <= wr_counter + 1;
-                        wren[wr_counter] <= 1;
-                        if(N_FIFO > 1) begin
-                            if (wr_counter == 0)
-                                wren[N_FIFO - 1] <= 0;
-                            else
-                                wren[wr_counter - 1] <= 0;
-                        end
+						end
+						else begin 
+							wr_counter <= wr_counter + 1;
+						end
+						wren[wr_counter] <= 1;
+
+                       if(N_FIFO > 1) begin
+                           if (wr_counter == 0)
+                               wren[N_FIFO - 1] <= 0;
+                           else
+                               wren[wr_counter - 1] <= 0;
+                       end
                     end
-                end else begin
+                end 
+				else begin
                     wr_counter <= wr_counter;
                     wren <= 0;
                 end

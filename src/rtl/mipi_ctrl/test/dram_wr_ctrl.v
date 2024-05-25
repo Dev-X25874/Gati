@@ -21,7 +21,7 @@ reg [W_BURST_LEN-1 : 0] rd_counter = 0;
 reg [N_FIFO-1 : 0] rden = 0;
 reg [W_BURST_LEN-1 : 0] r_blen = 0;
 wire [((W_ADDR + 1) * N_FIFO)-1 : 0] fifo_occupants;
-assign fifo_occupants = {N_FIFO{r_blen+1}};
+assign fifo_occupants = {N_FIFO{1'b0,r_blen}};
 assign o_data_valid = dv;
 assign o_fifo_read_enable = rden;
 assign o_data_last = data_last;
@@ -56,7 +56,7 @@ always @(posedge i_clk)begin
             end
 
             2: begin
-                if(rd_counter == r_blen)begin
+                if(rd_counter == r_blen+1)begin
                     rd_counter <= 0;
                     rden <= 0;
                     state <= 0;

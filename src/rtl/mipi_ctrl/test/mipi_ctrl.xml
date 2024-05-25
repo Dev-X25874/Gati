@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="mipi_ctrl" description="" last_change="1716439008" sw_version="2023.2.307" last_run_state="pass" last_run_flow="syn" config_result_in_sync="true" design_ood="sync" place_ood="change" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="mipi_ctrl" description="" last_change="1716634873" sw_version="2023.2.307" last_run_state="pass" last_run_flow="syn" config_result_in_sync="true" design_ood="sync" place_ood="change" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="test_top"/>
+        <efx:top_module name="debug_top"/>
         <efx:design_file name="data_mem_ctrl.v" version="default" library="default"/>
         <efx:design_file name="debug_top.v" version="default" library="default"/>
         <efx:design_file name="test_top.v" version="default" library="default"/>
@@ -16,6 +16,7 @@
         <efx:design_file name="wr_req_ctrl.v" version="default" library="default"/>
         <efx:design_file name="image_fifo_array.v" version="default" library="default"/>
         <efx:design_file name="pulse_gen.v" version="default" library="default"/>
+        <efx:design_file name="sync_fifo.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>
@@ -24,11 +25,7 @@
     </efx:constraint_info>
     <efx:sim_info/>
     <efx:misc_info/>
-    <efx:ip_info>
-        <efx:ip instance_name="sync_fifo" path="ip/sync_fifo/settings.json">
-            <efx:ip_src_file name="sync_fifo.v"/>
-        </efx:ip>
-    </efx:ip_info>
+    <efx:ip_info/>
     <efx:synthesis tool_name="efx_map">
         <efx:param name="work_dir" value="work_syn" value_type="e_string"/>
         <efx:param name="write_efx_verilog" value="on" value_type="e_bool"/>
@@ -58,7 +55,6 @@
         <efx:param name="use-logic-for-small-rom" value="64" value_type="e_integer"/>
         <efx:param name="mult_input_regs_packing" value="1" value_type="e_option"/>
         <efx:param name="mult_output_regs_packing" value="1" value_type="e_option"/>
-        <efx:param name="include" value="ip/sync_fifo" value_type="e_string"/>
     </efx:synthesis>
     <efx:place_and_route tool_name="efx_pnr">
         <efx:param name="work_dir" value="work_pnr" value_type="e_string"/>
@@ -91,7 +87,7 @@
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
-        <efx:param name="auto_instantiation" value="on" value_type="e_bool"/>
+        <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
         <efx:param name="profile" value="debug_profile.wizard.json" value_type="e_string"/>
     </efx:debugger>
 </efx:project>

@@ -4,7 +4,7 @@
 module wr_req_ctrl#(
     parameter W_DATA = 32,
     parameter W_BURST_LEN = 8,
-    parameter BURST_LEN = 15,
+    parameter BURST_LEN = 16,
     parameter W_ADDR = 8,
     parameter AXI_BYTES = 32,
     parameter N_FIFO = 8
@@ -32,11 +32,11 @@ reg [W_BURST_LEN-1 : 0] burst_len = BURST_LEN;
 reg [7:0] addr = 0;
 reg [W_DATA-1 : 0] r_addr = 0;  //reg to hold updated address
 reg [W_BURST_LEN-1 : 0] r_burst_len = BURST_LEN;   //reg to hold updated burst length before sending it
-reg [W_DATA-1 : 0] data_size = 0;
+reg [W_DATA-1 : 0] data_size = 0,r_data_size=0;
 reg [W_DATA-1 : 0] offset = 0;
 reg [2:0] addr_counter = 0;
 wire [W_ADDR:0] replicated_value;
-assign replicated_value = burst_len + 1;
+assign replicated_value = r_burst_len+1 ;
 wire [((W_ADDR + 1) * N_FIFO)-1 : 0] fifo_occupants;
 assign fifo_occupants = {N_FIFO{replicated_value}};
 
@@ -60,23 +60,39 @@ always @(posedge i_clk)begin
             0:begin
                 if(i_data_valid)begin
                     r_addr <= i_start_address;
-                    state <= 1;
+                    state <= 4;
                 end
             end
 
+
+			4:begin 
+				if(i_data_valid) begin 
+					data_size<=i_data_size;
+					state<=1;
+				end
+			end
+
+			
+
             1: begin
                 // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
-                    if(i_fifo_occupants >= fifo_occupants) begin
-                    state <= 2;
+                if(i_fifo_occupants >= fifo_occupants) begin
+                	state <= 2;
                 end
-            end
+				if(data_size<512) begin 
+					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
+				end
+				else begin 
+					r_burst_len<=15;
+				end
+			end
             2: begin
                 //send req to DDR
                 // req <= 1'b1;
                 //Add addr_valid in address counter
                 addr <= r_addr;//Add counter 1-4
                 burst_len <= r_burst_len;
-                offset <=((burst_len + 1)<<$clog2(W_DATA));
+                offset <=((burst_len+1)<<$clog2(W_DATA));
                 if(addr_counter < 3)begin
                     addr_counter <= addr_counter + 1;
                     addr <= r_addr[(W_DATA - (addr_counter * 8))-1 -: 8];
@@ -88,7 +104,7 @@ always @(posedge i_clk)begin
                     last <= 1'b1;
                     valid <= 1'b1;
                     //reduce data size
-                    data_size <= (i_data_size - (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len + 1)));  //For eg, 98x4 - 256/8
+                    data_size <= (data_size - (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )));  //For eg, 98x4 - 256/8
                 end else begin
                     addr_counter <= 0;
                     last <= 1'b0;
@@ -97,19 +113,26 @@ always @(posedge i_clk)begin
                 end
             end
             3: begin
-                r_addr <= r_addr + offset;
                 if(data_size != 0)begin
-                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len + 1))) begin  //if data size = 32 * (blen+1)
+                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 ) && data_size[31]!=1)) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
-                        if(i_data_last)
-                            state <= 0;
+						if(i_data_last) begin 
+                            state <= 1;
+						    r_addr <= r_addr + offset;
+						end
                     end else begin
                         r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
-                        if(i_data_last)
-                            state <= 0;
+						if(i_data_last) begin 
+                            state <= 1;
+							r_addr <= r_addr + offset;
+						end
+
+
                     end
                 end else begin
+					if(i_data_last) begin 
                     state <= 0;
+					end
                 end
             end
 

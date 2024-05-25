@@ -10,8 +10,6 @@ KW:4
 KH:4
 Stride:4
 Pad:3
-ChannelItr:12
-KernelItr:12
 ImageStartAddress:32
 ImageEndAddress:32
 WeightStartAddress:32

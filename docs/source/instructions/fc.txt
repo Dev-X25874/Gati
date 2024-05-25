@@ -1,4 +1,4 @@
-FC:HEX04
+FC:HEX03
 Opcode:4
 WeightRows:16
 WeightCols:16

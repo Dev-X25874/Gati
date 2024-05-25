@@ -49,23 +49,32 @@ always @(posedge i_clk)begin
                 0:begin
                     if(r_start & (~i_sel_mux))begin
                         if((i_north_empty == 0))begin
-                            if((i_north_occ >= {COL{image_dim}}))begin
+                            // if((i_north_occ >= {COL{image_dim}}))begin
                             north_rden <= {COL{1'b1}};
                             counter <= counter + 1;
                             state <= 1;
-                        end
+                        // end
                         end
                     end
                 end 
 
                 1: begin
-                        if(((counter == i_img_dim)) || ((i_north_occ == 0)))begin
+                    if(counter == i_img_dim)begin
                         north_rden <= 0;
                         counter <= 0;
                         state <= 0;
-                        dbg_cnt <= dbg_cnt + 1;
+                        // dbg_cnt <= dbg_cnt + 1;
                     end else begin
-                        counter <= counter + 1;
+                        if(i_north_occ == 0)begin
+                            north_rden <= 0;
+                            counter <= counter;
+                            state <= 1;
+                        end
+                        else begin 
+                            north_rden <= 0;
+                            counter <= counter + 1;
+                            state <= 1;
+                        end                        
                     end
                 end
                 default: state <= 0;

@@ -95,8 +95,16 @@ always @(posedge i_clk)begin
                     acc_reg = 0;
                     state <= 0;
                 end else begin
-                    acc_reg <= w_data + acc_reg;
-                    counter <= counter + 1;
+                    state <= 1;
+                    dv <=  1'b0;
+                    if(i_psum[W_PSUM]) begin
+                        acc_reg <= w_data + acc_reg;
+                        counter <= counter + 1;
+                    end
+                    else begin
+                        acc_reg <= acc_reg;
+                        counter <= counter;
+                    end
                 end
             end
 

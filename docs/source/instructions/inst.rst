@@ -32,7 +32,7 @@
 	`define CONV_WeightEndAddress 206:175
 	`define CONV_WeightEndAddress_WIDTH 32
 
-	`define OP_FC 'h04
+	`define OP_FC 'h03
 	`define FC_Opcode 3:0
 	`define FC_Opcode_WIDTH 4
 	`define FC_WeightRows 19:4
@@ -54,7 +54,7 @@
 	`define FC_RWAddressCountFlatten 160:145
 	`define FC_RWAddressCountFlatten_WIDTH 16
 
-	`define OP_OutputBlock 'h03
+	`define OP_OutputBlock 'h02
 	`define OutputBlock_Opcode 3:0
 	`define OutputBlock_Opcode_WIDTH 4
 	`define OutputBlock_AccumulantAddr 35:4
@@ -124,6 +124,11 @@
 	`define TailBlock_BiasEndAddress 199:168
 	`define TailBlock_BiasEndAddress_WIDTH 32
 
+	`define ACT_RELU 'h00
+	`define POOL_MAX 'h00
+	`define POOL_AVERAGE 'h01
+	`define POOL_GLOBAL_AVG 'h02
+
 .. code::
 
 	#define OP_CONV 0x00
@@ -173,7 +178,7 @@
 	#define CONV_WeightEndAddress_HIGH 206
 	#define CONV_WeightEndAddress_COUNT 32
 
-	#define OP_FC 0x04
+	#define OP_FC 0x03
 	#define FC_Opcode_LOW 0
 	#define FC_Opcode_HIGH 3
 	#define FC_Opcode_COUNT 4
@@ -205,7 +210,7 @@
 	#define FC_RWAddressCountFlatten_HIGH 160
 	#define FC_RWAddressCountFlatten_COUNT 16
 
-	#define OP_OutputBlock 0x03
+	#define OP_OutputBlock 0x02
 	#define OutputBlock_Opcode_LOW 0
 	#define OutputBlock_Opcode_HIGH 3
 	#define OutputBlock_Opcode_COUNT 4
@@ -306,4 +311,9 @@
 	#define TailBlock_BiasEndAddress_LOW 168
 	#define TailBlock_BiasEndAddress_HIGH 199
 	#define TailBlock_BiasEndAddress_COUNT 32
+
+	#define ACT_RELU 0x00
+	#define POOL_MAX 0x00
+	#define POOL_AVERAGE 0x01
+	#define POOL_GLOBAL_AVG 0x02
 

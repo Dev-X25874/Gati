@@ -32,7 +32,6 @@ reg	[N-1:0]	rotate_ptr = 0;
 wire	[N-1:0]	mask_req;
 wire	[N-1:0]	mask_grant;
 wire	[N-1:0]	grant_comb;
-//reg	    [N-1:0]	grant = 0;
 wire		    no_mask_req;
 wire	[N-1:0] nomask_grant;
 wire		    update_ptr;
@@ -99,9 +98,11 @@ begin
 	if (!rst_an)	grant[N-1:0] <= {N{1'b0}};
 	else 
     begin 
-
-        grant[N-1:0] <= grant_comb[N-1:0] & ~grant[N-1:0];
-
+            //if (en_pin == 1) 
+                 grant[N-1:0] <= grant_comb[N-1:0] & ~grant[N-1:0];
+                 
+           // else 
+            //     grant [N-1:0] <= 0 ;
     end 
 end
 

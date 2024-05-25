@@ -1,5 +1,3 @@
-
-/////
 module Mem_ctrl_wr #(
 parameter   AXI_DATA_WIDTH = 256
 ) (

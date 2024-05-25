@@ -1,21 +1,22 @@
 module Port_controller #(
   parameter ADDR_SEGMENTS = 4,
-  parameter PORT_ID_VALUE = 0
+  parameter PORT_ID_VALUE = 0,
+  parameter ADDRESS_WIDTH = 32,
+  parameter IN_ADDR = 8 ,
+  parameter COMBINED_DATA_WIDTH = 41,
+  parameter BURST_LENGTH_WIDTH = 4,
+  parameter PORT_ID_WIDTH = 4
 )(
-  input              clk,          // Clock signal  
-  input              rst,          // Reset signal  
-  input              valid,        // Valid signal
-  input              last,         // Last signal  
-  input      [7:0]   in_address,   // 8-bit input address
-  input      [3:0]   in_burst_len, // 4-bit input burst length
-  input              in_enable_rw, // Read/Write enable input
+  input                                clk,          // Clock signal  
+  input                                rst,          // Reset signal  
+  input                                valid,        // Valid signal
+  input                                last,         // Last signal  
+  input  [IN_ADDR-1:0]                 in_address,   // 8-bit input address
+  input  [BURST_LENGTH_WIDTH-1:0]      in_burst_len, // 4-bit input burst length
+  input                                in_enable_rw, // Read/Write enable input
   
-  output   reg     o_valid = 0,
-  output  [31:0] out_address,   // 32-bit output address
-  output  [3:0]  out_burst_len, // 4-bit output burst length
-  output          out_enable_rw, // Read/Write enable output
-  output   [3:0]  port_id,
-  output reg [40:0]  combined_out = 0
+  output   reg                          o_valid = 0,
+  output reg [COMBINED_DATA_WIDTH-1:0]  combined_out = 0
 );
 
   localparam IDLE = 2'b00;
@@ -24,12 +25,13 @@ module Port_controller #(
   
   // Define state register
   reg [1:0] state = 0;
-  wire [3:0] port_id_temp;
+  wire [PORT_ID_WIDTH-1:0] port_id_temp;
   
   assign port_id_temp = PORT_ID_VALUE ;
   // Registers for storing data
-  reg [31:0] address_reg = 0;
-  reg [3:0]  burst_len_reg = 0;
+  wire [PORT_ID_WIDTH-1:0]  port_id;
+  reg [ADDRESS_WIDTH-1:0] address_reg = 0;
+  reg [BURST_LENGTH_WIDTH-1:0]  burst_len_reg = 0;
   reg        enable_rw_reg = 0;
   
 ////////////////////////////////////////////////////////////////////////
@@ -53,7 +55,6 @@ module Port_controller #(
       state <= IDLE;
       burst_len_reg <= 0;
       enable_rw_reg <= 0;
-    //  port_id_reg <= port_id_temp;
       combined_out <= 0;
     end 
     else begin 
@@ -72,16 +73,13 @@ module Port_controller #(
         TRANSMIT_ADDRESS: begin 
           if (last) begin
              o_valid <= 1'b0;
-           //combined_out <= {address_reg, burst_len_reg, port_id_reg, enable_rw_reg};
             state <= WAIT_DATA ;
           end
         end 
         
         WAIT_DATA : begin 
             o_valid <= 1'b1 ;
-         //   burst_len_reg <= burst_len_reg;
             combined_out <= {address_reg, burst_len_reg, port_id_temp, enable_rw_reg};
-           // combined_out <= {enable_rw_reg, port_id_temp, burst_len_reg, address_reg};
             state <= IDLE ;
         end
       endcase
@@ -95,5 +93,3 @@ module Port_controller #(
   assign port_id = port_id_temp ;
 
 endmodule
-
- 

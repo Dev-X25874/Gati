@@ -1,18 +1,19 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-module RD_ID_Manager (
+module RD_ID_Manager #(
+    parameter ID_WIDTH = 8,
+    parameter NUM_PORTS_SEL = 4
+) (
     input clk,
     input rst,
     input valid,
-    input [7:0] id_rd_in,
+    input [ID_WIDTH-1:0] id_rd_in,
     input atype,
     input rvalid,
     input rlast,
-    input [7:0] rid,
+    input [ID_WIDTH-1:0] rid,
     output reg r_en_ack = 0,
-    output reg [3:0] select_rd = 4'b0000,
+    output reg [NUM_PORTS_SEL-1:0] select_rd = 4'b0000,
     output reg rd_r_valid = 0 ,
     output reg rd_r_last = 0 ,
-  //  output reg [7:0] status_rd_reg = 8'h00,
     output reg ack_rd = 0 
 );
 
@@ -24,8 +25,6 @@ localparam STORED_RD_ID = 2'b01 ;
 reg [1:0] state = 0 ;
 reg [7:0] stored_rd_id = 0 ;
 reg [7:0] current_sent = 0 ;
-
-
 
 // Write operation
 always @(posedge clk) begin 
@@ -44,9 +43,7 @@ always @(posedge clk) begin
                     r_en_ack <= 0 ;
                     current_sent <= id_rd_in ;
                     state <= STORED_RD_ID ;
-                    //state <= STORED_RD_ID ;
                 end 
-                
                 else begin
                     r_en_ack <= 0 ;
                     current_sent <= current_sent ;
@@ -60,15 +57,13 @@ always @(posedge clk) begin
                         stored_rd_id <= rid;
                         r_en_ack <= 1'b1 ;
                         state <= IDLE ;
-                     end 
-                     
+                     end  
                      else begin 
                         stored_rd_id <= stored_rd_id ;
                         r_en_ack <= 0 ;
                         state <= STORED_RD_ID ;
                      end 
                 end 
-                
                 else  begin
                     stored_rd_id <= stored_rd_id;
                     r_en_ack <= 0 ;
@@ -87,19 +82,14 @@ always @ (posedge clk) begin
     else begin 
     rd_r_valid <= rvalid ;
     rd_r_last  <= rlast ;
-        if ((current_sent == rid) && rvalid)  begin
-         //   select_rd <= 1 << status_rd_reg ;
-           // select_rd <= 1 << current_sent ;
+        if ((current_sent == rid) && rvalid)  begin   // if aid == rid && rvalid is 1 select_rd is 1
            select_rd [current_sent] <= 1 ;
             ack_rd <= 1'b1 ;
         end 
-        
-      //  else if ((current_sent == rid) && rvalid && rlast ) begin 
         else if (rd_r_last ) begin 
             select_rd  <= 0;
             ack_rd <= 0 ;
-        end 
-        
+        end      
         else begin 
             select_rd <= select_rd ;
             ack_rd <= ack_rd ;

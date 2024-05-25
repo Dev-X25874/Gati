@@ -12,12 +12,8 @@ module  Wr_ctrl
   
   //Operate Control & State
   RamWrStart  , //(I)Ram Operate Start      // axi valid
-  //RamWrEnd    , //(O)Ram Operate End
-//  RamWrAddr   , //(O)Ram Write Address
-  //RamWrNext   , //(O)Ram Write Next
   RamWrData   , //(I)Ram Write Data        
-  //RamWrBusy   , //(O)Ram Write Busy
-  //RamWrALoad  , //(O)Ram Write Address Load
+
   //Axi Slave Interfac Signal
   AWID        , //(O)[WrAddr]Write address ID.
   AWADDR      , //(O)[WrAddr]Write address.
@@ -43,8 +39,6 @@ module  Wr_ctrl
   //Define  Parameter
   /////////////////////////////////////////////////////////
   parameter   TCo_C           = 1                 ;
-                                                  
- // parameter   AXI_WR_ID       = 8'ha5             ;
   parameter   AXI_DATA_WIDTH  = 256               ;
                                                   
   localparam  AXI_BYTE_NUMBER = AXI_DATA_WIDTH/8  ;
@@ -64,13 +58,7 @@ module  Wr_ctrl
   /////////////////////////////////////////////////////////
   //Operate Control & State
   input             RamWrStart  ; //(I)[DdrWrCtrl]Ram Operate Start
-  //output            RamWrEnd    ; //(O)[DdrWrCtrl]Ram Operate End
-  //output  [31:0]    RamWrAddr   ; //(O)[DdrWrCtrl]Ram Write Address
-  //output            RamWrNext   ; //(O)[DdrWrCtrl]Ram Write Next
-  //output            RamWrBusy   ; //(O)[DdrWrCtrl]Ram Write Busy
-   input [ADW_C-1:0] RamWrData   ; //(I)[DdrWrCtrl]Ram Write Data
-  // output            RamWrALoad  ; //(O)Ram Write Address Load
-  
+  input [ADW_C-1:0] RamWrData   ; //(I)[DdrWrCtrl]Ram Write Data
   input w_ctrl_valid ;
   input w_ctrl_last ;
   /////////////////////////////////////////////////////////
@@ -99,15 +87,8 @@ module  Wr_ctrl
   input             BVALID      ; //(I)[WrResp]Write response valid. This signal indicates that the channel is signaling a valid write response.
   output            BREADY      ; //(O)[WrResp]Response ready. This signal indicates that the master can accept a write response.
 
-//1111111111111111111111111111111111111111111111111111111
-//  Process Address Channel
-//  Input£º
-//  output£º
-//***************************************************/
-
-  /////////////////////////////////////////////////////////
   wire AddrReady = AWREADY ;
-
+   reg   DataWrStart = 0;
   /////////////////////////////////////////////////////////
   reg   [ 7:0]  WrBurstLen  =  8'h0;
   reg   [31:0]  WrStartAddr = 32'h0;
@@ -125,15 +106,6 @@ module  Wr_ctrl
 
   /////////////////////////////////////////////////////////
   reg     AddrValid = 1'h0;
-
-  /////////////////////////////////////////////////////////
- /* always @( posedge SysClk)
-  begin
-  
-    if (!Reset_N)         AddrValid <= # TCo_C 1'h0;
-    else if (RamWrStart)  AddrValid <= # TCo_C 1'h1;
-    else if (AddrReady)   AddrValid <= # TCo_C 1'h0;
-  end */
   
  always @( posedge SysClk)
   begin
@@ -154,21 +126,7 @@ module  Wr_ctrl
   wire  [ 1:0]  AWLOCK  = 2'b00         ; //(O)[WrAddr]Lock type. Provides additional information about the atomic characteristics of the transfer.
   wire          AWVALID = AddrValid     ; //(O)[WrAddr]Write address valid. This signal indicates that the channel is signaling valid write address and control information.
 
-  /////////////////////////////////////////////////////////
-
-//1111111111111111111111111111111111111111111111111111111
-
-
-//22222222222222222222222222222222222222222222222222222
-//  Process DDR Operate
-//  Input£º
-//  output£º
-//***************************************************/
-
-  /////////////////////////////////////////////////////////
   wire  DataWrReady     = WREADY  ;
-
-  /////////////////////////////////////////////////////////
   reg   DataWrValid     = 1'h0    ;
   reg   DataWrLast      = 1'h0    ;
 
@@ -176,108 +134,23 @@ module  Wr_ctrl
   assign  DataWrEn        = DataWrValid & DataWrReady              ;
   assign  DataWrEnd       = DataWrValid & DataWrReady & DataWrLast ;
 
-  /////////////////////////////////////////////////////////
-  reg   DataWrAddrAva   = 1'h0 ;
-  reg   DataWrStart = 0;
-
-  always @( posedge SysClk or negedge Reset_N)
-  begin
-    if (~Reset_N)       DataWrAddrAva <= # TCo_C 1'h0;
-    else if (DataWrEnd) DataWrAddrAva <= # TCo_C 1'h0;
-    else if (AddrWrEn)  DataWrAddrAva <= # TCo_C DataWrValid;
-  end
-    
-  wire	DataWrNextBrst  = (AddrWrEn | DataWrAddrAva ) & DataWrEnd;
-  
-   always @( posedge SysClk)   DataWrStart   = (AddrWrEn & (~DataWrValid)) | DataWrNextBrst ;
-  
-  /////////////////////////////////////////////////////////
  always @( posedge SysClk or negedge Reset_N)
   begin
     if (!Reset_N)           DataWrValid  <= # TCo_C 1'h0;
     else if (DataWrStart)   DataWrValid  <= # TCo_C 1'h1;
     else if (DataWrEnd)     DataWrValid  <= # TCo_C 1'h0;
   end
-
-  /////////////////////////////////////////////////////////
-  reg   [7:0]   WrBurstCnt = 8'h0;
-
-  always @( posedge SysClk or negedge Reset_N)
-  begin
-    if (!Reset_N)           WrBurstCnt  <= # TCo_C 8'h0;
-    else if (DataWrStart)   WrBurstCnt  <= # TCo_C WrBurstLen ;
-    else if (DataWrEn)      WrBurstCnt  <= # TCo_C WrBurstCnt - {7'h0,(|WrBurstCnt)};
-  end
-
-  always @( posedge SysClk)
-  begin
-    if (DataWrStart)      DataWrLast <= # TCo_C  (~|WrBurstLen);
-    else if (DataWrEn)    DataWrLast <= # TCo_C  (WrBurstCnt == 8'h1);
-    else if (DataWrEnd)   DataWrLast <= # TCo_C  1'h0;
-  end
-
-  /////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
   wire  [      7:0]   WID     = axi_wr_id     ; //(O)[WrData]Write ID tag. This signal is the ID tag of the write data transfer.
   wire  [ABN_C-1:0]   WSTRB   = {ABN_C{1'h1}} ; //(O)[WrData]Write strobes. This signal indicates which byte lanes hold valid data. There is one write strobe bit for each eight bits of the write data bus.
   wire                WVALID  = w_ctrl_valid   ; //(O)[WrData]Write valid. This signal indicates that valid write data and strobes are available.
   wire                WLAST   = w_ctrl_last    ; //(O)[WrData]Write last. This signal indicates the last transfer in a write burst.
   wire  [ADW_C-1:0]   WDATA   = RamWrData     ; //(I)[WrData]Write data.
 
-  /////////////////////////////////////////////////////////
-  wire  RamWrALoad  = DataWrStart; //(O)Ram Write Address Load
-
-//22222222222222222222222222222222222222222222222222222
-
-
-//3333333333333333333333333333333333333333333333333333333
-//  Write Address
-//  Input£º
-//  output£º
-//***************************************************/
-
-  /////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
   wire  [ 7:0]  WrByteNum = AXI_BYTE_NUMBER ;
   reg   [31:0]  WrAddrCnt = 32'h0           ;  //(O)Ram Write Address
 
-  always @( posedge SysClk)
-  begin
-    if (~DataWrValid)         WrAddrCnt <= # TCo_C WrStartAddr;
-    else if (DataWrNextBrst)  WrAddrCnt <= # TCo_C WrStartAddr;
-    else if (DataWrEn)        WrAddrCnt <= # TCo_C WrAddrCnt  + {24'h0,WrByteNum};
-  end
-
-  /////////////////////////////////////////////////////////
-  //reg   RamWrBusy = 1'h0; //(O)[DdrWrCtrl]Ram Write Busy
-
-  //always @( posedge SysClk) RamWrBusy <= # TCo_C DataWrAddrAva & DataWrValid;
-
-  /////////////////////////////////////////////////////////
-  reg   DataWrBusy  = 1'h0  ;
- // reg   RamWrEnd    = 1'h0  ;   //(O)[DdrWrCtrl]Ram Operate End
-
-  always @( posedge SysClk)
-  begin
-    if (DataWrEnd)       DataWrBusy <= # TCo_C 1'h0;
-    else if (DataWrEn)   DataWrBusy <= # TCo_C 1'h1;
-  end
-  
- // always @( posedge SysClk)   RamWrEnd  <= # TCo_C (~DataWrBusy) & DataWrEn;   
-  
-  /////////////////////////////////////////////////////////  
-  //wire   RamWrNext = DataWrEn    ;               //(O)[DdrWrCtrl]Ram Write Next
-  wire  [31:0]   RamWrAddr = WrAddrCnt   ;               //(O)[DdrWrCtrl]Ram Write Address
-  
-  /////////////////////////////////////////////////////////
-
-//3333333333333333333333333333333333333333333333333333333
-
-//4444444444444444444444444444444444444444444444444444444
-//  Write Address
-//  Input£º
-//  output£º
-//***************************************************/
-
-  /////////////////////////////////////////////////////////
   wire    BackValid = BVALID;
 
   /////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ localparam STOP = 2'b11;
 assign addr = temp_r_addr_1 ;
 
 initial begin
-    $readmemb("Data_test_1.mem", mem);
+    $readmemb("/home/prapti/Gati/src/rtl/mem_ctrl/test/Data_test_1.mem", mem);
 end
 
 always @(posedge clk ) begin

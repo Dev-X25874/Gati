@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="round_robin_ARB" description="" last_change="1716359360" sw_version="2023.2.307" last_run_state="fail" last_run_flow="place" config_result_in_sync="true" design_ood="sync" place_ood="" route_ood="new" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="DRAM_controller" description="" last_change="1716613692" sw_version="2023.2.307" last_run_state="pass" last_run_flow="place" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="Top_mem_ctrl"/>
-        <efx:design_file name="RD_ID_Manager.v" version="default" library="default"/>
+        <efx:top_module name="Top_test_controller"/>
         <efx:design_file name="Req_Queue_gen.v" version="default" library="default"/>
-        <efx:design_file name="MUX_WR_SEL.v" version="default" library="default"/>
-        <efx:design_file name="Top_mem_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="Top_test_data_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="one_pulse.v" version="default" library="default"/>
+        <efx:design_file name="Top_DRAM_controller.v" version="default" library="default"/>
+        <efx:design_file name="test/MUX_WR_SEL.v" version="default" library="default"/>
+        <efx:design_file name="test/Top_test_controller.v" version="default" library="default"/>
+        <efx:design_file name="test/Top_test_data_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="test/one_pulse.v" version="default" library="default"/>
         <efx:design_file name="Top_Axi.v" version="default" library="default"/>
-        <efx:design_file name="Mem_Rd_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="Mem_ctrl_wr.v" version="default" library="default"/>
+        <efx:design_file name="test/Mem_Rd_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="test/Mem_ctrl_wr.v" version="default" library="default"/>
         <efx:design_file name="onehot_to_bin.v" version="default" library="default"/>
         <efx:design_file name="Port_controller.v" version="default" library="default"/>
-        <efx:design_file name="Test_data_ctrl_2.v" version="default" library="default"/>
+        <efx:design_file name="test/Test_data_ctrl_2.v" version="default" library="default"/>
         <efx:design_file name="ddr_reset_sequencer.v" version="default" library="default"/>
-        <efx:design_file name="Test_data_ctrl_1.v" version="default" library="default"/>
-        <efx:design_file name="Test_data_ctrl_3.v" version="default" library="default"/>
+        <efx:design_file name="test/Test_data_ctrl_1.v" version="default" library="default"/>
+        <efx:design_file name="test/Test_data_ctrl_3.v" version="default" library="default"/>
         <efx:design_file name="Axi4FullDeplex.v" version="default" library="default"/>
         <efx:design_file name="Port_ctrl_gen.v" version="default" library="default"/>
         <efx:design_file name="RR_ARB.v" version="default" library="default"/>
         <efx:design_file name="Wr_ctrl.v" version="default" library="default"/>
         <efx:design_file name="Req_Manager.v" version="default" library="default"/>
         <efx:design_file name="Rd_ctrl.v" version="default" library="default"/>
-        <efx:design_file name="Test_data_ctrl.v" version="default" library="default"/>
+        <efx:design_file name="test/Test_data_ctrl.v" version="default" library="default"/>
         <efx:design_file name="WR_ID_Manager.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
@@ -43,7 +43,7 @@
     </efx:sim_info>
     <efx:misc_info/>
     <efx:ip_info>
-        <efx:ip instance_name="data_fifo" path="ip/data_fifo/settings.json">
+        <efx:ip instance_name="data_fifo" path="test/ip/data_fifo/settings.json">
             <efx:ip_src_file name="data_fifo.v"/>
         </efx:ip>
     </efx:ip_info>
@@ -109,7 +109,7 @@
     </efx:bitstream_generation>
     <efx:debugger>
         <efx:param name="work_dir" value="work_dbg" value_type="e_string"/>
-        <efx:param name="auto_instantiation" value="on" value_type="e_bool"/>
+        <efx:param name="auto_instantiation" value="off" value_type="e_bool"/>
         <efx:param name="profile" value="debug_profile.wizard.json" value_type="e_string"/>
     </efx:debugger>
 </efx:project>

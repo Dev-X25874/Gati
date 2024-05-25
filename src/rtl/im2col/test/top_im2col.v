@@ -42,8 +42,7 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   input                             i_zero_pad,
   output                            o_valid_data,
   output                            o_valid_buff,
-  input                             i_valid_data,
-  output                            im2col_done
+  input                             i_valid_data
 
 );
   wire [$clog2(UPPER_BOUND)-1:0]      w_row;    
@@ -72,8 +71,7 @@ index_to_coordinate_module (
   .o_mat_size(w_mat_size),
   .zero_pad(i_zero_pad),
   .o_valid_buff(o_valid_buff),
-  .o_valid_data(w_valid_data),
-  .im2col_done(im2col_done)
+  .o_valid_data(w_valid_data)
 );
 
 valid_square #(.DATA_WIDTH(DATA_WIDTH),

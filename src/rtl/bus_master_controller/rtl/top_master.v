@@ -16,7 +16,10 @@ module top_master #(parameter OP_CODE_WIDTH = 4,
 );
 wire r_in;
 
-controller con(
+controller #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
+.CNT(CNT),
+.INPUT_WIDTH(INPUT_WIDTH),
+.OUTPUT_WIDTH(OUTPUT_WIDTH)) con(
     .din(din),
     .start(start),
     .ready(r_in),

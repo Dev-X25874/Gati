@@ -8,5 +8,4 @@ Flatten:1
 ImageDim:20
 ImageStartAddress:32
 ImageEndAddr:32
-KernelIteration:16
 RWAddressCountFlatten:16

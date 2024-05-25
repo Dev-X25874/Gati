@@ -23,17 +23,13 @@
 	`define CONV_Stride_WIDTH 4
 	`define CONV_Pad 78:76
 	`define CONV_Pad_WIDTH 3
-	`define CONV_ChannelItr 90:79
-	`define CONV_ChannelItr_WIDTH 12
-	`define CONV_KernelItr 102:91
-	`define CONV_KernelItr_WIDTH 12
-	`define CONV_ImageStartAddress 134:103
+	`define CONV_ImageStartAddress 110:79
 	`define CONV_ImageStartAddress_WIDTH 32
-	`define CONV_ImageEndAddress 166:135
+	`define CONV_ImageEndAddress 142:111
 	`define CONV_ImageEndAddress_WIDTH 32
-	`define CONV_WeightStartAddress 198:167
+	`define CONV_WeightStartAddress 174:143
 	`define CONV_WeightStartAddress_WIDTH 32
-	`define CONV_WeightEndAddress 230:199
+	`define CONV_WeightEndAddress 206:175
 	`define CONV_WeightEndAddress_WIDTH 32
 
 	`define OP_FC 'h04
@@ -55,9 +51,7 @@
 	`define FC_ImageStartAddress_WIDTH 32
 	`define FC_ImageEndAddr 144:113
 	`define FC_ImageEndAddr_WIDTH 32
-	`define FC_KernelIteration 160:145
-	`define FC_KernelIteration_WIDTH 16
-	`define FC_RWAddressCountFlatten 176:161
+	`define FC_RWAddressCountFlatten 160:145
 	`define FC_RWAddressCountFlatten_WIDTH 16
 
 	`define OP_OutputBlock 'h03
@@ -166,23 +160,17 @@
 	#define CONV_Pad_LOW 76
 	#define CONV_Pad_HIGH 78
 	#define CONV_Pad_COUNT 3
-	#define CONV_ChannelItr_LOW 79
-	#define CONV_ChannelItr_HIGH 90
-	#define CONV_ChannelItr_COUNT 12
-	#define CONV_KernelItr_LOW 91
-	#define CONV_KernelItr_HIGH 102
-	#define CONV_KernelItr_COUNT 12
-	#define CONV_ImageStartAddress_LOW 103
-	#define CONV_ImageStartAddress_HIGH 134
+	#define CONV_ImageStartAddress_LOW 79
+	#define CONV_ImageStartAddress_HIGH 110
 	#define CONV_ImageStartAddress_COUNT 32
-	#define CONV_ImageEndAddress_LOW 135
-	#define CONV_ImageEndAddress_HIGH 166
+	#define CONV_ImageEndAddress_LOW 111
+	#define CONV_ImageEndAddress_HIGH 142
 	#define CONV_ImageEndAddress_COUNT 32
-	#define CONV_WeightStartAddress_LOW 167
-	#define CONV_WeightStartAddress_HIGH 198
+	#define CONV_WeightStartAddress_LOW 143
+	#define CONV_WeightStartAddress_HIGH 174
 	#define CONV_WeightStartAddress_COUNT 32
-	#define CONV_WeightEndAddress_LOW 199
-	#define CONV_WeightEndAddress_HIGH 230
+	#define CONV_WeightEndAddress_LOW 175
+	#define CONV_WeightEndAddress_HIGH 206
 	#define CONV_WeightEndAddress_COUNT 32
 
 	#define OP_FC 0x04
@@ -213,11 +201,8 @@
 	#define FC_ImageEndAddr_LOW 113
 	#define FC_ImageEndAddr_HIGH 144
 	#define FC_ImageEndAddr_COUNT 32
-	#define FC_KernelIteration_LOW 145
-	#define FC_KernelIteration_HIGH 160
-	#define FC_KernelIteration_COUNT 16
-	#define FC_RWAddressCountFlatten_LOW 161
-	#define FC_RWAddressCountFlatten_HIGH 176
+	#define FC_RWAddressCountFlatten_LOW 145
+	#define FC_RWAddressCountFlatten_HIGH 160
 	#define FC_RWAddressCountFlatten_COUNT 16
 
 	#define OP_OutputBlock 0x03

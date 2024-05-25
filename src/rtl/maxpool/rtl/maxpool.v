@@ -19,24 +19,27 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module maxpool(
+module maxpool #(parameter DATA_IN = 8) (
   input clk,
   input datavalid, // it is a valid data acknowledgment coming from a module before
-  input [7:0] dina,
-  input [7:0] dinb,
-  output reg [8:0] temp=0 //the greater of the two inputs gets assigned to this variable.
+  input [DATA_IN - 1 : 0] dina,
+  input [DATA_IN - 1 : 0] dinb,
+  output reg [DATA_IN : 0] temp=0 //the greater of the two inputs gets assigned to this variable.
     );
     
   always @(posedge clk)
   begin
     if(datavalid) begin
-      if(dina>dinb)begin  //compares two inputs of 1 byte each, at a time
-        temp<= {datavalid,dina}; 
+      if(dina > dinb)begin  //compares two inputs of 1 byte each, at a time
+        temp <= {datavalid,dina}; 
       end
       else 
       begin
-        temp<={datavalid,dinb};
+        temp <= {datavalid,dinb};
       end
+    end
+    else begin
+      temp <= {0, temp[7:0]};
     end
   end
 endmodule

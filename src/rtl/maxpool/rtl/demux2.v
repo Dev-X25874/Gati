@@ -20,20 +20,30 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module demux2(
-  input [7:0] data_in,
+module demux2 #(parameter DATA_IN = 8) (
+  input [DATA_IN - 1 : 0] data_in,
   input sel, //gets toggled by counter2 module
   input clk,
   input rst,
   input datavalid, //valid data acknowledgment sent by the previous module
-  output [8:0] fifo1,
-  output [8:0] fifo2
+  output reg [DATA_IN - 1 : 0] fifo1 = 0,
+  output reg [DATA_IN - 1 : 0] fifo2 = 0
     );
-  reg [7:0] x=0;
-  assign fifo1 = (sel==1'b0)? {datavalid,x} : 9'b0_0000_0000; //total elements of the first matrix column, each of 1 byte, gets stored in fifo1
-  assign fifo2 = (sel==1'b1)? {datavalid,x} : 9'b0_0000_0000; //the next batch of elements of next matrix column, each of 1 byte, gets stored in fifo2
-
+    reg dv = 0;
+    reg [7:0] x=0;
+  
+  always @(posedge clk) begin
+    if (sel) begin
+      fifo2 <= {dv, x};
+      fifo1 <= 9'd0;
+    end
+    else begin
+      fifo1 <= {dv, x};
+      fifo2 <= 9'd0;
+    end
+  end
   always @(posedge clk)begin
-  x<=data_in;
+    x <= data_in;
+    dv <= datavalid;
   end
 endmodule

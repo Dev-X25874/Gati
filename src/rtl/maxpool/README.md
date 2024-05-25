@@ -46,3 +46,15 @@ This repository presents a custom hardware design for a maxpooling operation imp
 
 -Takes 1 byte of data at a time from each FIFO.
 -Conducts the maxpool operation and outputs the maximum of the two values.
+
+## Diagram:
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/6bee16d8-f998-4206-ba3a-170ebfdcb368)
+
+## Waveform
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/ecc2c1e7-8cd2-4ea5-9cdd-b00438667be9)
+
+![image](https://github.com/vicharak-in/Gati/assets/114066925/9c47afe9-3867-48ae-a1c8-e4dd41da52f4)
+
+

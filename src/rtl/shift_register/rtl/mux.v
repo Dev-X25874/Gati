@@ -1,8 +1,8 @@
-module mux(
-    input [7:0] intermediate_result,
-    input [7:0] quantized_result,
+module mux #(parameter DATA_WIDTH = 8) (
+    input [DATA_WIDTH - 1 : 0] intermediate_result,
+    input [DATA_WIDTH - 1 : 0] quantized_result,
     input sel,
-    output reg [7:0] dout = 0
+    output reg [DATA_WIDTH - 1 : 0] dout = 0
 );
 
 always @(*) begin

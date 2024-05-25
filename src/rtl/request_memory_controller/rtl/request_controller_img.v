@@ -1,12 +1,12 @@
 module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8, 
                                 parameter AXI_ADDRESS_WIDTH = 32,
                                 parameter ADDR_OUT_CHUNK_WIDTH = 8,
-                                parameter CHANNELITR_WIDTH = 12,
-                                parameter KERNELITR_WIDTH = 12) (
+                                parameter KERNELITR_WIDTH = 12,
+                                parameter BURST_LENGTH = 10,
+                                parameter AXI_DATA_BYTES = 32)(
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
-    input [CHANNELITR_WIDTH - 1 : 0] channelitr,
-    input [KERNELITR_WIDTH-1 : 0] kernelitr,
-    input [AXI_ADDRESS_WIDTH -1 : 0] stop_addr,
+    input [KERNELITR_WIDTH - 1 : 0] kernelitr,
+    input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
@@ -21,12 +21,13 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
 reg [4:0] count = 0;
 reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
 reg [2:0] state = 0;
-reg [4:0] count_kernel = 0;
+reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
 reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
 parameter ADDR_ITR = 3'b011;
+parameter C_DONE = 3'b100;
 parameter KERNEL_ITR = 3'b101;
 assign burst_length = r_burst_length;
 

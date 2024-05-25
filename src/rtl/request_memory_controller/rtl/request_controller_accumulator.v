@@ -1,7 +1,8 @@
 module request_controller_accumulator #(parameter BURST_LENGTH_WIDTH = 8, 
                                         parameter AXI_ADDRESS_WIDTH = 32,
-                                        parameter ADDR_OUT_CHUNK_WIDTH = 8)
-                                        (
+                                        parameter ADDR_OUT_CHUNK_WIDTH = 8,
+                                        parameter AXI_DATA_BYTES = 32,
+                                        parameter BURST_LENGTH = 10)(
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
     input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input config_start,

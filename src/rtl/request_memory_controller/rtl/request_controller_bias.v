@@ -1,15 +1,19 @@
-module request_controller_bias #(parameter BURST_LENGTH = 10, parameter AXI_DATA_BYTES = 32) (
-    input [31:0] start_addr,
-    input [31:0] stop_addr,
+module request_controller_bias #(parameter BURST_LENGTH_WIDTH = 8, 
+                                parameter AXI_ADDRESS_WIDTH = 32,
+                                parameter ADDR_OUT_CHUNK_WIDTH = 8,
+                                parameter BURST_LENGTH = 10,
+                                parameter AXI_DATA_BYTES = 32)(
+    input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
+    input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
     input Biasen,
-    output reg [7:0] addr_out  = 0,
+    output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
     output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
-    output [7:0] burst_length
+    output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;

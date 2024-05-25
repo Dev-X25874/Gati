@@ -48,7 +48,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 input start,
                 input clk,
                 input [(OP_CODE_WIDTH)-1 : 0] opcode,
-                output [(OP_CODE_WIDTH)-1 : 0] valid,
+                output [(NO_OF_OPERATOR)-1 : 0] valid,
                 output [OP_CODE_WIDTH - 1 : 0] opcode_conv,
                 output [IW_WIDTH - 1 : 0] IW,
                 output [IH_WIDTH - 1 : 0] IH,
@@ -106,12 +106,12 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     );
 
     `include "instructions.vh"
-localparam APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR);
+//localparam APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR);
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
 wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
 wire wr;
 wire done_top_master;
-wire [(1<<OP_CODE_WIDTH)-1 : 0] ready;
+wire [NO_OF_OPERATOR - 1 : 0] ready;
 wire ready_conv;
 wire ready_FC;
 wire ready_OB;
@@ -120,7 +120,8 @@ wire ready_TB;
 top_master  #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
  .CNT(CNT),
  .INPUT_WIDTH(INPUT_WIDTH),
- .OUTPUT_WIDTH(OUTPUT_WIDTH)) top_master(
+ .OUTPUT_WIDTH(OUTPUT_WIDTH),
+ .NO_OF_OPERATOR(NO_OF_OPERATOR)) top_master(
     .din(din),
     .start(start),
     .clk(clk),
@@ -149,7 +150,7 @@ OP_CONV #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ADDRESS_WIDTH(ADDRESS_WIDTH))
 OP_CONV(
     .din(dout_top_master),
-    .sel(select_line[`Opcode]),
+    .sel(select_line[`CONV_Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -168,8 +169,8 @@ OP_CONV(
     .ImageEndAddress(ImageEndAddress_conv),
     .WeightStartAddress(WeightStartAddress_conv),
     .WeightEndAddress(WeightEndAddress_conv),
-    .valid(valid[`Opcode]),
-    .ready(ready_conv[`Opcode])
+    .valid(valid[`CONV_Opcode]),
+    .ready(ready_conv[`CONV_Opcode])
 );
 
 OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -186,12 +187,12 @@ OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .RWADDRESSCOUNTFLATTEN_WIDTH(RWADDRESSCOUNTFLATTEN_WIDTH)) 
 OP_FC(
     .din(dout_top_master),
-    .sel(select_line[`Opcode]),
+    .sel(select_line[`FC_Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[`Opcode]),
-    .ready(ready_Fc[`Opcode]),
+    .valid(valid[`FC_Opcode]),
+    .ready(ready_Fc[`FC_Opcode]),
     .opcode(opcode_FC),
     .weightrows(weightrows),
     .weightcols(weightcols),
@@ -216,12 +217,12 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ACCEN_WIDTH(ACCEN_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
-    .sel(select_line[`Opcode]),
+    .sel(select_line[`OutputBlock_Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[`Opcode]),
-    .ready(ready_OB[`Opcode]),
+    .valid(valid[`OutputBlock_Opcode]),
+    .ready(ready_OB[`OutputBlock_Opcode]),
     .opcode(opcode_OB),
     .accumulantaddr(accumulantaddr),
     .outputaddr(outputaddr),
@@ -232,7 +233,7 @@ OP_Outputblock(
     .AccEn(AccEn)
 );
 
-OP_Tailblock #(.OP_CODE_WIDTH = 4, 
+OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
 .CNT(CNT),
 .INPUT_WIDTH(INPUT_WIDTH),
 .OUTPUT_WIDTH (OUTPUT_WIDTH),
@@ -255,12 +256,12 @@ OP_Tailblock #(.OP_CODE_WIDTH = 4,
 .FCBIASEN(FCBIASEN)) 
 OP_Tailblock(
     .din(dout_top_master),
-    .sel(select_line[`Opcode]),
+    .sel(select_line[`TailBlock_Opcode]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .ready(ready_TB[`Opcode]),
-    .valid(valid[`Opcode]),
+    .ready(ready_TB[`TailBlock_Opcode]),
+    .valid(valid[`TailBlock_Opcode]),
     .opcode(opcode_TB),
     .BNEn(BNEn),
     .BNchannels(BNchannels),
@@ -284,6 +285,6 @@ OP_Tailblock(
     .BiasEndAddress(BiasEndAddress)
 );
 
-assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
+//assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

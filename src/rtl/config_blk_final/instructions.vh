@@ -1,3 +1,4 @@
+`ifndef instructions_vh
 `define OP_CONV 'h00
 `define CONV_Opcode 3:0
 `define CONV_Opcode_WIDTH 4
@@ -121,3 +122,4 @@
 `define TailBlock_BiasStartAddress_WIDTH 32
 `define TailBlock_BiasEndAddress 199:168
 `define TailBlock_BiasEndAddress_WIDTH 32
+`endif 

@@ -1,21 +1,23 @@
-module request_controller_FCbias #(parameter BURST_LENGTH = 10, parameter AXI_DATA_BYTES = 32) (
-    input [31:0] start_addr,
-    input [31:0] stop_addr,
+module request_controller_FCbias #(parameter BURST_LENGTH_WIDTH = 8, 
+                                    parameter AXI_ADDRESS_WIDTH = 32,
+                                    parameter ADDR_OUT_CHUNK_WIDTH = 8) (
+    input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
+    input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
     input FCbiasen,
-    output reg [7:0] addr_out  = 0,
+    output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
     output reg wr_enable = 0, //write-read enable
     output reg last = 0,
     output reg valid = 0,
-    output [7:0] burst_length
+    output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
-reg [31:0] nxt_addr = 0;
+reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
 reg [2:0] state = 0;
-reg [7:0] r_burst_length = 0;
+reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;

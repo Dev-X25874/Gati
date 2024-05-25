@@ -1,24 +1,28 @@
-module request_controller_img #(parameter BURST_LENGTH = 15, parameter AXI_DATA_BYTES = 32) (
-    input [31:0] start_addr,
-    input [11:0] channelitr,
-    input [11:0] kernelitr,
-    input [31:0] stop_addr,
+module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8, 
+                                parameter AXI_ADDRESS_WIDTH = 32,
+                                parameter ADDR_OUT_CHUNK_WIDTH = 8,
+                                parameter CHANNELITR_WIDTH = 12,
+                                parameter KERNELITR_WIDTH = 12) (
+    input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
+    input [CHANNELITR_WIDTH - 1 : 0] channelitr,
+    input [KERNELITR_WIDTH-1 : 0] kernelitr,
+    input [AXI_ADDRESS_WIDTH -1 : 0] stop_addr,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
     input c_done,
-    output reg [7:0] addr_out  = 0,
+    output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
     output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
-    output [7:0] burst_length
+    output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
-reg [31:0] nxt_addr = 0;
+reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
 reg [2:0] state = 0;
 reg [4:0] count_kernel = 0;
-reg [7:0] r_burst_length = 0;
+reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;

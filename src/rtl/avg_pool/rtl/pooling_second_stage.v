@@ -22,18 +22,30 @@ always @(posedge clk) begin
         r_dout <= 0;
     end
     else begin 
-        if(datavalid_in) begin
-            case(pooling_type)
-            3'b000: begin
+        //if(datavalid_in) begin
+        case(pooling_type)
+        3'b000: begin
+            if(datavalid_in) begin
                 r_dout <= (din_fifo_1 + din_fifo_2) >> 1;
                 r_datavalid <= 1;
             end
-            3'b001: begin
+            else begin
+                r_dout <= 0;
+                r_datavalid <= 0;
+            end
+        end
+        3'b001: begin
+            if(datavalid_in) begin
                 r_dout <= (din_fifo_1 > din_fifo_2) ? din_fifo_1 : din_fifo_2;
                 r_datavalid <= 1;
             end
-            endcase
+            else begin
+                r_dout <= 0;
+                r_datavalid <= 0;
+            end
         end
+        endcase
+        //end
     end
 end
 

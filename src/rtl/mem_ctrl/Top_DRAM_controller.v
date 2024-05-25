@@ -7,7 +7,6 @@ module Top_DRAM_controller #(
     parameter   IN_ADDR = 8,
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  // only use for port controller 
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),
-    parameter   BIN_WIDTH = $clog2(NUM_PORTS-1),
     parameter   PORT_ID_WIDTH = 4,                     // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
     parameter   ID_WIDTH = 8,                        // ID width after the arbiter module
     parameter   AXI_ID_BLEN_CON = 8 ,
@@ -17,7 +16,6 @@ module Top_DRAM_controller #(
     parameter   ABN_C               = AXI_BYTE_NUMBER   
 ) (
     input clk,
-    input t_in,
     input   [ 1:0]  PllLocked ,
     
     //DDR Controner Control Signal
@@ -32,8 +30,8 @@ module Top_DRAM_controller #(
     
     input  wr_axi_valid,           // write valid signal for axi write data
     input wr_axi_last ,            // last signal for indicating the last data of write 
-    input [255:0] wr_axi_data ,    // write data for AXI
-    output [BIN_WIDTH-1:0] rd_sel_binary,
+    input [AXI_DATA_WIDTH-1:0] wr_axi_data ,    // write data for AXI
+  //  output [BIN_WIDTH-1:0] rd_sel_binary,
     output [NUM_PORTS-1:0] select_wr ,
     output [NUM_PORTS-1:0] select_rd ,
     
@@ -62,20 +60,13 @@ module Top_DRAM_controller #(
     input   [      7:0] bid     , 
     input               bvalid  , 
     output              bready  ,
-    output [255:0] r_data_out_1 ,
     output         rd_r_last ,
     output         data_valid  
-);
-
-//// internal trigger ////
-always@(*) begin    
-if(t_in == 0)  rst <= 1;
-else rst  <= 0 ;
-end
- 
+); 
 localparam DATA_WIDTH = ADDRESS_WIDTH + BURST_LENGTH_WIDTH + PORT_ID_WIDTH + 1;
- 
-reg rst = 0 ;
+localparam BIN_WIDTH = $clog2(NUM_PORTS-1);
+
+reg rst = 1 ;
 wire [(NUM_PORTS * DATA_WIDTH)-1:0] combined_out ;
 wire [NUM_PORTS-1:0] e_flag;
 wire [NUM_PORTS-1:0] o_valid, r_en ;
@@ -85,10 +76,8 @@ wire r_en_ack, w_en_ack ;
 wire [AXI_DATA_WIDTH-1 :0 ] ram_data ;
 wire [AXI_ID_BLEN_CON-1:0 ] id_in, blen ;
 wire wr_start, rd_start ;
-wire [3:0] select_wr ;
-wire [3:0] select_rd ;
-wire r_sel_1 , r_sel_2 ;
-wire [255:0] wdata_ctrl_1, wdata_ctrl_2 ;
+wire [NUM_PORTS-1:0] select_wr ;
+wire [NUM_PORTS-1:0] select_rd ;
 
 wire [ADDRESS_WIDTH-1:0]  o_addr_div;
 wire [BURST_LENGTH_WIDTH-1:0] o_burst_div;
@@ -170,7 +159,7 @@ assign blen_wr = o_burst_div ;
 assign id_in = {{EXT{1'b0}}, o_port_div} ;
 assign wr_start = o_rw_div & o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
 assign rd_start = !o_rw_div & o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
-wire [7:0] blen_wr ;
+wire [ID_WIDTH-1:0] blen_wr ;
 
 ///////////////////////////////////////////////////////////////////////////////////
   reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter

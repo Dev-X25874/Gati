@@ -71,7 +71,7 @@ always @(posedge i_clk)begin
                             state <= 1;
                         end
                         else begin 
-                            north_rden <= 0;
+                            north_rden <= {COL{1'b1}};
                             counter <= counter + 1;
                             state <= 1;
                         end                        

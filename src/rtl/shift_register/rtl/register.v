@@ -1,4 +1,5 @@
-module register #(parameter DATA_WIDTH = 8) (
+module register #(parameter DATA_WIDTH = 8, 
+                parameter NUM_SHIFT = 4) (
     input [DATA_WIDTH - 1 : 0] din,
     input valid_intermediate_result,
     input valid_quantized_result,
@@ -8,7 +9,7 @@ module register #(parameter DATA_WIDTH = 8) (
     output reg valid_out = 0
 );
 
-reg [4:0] count = 0;
+reg [NUM_SHIFT : 0] count = 0;
 
 always @(posedge clk) begin
     if(valid_intermediate_result | valid_quantized_result) begin
@@ -17,7 +18,7 @@ always @(posedge clk) begin
             valid_out <= 1;
         end
         else begin
-            if(count == 3) begin
+            if(count == NUM_SHIFT - 1) begin
                 valid_out <= 1;
                 dout <= din;
                 count <= 0;

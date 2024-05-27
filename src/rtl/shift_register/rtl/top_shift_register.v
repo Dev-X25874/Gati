@@ -51,7 +51,8 @@ endgenerate
 endmodule
 
 
-module top_shift_register  #(parameter DATA_WIDTH = 8) 
+module top_shift_register  #(parameter DATA_WIDTH = 8,
+                            parameter NUM_SHIFT = 4) 
 (
     input [DATA_WIDTH - 1 : 0] intermediate_result,
     input [DATA_WIDTH - 1 : 0] quantized_result,
@@ -72,7 +73,9 @@ mux #(.DATA_WIDTH(DATA_WIDTH)) mux(
     .dout(din)
 );
 
-register #(.DATA_WIDTH(DATA_WIDTH)) register(
+register #(.DATA_WIDTH(DATA_WIDTH), 
+            .NUM_SHIFT(NUM_SHIFT)) 
+register(
     .din(din),
     .valid_intermediate_result(valid_intermediate_result),
     .valid_quantized_result(valid_quantized_result),

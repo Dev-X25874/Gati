@@ -1,0 +1,39 @@
+module Accumulator_sel_ctrler#(
+    parameter NO_PORT = 8
+)
+(
+    input clk,
+    input rst,
+    input valid,
+
+    output [NO_PORT-1:0] sel,
+    output valid_out
+);
+    reg [$clog2(NO_PORT)-1:0] count;
+    reg cnt_en;
+    wire [$clog2(NO_PORT)-1:0] count_max;
+    assign count_max = NO_PORT;
+
+    always@(posedge clk) begin
+        if(!rst) begin
+            count <= 0;
+        end
+        else begin
+            if(valid==1) cnt_en <= 1;
+            else if(count==count_max) cnt_en <= 0;
+        end
+    end
+
+    always@(posedge clk) begin
+        if(cnt_en) begin
+            count <= count+1;
+            sel <= 1<<count;
+            valid_out <= 1;
+        end
+        else begin
+            count <= count;
+            sel <= sel;
+            valid_out <= 0;
+        end
+    end
+endmodule

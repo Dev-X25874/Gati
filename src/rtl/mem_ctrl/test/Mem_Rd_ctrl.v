@@ -7,15 +7,16 @@ module Mem_Rd_ctrl (
     input [255:0] rdata_in,
     output reg [255:0] rdata_out = 0,
     output reg data_valid = 0 
+    //input [3:0] BLEN_rd
 ) ;
 
-reg [255:0] delay_rd  = 0 ;
+reg [255:0] delay_rd = 0 ;
 
 always @ (posedge clk) begin 
     if (!rst) begin 
         rdata_out <= 0 ;
         data_valid <=  0 ;
-      
+
     end
 
     else begin 
@@ -27,15 +28,13 @@ always @ (posedge clk) begin
            else begin 
                rdata_out <= rdata_out ; 
                data_valid <=  0;
+                   // state <= IDLE ; 
             end 
     end
 end
 
-//assign delay_rd = rdata_in ;
 always  @ (posedge clk) begin 
      delay_rd <= rdata_in ;
 end 
-
-endmodule 
 
 endmodule 

@@ -7,7 +7,7 @@ module WR_ID_Manager #(
     input [ID_WIDTH-1:0] aid,
     input valid,
     input atype,
-    input wready,   ///// it is input in the ddr axi side so can i use the 
+    input wready, 
     input wlast ,
     output reg wready_out = 0,
     input [ID_WIDTH-1:0] wid, // Write controller ID
@@ -21,7 +21,11 @@ localparam IDLE = 2'b00;
 localparam STORE_ID = 2'b01;
 localparam WAIT_DATAEND = 2'b10 ;
 
-reg [1:0] state = 0 ; // FSM state registeR
+reg [1:0] state = 0 ; // FSM state register
+//reg [4:0] count_wr = 0 ;
+//reg [7:0] stored_id = 0; // Store the ID when wready is high for the first time
+
+
 
 always @(posedge clk) begin
     if (!rst) begin
@@ -52,7 +56,6 @@ always @(posedge clk) begin
               if (wready) begin
                     if ( wid == aid) begin 
                        select [wid] <= 1 ;
-                       wready_out <= wready;
                         w_en_ack <= 0 ;
                          ack <= 1'b1 ;
                         state <= WAIT_DATAEND;
@@ -61,18 +64,22 @@ always @(posedge clk) begin
                 else begin 
                     select  <= select ;
                     ack  <= 0 ;
-                    wready_out <= wready;
                     state <= STORE_ID ;
                 end
             end
+            
+
           WAIT_DATAEND : begin 
+
                 if (wlast) begin 
                     select  <= 0 ;
                     ack <= 0 ;
                     w_en_ack <= 1'b1 ;
                     state <= IDLE ; 
-                 end             
-                 else begin
+                 end 
+             
+                
+                else begin
                     select  <= select ;
                     ack <= 0 ;
                     w_en_ack <= 0 ;
@@ -83,10 +90,9 @@ always @(posedge clk) begin
     end
 end  
 
-/*always @(*) begin
+always @(*) begin
      wready_out <= wready;
-end */
-   
-endmodule
+end 
 
-//////////////////////////////////////////////////////
+ 
+endmodule

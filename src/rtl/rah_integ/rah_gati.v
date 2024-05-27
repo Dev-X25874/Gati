@@ -126,7 +126,7 @@ top#(
     .W_BURST_LEN(W_BURST_LEN),
     .W_ADDR(W_ADDR),
     .AXI_BYTES(AXI_BYTES)
-)(
+) mipi_ctrler_reciver(
     .i_clk(i_clk),
     .i_rstn (i_rst),
     .i_data_valid(i_data_valid),
@@ -224,15 +224,16 @@ Top_DRAM_controller # (
   wire [NUM_PORTS-1:0] i_enable;
   wire [NUM_PORTS-1:0] i_last;
 
-  assign i_valid={mc_config_valid,mc_img_valid,mc_wghts_valid,mc_fc_valid,mc_bias_valid,mc_fc_bias_valid,mc_acc_valid,mc_op_write_valid};
+  assign i_valid={valid_wr_req_ctrl,mc_config_valid,mc_img_valid,mc_wghts_valid,mc_fc_valid,mc_bias_valid,mc_fc_bias_valid,mc_acc_valid,mc_op_write_valid};
 
-  assign in_adress={mc_config_addr,mc_img_addr,mc_wghts_addr,mc_fc_addr,mc_bias_addr,mc_fc_bias_addr,mc_acc_addr,mc_op_write_addr};
+  assign in_adress={address_wr_req_ctrl,mc_config_addr,mc_img_addr,mc_wghts_addr,mc_fc_addr,mc_bias_addr,mc_fc_bias_addr,mc_acc_addr,mc_op_write_addr};
 
-  assign in_BLEN={mc_config_bl,mc_img_bl,mc_wghts_bl,mc_fc_bl,mc_bias_bl,mc_fc_bias_bl,mc_acc_bl,mc_op_write_bl};
+  assign in_BLEN={final_burst_len_wr_req_ctrlmc_config_bl,mc_img_bl,mc_wghts_bl,mc_fc_bl,mc_bias_bl,mc_fc_bias_bl,mc_acc_bl,mc_op_write_bl};
 
-  assign i_enable={mc_config_rdreq,mc_img_rdreq,mc_wghts_rdreq,mc_fc_rdreq,mc_bias_rdreq,mc_fc_bias_rdreq,mc_acc_rdreq,mc_op_writereq};
+  assign i_enable={req_wr_req_ctrl,mc_config_rdreq,mc_img_rdreq,mc_wghts_rdreq,mc_fc_rdreq,mc_bias_rdreq,mc_fc_bias_rdreq,mc_acc_rdreq,mc_op_writereq};
 
-  assign i_last={mc_config_last,mc_img_last,mc_wghts_last,mc_fc_last,mc_bias_last,mc_fc_last,mc_bias_last,mc_fc_bias_last,mc_acc_last}_
+  assign i_last={final_last_wr_req_ctrl,mc_config_last,mc_img_last,mc_wghts_last,mc_fc_last,mc_bias_last,mc_fc_last,mc_bias_last,mc_fc_bias_last,mc_acc_last,mc_op_write_last};
+
 
 
 
@@ -293,12 +294,12 @@ Top_DRAM_controller # (
     wire mc_op_writereq,
     wire mc_op_write_valid,
     wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl,
-    wire mc_op_write_bl,
+    wire mc_op_write_last,
     
     ///////////////////////operators data
     
     //Signals from DRAM ctrl to internal operator blocks
-    wire [NUM_PORTS-1:0] select;
+    wire [NUM_PORTS-1:0] select_rd;
     //Read block signals
     // wire sel_rd
     wire dram_rd_datavalid,
@@ -417,8 +418,8 @@ Top_DRAM_controller # (
     .mc_op_writereq(mc_op_writereq),
     .mc_op_write_valid(mc_op_write_valid),
     .mc_op_write_bl(mc_op_write_bl),
-    .mc_op_write_bl(mc_op_write_bl),
-    .select(select)
+    .mc_op_write_last(mc_op_write_last),
+    .select(select_rd)
   );
 ///////////////////////////////	
 

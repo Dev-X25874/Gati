@@ -1,5 +1,21 @@
 module rah_gati #(
 //globalutput [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
+    parameter SYS_CLK_PERIOD = 32'd100_000_000,  //System Clock Period
+    parameter NUM_PORTS = 4,  // number of ports
+    parameter BURST_LENGTH_WIDTH = 8,  // burst length
+    parameter ADDRESS_WIDTH = 32,  // address width
+    parameter POINTER_COUNT = 10,
+    parameter IN_ADDR = 8,
+    parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  // only use for port controller 
+    parameter RAM_DEPTH = (1 << POINTER_COUNT),
+    parameter   PORT_ID_WIDTH = 4,                     // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
+    parameter ID_WIDTH = 8,  // ID width after the arbiter module
+    parameter AXI_ID_BLEN_CON = 8,
+    parameter AXI_DATA_WIDTH = 256,  // Axi data width 
+    parameter AXI_BYTE_NUMBER = AXI_DATA_WIDTH / 8,
+    parameter ADW_C = AXI_DATA_WIDTH,
+    parameter ABN_C = AXI_BYTE_NUMBER
+
 	 parameter INST_QUEUE_DEPTH = 512,
 	 parameter DRAM_IMG_FIFO_DEPTH = 512,
 	 parameter IM2COL_FIFO_DEPTH = 1024,
@@ -75,12 +91,10 @@ module rah_gati #(
 )
 	(
 		input i_clk,
+		input  clk,
 		input s_clk,
 		input i_rst,
 		input user_start,
-	
-
-
 		input empty,
 		input [47:0] data,
 		output rden
@@ -89,7 +103,7 @@ module rah_gati #(
 	reg [47:0] r_data=0;
 	reg valid_data=0;
 	
-	always @ (posedge i_clk) begin 
+	always @ (posedge clk) begin 
 		
 		if(!empty) begin 
 			rden<=1;
@@ -118,8 +132,7 @@ top#(
     .AXI_BYTES(AXI_BYTES)
 )(
     .i_clk(i_clk),
-    .i_rstn (i_rstn),
-    .i_trigger(i_trigger),
+    .i_rstn (i_rst),
     .i_data_valid(i_data_valid),
     .i_data(i_data),
 	.ddr_sel(ddr_sel),
@@ -150,7 +163,66 @@ top#(
 	
 
 ///////////////////////////////Memory Controller /////////////////////////////////
-	
+Top_DRAM_controller # (
+    .SYS_CLK_PERIOD(SYS_CLK_PERIOD),
+    .NUM_PORTS(NUM_PORTS),
+    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+    .ADDRESS_WIDTH(ADDRESS_WIDTH),
+    .POINTER_COUNT(POINTER_COUNT),
+    .IN_ADDR(IN_ADDR),
+    .PORT_ID(PORT_ID),
+    .RAM_DEPTH(RAM_DEPTH),
+    .PORT_ID_WIDTH(PORT_ID_WIDTH),
+    .ID_WIDTH(ID_WIDTH),
+    .AXI_ID_BLEN_CON(AXI_ID_BLEN_CON),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .AXI_BYTE_NUMBER(AXI_BYTE_NUMBER),
+    .ADW_C(ADW_C),
+    .ABN_C(ABN_C)
+  )
+  Top_DRAM_controller_inst (
+    .clk(clk),
+    .PllLocked(PllLocked),
+    .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
+    .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
+    .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
+    .i_valid(i_valid),
+    .in_address(in_address),
+    .in_BLEN(in_BLEN),
+    .i_enable(i_enable),
+    .i_last(i_last),
+    .wr_axi_valid(wr_axi_valid),
+    .wr_axi_last(wr_axi_last),
+    .wr_axi_data(wr_axi_data),
+    .select_wr(select_wr),
+    .select_rd(select_rd),
+    .aid(aid),
+    .aaddr(aaddr),
+    .alen(alen),
+    .asize(asize),
+    .aburst(aburst),
+    .alock(alock),
+    .avalid(avalid),
+    .aready(aready),
+    .atype(atype),
+    .wid(wid),
+    .wstrb(wstrb),
+    .wlast(wlast),
+    .wvalid(wvalid),
+    .wready(wready),
+    .wdata(wdata),
+    .rid(rid),
+    .rlast(rlast),
+    .rvalid(rvalid),
+    .rready(rready),
+    .rresp(rresp),
+    .rdata(rdata),
+    .bid(bid),
+    .bvalid(bvalid),
+    .bready(bready),
+    .rd_r_last(rd_r_last),
+    .data_valid(data_valid)
+  );	
 	
 
 //////////////////////////////// gati module instatiation

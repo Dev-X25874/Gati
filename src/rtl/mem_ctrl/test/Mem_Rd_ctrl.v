@@ -9,7 +9,7 @@ module Mem_Rd_ctrl (
     output reg data_valid = 0 
 ) ;
 
-wire [255:0] delay_rd  ;
+reg [255:0] delay_rd  = 0 ;
 
 always @ (posedge clk) begin 
     if (!rst) begin 
@@ -31,7 +31,11 @@ always @ (posedge clk) begin
     end
 end
 
-assign delay_rd = rdata_in ;
+//assign delay_rd = rdata_in ;
+always  @ (posedge clk) begin 
+     delay_rd <= rdata_in ;
+end 
 
+endmodule 
 
 endmodule 

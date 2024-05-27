@@ -8,4 +8,6 @@ Flatten:1
 ImageDim:20
 ImageStartAddress:32
 ImageEndAddr:32
-RWAddressCountFlatten:16
+WeightStartAddress:32
+WeightEndAddress:32
+Vec2MatCols:16:Input vector can be assumed to be a matrix of size 32xN, this is N

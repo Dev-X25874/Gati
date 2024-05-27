@@ -84,7 +84,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_1 (
     .full(),
     .empty(empty1),
     .data_out(din_fifo_1),
-    .data_valid()
+    .data_valid(dv_pooling_secong_satge2)
 );
 
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_2 (
@@ -97,7 +97,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_2 (
     .full(),
     .empty(empty2),
     .data_out(din_fifo_2),
-    .data_valid(dv_pooling_secong_satge)
+    .data_valid(dv_pooling_secong_satge1)
 );
 
 pooling_second_stage pooling_second_stage (
@@ -149,5 +149,6 @@ counter_rowwise_columnwise counter_rowwise_columnwise (
 );
 
 assign re = ((~empty1) & (~empty2));
+assign dv_pooling_secong_satge = ((dv_pooling_secong_satge1) & (dv_pooling_secong_satge2));
 
 endmodule

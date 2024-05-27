@@ -51,8 +51,14 @@
 	`define FC_ImageStartAddress_WIDTH 32
 	`define FC_ImageEndAddr 144:113
 	`define FC_ImageEndAddr_WIDTH 32
-	`define FC_RWAddressCountFlatten 160:145
-	`define FC_RWAddressCountFlatten_WIDTH 16
+	`define FC_WeightStartAddress 176:145
+	`define FC_WeightStartAddress_WIDTH 32
+	`define FC_WeightEndAddress 208:177
+	`define FC_WeightEndAddress_WIDTH 32
+	`define FC_KernelIteration 224:209
+	`define FC_KernelIteration_WIDTH 16
+	`define FC_Vec2MatCols 240:225
+	`define FC_Vec2MatCols_WIDTH 16
 
 	`define OP_OutputBlock 'h02
 	`define OutputBlock_Opcode 3:0
@@ -206,9 +212,18 @@
 	#define FC_ImageEndAddr_LOW 113
 	#define FC_ImageEndAddr_HIGH 144
 	#define FC_ImageEndAddr_COUNT 32
-	#define FC_RWAddressCountFlatten_LOW 145
-	#define FC_RWAddressCountFlatten_HIGH 160
-	#define FC_RWAddressCountFlatten_COUNT 16
+	#define FC_WeightStartAddress_LOW 145
+	#define FC_WeightStartAddress_HIGH 176
+	#define FC_WeightStartAddress_COUNT 32
+	#define FC_WeightEndAddress_LOW 177
+	#define FC_WeightEndAddress_HIGH 208
+	#define FC_WeightEndAddress_COUNT 32
+	#define FC_KernelIteration_LOW 209
+	#define FC_KernelIteration_HIGH 224
+	#define FC_KernelIteration_COUNT 16
+	#define FC_Vec2MatCols_LOW 225
+	#define FC_Vec2MatCols_HIGH 240
+	#define FC_Vec2MatCols_COUNT 16
 
 	#define OP_OutputBlock 0x02
 	#define OutputBlock_Opcode_LOW 0

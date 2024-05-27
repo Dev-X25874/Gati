@@ -33,7 +33,7 @@
 `define CONV_WeightEndAddress 206:175
 `define CONV_WeightEndAddress_WIDTH 32
 
-`define OP_FC 'h04
+`define OP_FC 'h03
 `define FC_Opcode 3:0
 `define FC_Opcode_WIDTH 4
 `define FC_WeightRows 19:4
@@ -55,7 +55,7 @@
 `define FC_RWAddressCountFlatten 160:145
 `define FC_RWAddressCountFlatten_WIDTH 16
 
-`define OP_OutputBlock 'h03
+`define OP_OutputBlock 'h02
 `define OutputBlock_Opcode 3:0
 `define OutputBlock_Opcode_WIDTH 4
 `define OutputBlock_AccumulantAddr 35:4

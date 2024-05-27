@@ -150,7 +150,7 @@ OP_CONV #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ADDRESS_WIDTH(ADDRESS_WIDTH))
 OP_CONV(
     .din(dout_top_master),
-    .sel(select_line[`CONV_Opcode]),
+    .sel(select_line[`OP_CONV]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -169,8 +169,8 @@ OP_CONV(
     .ImageEndAddress(ImageEndAddress_conv),
     .WeightStartAddress(WeightStartAddress_conv),
     .WeightEndAddress(WeightEndAddress_conv),
-    .valid(valid[`CONV_Opcode]),
-    .ready(ready_conv[`CONV_Opcode])
+    .valid(valid[`OP_CONV]),
+    .ready(ready_conv[`OP_CONV])
 );
 
 OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -187,12 +187,12 @@ OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .RWADDRESSCOUNTFLATTEN_WIDTH(RWADDRESSCOUNTFLATTEN_WIDTH)) 
 OP_FC(
     .din(dout_top_master),
-    .sel(select_line[`FC_Opcode]),
+    .sel(select_line[`OP_FC]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[`FC_Opcode]),
-    .ready(ready_Fc[`FC_Opcode]),
+    .valid(valid[`OP_FC]),
+    .ready(ready_Fc[`OP_FC]),
     .opcode(opcode_FC),
     .weightrows(weightrows),
     .weightcols(weightcols),
@@ -217,12 +217,12 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ACCEN_WIDTH(ACCEN_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
-    .sel(select_line[`OutputBlock_Opcode]),
+    .sel(select_line[`OP_OutputBlock]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .valid(valid[`OutputBlock_Opcode]),
-    .ready(ready_OB[`OutputBlock_Opcode]),
+    .valid(valid[`OP_OutputBlock]),
+    .ready(ready_OB[`OP_OutputBlock]),
     .opcode(opcode_OB),
     .accumulantaddr(accumulantaddr),
     .outputaddr(outputaddr),
@@ -256,12 +256,12 @@ OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .FCBIASEN(FCBIASEN)) 
 OP_Tailblock(
     .din(dout_top_master),
-    .sel(select_line[`TailBlock_Opcode]),
+    .sel(select_line[`OP_TailBlock]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
-    .ready(ready_TB[`TailBlock_Opcode]),
-    .valid(valid[`TailBlock_Opcode]),
+    .ready(ready_TB[`OP_TailBlock]),
+    .valid(valid[`OP_TailBlock]),
     .opcode(opcode_TB),
     .BNEn(BNEn),
     .BNchannels(BNchannels),

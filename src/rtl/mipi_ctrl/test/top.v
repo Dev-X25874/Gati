@@ -1,4 +1,4 @@
-module test_top#(
+module top#(
     parameter N_FIFO = 8,
     parameter W_DATA = 32,
     parameter BURST_LEN = 15,
@@ -11,6 +11,9 @@ module test_top#(
     input i_trigger,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
+	input ddr_sel,
+	input ddr_wready,
+	input [W_BURST_LEN-1 : 0]ddr_blen,
     output [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
     output final_o_data_last, //comes from dram wr ctrl
     output o_data_valid, //comes from dram wr ctrl
@@ -108,13 +111,11 @@ dram_wr_ctrl#(
     .i_select(ddr_sel),
     .i_write_ready(ddr_wready),
     .i_burst_length(ddr_blen),
-    .i_fifo_empty(ff_array_empty),
-    .i_fifo_occupants(ff_array_occ),
     .o_fifo_read_enable(ff_read_enable),
     .o_data_last(o_data_last),
     .o_data_valid(o_data_valid)
 );
-
+/*
 wire ddr_sel;
 wire ddr_wready;
 wire [W_BURST_LEN-1 : 0]ddr_blen;
@@ -130,5 +131,5 @@ counters#(
     .o_burst_length(ddr_blen),
     .o_w_ready(ddr_wready)
 );
-    
+   */ 
 endmodule

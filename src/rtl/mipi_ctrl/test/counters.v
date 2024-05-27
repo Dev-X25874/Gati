@@ -33,7 +33,7 @@ always @(posedge i_clk) begin
             end
             1: begin
                 if(wait_counter == 30)begin
-                    if(ack_counter < i_burst_len)begin
+                    if(ack_counter < (i_burst_len+1))begin
                         ack_counter <= ack_counter + 1;
                         sel <= 1'b1;
                         wready <= 1'b1;

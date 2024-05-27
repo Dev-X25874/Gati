@@ -113,8 +113,8 @@ always @(posedge i_clk)begin
                 end
             end
             3: begin
-                if(data_size != 0)begin
-                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 ) && data_size[31]!=1)) begin  //if data size = 32 * (blen+1)
+                if(data_size != 0 )begin
+                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )&& (data_size[31]!=1) )) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
 						if(i_data_last) begin 
                             state <= 1;

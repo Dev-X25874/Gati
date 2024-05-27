@@ -10,5 +10,4 @@ ImageStartAddress:32
 ImageEndAddr:32
 WeightStartAddress:32
 WeightEndAddress:32
-KernelIteration:16
 Vec2MatCols:16:Input vector can be assumed to be a matrix of size 32xN, this is N

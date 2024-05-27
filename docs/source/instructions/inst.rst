@@ -55,9 +55,7 @@
 	`define FC_WeightStartAddress_WIDTH 32
 	`define FC_WeightEndAddress 208:177
 	`define FC_WeightEndAddress_WIDTH 32
-	`define FC_KernelIteration 224:209
-	`define FC_KernelIteration_WIDTH 16
-	`define FC_Vec2MatCols 240:225
+	`define FC_Vec2MatCols 224:209
 	`define FC_Vec2MatCols_WIDTH 16
 
 	`define OP_OutputBlock 'h02
@@ -218,11 +216,8 @@
 	#define FC_WeightEndAddress_LOW 177
 	#define FC_WeightEndAddress_HIGH 208
 	#define FC_WeightEndAddress_COUNT 32
-	#define FC_KernelIteration_LOW 209
-	#define FC_KernelIteration_HIGH 224
-	#define FC_KernelIteration_COUNT 16
-	#define FC_Vec2MatCols_LOW 225
-	#define FC_Vec2MatCols_HIGH 240
+	#define FC_Vec2MatCols_LOW 209
+	#define FC_Vec2MatCols_HIGH 224
 	#define FC_Vec2MatCols_COUNT 16
 
 	#define OP_OutputBlock 0x02

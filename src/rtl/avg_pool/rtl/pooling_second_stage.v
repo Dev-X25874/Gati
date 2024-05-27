@@ -26,7 +26,7 @@ always @(posedge clk) begin
         case(pooling_type)
         3'b000: begin
             if(datavalid_in) begin
-                r_dout <= (din_fifo_1 + din_fifo_2) >> 1;
+                r_dout <= ((din_fifo_1 + din_fifo_2) >> 1);
                 r_datavalid <= 1;
             end
             else begin

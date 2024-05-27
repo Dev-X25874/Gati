@@ -25,7 +25,7 @@ wire [7:0] din_fifo_2;
 wire re;
 wire empty1;
 wire empty2;
-wire dv_pooling_secong_satge;
+wire dv_pooling_second_satge;
 wire [7:0] dout_pooling_second_stage;
 wire datavalid_final_pool;
 wire we_mux;
@@ -37,6 +37,8 @@ wire sel;
 wire dv_demux_counter;
 wire we_fifo1;
 wire we_fifo2;
+wire dv_pooling_second_satge1;
+wire dv_pooling_second_satge2;
 
 pooling_first_stage pooling_first_stage (
     .clk(clk),
@@ -84,7 +86,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_1 (
     .full(),
     .empty(empty1),
     .data_out(din_fifo_1),
-    .data_valid(dv_pooling_secong_satge2)
+    .data_valid(dv_pooling_second_satge1)
 );
 
 fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_2 (
@@ -97,7 +99,7 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(5)) fifo_2 (
     .full(),
     .empty(empty2),
     .data_out(din_fifo_2),
-    .data_valid(dv_pooling_secong_satge1)
+    .data_valid(dv_pooling_second_satge2)
 );
 
 pooling_second_stage pooling_second_stage (
@@ -106,7 +108,7 @@ pooling_second_stage pooling_second_stage (
     .din_fifo_1(din_fifo_1),
     .din_fifo_2(din_fifo_2),
     .ENABLE(ENABLE),
-    .datavalid_in(dv_pooling_secong_satge),
+    .datavalid_in(dv_pooling_second_satge),
     .pooling_type(pooling_type),
     .dout(dout_pooling_second_stage),
     .datavalid_out(datavalid_final_pool)
@@ -148,7 +150,7 @@ counter_rowwise_columnwise counter_rowwise_columnwise (
     .done(done)  
 );
 
-assign re = ((~empty1) & (~empty2));
-assign dv_pooling_secong_satge = ((dv_pooling_secong_satge1) & (dv_pooling_secong_satge2));
+assign re = (~empty2);
+assign dv_pooling_second_satge = ((dv_pooling_second_satge1) & (dv_pooling_second_satge2));
 
 endmodule

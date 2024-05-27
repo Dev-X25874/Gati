@@ -91,16 +91,19 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_tx (
     .we(dv_pool),
     .re(re_tx),
     .data_in(data_out_tx),
-    .occupants(),
+    .occupants(occupants),
     .full(),
     .empty(empty_tx),
     .data_out(data_tx),
     .data_valid()
 );
 
+wire [8:0] occupants;
+
 controller_fifo_tx controller_fifo_tx(
     .empty(empty_tx),
     .done(done),
+    .occupants(occupants),
     .clk(clk),
     .dv_tx(datavalid_tx),
     .re(re_tx) 

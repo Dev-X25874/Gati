@@ -1,20 +1,20 @@
 module rah_gati #(
 //globalutput [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
-    parameter SYS_CLK_PERIOD = 32'd100_000_000,  //System Clock Period
-    parameter NUM_PORTS = 4,  // number of ports
-    parameter BURST_LENGTH_WIDTH = 8,  // burst length
-    parameter ADDRESS_WIDTH = 32,  // address width
-    parameter POINTER_COUNT = 10,
-    parameter IN_ADDR = 8,
-    parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  // only use for port controller 
-    parameter RAM_DEPTH = (1 << POINTER_COUNT),
-    parameter   PORT_ID_WIDTH = 4,                     // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
-    parameter ID_WIDTH = 8,  // ID width after the arbiter module
-    parameter AXI_ID_BLEN_CON = 8,
-    parameter AXI_DATA_WIDTH = 256,  // Axi data width 
-    parameter AXI_BYTE_NUMBER = AXI_DATA_WIDTH / 8,
-    parameter ADW_C = AXI_DATA_WIDTH,
-    parameter ABN_C = AXI_BYTE_NUMBER
+     parameter SYS_CLK_PERIOD = 32'd100_000_000,  //System Clock Period
+     parameter NUM_PORTS = 4,  // number of pors ==8
+     parameter BURST_LENGTH_WIDTH = 8,  // burst length
+     parameter ADDRESS_WIDTH = 32,  // address width
+     parameter POINTER_COUNT = 10,
+     parameter IN_ADDR = 8,
+     parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  // only use for port controller 
+     parameter RAM_DEPTH = (1 << POINTER_COUNT),
+     parameter   PORT_ID_WIDTH = 4,                     // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
+     parameter ID_WIDTH = 8,  // ID width after the arbiter module
+     parameter AXI_ID_BLEN_CON = 8,
+     parameter AXI_DATA_WIDTH = 256,  // Axi data width 
+     parameter AXI_BYTE_NUMBER = AXI_DATA_WIDTH / 8,
+     parameter ADW_C = AXI_DATA_WIDTH,
+     parameter ABN_C = AXI_BYTE_NUMBER
 
 	 parameter INST_QUEUE_DEPTH = 512,
 	 parameter DRAM_IMG_FIFO_DEPTH = 512,
@@ -84,10 +84,6 @@ module rah_gati #(
      parameter W_KERNEL_CNT = 16,
      parameter W_IMAG_DIM = 20,
 	 parameter ACC_DATA_REORDER = 1,
-
-
-
-
 )
 	(
 		input i_clk,
@@ -156,9 +152,6 @@ top#(
     wire [W_BURST_LEN-1 : 0] final_burst_len_wr_req_ctrl,
     wire final_last_wr_req_ctrl,
     wire valid_wr_req_ctrl
-
-
-
 //////////////////////////////
 	
 
@@ -224,6 +217,24 @@ Top_DRAM_controller # (
     .data_valid(data_valid)
   );	
 	
+  
+  wire [NUM_PORTS-1:0] i_valid;
+  wire [(NUM_PORTS*8)-1:0] in_address;
+  wire [(NUM_PORTS*8)-1:0] in_BLEN;
+  wire [NUM_PORTS-1:0] i_enable;
+  wire [NUM_PORTS-1:0] i_last;
+
+  assign i_valid={mc_config_valid,mc_img_valid,mc_wghts_valid,mc_fc_valid,mc_bias_valid,mc_fc_bias_valid,mc_acc_valid,mc_op_write_valid};
+
+  assign in_adress={mc_config_addr,mc_img_addr,mc_wghts_addr,mc_fc_addr,mc_bias_addr,mc_fc_bias_addr,mc_acc_addr,mc_op_write_addr};
+
+  assign in_BLEN={mc_config_bl,mc_img_bl,mc_wghts_bl,mc_fc_bl,mc_bias_bl,mc_fc_bias_bl,mc_acc_bl,mc_op_write_bl};
+
+  assign i_enable={mc_config_rdreq,mc_img_rdreq,mc_wghts_rdreq,mc_fc_rdreq,mc_bias_rdreq,mc_fc_bias_rdreq,mc_acc_rdreq,mc_op_writereq};
+
+  assign i_last={mc_config_last,mc_img_last,mc_wghts_last,mc_fc_last,mc_bias_last,mc_fc_last,mc_bias_last,mc_fc_bias_last,mc_acc_last}_
+
+
 
 //////////////////////////////// gati module instatiation
 
@@ -362,7 +373,7 @@ Top_DRAM_controller # (
     .W_IMAG_DIM(W_IMAG_DIM),
     .ACC_DATA_REORDER(ACC_DATA_REORDER)
   )
-  top_gati_module_inst (
+  top_gati_module (
     .i_clk(i_clk),
     .s_clk(s_clk),
     .i_rst(i_rst),

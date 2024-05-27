@@ -8,7 +8,6 @@ module top#(
 )(
     input i_clk,
     input i_rstn,
-    input i_trigger,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
 	input ddr_sel,
@@ -38,7 +37,6 @@ fifo_wr_ctrl#(
     .N_FIFO(N_FIFO)
 )fifo_write_controller(
     .i_clk(i_clk),
-    .i_trigger(i_trigger),
     .i_rstn(i_rstn),           //Active low reset
     // .i_dlen(),           //TODO: check size of this input, and where does it comes from?
     .i_data_valid(i_data_valid),     //comes from mipi fifo

@@ -8,7 +8,6 @@ module fifo_wr_ctrl#(
     parameter N_FIFO = 8
 )(
     input i_clk,
-    input i_trigger,
     input i_rstn,                           //Active low reset
     // input i_dlen,                        //Comes from mipi, indicated number of data packets to be written
     input i_data_valid,                     //comes from mipi fifo
@@ -45,12 +44,7 @@ always @(posedge i_clk)begin
         wr_counter <= 0;
     end else begin
         case (state)
-        3:begin //this external trigger is used just for testing purpose
-            if(i_trigger)begin
-                state <= 0;
-            end
-        end
-            0: begin
+           0: begin
                 if(i_data_valid)begin
                     start_addr <= i_data;
                     valid <= 1'b1;

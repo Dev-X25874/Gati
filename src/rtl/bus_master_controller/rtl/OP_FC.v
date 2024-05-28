@@ -10,8 +10,8 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
             parameter INPUTROWS_WIDTH = 16,
             parameter DROPOUTCONSTANT_WIDTH = 8,
             parameter FLATTEN_WIDTH = 1,
-            parameter IMAGEDIN_WIDTH = 20
-            parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16)(
+            parameter IMAGEDIN_WIDTH = 20,
+            parameter Vec2MatCols_WIDTH = 16)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -28,7 +28,9 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
-                output reg [RWADDRESSCOUNTFLATTEN_WIDTH -1 : 0] RWAddressCountFlatten = 0
+                output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
+                output reg [Vec2MatCols_WIDTH -1 : 0] Vec2MatCols = 0
             );
 
             `include "instructions.vh"
@@ -55,7 +57,9 @@ always @(posedge clk) begin
         imagedim <= 0;
         ImageStartAddress <= 0;
         ImageEndAddr <= 0;
-        RWAddressCountFlatten <= 0;
+        WeightStartAddress <= 0;
+        WeightEndAddress <= 0;
+        Vec2MatCols <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -87,7 +91,9 @@ always @(posedge clk) begin
             imagedim <= data_instruction[`FC_ImageDim];
             ImageStartAddress <= data_instruction[`FC_ImageStartAddress];   
             ImageEndAddr <= data_instruction[`FC_ImageEndAddr];
-            RWAddressCountFlatten <= data_instruction[`FC_RWAddressCountFlatten];
+            WeightStartAddress <= data_instruction[`FC_WeightStartAddress];
+            WeightEndAddress <= data_instruction[`FC_WeightEndAddress];
+            Vec2MatCols <= data_instruction[`FC_Vec2MatCols];
             //valid <= 1'b1;
             state <= IDLE;
         end

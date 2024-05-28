@@ -1,9 +1,26 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further tail block(s) operation processing
 
 module OP_Tailblock#(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256)(
+parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+parameter INPUT_WIDTH = 8,
+parameter OUTPUT_WIDTH = 256,
+parameter ADDRESS_WIDTH = 32,
+parameter BNEN_WIDTH = 1,
+parameter ACTEN_WIDTH = 1,
+parameter ACTTYPE_WIDTH = 4,
+parameter ACTPARAM_WIDTH = 8,
+parameter QUANTEN_WIDTH = 1,
+parameter QUANTSCALE_WIDTH = 16,
+parameter QUANTSHIFT_WIDTH = 5,
+parameter POOLEN_WIDTH = 1,
+parameter POOLTYPE_WIDTH = 3,
+parameter POOLWIDTH_WIDTH = 4,
+parameter POOLHEIGHT_WIDTH = 4,
+parameter POOLSTRIDE_WIDTH = 4,
+parameter POOLPADDING_WIDTH = 4,
+parameter BIASEN_WIDTH = 1,
+parameter BNCHANNELS_WIDTH = 10,
+parameter FCBIASEN = 1)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -18,7 +35,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [ADDRESS_WIDTH - 1 : 0] BNEndAddress = 0,
                 output reg [ACTEN_WIDTH - 1 : 0] ActEn = 0,
                 output reg [ACTTYPE_WIDTH - 1 : 0] acttype = 0,
-                output reg [ACTPARAM_WIDTN - 1 : 0] ActParam = 0,
+                output reg [ACTPARAM_WIDTH - 1 : 0] ActParam = 0,
                 output reg [QUANTEN_WIDTH - 1 : 0] QuantEn = 0,
                 output reg [QUANTSCALE_WIDTH - 1 : 0] quantscale = 0,
                 output reg [QUANTSHIFT_WIDTH - 1 : 0] quantshift = 0,
@@ -31,7 +48,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
                 output reg [FCBIASEN - 1 : 0] FCBiasEn = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0
+                output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0,
                 output reg [378:0] dout = 0
         );
 
@@ -93,27 +110,27 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[`Opcode];
-            BNchannels <= data_instruction[`BNChannels];
-            BNEn <= data_instruction[`BNEn];
-            BNStartAddress <= data_instruction[`BNStartAddress];
-            BNEndAddress <= data_instruction[`BNEndAddress];
-            ActEn <= data_instruction[`ActEn];
-            ActParam <= data_instruction[`ActParam]; 
-            acttype <= data_instruction[`ActType];
-            QuantEn <= data_instruction[`QuantEn];
-            quantscale <= data_instruction[`QuantScale];
-            quantshift <= data_instruction[`QuantShift];
-            PoolEn <= data_instruction[`PoolEn];
-            pooltype <= data_instruction[`PoolType];
-            poolwidth <= data_instruction[`PoolWidth];
-            poolheight <= data_instruction[`PoolHeight];
-            poolstride <= data_instruction[`PoolStride];
-            poolpadding <= data_instruction[`PoolPadding];
-            BiasEn <= data_instruction[`BiasEn];
-            FCBiasEn <= data_instruction[`FCBiasEn];
-            BiasStartAddress <= data_instruction[`BiasStartAddress];
-            BiasEndAddress <= data_instruction[`BiasEndAddress];
+            opcode <= data_instruction[`TailBlock_Opcode];
+            BNchannels <= data_instruction[`TailBlock_BNChannels];
+            BNEn <= data_instruction[`TailBlock_BNEn];
+            BNStartAddress <= data_instruction[`TailBlock_BNStartAddress];
+            BNEndAddress <= data_instruction[`TailBlock_BNEndAddress];
+            ActEn <= data_instruction[`TailBlock_ActEn];
+            ActParam <= data_instruction[`TailBlock_ActParam]; 
+            acttype <= data_instruction[`TailBlock_ActType];
+            QuantEn <= data_instruction[`TailBlock_QuantEn];
+            quantscale <= data_instruction[`TailBlock_QuantScale];
+            quantshift <= data_instruction[`TailBlock_QuantShift];
+            PoolEn <= data_instruction[`TailBlock_PoolEn];
+            pooltype <= data_instruction[`TailBlock_PoolType];
+            poolwidth <= data_instruction[`TailBlock_PoolWidth];
+            poolheight <= data_instruction[`TailBlock_PoolHeight];
+            poolstride <= data_instruction[`TailBlock_PoolStride];
+            poolpadding <= data_instruction[`TailBlock_PoolPadding];
+            BiasEn <= data_instruction[`TailBlock_BiasEn];
+            FCBiasEn <= data_instruction[`TailBlock_FCBiasEn];
+            BiasStartAddress <= data_instruction[`TailBlock_BiasStartAddress];
+            BiasEndAddress <= data_instruction[`TailBlock_BiasEndAddress];
             //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end

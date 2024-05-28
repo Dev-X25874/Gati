@@ -10,7 +10,7 @@ parameter IW_WIDTH = 10,
 parameter IH_WIDTH = 10,
 parameter OW_WIDTH = 10,
 parameter OH_WIDTH = 10,
-parameter IC_WIDTH = 10
+parameter IC_WIDTH = 10,
 parameter KN_WIDTH = 10,
 parameter KW_WIDTH = 4,
 parameter KH_WIDTH = 4,
@@ -22,7 +22,7 @@ parameter INPUTROWS_WIDTH = 16,
 parameter DROPOUTCONSTANT_WIDTH = 8,
 parameter FLATTEN_WIDTH = 1,
 parameter IMAGEDIN_WIDTH = 20,
-parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16,
+parameter Vec2MatCols_WIDTH = 16,
 parameter CHANNELITR_WIDTH = 12,
 parameter KERNELITR_WIDTH = 12,
 parameter IMAGEDIMOUTPUT_WIDTH = 16,
@@ -31,7 +31,7 @@ parameter ACCEN_WIDTH = 1,
 parameter BNEN_WIDTH = 1,
 parameter ACTEN_WIDTH = 1,
 parameter ACTTYPE_WIDTH = 4,
-parameter ACTPARAM_WIDTN = 8,
+parameter ACTPARAM_WIDTH = 8,
 parameter QUANTEN_WIDTH = 1,
 parameter QUANTSCALE_WIDTH = 16,
 parameter QUANTSHIFT_WIDTH = 5,
@@ -50,7 +50,7 @@ parameter FCBIASEN = 1) (
     input [(OP_CODE_WIDTH)-1 : 0] opcode,
     //input ready,
     output reg [378:0] dout_final = 0,
-    output reg [(NO_OF_OPERATOR)-1 : 0] valid = 0
+    output [(NO_OF_OPERATOR)-1 : 0] valid
 );
 
 `include "instructions.vh"
@@ -60,19 +60,10 @@ wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line;
 wire wr;
 wire done_top_master;
 wire [(NO_OF_OPERATOR)-1 : 0] ready;
-wire ready_conv;
-wire ready_FC;
-wire ready_OB;
-wire ready_TB;
 wire [272:0] dout_conv;
 wire [151:0] dout_FC;
 wire [117:0] dout_OB;
 wire [378:0] dout_TB;
-//wire [378:0] dout;
-wire valid_conv;
-wire valid_FC;
-wire valid_OB;
-wire valid_TB;
 
 top_master top_master(
 .din(din),
@@ -88,7 +79,7 @@ top_master top_master(
 
 OP_CONV OP_CONV(
 .din(dout_top_master),
-.sel(select_line[`CONV_Opcode]),
+.sel(select_line[`OP_CONV]),
 .write(wr),
 .done(done_top_master),
 .clk(clk),
@@ -101,27 +92,25 @@ OP_CONV OP_CONV(
 .KN(),
 .KW(),
 .KH(),
-.STRIDE(),
-.PAD(),
-.channelItr(),
-.kernelItr(),
+.Stride(),
+.Pad(),
 .ImageStartAddress(),
 .ImageEndAddress(), 
 .WeightStartAddress(),
 .WeightEndAddress(),
-.valid(valid_conv[`CONV_Opcode]),
-.ready(ready_conv[`CONV_Opcode]),
+.valid(valid[`OP_CONV]),
+.ready(ready[`OP_CONV]),
 .dout(dout_conv)
 );
 
 OP_FC OP_FC(
 .din(dout_top_master),
-.sel(select_line[`FC_Opcode]),
+.sel(select_line[`OP_FC]),
 .write(wr),
 .done(done_top_master),
 .clk(clk),
-.valid(valid_FC[`FC_Opcode]),
-.ready(ready_FC[`FC_Opcode]),
+.valid(valid[`OP_FC]),
+.ready(ready[`OP_FC]),
 .opcode(),
 .weightrows(),
 .weightcols(),
@@ -131,19 +120,20 @@ OP_FC OP_FC(
 .imagedim(),
 .ImageStartAddress(),
 .ImageEndAddr(),
-.KernelIteration(),
-.RWAddressCountFlatten(),
+.WeightStartAddress(),
+.WeightEndAddress(),
+.Vec2MatCols(),
 .dout(dout_FC)
 );
 
 OP_Outputblock OP_Outputblock(
 .din(dout_top_master),
-.sel(select_line[`OutputBlock_Opcode]),
+.sel(select_line[`OP_OutputBlock]),
 .write(wr),
 .done(done_top_master),
 .clk(clk),
-.valid(valid_OB[`OutputBlock_Opcode]),
-.ready(ready_OB[`OutputBlock_Opcode]),
+.valid(valid[`OP_OutputBlock]),
+.ready(ready[`OP_OutputBlock]),
 .opcode(),
 .accumulantaddr(),
 .outputaddr(),
@@ -157,12 +147,12 @@ OP_Outputblock OP_Outputblock(
 
 OP_Tailblock OP_Tailblock(
 .din(dout_top_master),
-.sel(select_line[`TailBlock_Opcode]),
+.sel(select_line[`OP_TailBlock]),
 .write(wr_op_tb),
 .done(done_top_master),
 .clk(clk),
-.ready(ready_TB[`TailBlock_Opcode]),
-.valid(valid_TB[`TailBlock_Opcode]),
+.ready(ready[`OP_TailBlock]),
+.valid(valid[`OP_TailBlock]),
 .opcode(),
 .BNEn(),
 .BNchannels(),

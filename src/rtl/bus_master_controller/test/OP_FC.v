@@ -10,8 +10,8 @@ parameter WEIGHTCOLS_WIDTH = 16,
 parameter INPUTROWS_WIDTH = 16,
 parameter DROPOUTCONSTANT_WIDTH = 8,
 parameter FLATTEN_WIDTH = 1,
-parameter IMAGEDIN_WIDTH = 20
-parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16)(
+parameter IMAGEDIN_WIDTH = 20,
+parameter Vec2MatCols_WIDTH = 16)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -28,7 +28,9 @@ parameter RWADDRESSCOUNTFLATTEN_WIDTH = 16)(
                 output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
-                output reg [RWADDRESSCOUNTFLATTEN_WIDTH -1 : 0] RWAddressCountFlatten = 0
+                output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
+                output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
+                output reg [Vec2MatCols_WIDTH -1 : 0] Vec2MatCols = 0,
                 output reg [151:0] dout = 0
             );
 
@@ -57,7 +59,9 @@ always @(posedge clk) begin
         imagedim <= 0;
         ImageStartAddress <= 0;
         ImageEndAddr <= 0;
-        RWAddressCountFlatten <= 0;
+        WeightStartAddress <= 0;
+        WeightEndAddress <= 0;
+        Vec2MatCols <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -89,12 +93,14 @@ always @(posedge clk) begin
             imagedim <= data_instruction[`FC_ImageDim];
             ImageStartAddress <= data_instruction[`FC_ImageStartAddress];   
             ImageEndAddr <= data_instruction[`FC_ImageEndAddr];
-            RWAddressCountFlatten <= data_instruction[`FC_RWAddressCountFlatten];
+            WeightStartAddress <= data_instruction[`FC_WeightStartAddress];
+            WeightEndAddress <= data_instruction[`FC_WeightEndAddress];
+            Vec2MatCols <= data_instruction[`FC_Vec2MatCols];
             state <= OUTPUT_CHECK;
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {RWAddressCountFlatten, ImageEndAddr,ImageStartAddress, imagedim, flatten, dropoutconstant, inputrows, weightcols, weightrows, opcode}; //this concates the different output signals for checking purpose
+        dout <= {Vec2MatCols, WeightStartAddress, WeightEndAddress, ImageEndAddr,ImageStartAddress, imagedim, flatten, dropoutconstant, inputrows, weightcols, weightrows, opcode}; //this concates the different output signals for checking purpose
         //valid <= 1'b1;
         state <= IDLE;
     end

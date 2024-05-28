@@ -24,7 +24,7 @@ parameter ACCEN_WIDTH = 1)(
                 output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
                 output reg [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput = 0,
                 output reg [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc = 0,
-                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0
+                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0,
                 output reg [117:0] dout = 0
             );
 
@@ -74,14 +74,14 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         if(done) begin
-            opcode <= data_instruction[`Opcode];
-            accumulantaddr <= data_instruction[`AccumulantAddr];
-            outputaddr <= data_instruction[`OutputAddr];
-            channelItr <= data_instruction[`ChannelItr];
-            kernelItr <= data_instruction[`KernelItr];
-            ImageDimOutput <= data_instruction[`ImageDimOutput];
-            ImageDimAcc <= data_instruction[`ImageDimAcc];
-            AccEn <= data_instruction[`AccEn];
+            opcode <= data_instruction[`OutputBlock_Opcode];
+            accumulantaddr <= data_instruction[`OutputBlock_AccumulantAddr];
+            outputaddr <= data_instruction[`OutputBlock_OutputAddr];
+            channelItr <= data_instruction[`OutputBlock_ChannelItr];
+            kernelItr <= data_instruction[`OutputBlock_KernelItr];
+            ImageDimOutput <= data_instruction[`OutputBlock_ImageDimOutput];
+            ImageDimAcc <= data_instruction[`OutputBlock_ImageDimAcc];
+            AccEn <= data_instruction[`OutputBlock_AccEn];
             //valid <= 1'b1;
             state <= OUTPUT_CHECK;
         end

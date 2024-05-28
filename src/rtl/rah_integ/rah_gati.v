@@ -14,7 +14,7 @@ module rah_gati #(
      parameter AXI_DATA_WIDTH = 256,  // Axi data width 
      parameter AXI_BYTE_NUMBER = AXI_DATA_WIDTH / 8,
      parameter ADW_C = AXI_DATA_WIDTH,
-     parameter ABN_C = AXI_BYTE_NUMBER
+     parameter ABN_C = AXI_BYTE_NUMBER,
 
 	 parameter INST_QUEUE_DEPTH = 512,
 	 parameter DRAM_IMG_FIFO_DEPTH = 512,
@@ -35,7 +35,7 @@ module rah_gati #(
      parameter CONFIG_FIFO_OCCUPANCY = 10,
      parameter LAYERCNT_WIDTH = 12,
      //parameters related to DRAM controller
-     parameter NUM_PORTS = 4, //Number of read and write requestors
+  //   parameter NUM_PORTS = 4, //Number of read and write requestors
      /*
      parameter PORT_ID_WIDTH = 4, 
      parameter ADDR_WIDTH_MEM_CTRL = 8, //address width to the wire of DRAM ctrl from operator mem request ctrlers
@@ -44,7 +44,7 @@ module rah_gati #(
 
      parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
      parameter AXI_ADDR_W = 32,          // Axi Address width
-     parameter BURST_LENGTH_WIDTH =8,
+ //    parameter BURST_LENGTH_WIDTH =8,
     
      parameter NUM_INSTRUCTIONS = 4,
      parameter INST_W = 256,
@@ -80,13 +80,14 @@ module rah_gati #(
      parameter N_BANK = 4,
      parameter N_BRAM = 8,
      parameter W_FC_RW_COUNTER = 10, //width of fc r/w address counter
-     parameter FC_BRAM_DEPTH = 1024,
+	parameter PORT_SIZE=256,
+	parameter NO_PORT=2,
+	 parameter FC_BRAM_DEPTH = 1024,
      parameter W_KERNEL_CNT = 16,
      parameter W_IMAG_DIM = 20,
-	 parameter ACC_DATA_REORDER = 1,
+	 parameter ACC_DATA_REORDER = 1
 )
-	(
-		input i_clk,
+	(	input i_clk,
 		input  clk,
 		input s_clk,
 		input i_rst,
@@ -94,7 +95,7 @@ module rah_gati #(
 		input empty,
 		input [47:0] data,
 		output rden
-	)
+	);
 	
 	reg [47:0] r_data=0;
 	reg valid_data=0;
@@ -129,29 +130,31 @@ top#(
 ) mipi_ctrler_reciver(
     .i_clk(i_clk),
     .i_rstn (i_rst),
-    .i_data_valid(i_data_valid),
-    .i_data(i_data),
-	.ddr_sel(ddr_sel),
+    .i_data_valid(valid_data),
+    .i_data(r_data),
+	.ddr_sel(select_wr),
 	.ddr_wready(ddr_wready),
 	.ddr_blen(ddr_blen),
-    .o_fifo_data(o_fifo_data),  //comes from fifo array
-    .final_o_data_last(final_o_data_last), //comes from dram wr ctrl
-    .o_data_valid(o_data_valid), //comes from dram wr ctrl
-    .req_wr_req_ctrl(req_wr_req_ctrl),
+    .o_fifo_data(o_fifo_data),  
+    .final_o_data_last(final_o_data_last), 
+    .o_data_valid(o_data_valid), 
+	.req_wr_req_ctrl(req_wr_req_ctrl),
     .address_wr_req_ctrl(address_wr_req_ctrl),
     .final_burst_len_wr_req_ctrl(final_burst_len_wr_req_ctrl),
     .final_last_wr_req_ctrl(final_last_wr_req_ctrl),
     .valid_wr_req_ctrl(valid_wr_req_ctrl)
 );
 
-	wire [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
-    wire final_o_data_last, //comes from dram wr ctrl
-    wire o_data_valid, //comes from dram wr ctrl
-    wire req_wr_req_ctrl,
-    wire [7:0] address_wr_req_ctrl,
-    wire [W_BURST_LEN-1 : 0] final_burst_len_wr_req_ctrl,
-    wire final_last_wr_req_ctrl,
-    wire valid_wr_req_ctrl
+	wire [(W_DATA * N_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
+    wire final_o_data_last; //comes from dram wr ctrl
+    wire o_data_valid; //comes from dram wr ctrl
+    wire req_wr_req_ctrl;
+    wire [7:0] address_wr_req_ctrl;
+    wire [W_BURST_LEN-1 : 0] final_burst_len_wr_req_ctrl;
+    wire final_last_wr_req_ctrl;
+    wire valid_wr_req_ctrl;
+	
+
 //////////////////////////////
 	
 
@@ -184,9 +187,9 @@ Top_DRAM_controller # (
     .in_BLEN(in_BLEN),
     .i_enable(i_enable),
     .i_last(i_last),
-    .wr_axi_valid(wr_axi_valid),
-    .wr_axi_last(wr_axi_last),
-    .wr_axi_data(wr_axi_data),
+    .wr_axi_valid(dram_in_wrvalid),
+    .wr_axi_last(dram_in_wrlast),
+    .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
     .aid(aid),
@@ -213,10 +216,58 @@ Top_DRAM_controller # (
     .bid(bid),
     .bvalid(bvalid),
     .bready(bready),
-    .rd_r_last(rd_r_last),
-    .data_valid(data_valid)
-  );	
-	
+    .rd_r_last(dram_rd_data_last),
+    .data_valid(dram_rd_datavalid)
+  );
+  wire [(AXI_DATA_WIDTH*NO_PORT)-1:0] in_wr_data_mux;
+  assign in_wr_data_mux={op_dram_fifo,o_fifo_data};
+  wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
+vector_mux_param #(
+	.PORT_SIZE(AXI_DATA_WIDTH),
+    .NO_PORT(NO_PORT)
+) dram_write_data
+	(
+		.sel(select_wr),
+		.in(in_wr_data_mux),
+		.out(dram_in_wrdata)
+		
+	);
+
+ wire [(1*NO_PORT)-1:0] in_wr_valid_mux;
+  assign in_wr_valid_mux={dv_op_write,o_data_valid};
+  wire  dram_in_wrvalid;
+
+
+
+	vector_mux_param #(
+	.PORT_SIZE(1'b1),
+    .NO_PORT(NO_PORT)
+) dram_write_valid
+	(
+		.sel(select_wr),
+		.in(in_wr_valid_mux),
+		.out(dram_in_wrvalid)
+		
+	);
+
+
+
+	 wire [(1*NO_PORT)-1:0] in_wr_last_mux;
+  assign in_wr_last_mux={data_last_op_write,final_o_data_last};
+  wire  dram_in_wrlast;
+
+
+
+	vector_mux_param #(
+	.PORT_SIZE(1'b1),
+    .NO_PORT(NO_PORT)
+) dram_write_last
+	(
+		.sel(select_wr),
+		.in(in_wr_last_mux),
+		.out(dram_in_wrlast)
+		
+	);
   
   wire [NUM_PORTS-1:0] i_valid;
   wire [(NUM_PORTS*8)-1:0] in_address;
@@ -228,7 +279,7 @@ Top_DRAM_controller # (
 
   assign in_adress={address_wr_req_ctrl,mc_config_addr,mc_img_addr,mc_wghts_addr,mc_fc_addr,mc_bias_addr,mc_fc_bias_addr,mc_acc_addr,mc_op_write_addr};
 
-  assign in_BLEN={final_burst_len_wr_req_ctrlmc_config_bl,mc_img_bl,mc_wghts_bl,mc_fc_bl,mc_bias_bl,mc_fc_bias_bl,mc_acc_bl,mc_op_write_bl};
+  assign in_BLEN={final_burst_len_wr_req_ctrl,mc_config_bl,mc_img_bl,mc_wghts_bl,mc_fc_bl,mc_bias_bl,mc_fc_bias_bl,mc_acc_bl,mc_op_write_bl};
 
   assign i_enable={req_wr_req_ctrl,mc_config_rdreq,mc_img_rdreq,mc_wghts_rdreq,mc_fc_rdreq,mc_bias_rdreq,mc_fc_bias_rdreq,mc_acc_rdreq,mc_op_writereq};
 
@@ -241,77 +292,78 @@ Top_DRAM_controller # (
 
     //signals to DRAM ctrler
     ////config
-    wire [7:0] mc_config_addr,
-    wire mc_config_rdreq,
-    wire mc_config_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
-    wire mc_config_last,
+    wire [7:0] mc_config_addr;
+    wire mc_config_rdreq;
+    wire mc_config_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
+    wire mc_config_last;
 
     ////img
-    wire [7:0] mc_img_addr,
-    wire mc_img_rdreq,
-    wire mc_img_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl,
-    wire mc_img_last,
+    wire [7:0] mc_img_addr;
+    wire mc_img_rdreq;
+    wire mc_img_valid;
+  	wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl;
+    wire mc_img_last;
 
     /////conv
-    wire [7:0] mc_wghts_addr,
-    wire mc_wghts_rdreq,
-    wire mc_wghts_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_wghts_bl,
-    wire mc_wghts_last,
+    wire [7:0] mc_wghts_addr;
+    wire mc_wghts_rdreq;
+    wire mc_wghts_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_wghts_bl;
+    wire mc_wghts_last;
     
     ///////fc
-    wire [7:0] mc_fc_addr,
-    wire mc_fc_rdreq,
-    wire mc_fc_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bl,
-    wire mc_fc_last,
+    wire [7:0] mc_fc_addr;
+    wire mc_fc_rdreq;
+    wire mc_fc_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bl;
+    wire mc_fc_last;
 
     //////////bias 
-    wire [7:0] mc_bias_addr,
-    wire mc_bias_rdreq,
-    wire mc_bias_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_bias_bl,
-    wire mc_bias_last,
+    wire [7:0] mc_bias_addr;
+    wire mc_bias_rdreq;
+    wire mc_bias_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_bias_bl;
+    wire mc_bias_last;
 
     ///////////////fc_bias 
-    wire [7:0] mc_fc_bias_addr,
-    wire mc_fc_bias_rdreq,
-    wire mc_fc_bias_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bias_bl,
-    wire mc_fc_bias_last,
+    wire [7:0] mc_fc_bias_addr;
+    wire mc_fc_bias_rdreq;
+    wire mc_fc_bias_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bias_bl;
+    wire mc_fc_bias_last;
 
     /////////////acc
-    wire [7:0] mc_acc_addr,
-    wire mc_acc_rdreq,
-    wire mc_acc_valid,
-    wire [BURST_LENGTH_WIDTH-1: 0] mc_acc_bl,
-    wire mc_acc_last,
+    wire [7:0] mc_acc_addr;
+    wire mc_acc_rdreq;
+    wire mc_acc_valid;
+    wire [BURST_LENGTH_WIDTH-1: 0] mc_acc_bl;
+    wire mc_acc_last;
 
     /////////////wire write ctrl
-    wire [7:0] mc_op_write_addr,
-    wire mc_op_writereq,
-    wire mc_op_write_valid,
-    wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl,
-    wire mc_op_write_last,
+    wire [7:0] mc_op_write_addr;
+    wire mc_op_writereq;
+    wire mc_op_write_valid;
+    wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl;
+    wire mc_op_write_last;
     
     ///////////////////////operators data
     
     //Signals from DRAM ctrl to internal operator blocks
-    wire [NUM_PORTS-1:0] select_rd;
+    wire [NUM_PORTS-1:0] select;
+  	assign select=select_rd|select_wr;
     //Read block signals
     // wire sel_rd
-    wire dram_rd_datavalid,
-    wire dram_rd_data_last,
-    wire [AXI_DATA_WIDTH - 1 : 0] dram_rd_data,
+    wire dram_rd_datavalid;
+    wire dram_rd_data_last;
+    wire [AXI_DATA_WIDTH - 1 : 0] dram_rd_data;
 
     //op_write block signals
-    // wire sel_op_write, // Todo: have to check , wheteher sel is common or not
-    wire [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len,
-    wire dv_op_write,
-    wire data_last_op_write,
-    wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
+    // wire sel_op_write; // Todo: have to check ; wheteher sel is common or not
+    wire [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len;
+    wire dv_op_write;
+    wire data_last_op_write;
+    wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
 
 
 	top_gati_module # (
@@ -419,7 +471,13 @@ Top_DRAM_controller # (
     .mc_op_write_valid(mc_op_write_valid),
     .mc_op_write_bl(mc_op_write_bl),
     .mc_op_write_last(mc_op_write_last),
-    .select(select_rd)
+    .select(select),
+	.dram_rd_datavalid(dram_rd_datavalid),
+	.dram_rd_data_last(dram_rd_data),
+	.wr_burst_len(wr_burst_len),
+	.dv_op_write(dv_op_write),
+	.data_last_op_write(data_last_op_write),
+	.op_dram_fifo(op_dram_fifo)
   );
 ///////////////////////////////	
 
@@ -427,5 +485,4 @@ Top_DRAM_controller # (
 
 ///////////////////////////////////
 
-
-
+endmodule

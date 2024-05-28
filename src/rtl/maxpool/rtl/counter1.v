@@ -25,7 +25,7 @@ module counter1 #(parameter IMG_WIDTH = 10) (
   input rst,
   input datavalid,
   input [IMG_WIDTH - 1 : 0] dynamic_threshold, //it depends on the input dimension of the image width
-  output sel, //toggles at every posedge of the clock
+  output sel //toggles at every posedge of the clock
     );
     reg [13:0] counter = 14'd1;
     reg toggle = 0;    

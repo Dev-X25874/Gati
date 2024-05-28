@@ -28,7 +28,11 @@ reg [1:0] count=0;
 reg[$clog2(NO_PORT)-1:0] i=0;
 	always@(posedge clk)
 	begin 
-	if(rst)
+    if(!rst) begin
+        sel <= 0;
+        i <= 0;
+    end
+	else
 		begin 
 		if(count==1 & data_valid_tree)
 		begin 
@@ -44,8 +48,8 @@ reg[$clog2(NO_PORT)-1:0] i=0;
 	begin 
 		count<=0;
 		state<=IDLE;
-		sel<=0;
-		i<=0;
+		//sel<=0;
+		//i<=0;
 	end
 	else
 		begin 
@@ -78,10 +82,18 @@ reg[$clog2(NO_PORT)-1:0] i=0;
 		// end
 	end
 	else count<=count+1;
-	if(sel[NO_PORT-3]==1'b1)
-	begin
-		state<=IDLE;	
-	end 
+    if(NO_PORT==2) begin
+        if(sel[1]==1'b1)
+        begin
+            state<=IDLE;	
+        end
+    end
+    else begin
+        if(sel[NO_PORT-3]==1'b1)
+        begin
+            state<=IDLE;	
+        end
+    end
 
   end
 	endcase

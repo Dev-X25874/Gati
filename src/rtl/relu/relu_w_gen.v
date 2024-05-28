@@ -54,7 +54,7 @@ module relu #(
         else if(i_valid & ~enable)
         begin
             o_data_r <= i_data;
-            o_vaid_r <= i_valid;
+            o_valid_r <= i_valid;
         end
         else begin
             o_valid_r <= 0;

@@ -52,8 +52,12 @@
 `define FC_ImageStartAddress_WIDTH 32
 `define FC_ImageEndAddr 144:113
 `define FC_ImageEndAddr_WIDTH 32
-`define FC_RWAddressCountFlatten 160:145
-`define FC_RWAddressCountFlatten_WIDTH 16
+`define FC_WeightStartAddress 176:145
+`define FC_WeightStartAddress_WIDTH 32
+`define FC_WeightEndAddress 208:177
+`define FC_WeightEndAddress_WIDTH 32
+`define FC_Vec2MatCols 224:209
+`define FC_Vec2MatCols_WIDTH 16
 
 `define OP_OutputBlock 'h02
 `define OutputBlock_Opcode 3:0

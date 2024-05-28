@@ -38,7 +38,7 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
                 output valid,
-                output reg ready = 0
+                output reg ready = 0,
                 output reg [272:0] dout = 0
             );
 
@@ -68,8 +68,8 @@ always @(posedge clk) begin
         KN <= 0;
         KW <= 0;
         KH <= 0;
-        STRIDE <= 0;
-        PAD <= 0;
+        Stride <= 0;
+        Pad <= 0;
         ImageStartAddress <= 0;
         ImageEndAddress <= 0;
         WeightStartAddress <= 0;
@@ -115,7 +115,7 @@ always @(posedge clk) begin
         end
     end
     OUTPUT_CHECK: begin
-        dout <= {WeightEndAddress, WeightStartAddress, ImageEndAddress, ImageStartAddress, PAD, STRIDE, KH, KW, KN, IC, OH, OW, IH, IW, opcode}; //this concates the different output signals for checking purpose
+        dout <= {WeightEndAddress, WeightStartAddress, ImageEndAddress, ImageStartAddress, Pad, Stride, KH, KW, KN, IC, OH, OW, IH, IW, opcode}; //this concates the different output signals for checking purpose
         //valid <= 1'b1;
         state <= IDLE;
     end

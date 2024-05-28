@@ -67,7 +67,7 @@ assign w_empty_flag=empty_flag;
 //   wire [(W_ADDR+1)*FIFO_NO -1:0] occ;
 
   wire [(DATA_WIDTH*N)-1:0] mux_out;
-
+  wire [NO_PORT-1:0] sel;
   wire [N-1:0] valid_mux;
 
   vector_mux_param #(
@@ -122,7 +122,7 @@ assign w_empty_flag=empty_flag;
   );
   */
 
- wire [NO_PORT-1:0] sel;
+ 
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),

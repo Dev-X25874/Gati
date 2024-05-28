@@ -41,7 +41,7 @@ module top_bias_fc #(
   wire [             FIFO_NO-1:0] w_valid_fifo;
 
  wire [FIFO_NO-1:0] empty_flag;
-
+    wire [NO_PORT-1:0]sel;
 
 assign w_empty_flag=empty_flag;
 
@@ -96,7 +96,7 @@ assign w_empty_flag=empty_flag;
  bias_controller #(
     .FIFO_NO(FIFO_NO),
     .DRAM_BW(DRAM_BW),
-    .NO_PORT(NO_PORT),
+    .NO_PORT(NO_PORT)
   )
    controller 
   (
@@ -108,7 +108,7 @@ assign w_empty_flag=empty_flag;
       .valid_rd_en(w_rd_en),
       .sel(sel)
   );
- wire [NO_PORT-1:0]sel;
+ 
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),

@@ -15,8 +15,7 @@ module maxpool_gen #(parameter N_SA = 8,
 genvar i;
 generate 
   for(i=0;i<N_SA;i=i+1)begin
-    top_design  #(.N_SA(N_SA),
-    .DATA_IN(DATA_IN),
+    top_design  #(.DATA_IN(DATA_IN),
     .IMG_WIDTH(IMG_WIDTH)) t1 ( 
       .clk(clk),
       .data_in(data_in[(DATA_IN*(N_SA -i)) -1 -:DATA_IN]),
@@ -33,7 +32,8 @@ endmodule
 
 
 
-module top_design #(.DATA_IN(DATA_IN), .IMG_WIDTH(IMG_WIDTH), .N_SA(N_SA)) (
+module top_design #(parameter DATA_IN = 8,
+parameter IMG_WIDTH = 10) (
     input clk,
     input [DATA_IN -1 : 0] data_in,
     input rst,

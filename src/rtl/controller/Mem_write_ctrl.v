@@ -56,24 +56,24 @@ module Mem_write_ctrl #(
                     else if (count_blen == r_blen) begin
                         if(wready) begin
                             data_valid <= 1'b1;
-                            count_blen < =count_blen + 1;
+                            count_blen <= count_blen + 1;
                             state <= 2'd2;
                         end
                         else begin
                             data_valid <= data_valid;
-                            count_blen < =count_blen + 1;
+                            count_blen <= count_blen + 1;
                             state <= 2'd2;
                         end
                     end
                     else begin
                         if(wready) begin
                             data_valid <= 1'b1;
-                            count_blen < =count_blen + 1;
+                            count_blen <= count_blen + 1;
                             state <= 2'd2;
                         end
                         else begin
                             data_valid <= data_valid;
-                            count_blen < =count_blen + 1;
+                            count_blen <= count_blen + 1;
                             state <= 2'd2;
                         end
                     end

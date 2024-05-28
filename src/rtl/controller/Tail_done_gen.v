@@ -17,14 +17,14 @@ module Tail_done_gen#(
 
 localparam I_SIZE_WIDTH = (I_ACC_SIZE_WIDTH > I_OP_SIZE_WIDTH) ? I_ACC_SIZE_WIDTH : I_OP_SIZE_WIDTH;
 
-reg [I_SIZE_WIDTH-1:0] data_count;
+wire [I_SIZE_WIDTH-1:0] data_count;
 assign data_count = (pool_en==0)? img_dim_Acc : img_dim_Op;
 
 reg [I_SIZE_WIDTH : 0] counter;
 reg state;
 reg r_tail_done;
 
-always@(posedge clk) begin
+always@(posedge i_clk) begin
     if(!rst) begin
         r_tail_done <= 0;
         counter <= 0;

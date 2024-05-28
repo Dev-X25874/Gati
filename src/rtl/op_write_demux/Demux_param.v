@@ -1,7 +1,7 @@
 module Demux_param #(
-    parameter NUM_PORTS = 4,
-    parameter DATA_WIDTH = 16,
-    parameter COL_SA = 4,
+    parameter NUM_PORTS = 2,
+    parameter DATA_WIDTH = 32,
+    parameter COL_SA = 4
 ) (
     input [(DATA_WIDTH*COL_SA)-1 : 0] i_din,
     input [COL_SA-1 : 0] i_datavalid,
@@ -15,7 +15,7 @@ module Demux_param #(
 //     for(i=0;i<NUM_PORTS;i=i+1)
 //         o_dout[i] = 0;
 //    end
-   (*syn_use_dsp = "no"*) reg o_dout[DATA_WIDTH-1:0];
+   (*syn_use_dsp = "no"*) reg [(NUM_PORTS*DATA_WIDTH*COL_SA)-1 : 0] o_dout;
    always@(*) begin
         o_dout = 0;
         o_dout[(DATA_WIDTH*(NUM_PORTS-i_sel)-1) -: DATA_WIDTH] = i_din;
@@ -23,7 +23,7 @@ module Demux_param #(
 
    always@(*) begin
         o_datavalid = 0;
-        if(i_data_valid == {COL_SA{1'b1}})
+        if(i_datavalid == {COL_SA{1'b1}})
             o_datavalid[i_sel] = {COL_SA{1'b1}};
         else
             o_datavalid = 0;

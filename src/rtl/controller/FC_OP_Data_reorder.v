@@ -9,8 +9,8 @@ module FC_OP_Data_reorder#(
     input [(ACC_DW*COL_FC)-1:0] data_FC,
     input dv_FC,
 
-    output [(ACC_DW*COL_FC)-1:0] reorder_data_FC,
-    output o_dv_reorder
+    output reg [(ACC_DW*COL_FC)-1:0] reorder_data_FC,
+    output reg o_dv_reorder
 );
 
     always@(posedge clk) begin
@@ -20,10 +20,11 @@ module FC_OP_Data_reorder#(
         end
         else begin
             if(dv_FC) begin
-                if(ACC_DATA_REORDER==0)
+                if(ACC_DATA_REORDER==0) begin
                     reorder_data_FC <= data_FC;
                     o_dv_reorder <= 1;
-                else
+                end
+                else begin
                     reorder_data_FC <=
                         {
                          reorder_data_FC[1023:896] <= data_FC[1023:896],
@@ -35,6 +36,8 @@ module FC_OP_Data_reorder#(
                          reorder_data_FC[255:128]  <= data_FC[639:512],
                          reorder_data_FC[127:0]    <= data_FC[127:0]
                         };
+                    o_dv_reorder <= 1;
+                end
 
             end
             else begin

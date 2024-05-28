@@ -7,7 +7,12 @@
 echo ".. code::"
 echo
 
-while (( $# != 0 )); do
-  ./gen_cpp_defines.sh $1
-  shift 1 
-done 
+for var in "$@"; do 
+  ./gen_cpp_defines.sh $var
+done
+
+for var in "$@"; do 
+  if [[ $var != "meta.txt" ]]; then
+    ./gen_cpp_tables.sh $var
+  fi
+done

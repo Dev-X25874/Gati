@@ -20,7 +20,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter DROPOUTCONSTANT_WIDTH = 8,
             parameter FLATTEN_WIDTH = 1,
             parameter IMAGEDIN_WIDTH = 20,
-            parameter Vec2MatCols_WIDTH = 16,
+            parameter FC_VEC2MATCOL_WIDTH = 16,
             parameter CHANNELITR_WIDTH = 12,
             parameter KERNELITR_WIDTH = 12,
             parameter IMAGEDIMOUTPUT_WIDTH = 16,
@@ -73,9 +73,9 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [IMAGEDIN_WIDTH -1 : 0] imagedim_FC,
                 output [ADDRESS_WIDTH - 1 : 0] ImageStartAddress_FC,
                 output [ADDRESS_WIDTH - 1 : 0] ImageEndAddr_FC,
-                output [ADDRESS_WIDTH - 1 : 0] WeightStartAddress,
-                output [ADDRESS_WIDTH - 1 : 0] WeightEndAddress,
-                output [Vec2MatCols_WIDTH -1 : 0] Vec2MatCols,
+                output [ADDRESS_WIDTH - 1 : 0] WeightStartAddress_FC,
+                output [ADDRESS_WIDTH - 1 : 0] WeightEndAddress_FC,
+                output [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols,
                 output [OP_CODE_WIDTH -1 : 0] opcode_OB,
                 output [ADDRESS_WIDTH - 1 : 0] accumulantaddr,
                 output [ADDRESS_WIDTH - 1 : 0] outputaddr,
@@ -182,7 +182,7 @@ OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .DROPOUTCONSTANT_WIDTH(DROPOUTCONSTANT_WIDTH),
 .FLATTEN_WIDTH(FLATTEN_WIDTH),
 .IMAGEDIN_WIDTH(IMAGEDIN_WIDTH),
-.Vec2MatCols_WIDTH(Vec2MatCols_WIDTH)) 
+.FC_VEC2MATCOL_WIDTH(FC_VEC2MATCOL_WIDTH)) 
 OP_FC(
     .din(dout_top_master),
     .sel(select_line[`OP_FC]),
@@ -200,9 +200,9 @@ OP_FC(
     .imagedim(imagedim_FC),
     .ImageStartAddress(ImageStartAddress_FC),
     .ImageEndAddr(ImageEndAddr_FC),
-    .WeightStartAddress(WeightStartAddress),
-    .WeightEndAddress(WeightEndAddress),
-    .Vec2MatCols(Vec2MatCols)
+    .WeightStartAddress(WeightStartAddress_FC),
+    .WeightEndAddress(WeightEndAddress_FC),
+    .FC_Vec2MatCols(FC_Vec2MatCols)
 );
 
 OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 

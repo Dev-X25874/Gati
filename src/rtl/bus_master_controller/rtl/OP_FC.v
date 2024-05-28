@@ -11,7 +11,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
             parameter DROPOUTCONSTANT_WIDTH = 8,
             parameter FLATTEN_WIDTH = 1,
             parameter IMAGEDIN_WIDTH = 20,
-            parameter Vec2MatCols_WIDTH = 16)(
+            parameter FC_VEC2MATCOL_WIDTH = 16)(
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
                 input write,
@@ -30,7 +30,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
-                output reg [Vec2MatCols_WIDTH -1 : 0] Vec2MatCols = 0
+                output reg [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols = 0
             );
 
             `include "instructions.vh"

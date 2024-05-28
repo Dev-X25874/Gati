@@ -1,21 +1,24 @@
-module pooling_first_stage(
+module pooling_first_stage#(parameter DATA_WIDTH = 8, 
+                            parameter POOL_WIDTH = 4, 
+                            parameter POOLING_TYPE_WIDTH = 3)
+    (
     input clk,
     input rst_n,
     input ENABLE,
-    input [7:0] din,
+    input [(DATA_WIDTH -1) : 0] din,
     input datavalid_in,
-    input [3:0] pool_width,
-    input [2:0] pooling_type,
-    output [7:0] dout,
+    input [(POOL_WIDTH -1) : 0] pool_width,
+    input [(POOLING_TYPE_WIDTH -1) : 0] pooling_type,
+    output [(DATA_WIDTH -1) : 0] dout,
     output datavalid_out
 );
 
 //parameter AVG_POOL = 3'b000;
 //parameter MAX_POOL = 3'b001;
 
-reg [7:0] temp = 0;
-reg [7:0] r_dout = 0;
-reg [4:0] counter = 0;
+reg [DATA_WIDTH - 1 : 0] temp = 0;
+reg [DATA_WIDTH - 1 : 0] r_dout = 0;
+reg [(POOL_WIDTH -1) : 0] counter = 0;
 reg r_datavalid = 0;
 
 always @(posedge clk) begin

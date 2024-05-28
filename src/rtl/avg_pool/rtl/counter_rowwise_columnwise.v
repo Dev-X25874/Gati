@@ -1,16 +1,18 @@
-module counter_rowwise_columnwise(
+module counter_rowwise_columnwise#(parameter OW_WIDTH = 10,
+                                   parameter OH_WIDTH = 10)
+    (
     input clk,
     input rst_n,
-    input [9:0] OW,
-    input [9:0] OH,
+    input [(OW_WIDTH - 1) : 0] OW,
+    input [(OH_WIDTH -1) : 0] OH,
     input ENABLE,
     input rx_valid,
     output reg done = 0,
     output reg dv_demux_counter = 1
 );
 
-reg [9:0] row_counter = 0;
-reg [9:0] column_counter = 0;
+reg [(OW_WIDTH - 1) : 0] row_counter = 0;
+reg [(OH_WIDTH - 1) : 0] column_counter = 0;
 reg enable = 0;
 reg [1:0] state = 0;
 

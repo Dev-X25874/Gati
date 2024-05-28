@@ -1,13 +1,13 @@
-module demux_for_fifo1(
+module demux_for_fifo1 #(parameter DATA_WIDTH = 8) (
     input clk,
     input rst_n,
     input ENABLE,
     input datavalid_in, 
-    input [7:0] data_in,
+    input [(DATA_WIDTH - 1) : 0] data_in,
     input sel,
     input rx_valid,
-    output reg [7:0] data_out_fifo1 = 0,
-    output reg [7:0] data_out_fifo2 = 0,
+    output reg [(DATA_WIDTH - 1) : 0] data_out_fifo1 = 0,
+    output reg [(DATA_WIDTH - 1) : 0] data_out_fifo2 = 0,
     output reg datavalid_out_fifo1 = 0,
     output reg datavalid_out_fifo2 = 0
 );

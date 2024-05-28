@@ -37,7 +37,7 @@ module iteration_cnt #(
     output bias_en,
     output fc_bias_en,
     output pool_en,
-    output en   //enable signal for shift register to select accumulant o/p and quantized o/p
+    output en,   //enable signal for shift register to select accumulant o/p and quantized o/p
 
     //'ack' signals for config blk
     output Conv_Ack,

@@ -1,6 +1,6 @@
 module im2col_start_ctrler#(
     parameter CITER_CNT_WIDTH = 12,
-    parameter KITER_CNT_WIDTH = 12,
+    parameter KITER_CNT_WIDTH = 12
 )
 (
     input clk,

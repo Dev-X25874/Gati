@@ -26,7 +26,7 @@ begin
 		// 	op_wren<={{COL{1'b0}},{COL{1'b1}}};
 		// end
 		op_wren = 0;
-		op_wren[(COL*(NUM_PORTS-i_sel)-1) -: COL] = {COL{1'b1}};
+		op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
 	end
 	else begin
 		op_wren <= {OP_FIFO_WRITE{1'b0}};
@@ -37,7 +37,7 @@ always @(posedge clk)
 begin 
 if(!rst) begin 
 sel<=0;
-op_wren<=0;
+//op_wren<=0;
 	flag<=0;
 end
 

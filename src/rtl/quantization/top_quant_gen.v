@@ -29,7 +29,7 @@ genvar i;
                 .SCALE_WIDTH(SCALE_WIDTH),
                 .SHIFT_WIDTH(SHIFT_WIDTH))
     mul_shift_inst(
-    .i_clk                        (top_i_clk),
+    .clk                          (top_i_clk),
     .dina                         (top_i_data_quant[i*DATA_WIDTH +: DATA_WIDTH]),
     .dinb                         (top_i_data_scale[i*SCALE_WIDTH +: SCALE_WIDTH]),
     .enabled                      (enable_quant),
@@ -38,7 +38,7 @@ genvar i;
     .dout                         (top_o_data[i*OUT_DATA_WIDTH +: OUT_DATA_WIDTH]), 
     .data_valid                   (top_i_data_valid[i]),
     .o_data_valid                 (top_o_data_valid[i]),
-    .i_bit_shift                  (top_i_bit_shift[i*SHIFT_WIDTH +: SHIFT_WIDTH])
+    .bit_shift                    (top_i_bit_shift[i*SHIFT_WIDTH +: SHIFT_WIDTH])
     );
 end
 endgenerate 

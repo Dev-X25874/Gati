@@ -12,7 +12,9 @@ module memory_valid
       wr_en,
       rd_en,
       rdata,
-      valid 
+      valid,
+      empty_flag,
+      full_flag
      );
 
 parameter DATA_WIDTH = 8;
@@ -28,6 +30,8 @@ input [ADDR_WIDTH-1:0] waddr;
 input [ADDR_WIDTH-1:0] raddr; 
 input wr_en;
 input rd_en;
+input empty_flag;
+input full_flag;
 output [DATA_WIDTH-1:0] rdata; 
 output valid;
 
@@ -38,18 +42,17 @@ reg dv = 0;
 assign valid = dv;
 
 always @(posedge rd_clk)
-  if(rd_en) begin
+    if(rd_en & (!empty_flag)) begin
     rdata <= mem [raddr];
     dv <= 1'b1;
-  end 
-  else begin
+    end 
+    else begin
     rdata <= rdata;
     dv <= 1'b0;
-  end
+end
 
 always @(posedge wr_clk)
-  if(wr_en)  
-    mem[waddr] <= wdata;  
-         
-   
+    if(wr_en & (!full_flag))  
+        mem[waddr] <= wdata;  
+
 endmodule

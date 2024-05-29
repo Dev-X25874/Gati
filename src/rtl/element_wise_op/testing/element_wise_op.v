@@ -13,7 +13,6 @@ module element_wise_op#(
     input operation_v,
     output reg signed [(INPUT_WIDTH<<1)-1:0]value_out,
     output reg value_valid,
-    output [$clog2(INPUT_WIDTH)+1:0]value_width,
     output reg [STROBE_LENGTH-1:0]value_strobe //output reg [(INPUT_WIDTH>>2)-1:0]value_strobe
   );
   localparam STROBE_LENGTH =((INPUT_WIDTH<<1)>>3);
@@ -22,7 +21,6 @@ module element_wise_op#(
   reg [INPUT_WIDTH-1:0]input_b_reg;
   reg [$clog2(NUMBER_OP)-1:0]operation_in_reg;
   reg [3:0]state=0;
-  reg [$clog2(INPUT_WIDTH)+1:0]value_width_inter;
   reg calculate;
   integer i;
   always @(posedge clkin)
@@ -33,7 +31,6 @@ module element_wise_op#(
         0:
         begin
           value_out<=input_a+input_b;
-          value_width_inter<=INPUT_WIDTH+1;
           for (i = 0; i < (((INPUT_WIDTH+1)>>3)); i = i + 1)
           begin
             value_strobe[i] <= 1'b1;
@@ -42,7 +39,6 @@ module element_wise_op#(
         1:
         begin
           value_out<=input_a-input_b;
-          value_width_inter<=INPUT_WIDTH+1;
           for (i = 0; i < (((INPUT_WIDTH+1)>>3)); i = i + 1)
           begin
             value_strobe[i] <= 1'b1;
@@ -51,7 +47,6 @@ module element_wise_op#(
         2:
         begin
           value_out<=input_a*input_b;
-          value_width_inter<=INPUT_WIDTH<<1;
           for (i = 0; i < ((INPUT_WIDTH<<1)>>3); i = i + 1)
           begin
             value_strobe[i] <= 1'b1;
@@ -65,11 +60,9 @@ module element_wise_op#(
     begin
       //calculate<=0;
       value_out<=0;
-      value_width_inter<=0;
       value_valid<=0;
       value_strobe<=0;
     end
 
   end
-  assign value_width=value_width_inter;
 endmodule

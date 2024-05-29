@@ -6,9 +6,7 @@ module top_board#(
     input user_start,
     output [31:0]value_out,
     output value_valid,
-    output [3:0]value_strobe,
-    output [$clog2(INPUT_WIDTH)+1:0]value_width
-
+    output [3:0]value_strobe
 );
 wire burst_read_trigger;
 wire [36:0]test_data;
@@ -25,7 +23,6 @@ element_wise_op #(
     .operation_v(test_data[0]),
     .value_out(value_out),
     .value_valid(value_valid),
-    .value_width(value_width),
     .value_strobe(value_strobe)
 );
 

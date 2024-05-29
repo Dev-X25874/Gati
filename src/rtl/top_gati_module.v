@@ -1,5 +1,5 @@
-`include "/rtl/common/instructions.vh" // path for the .vh files
-`include "/rtl/common/portid.vh"
+`include "F:/Vicharak/Gati/Integration_v1/rtl/common/instructions.vh"
+`include "F:/Vicharak/Gati/Integration_v1/rtl/common/portid.vh"
 
 module top_gati_module #(
     
@@ -822,7 +822,7 @@ module top_gati_module #(
         else begin
             opcode <= opcode;
             valid_inst_CONV_FC <= 0;
-            CONV_FC <= 0;
+            CONV_FC <= CONV_FC;
         end
     end
   end
@@ -980,6 +980,7 @@ module top_gati_module #(
       .i_img_dim_Acc(img_dim_Acc), // image dimension of accumulant o/p
       .i_img_dim_Op(img_dim_Op), // image dimension of quantized o/p
       .image_fifo_empty(image_fifo_empty),
+      .CONV_FC(CONV_FC),
     //   .switch_enable(switch_enable),
       .fifo_o(fifo_imgo_data),
       //fifo sharing signals

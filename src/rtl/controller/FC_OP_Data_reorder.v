@@ -25,16 +25,27 @@ module FC_OP_Data_reorder#(
                     o_dv_reorder <= 1;
                 end
                 else begin
+                    // reorder_data_FC <=
+                    //     {
+                    //      reorder_data_FC[1023:896] <= data_FC[1023:896];
+                    //      reorder_data_FC[895:768]  <= data_FC[511:384];
+                    //      reorder_data_FC[767:640]  <= data_FC[895:768];
+                    //      reorder_data_FC[639:512]  <= data_FC[383:256];
+                    //      reorder_data_FC[511:384]  <= data_FC[767:640];
+                    //      reorder_data_FC[383:256]  <= data_FC[255:128];
+                    //      reorder_data_FC[255:128]  <= data_FC[639:512];
+                    //      reorder_data_FC[127:0]    <= data_FC[127:0];
+                    //     };
                     reorder_data_FC <=
                         {
-                         reorder_data_FC[1023:896] <= data_FC[1023:896],
-                         reorder_data_FC[895:768]  <= data_FC[511:384],
-                         reorder_data_FC[767:640]  <= data_FC[895:768],
-                         reorder_data_FC[639:512]  <= data_FC[383:256],
-                         reorder_data_FC[511:384]  <= data_FC[767:640],
-                         reorder_data_FC[383:256]  <= data_FC[255:128],
-                         reorder_data_FC[255:128]  <= data_FC[639:512],
-                         reorder_data_FC[127:0]    <= data_FC[127:0]
+                         data_FC[1023:896],
+                         data_FC[511:384],
+                         data_FC[895:768],
+                         data_FC[383:256],
+                         data_FC[767:640],
+                         data_FC[255:128],
+                         data_FC[639:512],
+                         data_FC[127:0]
                         };
                     o_dv_reorder <= 1;
                 end

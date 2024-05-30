@@ -11,7 +11,7 @@ module dram_controller#(
   parameter W_KERNEL_CNT = 16,
   parameter W_CHANNEL_CNT =16,
   parameter IMAGE_DIM_WIDTH_ACC = 16,
-  parameter IMAGE_DIM_WIDTH_OP=16 I
+  parameter IMAGE_DIM_WIDTH_OP=16 
 )(
   input clkin,
   input i_rstn,

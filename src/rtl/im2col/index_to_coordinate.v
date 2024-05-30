@@ -113,7 +113,7 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
             ((curr_row == o_mat_size) && (curr_col>=LOWER_BOUND) && (curr_col<=o_mat_size)) ? {1'd1,8'd0} :
             ((curr_col == LOWER_BOUND) && (curr_row>=LOWER_BOUND) && (curr_row<=o_mat_size)) ? {1'd1,8'd0} :
             ((curr_col == o_mat_size) && (curr_row>=LOWER_BOUND) && (curr_row<=o_mat_size)) ? {1'd1,8'd0} : 
-            {i_valid_data,i_data}) : {i_valid_data,i_data}) : {0, 8'd0};              
+            {i_valid_data,i_data}) : {i_valid_data,i_data}) : {8'd0, 8'd0};              
 
     assign o_mat_size = r_start_im2col? (valid_mat_size ?(zero_pad ? mat_size + 2 : mat_size) : 0) : 0; 
 

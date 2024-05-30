@@ -45,7 +45,7 @@ parameter IMG_WIDTH = 10) (
 );
 wire re;    
 wire [DATA_IN : 0] demux1_o1;
-wire [DATA_IN : 0] demux1_o2;
+wire [DATA_IN: 0] demux1_o2;
 wire [DATA_IN : 0] maxpool_o;
 wire [DATA_IN : 0] demux2_o1;
 wire [DATA_IN : 0] demux2_o2;

@@ -86,6 +86,9 @@ wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] bram_array_data_out;
 /*
     Array of BRAM to store flattened data
 */
+wire [N_BRAM-1 : 0] rden_ctrl_bram_bank;
+wire [N_BANK-1 : 0] bank_enable_rden_ctrl_bram_bank;
+
 bram_bank_array#(
     .N_BANK(N_BANK),                //number of banks of bram
     .N_BRAM(N_BRAM),                //total brams in one bank
@@ -110,8 +113,6 @@ always @(posedge clk) begin
     mux_bank_en <= bank_enable_rden_ctrl_bram_bank;
 end
 
-wire [N_BRAM-1 : 0] rden_ctrl_bram_bank;
-wire [N_BANK-1 : 0] bank_enable_rden_ctrl_bram_bank;
 
 /*
     Controls read enable signal of BRAMs
@@ -137,7 +138,7 @@ bram_rden_controller#(
     .o_done(o_done_rden_ctrl),
     .o_bank_address(r_addr_rd_ctrl_bram_array),
     .o_bank_enable(bank_enable_rden_ctrl_bram_bank),
-    .kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl),
+    .r_kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl),
     .weight_ff_trigger(weight_fifo_array_trigger)
 );
 

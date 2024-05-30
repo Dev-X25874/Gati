@@ -11,16 +11,14 @@ module op_psum_rden#(parameter N_SA=4,
 	always@(posedge clk)
 	begin 
 		if(vector_enable && (~|empty_vector  & ~|empty_sa))
-		begin 
-			opsum_rden<={(N_SA*COL){1'b1}};
-		end
-		else if(~vector_enable && (~|empty_sa))
-		begin 
 			opsum_rden<={(N_SA*COL){1'b1}};
 
-		end
+		else if(~vector_enable && (~|empty_sa))
+			opsum_rden<={(N_SA*COL){1'b1}};
+
 		else
-			opsum_rden<=0;
+			opsum_rden<={(N_SA*COL){1'b0}};
+
 	end
 
 endmodule

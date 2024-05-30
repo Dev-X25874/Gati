@@ -34,7 +34,7 @@ always@(posedge i_clk) begin
         case(state)
             0:begin
                 r_tail_done <= 1'b0;
-                if(datavalid_acc=={N{1'b1}}||(datavalid_pool=={N{1'b1}})) begin
+                if((datavalid_acc=={N{1'b1}})  || (datavalid_pool=={N{1'b1}})) begin
                     state <= 1;
                     counter <= counter;
                 end
@@ -44,12 +44,12 @@ always@(posedge i_clk) begin
                 end
             end
             1: begin
-                if(counter == data_count-1) begin
+                if(counter == (data_count-1)) begin
                     counter     <= 0;
                     state       <= 0;
                     r_tail_done <= 1'b1;
                 end
-                else if(datavalid_acc=={N{1'b1}}||(datavalid_pool=={N{1'b1}})) begin
+                else if((datavalid_acc=={N{1'b1}}) || (datavalid_pool=={N{1'b1}})) begin
                     counter     <= counter + 1;
                     state       <= 1;
                     r_tail_done <= 1'b0;

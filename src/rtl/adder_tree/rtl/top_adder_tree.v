@@ -183,7 +183,7 @@ generate
                 .second_k(DEPTH[i-1].LAYER[j*2].result),
                 .first_k(DEPTH[i-1].LAYER[j*2+1].result),
                 .valid_in_1(DEPTH[i-1].LAYER[j*2].valid_gen),
-                .valid_in_2(DEPelseTH[i-1].LAYER[j*2+1].valid_gen),
+                .valid_in_2(DEPTH[i-1].LAYER[j*2+1].valid_gen),
                 .result(result),
                 .valid(valid_gen)
                 );

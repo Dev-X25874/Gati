@@ -1,7 +1,7 @@
-module top_zero #(parameter DW=32,
+module top_zero #(parameter DW=32, 
 	parameter COL=4,
-	parameter I_SIZE_WIDTH=20,
-	parameter MOD=2)
+	parameter I_SIZE_WIDTH=16,
+	parameter MOD=8)
 
 	(input clk,
 		input rst,

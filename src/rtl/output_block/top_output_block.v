@@ -74,7 +74,8 @@ assign w_empty_flag=empty_flag;
     .PORT_SIZE(N*DATA_WIDTH),
     .NO_PORT(NO_PORT)
   ) mux_data (
-      .in(w_data_out),
+      .clk(top_clk),
+	  .in(w_data_out),
       .out(mux_out),
       .sel(sel)
 
@@ -84,7 +85,8 @@ assign w_empty_flag=empty_flag;
       .PORT_SIZE(N),
       .NO_PORT(NO_PORT)
   ) mux_valid (
-      .in (w_valid_fifo),
+      .clk(top_clk),
+	  .in (w_valid_fifo),
       .out(valid_mux),
       .sel(sel)
   );

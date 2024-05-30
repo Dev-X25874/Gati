@@ -29,7 +29,8 @@ module top_fc#(
 );
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
-
+	assign accumulator_data=r_accumulator_data;
+	assign accumulator_dv=r_accumulator_dv;
 wire [(COL * (W_DATA + 1))-1 : 0] weights_ff_array_synch;   //weights going into synchronizers
 
 //along with the data coming from weight fifo array, append it's data valid signal
@@ -121,15 +122,15 @@ accumulator#(
 
 //synchronizers for CDC
 (*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] r_acc_dv = 0;
-(*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] accumulator_dv = 0;
+(*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] r_accumulator_dv = 0;
 (*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] r_acc_data = 0;
-(*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] accumulator_data = 0;
+(*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] r_accumulator_data = 0;
 
 always @(posedge i_clk)begin
     r_acc_dv         <= o_acc_dv;
-    accumulator_dv   <= r_acc_dv;
+    r_accumulator_dv   <= r_acc_dv;
     r_acc_data       <= o_acc_data;
-    accumulator_data <= r_acc_data;
+    r_accumulator_data <= r_acc_data;
 end
 
 endmodule

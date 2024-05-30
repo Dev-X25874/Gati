@@ -24,7 +24,7 @@ module bram_rden_controller#(
     output o_done,
     output [(N_BANK * (W_ADDR + 1))-1 : 0] o_bank_address,
     output [N_BANK-1 : 0] o_bank_enable,
-    output [W_KERNAL_CNT-1:0] kernal_counter,
+    output [W_KERNAL_CNT-1:0] r_kernal_counter,
     output weight_ff_trigger
 );
 
@@ -39,7 +39,7 @@ assign o_read_enable = rden;
 assign o_bank_address = addr;
 assign o_bank_enable = bank_en;
 assign weight_ff_trigger = |(rden);
-
+assign r_kernal_counter=kernal_counter;
 reg [1:0] rd_state = 0;
 
 //count number of elements in a bank, 1-49

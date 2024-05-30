@@ -75,7 +75,7 @@ assign w_empty_flag=empty_flag;
 
       .NO_PORT(NO_PORT)
   ) mux_data (
-     // .clk(top_clk),
+     .clk(top_clk),
       .in (w_data_out),
       .out(mux_out),
       .sel(sel)
@@ -86,7 +86,7 @@ assign w_empty_flag=empty_flag;
 
       .NO_PORT(NO_PORT)
   ) mux_valid (
-     // .clk(top_clk),
+     .clk(top_clk),
       .in (w_valid_fifo),
       .out(valid_mux),
       .sel(sel)

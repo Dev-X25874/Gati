@@ -7,29 +7,29 @@ module demux_controller_sel_op #(
 	  input rst, 
 	  input clk,	
 	  input [COL-1:0]data_valid,
-	  output  reg [OP_FIFO_WRITE-1:0] op_wren,
+	  output   [OP_FIFO_WRITE-1:0] op_wren,
 	  output reg [$clog2(NUM_PORTS)-1 : 0] sel=0
 	);
 
 	reg flag=0;
-
-(*syn_use_dsp = "no"*) reg [OP_FIFO_WRITE-1:0] op_wren;
+	assign op_wren=r_op_wren;
+(*syn_use_dsp = "no"*) reg [OP_FIFO_WRITE-1:0] r_op_wren;
 always @(*)
 begin
 	if(flag)
 	begin 
 		// if(sel)
 		// begin
-		// 	op_wren<={{COL{1'b1}},{COL{1'b0}}};
+		// 	op_wren={{COL{1'b1}},{COL{1'b0}}};
 		// end 
 		// else begin 
-		// 	op_wren<={{COL{1'b0}},{COL{1'b1}}};
+		// 	op_wren={{COL{1'b0}},{COL{1'b1}}};
 		// end
-		op_wren = 0;
-		op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
+		r_op_wren = 0;
+		r_op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
 	end
 	else begin
-		op_wren <= {OP_FIFO_WRITE{1'b0}};
+		r_op_wren <= {OP_FIFO_WRITE{1'b0}};
 	end
 end
 

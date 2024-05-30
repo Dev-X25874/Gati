@@ -1,16 +1,16 @@
 module Top_DRAM_controller #(
-    parameter   SYS_CLK_PERIOD    = 32'd100_000_000 ,   //System Clock Period
-    parameter   NUM_PORTS = 4,                           // number of ports
-    parameter   BURST_LENGTH_WIDTH = 8,                // burst length
-    parameter   ADDRESS_WIDTH = 32,                   // address width
-    parameter   POINTER_COUNT = 10,   
-    parameter   IN_ADDR = 8,
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  // only use for port controller 
-    parameter   RAM_DEPTH = (1 << POINTER_COUNT),
-    parameter   PORT_ID_WIDTH = 4,                     // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
-    parameter   ID_WIDTH = 8,                        // ID width after the arbiter module
-    parameter   AXI_ID_BLEN_CON = 8 ,
-    parameter   AXI_DATA_WIDTH      = 256 ,            // Axi data width 
+    parameter   SYS_CLK_PERIOD    = 32'd100_000_000 ,             //System Clock Period
+    parameter   NUM_PORTS = 4,                                    // number of ports
+    parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
+    parameter   ADDRESS_WIDTH = 32,                               // address width                 
+    parameter   IN_ADDR = 8,                                      // input address width of port controller
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},   // only use for port controller 
+    parameter   POINTER_COUNT = 10,                               // fifo depth
+    parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
+    parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
+    parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
+    parameter   AXI_ID_BLEN_CON = 8 ,                             // burst length width for AXI
+    parameter   AXI_DATA_WIDTH      = 256 ,                       // Axi data width 
     parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8  ,                                  
     parameter   ADW_C               = AXI_DATA_WIDTH    ,
     parameter   ABN_C               = AXI_BYTE_NUMBER   
@@ -19,21 +19,25 @@ module Top_DRAM_controller #(
     input   [ 1:0]  PllLocked ,
     
     //DDR Controner Control Signal
-    output      DdrCtrl_CFG_RST_N     ,     //(O)[Control]DDR Controner Reset(Low Active)     
-    output      DdrCtrl_CFG_SEQ_RST   ,    //(O)[Control]DDR Controner Sequencer Reset 
-    output      DdrCtrl_CFG_SEQ_START ,    //(O)[Control]DDR Controner Sequencer Start 
-    input [NUM_PORTS-1:0] i_valid ,        // valid signal for port controller
-    input [(NUM_PORTS * 8)-1:0] in_address, // 8 bit of address for port controller generator 
-    input [(NUM_PORTS * 4)-1:0] in_BLEN,    // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
-    input [NUM_PORTS-1:0] i_enable ,        // read/ write enable pin for port controller generator module
-    input [NUM_PORTS-1:0] i_last ,         //
+    output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
+    output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output      DdrCtrl_CFG_SEQ_START ,                       //(O)[Control]DDR Controner Sequencer Start 
+    input [NUM_PORTS-1:0] port_ctrl_i_valid ,                           // valid signal for port controller
+    input [(NUM_PORTS * 8)-1:0] port_ctrl_i_address,                   // 8 bit of address for port controller generator 
+    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] port_ctrl_i_BLEN,     // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
+    input [NUM_PORTS-1:0] port_ctrl_i_rw_enable ,                          // read/ write enable pin for port controller generator module
+    input [NUM_PORTS-1:0] port_ctrl_i_last ,         
     
-    input  wr_axi_valid,           // write valid signal for axi write data
-    input wr_axi_last ,            // last signal for indicating the last data of write 
-    input [AXI_DATA_WIDTH-1:0] wr_axi_data ,    // write data for AXI
-  //  output [BIN_WIDTH-1:0] rd_sel_binary,
-    output [NUM_PORTS-1:0] select_wr ,
-    output [NUM_PORTS-1:0] select_rd ,
+    output reg [AXI_DATA_WIDTH-1 :0 ] axi_read_o_delay_data ,         // delay for read data
+    output         rd_r_last ,                                    // delay of read axi last signal
+    output         rd_r_valid ,                                   // delay of read axi valid signal
+    output         wr_id_o_wready ,                               // delauy of wready signal
+    output [BURST_LENGTH_WIDTH-1:0] wr_axi_blen ,                 // write axi burst length
+    input         wr_axi_valid,                                   // write valid signal for axi write data
+    input         wr_axi_last ,                                   // last signal for indicating the last data of write 
+    input [AXI_DATA_WIDTH-1:0] wr_axi_data ,                     // write data for AXI
+    output [NUM_PORTS-1:0] select_wr ,                            // select signal for selecting the write port
+    output [NUM_PORTS-1:0] select_rd ,                            // select signal for selecting the read port
     
 ////DDR controller Axi signals /////////////    
     output  [      7:0] aid     ,
@@ -59,31 +63,27 @@ module Top_DRAM_controller #(
     input   [ADW_C-1:0] rdata   , 
     input   [      7:0] bid     , 
     input               bvalid  , 
-    output              bready  ,
-    output         rd_r_last ,
-    output         data_valid  
+    output              bready  
 ); 
 localparam DATA_WIDTH = ADDRESS_WIDTH + BURST_LENGTH_WIDTH + PORT_ID_WIDTH + 1;
 localparam BIN_WIDTH = $clog2(NUM_PORTS-1);
 
-reg rst = 1 ;
-wire [(NUM_PORTS * DATA_WIDTH)-1:0] combined_out ;
-wire [NUM_PORTS-1:0] e_flag;
-wire [NUM_PORTS-1:0] o_valid, r_en ;
-wire [(NUM_PORTS*DATA_WIDTH)-1 : 0]  div_out_data ;
-wire [NUM_PORTS-1:0] rd_out_en ;
-wire r_en_ack, w_en_ack ;
-wire [AXI_DATA_WIDTH-1 :0 ] ram_data ;
-wire [AXI_ID_BLEN_CON-1:0 ] id_in, blen ;
-wire wr_start, rd_start ;
-wire [NUM_PORTS-1:0] select_wr ;
-wire [NUM_PORTS-1:0] select_rd ;
+//reg  [AXI_DATA_WIDTH-1 :0 ] axi_read_o_delay_data = 0 ;
+wire [(NUM_PORTS * DATA_WIDTH)-1:0] port_ctrl_req_out ;       // request out is combine the output of meta data 
+wire [NUM_PORTS-1:0] fifo_empty_out;               
+wire [NUM_PORTS-1:0] port_ctrl_o_valid, fifo_rd_en ;
+wire [(NUM_PORTS*DATA_WIDTH)-1 : 0]  fifo_o_data ;            // output of fifo
+wire [NUM_PORTS-1:0] fifo_rd_o_valid ;                        // fifo read valid
+wire r_en_ack, w_en_ack ;                                     // acknowledge pin for read and write - use in en_pin logic [wr_id_manager, rd_id_manager]
+wire [AXI_ID_BLEN_CON-1:0 ] axi_id, rd_blen ;
+wire axi_wr_start, axi_rd_start ;                             // starting the read or write operation in axi - DDR
+wire [AXI_DATA_WIDTH-1 :0 ] axi_read_o_data ;
 
-wire [ADDRESS_WIDTH-1:0]  o_addr_div;
-wire [BURST_LENGTH_WIDTH-1:0] o_burst_div;
-wire [PORT_ID_WIDTH-1:0] o_port_div;
-wire o_rw_div ;
-wire o_valid_req ;
+wire [ADDRESS_WIDTH-1:0]  RR_o_addr;                          // output address from RR module 
+wire [BURST_LENGTH_WIDTH-1:0] RR_o_blen;                      // output burst length from RR module
+wire [PORT_ID_WIDTH-1:0] RR_o_port_id;                        // output port id from RR module
+wire RR_o_rw ;                                                // output read or write enable from RR module
+wire RR_o_valid_req ;
 
 Port_ctrl_gen #(
     .NUM_PORTS(NUM_PORTS),
@@ -97,13 +97,13 @@ Port_ctrl_gen #(
 port_ctrl_gen_inst(
     .clk (clk),
     .rst(Axi0Rst_N), 
-    .valid(i_valid),        
-    .last (i_last),       
-    .o_valid (o_valid),  
-    .in_address (in_address),    //[I] address (8 bit)
-    .in_burst_len (in_BLEN),     //[I]burst length (4 bit)
-    .in_enable_rw(i_enable),    // [I]read/write enable  (1 bit)
-    .combined_out (combined_out)  // combine the meta data pass to the synchronous fifo (41 bit - as of now i am testing only four ports that is why it becomes 41 bits)
+    .valid(port_ctrl_i_valid),        
+    .last (port_ctrl_i_last),       
+    .o_valid (port_ctrl_o_valid),  
+    .in_address (port_ctrl_i_address),    //[I] address (8 bit)
+    .in_burst_len (port_ctrl_i_BLEN),     //[I]burst length (4 bit)
+    .in_enable_rw(port_ctrl_i_rw_enable),    // [I]read/write enable  (1 bit)
+    .combined_out (port_ctrl_req_out)  // combine the meta data pass to the synchronous fifo (41 bit - as of now i am testing only four ports that is why it becomes 41 bits)
 );
 
 
@@ -116,12 +116,12 @@ Req_Queue_gen #(
 Req_Queue_gen_inst(
     .clk (clk),
     .rst (Axi0Rst_N), 
-    .empty_flag (e_flag),
-    .rd_en (r_en),
-    .Wr_en (o_valid),
-    .data_in (combined_out),
-    .data_out (div_out_data),  //  output [255:0] w_data_out1 ,
-    .rd_out (rd_out_en)
+    .empty_flag (fifo_empty_out),
+    .rd_en (fifo_rd_en),
+    .Wr_en (port_ctrl_o_valid),
+    .data_in (port_ctrl_req_out),
+    .data_out (fifo_o_data),  //  output [255:0] w_data_out1 ,
+    .rd_out (fifo_rd_o_valid)
     
 );
 
@@ -137,29 +137,28 @@ RR_ARB  #(
 RR_ARB_inst(
 	.rst_an (Axi0Rst_N),
 	.clk (clk),
-	.req (~e_flag),              // request 
-	.grant_out (o_grant),        // grant
-    .en_pin (en_pin),            // enable pin is depend on the read|write acknowlege pin come from ID manager  
-    .rd_sel_binary (rd_sel_binary),
-    .req_out (r_en),
-    .in_data_div (div_out_data),  // input of meta data
-    .o_addr_div (o_addr_div),     // address - 32 bits
-    .o_burst_div (o_burst_div),   // burst length - 4 bits
-    .o_port_div (o_port_div),     // port id - 4 bits
-    .o_rw_div (o_rw_div),         // read/write enable - 1 bit
-    .r_valid (rd_out_en),         // valid read signal from fifo
-    .valid_req (o_valid_req)      // valid signal for request from request manager 
+	.req (~fifo_empty_out),              // request 
+	.grant_out (),                       // grant
+    .en_pin (RR_en_pin),                   // enable pin is depend on the read|write acknowlege pin come from ID manager  
+    .rd_sel_binary (),
+    .req_out (fifo_rd_en),
+    .in_data_div (fifo_o_data),        // input of meta data
+    .o_addr_div (RR_o_addr),          // address - 32 bits
+    .o_burst_div (RR_o_blen),        // burst length - 4 bits
+    .o_port_div (RR_o_port_id),          // port id - 4 bits
+    .o_rw_div (RR_o_rw),             // read/write enable - 1 bit
+    .r_valid (fifo_rd_o_valid),       // valid read signal from fifo
+    .valid_req (RR_o_valid_req)         // valid signal for request from request manager 
 );
 
 
 localparam EXT = ID_WIDTH - PORT_ID_WIDTH ;
-reg en_pin;
-assign blen = o_burst_div ;
-assign blen_wr = o_burst_div ;
-assign id_in = {{EXT{1'b0}}, o_port_div} ;
-assign wr_start = o_rw_div & o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
-assign rd_start = !o_rw_div & o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
-wire [ID_WIDTH-1:0] blen_wr ;
+reg RR_en_pin;
+assign rd_blen = RR_o_blen ;
+assign wr_axi_blen = RR_o_blen ;
+assign axi_id = {{EXT{1'b0}}, RR_o_port_id} ;
+assign axi_wr_start = RR_o_rw & RR_o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
+assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
 
 ///////////////////////////////////////////////////////////////////////////////////
   reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter
@@ -244,18 +243,18 @@ Top_Axi #(
 NATIVE_AXI_inst(  
     .SysClk (clk),
     .rst(Axi0Rst_N),
-    .RamRdStart (rd_start) ,    // start read operation 
-    .RamRdData (ram_data) ,     // [o] output read data
-    .CfgRdAddr (o_addr_div) ,   // read address - 32 bits
-    .CfgRdBLen (blen),          // read burst length - 8 bits
+    .RamRdStart (axi_rd_start) ,    // start read operation 
+    .RamRdData (axi_read_o_data) ,     // [o] output read data
+    .CfgRdAddr (RR_o_addr) ,   // read address - 32 bits
+    .CfgRdBLen (rd_blen),          // read burst length - 8 bits
     .w_ctrl_valid  (wr_axi_valid),  // (I) write valid
     .w_ctrl_last (wr_axi_last),     // (I) write last    
-    .RamWrStart (wr_start),         // (I) write start operation 
-    .axi_wr_id(id_in) ,             // (I) write id - 8 bit
-    .axi_rd_id (id_in) ,            // (I) read id - 8 bit
+    .RamWrStart (axi_wr_start),         // (I) write start operation 
+    .axi_wr_id(axi_id) ,             // (I) write id - 8 bit
+    .axi_rd_id (axi_id) ,            // (I) read id - 8 bit
     .RamWrData (wr_axi_data),       // (I) write data - 256 bits
-    .CfgWrAddr (o_addr_div) ,       // (I) write address - 32 bits
-    .CfgWrBlen (blen_wr),           // (I) write burst length - 8 bits 
+    .CfgWrAddr (RR_o_addr) ,       // (I) write address - 32 bits
+    .CfgWrBlen (wr_axi_blen),           // (I) write burst length - 8 bits 
 ///// axi signal connected wirh DDR controller //////
     .aid    (aid)     ,
     .aaddr  (aaddr)   , 
@@ -283,8 +282,6 @@ NATIVE_AXI_inst(
     .bready (bready) 
 );
 
-wire wready_out ;
-
 WR_ID_Manager #(
     .NUM_PORTS_SEL (NUM_PORTS),
     .ID_WIDTH (ID_WIDTH)
@@ -296,7 +293,7 @@ ID_MANAGER_inst(
     .valid (avalid),  // (I) from DDR
     .atype (atype),   // (I) from DDR 
     .wready (wready),   // (I) from DDR
-    .wready_out (wready_out),  // delayed of Wready 
+    .wready_out (wr_id_o_wready),  // delayed of Wready 
     .wlast (wlast) ,     // (I) from the external port which gives the write data here from (external any write port-DDR-this port) 
     .wid (wid),       // Write controller ID 
     .w_en_ack(w_en_ack) ,   // (O) which is use for en_pin in arbiter 
@@ -304,7 +301,6 @@ ID_MANAGER_inst(
     .ack() 
 );
 
-wire rd_r_valid ;
 
 RD_ID_Manager #(
     .ID_WIDTH (ID_WIDTH),
@@ -325,6 +321,12 @@ ID_manager_rd_inst (
     .rd_r_last(rd_r_last),   // delayed signal of last 
     .ack_rd () 
 );
+
+
+/////// delay logic for read axi data //////
+always @ (posedge clk) begin 
+    axi_read_o_delay_data <= rdata ;
+end 
 
 ////// this logic is use in arbiter module ///////
 always@(*) begin

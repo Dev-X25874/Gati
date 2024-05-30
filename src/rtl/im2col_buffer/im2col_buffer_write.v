@@ -18,7 +18,7 @@ module im2col_buffer_write #(
 
 
   always @(posedge clk) begin
-    if (rst) begin
+    if (!rst) begin
       state <= INITIAL;
       rd <= 8'h00;
     end else begin

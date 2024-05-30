@@ -28,7 +28,7 @@ onehot_to_bin #(
     .BIN_WIDTH (BIN_WIDTH)
 ) onehot_inst (
     .onehot (rd_valid),
-    .bin (rd_sel_binary)
+    .bin (r_rd_sel_binary)
 );
 
 assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;
@@ -41,7 +41,7 @@ always @(*) begin
 end
 
 
-wire [BIN_WIDTH-1:0] rd_sel_binary;
+wire [BIN_WIDTH-1:0] r_rd_sel_binary;
 reg [DATA_WIDTH-1:0] data_sel=0;
 
 (* syn_use_dsp = "no" *) reg  signed [DATA_WIDTH-1:0] data_sel;
@@ -51,7 +51,7 @@ always @(posedge clk) begin
         valid_req <= 1'b0;
     end else begin
         if((rd_valid))begin
-            data_sel <= in_data_div [DATA_WIDTH*(NUM_PORTS-rd_sel_binary) -1 -: DATA_WIDTH] ;
+            data_sel <= in_data_div [DATA_WIDTH*(NUM_PORTS-r_rd_sel_binary) -1 -: DATA_WIDTH] ;
             valid_req <= 1'b1;
         end else begin
             data_sel <= data_sel;
@@ -68,5 +68,5 @@ always @(*) begin
     else 
         o_rw_div = 0 ;
 end 
-
+assign rd_sel_binary=r_rd_sel_binary;
 endmodule

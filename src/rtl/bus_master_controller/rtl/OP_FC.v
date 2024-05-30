@@ -59,7 +59,7 @@ always @(posedge clk) begin
         ImageEndAddr <= 0;
         WeightStartAddress <= 0;
         WeightEndAddress <= 0;
-        Vec2MatCols <= 0;
+        FC_Vec2MatCols <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -93,7 +93,7 @@ always @(posedge clk) begin
             ImageEndAddr <= data_instruction[`FC_ImageEndAddr];
             WeightStartAddress <= data_instruction[`FC_WeightStartAddress];
             WeightEndAddress <= data_instruction[`FC_WeightEndAddress];
-            Vec2MatCols <= data_instruction[`FC_Vec2MatCols];
+            FC_Vec2MatCols <= data_instruction[`FC_Vec2MatCols];
             //valid <= 1'b1;
             state <= IDLE;
         end

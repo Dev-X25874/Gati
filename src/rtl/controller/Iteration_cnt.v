@@ -165,8 +165,8 @@ end
 
 //Generation of enable 'en' signals for tail and o/p block based on c_ctr and c_iter
 //Also check the "EN" signals of instructions.
-wire acc_en, relu_en, quant_en, bias_en, pool_en, en;    //en-for shift register
-wire fc_bias_en;
+    //en-for shift register
+
 
 assign  acc_en      =   (ACC_EN==0)?0 : ((c_ctr==0)?0:1);
 assign  relu_en     =   (RELU_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);

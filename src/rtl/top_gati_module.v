@@ -1,5 +1,5 @@
-`include "/rtl/common/instructions.vh" // path for the .vh files
-`include "/rtl/common/portid.vh"
+`include "common/instructions.vh" // path for the .vh files
+`include "common/portid.vh"
 
 module top_gati_module #(
     

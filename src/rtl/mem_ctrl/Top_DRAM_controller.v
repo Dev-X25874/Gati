@@ -17,6 +17,7 @@ module Top_DRAM_controller #(
 ) (
     input clk,
     input   [ 1:0]  PllLocked ,
+    input rst ,                                            // active low
     
     //DDR Controner Control Signal
     output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     

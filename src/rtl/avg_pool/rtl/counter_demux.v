@@ -1,14 +1,14 @@
-module counter_demux(
+module counter_demux #(parameter POOL_HEIGHT = 4) (
     input clk,
     input rst_n,
     input datavalid_in,
-    input [3:0] pool_height,
-    input rx_valid,
+    input [(POOL_HEIGHT - 1) : 0] pool_height,
+    input rx_valid, 
     output reg datavalid_out = 0,
     output reg sel = 0
 );
 
-reg [3:0] counter_demux = 0;
+reg [(POOL_HEIGHT - 1) : 0] counter_demux = 0;
 
 always @(posedge rx_valid) begin
     if(~rst_n) begin

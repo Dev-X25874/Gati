@@ -26,8 +26,8 @@ module demux2 #(parameter DATA_IN = 8) (
   input clk,
   input rst,
   input datavalid, //valid data acknowledgment sent by the previous module
-  output reg [DATA_IN  : 0] fifo1 = 0,
-  output reg [DATA_IN  : 0] fifo2 = 0
+  output reg [DATA_IN : 0] fifo1 = 0,
+  output reg [DATA_IN : 0] fifo2 = 0
     );
     reg dv = 0;
     reg [7:0] x=0;

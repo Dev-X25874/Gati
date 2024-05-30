@@ -1,4 +1,11 @@
-module top_test(
+module top_test#(parameter DATA_WIDTH = 8, 
+                 parameter POOL_HEIGHT = 4,
+                 parameter POOL_WIDTH = 4,
+                 parameter POOLING_TYPE_WIDTH = 3,
+                 parameter OH_WIDTH = 10,
+                 parameter OW_WIDTH = 10
+                )
+(
     input clk,
     input din,
     input rst_n,
@@ -27,13 +34,14 @@ wire [9:0] OH;
 wire [9:0] OW;
 wire re;
 wire empty;
+wire [8:0] occupants;
 
 assign re = ~empty;
 assign pooling_type = 3'd0;
-assign pool_width = 4'd3;
-assign pool_height = 4'd3;
-assign OH = 10'd27;
-assign OW = 10'd27;
+assign pool_width = 4'd2;
+assign pool_height = 4'd2;
+assign OH = 10'd12;
+assign OW = 10'd12;
 
 rx rx(
   .clk(clk),
@@ -68,7 +76,14 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_pool (
     .data_valid(dv)
 );
 
-top top_pool(
+top #(.DATA_WIDTH(DATA_WIDTH), 
+      .POOL_HEIGHT(POOL_HEIGHT),
+      .POOL_WIDTH(POOL_WIDTH),
+      .POOLING_TYPE_WIDTH(POOLING_TYPE_WIDTH),
+      .OH_WIDTH(OH_WIDTH),
+      .OW_WIDTH(OW_WIDTH)
+    )
+top_pool(
     .clk(clk),
     .rst_n(rst_n),
     .ENABLE(ENABLE),
@@ -85,7 +100,7 @@ top top_pool(
     .datavalid_out(dv_pool)
 );
 
-fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_tx (
+fifo_valid #(.DATA_WIDTH(DATA_WIDTH), .ADDR_WIDTH(9)) fifo_tx (
     .clk(clk),
     .rst_n(rst_n),
     .we(dv_pool),
@@ -97,8 +112,6 @@ fifo_valid #(.DATA_WIDTH(8), .ADDR_WIDTH(9)) fifo_tx (
     .data_out(data_tx),
     .data_valid()
 );
-
-wire [8:0] occupants;
 
 controller_fifo_tx controller_fifo_tx(
     .empty(empty_tx),

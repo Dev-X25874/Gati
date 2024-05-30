@@ -1,19 +1,21 @@
-module pooling_second_stage (
+module pooling_second_stage #(parameter DATA_WIDTH = 8, 
+                              parameter POOLING_TYPE_WIDTH = 3)
+    (
     input clk,
     input rst_n,
-    input [7:0] din_fifo_1,
-    input [7:0] din_fifo_2,
+    input [(DATA_WIDTH - 1) : 0] din_fifo_1,
+    input [(DATA_WIDTH - 1) : 0] din_fifo_2,
     input datavalid_in,
     input ENABLE,
-    input [2:0] pooling_type,
+    input [(POOLING_TYPE_WIDTH - 1) : 0] pooling_type,
     output datavalid_out,
-    output [7:0] dout
+    output [(DATA_WIDTH - 1) : 0] dout
 ); 
 
 //parameter AVG_POOL = 3'b000;
 //parameter MAX_POOL = 3'b001;
 
-reg [7:0] r_dout = 0;
+reg [(DATA_WIDTH - 1) : 0] r_dout = 0;
 reg r_datavalid = 0;
 
 always @(posedge clk) begin

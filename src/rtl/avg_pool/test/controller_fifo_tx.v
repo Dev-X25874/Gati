@@ -13,15 +13,9 @@ always @ (posedge clk) begin
     case(state)
     0: begin
         dv_tx <= 1'b0;
-        if(~empty) begin
-            //if(occupants == 9'd16) begin
-                state <= 1;
-                re <= 1'b1;
-            //end
-            // else begin
-            //     state <= 0;
-            //     re <= 1'b0;
-            // end
+        if(empty == 0) begin
+            state <= 1;
+            re <= 1'b1;
         end
         else begin
             state <= 0;
@@ -34,12 +28,11 @@ always @ (posedge clk) begin
         state <= 2;
     end
     2: begin
+        dv_tx <= 1'b0;
         if(done) begin
-            dv_tx <= 1'b1;
-            state <= 1;
+            state <= 0;
         end
         else begin
-            dv_tx <= 1'b0;
             state <= 2;
         end
     end

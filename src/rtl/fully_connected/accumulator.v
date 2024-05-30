@@ -92,7 +92,7 @@ always @(posedge i_clk)begin
                     data <= acc_reg;
                     dv <= 1'b1;
                     counter <= 0;
-                    acc_reg = 0;
+                    acc_reg <= 0;
                     state <= 0;
                 end else begin
                     dv <= 1'b0;

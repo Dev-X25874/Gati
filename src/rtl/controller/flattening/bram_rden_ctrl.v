@@ -77,7 +77,7 @@ always @(posedge clk) begin
                         done <= 0;
                         bank_en <= 0;
                         element_counter <= 0;
-                        next_addr <= 0;
+                        next_addr = 0;
                         bank_counter <= 0;
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
@@ -166,7 +166,7 @@ always @(posedge clk) begin
                         element_counter <= 0;
                         addr <= 0;
                         addr_counter <= 0;
-                        next_addr <= 0;
+                        next_addr = 0;
                         if(accumulator_valid)begin
                             kernal_counter <= kernal_counter + 1;
                             state <= 1;
@@ -184,7 +184,7 @@ always @(posedge clk) begin
                         bank_counter <= 0;
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
-                        next_addr <= 0;
+                        next_addr = 0;
                     if(w_done)begin
                         state <= 1;
                     end 
@@ -266,7 +266,7 @@ always @(posedge clk) begin
                     2: begin
                         rden_counter <= 0;
                         addr_counter <= 0;
-                        next_addr <= 0;
+                        next_addr = 0;
                         bank_shift_counter <= 0;
                         bank_counter <= 0;
                         addr <= 0;

@@ -1,5 +1,5 @@
-`include "../common/portid.vh"
-`include "../common/instructions.vh"
+`include "common/portid.vh"
+`include "common/instructions.vh"
 module rah_gati #(
      parameter   SYS_CLK_PERIOD    = 32'd100_000_000 ,             //System Clock Period
    // parameter   NUM_PORTS = 4,                                    // number of ports

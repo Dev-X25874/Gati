@@ -331,10 +331,10 @@ end
 
 ////// this logic is use in arbiter module ///////
 always@(*) begin
-    if(!Axi0Rst_N) en_pin <= 1;
+    if(!Axi0Rst_N) RR_en_pin <= 1;
     else begin
-        if(r_en!=0) en_pin <= 0;
-        else if (w_en_ack|r_en_ack) en_pin <=1;
+        if(fifo_rd_en!=0) RR_en_pin <= 0;
+        else if (w_en_ack|r_en_ack) RR_en_pin <=1;
     end
 
 end

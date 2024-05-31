@@ -1,24 +1,19 @@
-module vector_mux_param 
-	#( 
-		parameter NO_PORT=8,
-		parameter PORT_SIZE=8
-	)
-	(
-		input clk,
-		input [(NO_PORT*PORT_SIZE)-1:0] in,
-		input [NO_PORT-1:0] sel,
-		output reg [PORT_SIZE-1:0] out=0
-	);
+module vector_mux_param #(parameter PORT_SIZE=32,
+                     parameter NO_PORT=8  )
+ (
+       input [PORT_SIZE*NO_PORT -1:0] in,
+    output wor  [PORT_SIZE-1:0] out,
+        	 input[NO_PORT-1:0]  sel);
 
-	integer i=0;
 
-	always @(posedge clk) begin 
-		for(i=0;i<NO_PORT;i=i+1) begin 
-			if(sel[i]==1) begin 
-				out<=in[PORT_SIZE*(NO_PORT-i)-1 -:PORT_SIZE];
-			end
-			 
+	 genvar i;
+	 generate 
+		 for(i=0;i<NO_PORT;i=i+1)
+		 begin 
+		 assign out=(sel[i])?in[i*PORT_SIZE +:PORT_SIZE]:0;
 		end
-	end
-endmodule
+ 	 endgenerate 
 
+
+
+endmodule

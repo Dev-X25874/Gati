@@ -322,7 +322,7 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
-      .sel(select_wr[1:0]),
+	  .sel(select_wr[1:0]),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
 
@@ -341,7 +341,7 @@ module rah_gati #(
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_last (
       .sel(select_wr[1:0]),
-      .in (in_wr_last_mux),
+	  .in (in_wr_last_mux),
       .out(dram_in_wrlast)
 
   );

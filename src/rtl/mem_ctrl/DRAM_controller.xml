@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="DRAM_controller" description="" last_change="1717132500" sw_version="2023.2.307" last_run_state="crash" last_run_flow="route" config_result_in_sync="true" design_ood="change" place_ood="change" route_ood="change" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="DRAM_controller" description="" last_change="1717140231" sw_version="2023.2.307" last_run_state="crash" last_run_flow="route" config_result_in_sync="true" design_ood="change" place_ood="change" route_ood="change" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>

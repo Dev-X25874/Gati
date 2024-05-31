@@ -306,7 +306,7 @@ module rah_gati #(
       .PORT_SIZE(AXI_DATA_WIDTH),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_data (
-      .sel(select_wr),
+      .sel(select_wr[1:0]),
       .in (in_wr_data_mux),
       .out(dram_in_wrdata)
 
@@ -322,7 +322,7 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
-      .sel(select_wr),
+      .sel(select_wr[1:0]),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
 
@@ -340,7 +340,7 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_last (
-      .sel(select_wr),
+      .sel(select_wr[1:0]),
       .in (in_wr_last_mux),
       .out(dram_in_wrlast)
 

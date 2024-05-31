@@ -140,7 +140,9 @@ module rah_gati #(
     input empty,
     input [47:0] data,
     output  reg rden=0,
-	////////////////
+	
+
+
 	input [1:0] PllLocked,
 	output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
     output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
@@ -235,6 +237,86 @@ module rah_gati #(
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
   assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
+
+  //////////////////////////////// gati module instatiation
+
+  //signals to DRAM ctrler
+  ////config
+  wire [7:0] mc_config_addr;
+  wire mc_config_rdreq;
+  wire mc_config_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
+  wire mc_config_last;
+
+  ////img
+  wire [7:0] mc_img_addr;
+  wire mc_img_rdreq;
+  wire mc_img_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl;
+  wire mc_img_last;
+
+  /////conv
+  wire [7:0] mc_wghts_addr;
+  wire mc_wghts_rdreq;
+  wire mc_wghts_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_wghts_bl;
+  wire mc_wghts_last;
+
+  ///////fc
+  wire [7:0] mc_fc_addr;
+  wire mc_fc_rdreq;
+  wire mc_fc_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bl;
+  wire mc_fc_last;
+
+  //////////bias 
+  wire [7:0] mc_bias_addr;
+  wire mc_bias_rdreq;
+  wire mc_bias_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_bias_bl;
+  wire mc_bias_last;
+
+  ///////////////fc_bias 
+  wire [7:0] mc_fc_bias_addr;
+  wire mc_fc_bias_rdreq;
+  wire mc_fc_bias_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bias_bl;
+  wire mc_fc_bias_last;
+
+  /////////////acc
+  wire [7:0] mc_acc_addr;
+  wire mc_acc_rdreq;
+  wire mc_acc_valid;
+  wire [BURST_LENGTH_WIDTH-1:0] mc_acc_bl;
+  wire mc_acc_last;
+
+  /////////////wire write ctrl
+  wire [7:0] mc_op_write_addr;
+  wire mc_op_writereq;
+  wire mc_op_write_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl;
+  wire mc_op_write_last;
+
+  ///////////////////////operators data
+
+  //Signals from DRAM ctrl to internal operator blocks
+  wire [NUM_PORTS-1:0] select;
+  assign select = select_rd | select_wr;
+  //Read block signals
+  // wire sel_rd
+  wire dram_rd_datavalid;
+  wire dram_rd_data_last;
+  wire [AXI_DATA_WIDTH - 1 : 0] dram_rd_data;
+
+  //op_write block signals
+  // wire sel_op_write; // Todo: have to check ; wheteher sel is common or not
+  wire [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len;
+  wire dv_op_write;
+  wire data_last_op_write;
+  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
+
+
+
   vector_mux_param #(
       .PORT_SIZE(AXI_DATA_WIDTH),
       .NO_PORT  (NO_PORT_WR)
@@ -348,84 +430,6 @@ module rah_gati #(
   };
 
 
-
-
-  //////////////////////////////// gati module instatiation
-
-  //signals to DRAM ctrler
-  ////config
-  wire [7:0] mc_config_addr;
-  wire mc_config_rdreq;
-  wire mc_config_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
-  wire mc_config_last;
-
-  ////img
-  wire [7:0] mc_img_addr;
-  wire mc_img_rdreq;
-  wire mc_img_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl;
-  wire mc_img_last;
-
-  /////conv
-  wire [7:0] mc_wghts_addr;
-  wire mc_wghts_rdreq;
-  wire mc_wghts_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_wghts_bl;
-  wire mc_wghts_last;
-
-  ///////fc
-  wire [7:0] mc_fc_addr;
-  wire mc_fc_rdreq;
-  wire mc_fc_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bl;
-  wire mc_fc_last;
-
-  //////////bias 
-  wire [7:0] mc_bias_addr;
-  wire mc_bias_rdreq;
-  wire mc_bias_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_bias_bl;
-  wire mc_bias_last;
-
-  ///////////////fc_bias 
-  wire [7:0] mc_fc_bias_addr;
-  wire mc_fc_bias_rdreq;
-  wire mc_fc_bias_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fc_bias_bl;
-  wire mc_fc_bias_last;
-
-  /////////////acc
-  wire [7:0] mc_acc_addr;
-  wire mc_acc_rdreq;
-  wire mc_acc_valid;
-  wire [BURST_LENGTH_WIDTH-1:0] mc_acc_bl;
-  wire mc_acc_last;
-
-  /////////////wire write ctrl
-  wire [7:0] mc_op_write_addr;
-  wire mc_op_writereq;
-  wire mc_op_write_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl;
-  wire mc_op_write_last;
-
-  ///////////////////////operators data
-
-  //Signals from DRAM ctrl to internal operator blocks
-  wire [NUM_PORTS-1:0] select;
-  assign select = select_rd | select_wr;
-  //Read block signals
-  // wire sel_rd
-  wire dram_rd_datavalid;
-  wire dram_rd_data_last;
-  wire [AXI_DATA_WIDTH - 1 : 0] dram_rd_data;
-
-  //op_write block signals
-  // wire sel_op_write; // Todo: have to check ; wheteher sel is common or not
-  wire [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len;
-  wire dv_op_write;
-  wire data_last_op_write;
-  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
 
 
   //////////////////////////////

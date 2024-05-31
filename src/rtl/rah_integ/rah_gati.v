@@ -207,7 +207,7 @@ module rah_gati #(
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
       .i_data(o_data),
-      .ddr_sel(select_wr),
+      .ddr_sel(select_wr[`MIPI_wr]),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),
       .o_fifo_data(o_fifo_data),
@@ -253,7 +253,8 @@ module rah_gati #(
   )
   Top_DRAM_controller_inst (
     .clk(i_clk),
-    .PllLocked(PllLocked),
+    .rst(i_rst),
+	.PllLocked(PllLocked),
     .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
     .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),

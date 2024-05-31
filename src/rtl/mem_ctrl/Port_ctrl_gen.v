@@ -13,11 +13,11 @@ module Port_ctrl_gen #(
     input    rst, 
     input [NUM_PORTS-1:0]       valid,        
     input [NUM_PORTS-1:0]       last,         
-    input [(NUM_PORTS * 8)-1:0] in_address,   
-    input [(NUM_PORTS * 4)-1:0] in_burst_len, 
+    input [(NUM_PORTS * IN_ADDR)-1:0] in_address,   
+    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] in_burst_len, 
     input [NUM_PORTS-1:0]       in_enable_rw, 
     output [NUM_PORTS-1 : 0] o_valid,
-    output [(41 * NUM_PORTS)-1 : 0] combined_out
+    output [(COMBINED_DATA_WIDTH * NUM_PORTS)-1 : 0] combined_out
 );
 
   // Generate block to instantiate multiple instances of Port_controller

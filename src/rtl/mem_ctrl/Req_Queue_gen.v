@@ -10,8 +10,8 @@ module Req_Queue_gen #(
     output [NUM_QUEUE-1:0] empty_flag,
     input [NUM_QUEUE-1:0 ] rd_en,
     input [NUM_QUEUE-1:0] Wr_en,
-    input [(NUM_QUEUE * 41)-1:0 ] data_in ,
-    output [(NUM_QUEUE * 41)-1:0] data_out,
+    input [(NUM_QUEUE * DATA_WIDTH)-1:0 ] data_in ,
+    output [(NUM_QUEUE * DATA_WIDTH)-1:0] data_out,
     output [NUM_QUEUE-1:0] rd_out 
     
 );
@@ -28,10 +28,10 @@ generate
             .clk_i(clk),
             .wr_en_i(Wr_en[i]),
             .rd_en_i(rd_en[i]),
-            .wdata(data_in [(41* (NUM_QUEUE - i)) -1 -: 41]),
+            .wdata(data_in [(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
             .datacount_o(),
             .rst_busy(),
-            .rdata(data_out[(41 * (NUM_QUEUE - i))-1 -: 41]),
+            .rdata(data_out[(DATA_WIDTH * (NUM_QUEUE - i))-1 -: DATA_WIDTH]),
             .a_rst_i(~rst),
             .o_valid(rd_out[i])
         );

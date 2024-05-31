@@ -118,7 +118,7 @@ module rah_gati #(
 
 
   ////////////////////////////MIPI controller rx
-  top #(
+  mipi_ctrl_top #(
       .N_FIFO(N_FIFO),
       .W_DATA(W_DATA),
       .BURST_LEN(BURST_LEN),

@@ -181,7 +181,10 @@ module rah_gati #(
   wire  [47:0] o_data ;
 	assign o_data=data; 
   reg valid_data = 0;
-
+ 
+  wire o_rden;
+assign o_rden=rden;
+	 
   always @(posedge i_clk) begin
 
     if (!empty) begin
@@ -190,7 +193,7 @@ module rah_gati #(
       rden <= 0;
     end
 
-    if (rden) valid_data <= 1;
+    if (o_rden) valid_data <= 1;
     else valid_data <= 0;
 
     //if (valid_data) r_data <= data;

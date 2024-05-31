@@ -252,7 +252,7 @@ module rah_gati #(
     .ABN_C(ABN_C)
   )
   Top_DRAM_controller_inst (
-    .clk(clk),
+    .clk(i_clk),
     .PllLocked(PllLocked),
     .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),

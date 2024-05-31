@@ -138,7 +138,7 @@ module rah_gati #(
     input user_start,
     input empty,
     input [47:0] data,
-    output  reg rden,
+    output  reg rden=0,
 	////////////////
 	output  [      7:0] aid     ,
     output  [     31:0] aaddr   , 
@@ -167,7 +167,8 @@ module rah_gati #(
 
 );
 
-//  reg [47:0] r_data = 0;
+  wire  [47:0] o_data ;
+	assign o_data=data; 
   reg valid_data = 0;
 
   always @(posedge clk) begin
@@ -184,6 +185,7 @@ module rah_gati #(
     //if (valid_data) r_data <= data;
   end
 
+  
 
   ////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
@@ -197,7 +199,7 @@ module rah_gati #(
       .i_clk(i_clk),
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
-      .i_data(r_data),
+      .i_data(o_data),
       .ddr_sel(select_wr),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),

@@ -138,7 +138,7 @@ module rah_gati #(
     input user_start,
     input empty,
     input [47:0] data,
-    output  reg rden
+    output  reg rden,
 	////////////////
 	output  [      7:0] aid     ,
     output  [     31:0] aaddr   , 
@@ -275,7 +275,7 @@ module rah_gati #(
     .wid(wid),
     .wstrb(wstrb),
     .wlast(wlast),
-    .valid(valid),
+    .wvalid(wvalid),
     .wready(wready),
     .wdata(wdata),
     .rid(rid),

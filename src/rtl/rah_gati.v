@@ -265,7 +265,7 @@ module rah_gati #(
     .port_ctrl_i_BLEN(in_BLEN),
     .port_ctrl_i_rw_enable(i_enable),
     .port_ctrl_i_last(i_last),
-    .axi_read_o_delay_data(axi_read_o_delay_data),
+    .axi_read_o_delay_data(dram_rd_data),
     .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),

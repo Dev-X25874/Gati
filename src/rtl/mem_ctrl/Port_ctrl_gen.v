@@ -25,7 +25,7 @@ module Port_ctrl_gen #(
   generate
     for (i = 0; i < NUM_PORTS; i = i + 1) begin
       Port_controller #(
-        .PORT_ID_VALUE (PORT_ID[(4 * (NUM_PORTS - i))-1 -: 4]) ,
+        .PORT_ID_VALUE (PORT_ID[(PORT_ID_WIDTH * (NUM_PORTS - i))-1 -: PORT_ID_WIDTH]) ,
         .ADDR_SEGMENTS (4),
         .ADDRESS_WIDTH (ADDRESS_WIDTH),
         .IN_ADDR (IN_ADDR) ,
@@ -37,11 +37,11 @@ module Port_ctrl_gen #(
         .rst(rst),
         .valid(valid[i]),  
         .last (last[i]), 
-        .in_address(in_address[(8 * (NUM_PORTS - i))-1 -: 8]),        
+        .in_address(in_address[(IN_ADDR * (NUM_PORTS - i))-1 -: IN_ADDR]),        
         .in_enable_rw(in_enable_rw[i]),           
-        .in_burst_len(in_burst_len[(4 * (NUM_PORTS - i))- 1 -: 4]),
+        .in_burst_len(in_burst_len[(BURST_LENGTH_WIDTH * (NUM_PORTS - i))- 1 -: BURST_LENGTH_WIDTH]),
         .o_valid (o_valid[i]),
-        .combined_out (combined_out [(41 * (NUM_PORTS - i))-1 -: 41])
+        .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
       );
     end
   endgenerate

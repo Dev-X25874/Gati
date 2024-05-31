@@ -231,76 +231,6 @@ module rah_gati #(
   wire final_last_wr_req_ctrl;
   wire valid_wr_req_ctrl;
 
-
-  //////////////////////////////
-
-
-  ///////////////////////////////Memory Controller /////////////////////////////////
-  Top_DRAM_controller # (
-    .SYS_CLK_PERIOD(SYS_CLK_PERIOD),
-    .NUM_PORTS(NUM_PORTS),
-    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
-    .ADDRESS_WIDTH(ADDRESS_WIDTH),
-    .IN_ADDR(IN_ADDR),
-    .PORT_ID(PORT_ID),
-    .POINTER_COUNT(POINTER_COUNT),
-    .RAM_DEPTH(RAM_DEPTH),
-    .PORT_ID_WIDTH(PORT_ID_WIDTH),
-    .ID_WIDTH(ID_WIDTH),
-    .AXI_ID_BLEN_CON(AXI_ID_BLEN_CON),
-    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-    .AXI_BYTE_NUMBER(AXI_BYTE_NUMBER),
-    .ADW_C(ADW_C),
-    .ABN_C(ABN_C)
-  )
-  Top_DRAM_controller_inst (
-    .clk(i_clk),
-    .rst(i_rst),
-	.PllLocked(PllLocked),
-    .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
-    .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
-    .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
-    .port_ctrl_i_valid(i_valid),
-    .port_ctrl_i_address(in_adress),
-    .port_ctrl_i_BLEN(in_BLEN),
-    .port_ctrl_i_rw_enable(i_enable),
-    .port_ctrl_i_last(i_last),
-    .axi_read_o_delay_data(dram_rd_data),
-    .rd_r_last(dram_rd_data_last),
-    .rd_r_valid(dram_rd_datavalid),
-    .wr_id_o_wready(wr_id_o_wready),
-    .wr_axi_blen(wr_burst_len),
-    .wr_axi_valid(dv_op_write),
-    .wr_axi_last(data_last_op_write),
-    .wr_axi_data(op_dram_fifo),
-    .select_wr(select_wr),
-    .select_rd(select_rd),
-    .aid(aid),
-    .aaddr(aaddr),
-    .alen(alen),
-    .asize(asize),
-    .aburst(aburst),
-    .alock(alock),
-    .avalid(avalid),
-    .aready(aready),
-    .atype(atype),
-    .wid(wid),
-    .wstrb(wstrb),
-    .wlast(wlast),
-    .wvalid(wvalid),
-    .wready(wready),
-    .wdata(wdata),
-    .rid(rid),
-    .rlast(rlast),
-    .rvalid(rvalid),
-    .rready(rready),
-    .rresp(rresp),
-    .rdata(rdata),
-    .bid(bid) ,
-    .bvalid(bvalid),
-    .bready(bready)
-  );
-
  wire [NUM_PORTS-1:0] select_wr,select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
   assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
@@ -496,6 +426,76 @@ module rah_gati #(
   wire dv_op_write;
   wire data_last_op_write;
   wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
+
+
+  //////////////////////////////
+
+
+  ///////////////////////////////Memory Controller /////////////////////////////////
+  Top_DRAM_controller # (
+    .SYS_CLK_PERIOD(SYS_CLK_PERIOD),
+    .NUM_PORTS(NUM_PORTS),
+    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+    .ADDRESS_WIDTH(ADDRESS_WIDTH),
+    .IN_ADDR(IN_ADDR),
+    .PORT_ID(PORT_ID),
+    .POINTER_COUNT(POINTER_COUNT),
+    .RAM_DEPTH(RAM_DEPTH),
+    .PORT_ID_WIDTH(PORT_ID_WIDTH),
+    .ID_WIDTH(ID_WIDTH),
+    .AXI_ID_BLEN_CON(AXI_ID_BLEN_CON),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .AXI_BYTE_NUMBER(AXI_BYTE_NUMBER),
+    .ADW_C(ADW_C),
+    .ABN_C(ABN_C)
+  )
+  Top_DRAM_controller_inst (
+    .clk(i_clk),
+    .rst(i_rst),
+	.PllLocked(PllLocked),
+    .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
+    .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
+    .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
+    .port_ctrl_i_valid(i_valid),
+    .port_ctrl_i_address(in_adress),
+    .port_ctrl_i_BLEN(in_BLEN),
+    .port_ctrl_i_rw_enable(i_enable),
+    .port_ctrl_i_last(i_last),
+    .axi_read_o_delay_data(dram_rd_data),
+    .rd_r_last(dram_rd_data_last),
+    .rd_r_valid(dram_rd_datavalid),
+    .wr_id_o_wready(wr_id_o_wready),
+    .wr_axi_blen(wr_burst_len),
+    .wr_axi_valid(dv_op_write),
+    .wr_axi_last(data_last_op_write),
+    .wr_axi_data(op_dram_fifo),
+    .select_wr(select_wr),
+    .select_rd(select_rd),
+    .aid(aid),
+    .aaddr(aaddr),
+    .alen(alen),
+    .asize(asize),
+    .aburst(aburst),
+    .alock(alock),
+    .avalid(avalid),
+    .aready(aready),
+    .atype(atype),
+    .wid(wid),
+    .wstrb(wstrb),
+    .wlast(wlast),
+    .wvalid(wvalid),
+    .wready(wready),
+    .wdata(wdata),
+    .rid(rid),
+    .rlast(rlast),
+    .rvalid(rvalid),
+    .rready(rready),
+    .rresp(rresp),
+    .rdata(rdata),
+    .bid(bid) ,
+    .bvalid(bvalid),
+    .bready(bready)
+  );
 
 
   top_gati_module #(

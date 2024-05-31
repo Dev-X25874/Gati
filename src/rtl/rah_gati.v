@@ -193,6 +193,16 @@ module rah_gati #(
 
     //if (valid_data) r_data <= data;
   end
+  wire         wr_id_o_wready ;                              
+  wire [(ACC_DW * OP_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
+  wire final_o_data_last;  //comes from dram wr ctrl
+  wire o_data_valid;  //comes from dram wr ctrl
+  wire req_wr_req_ctrl;
+  wire [7:0] address_wr_req_ctrl;
+  wire [BURST_LENGTH_WIDTH-1 : 0] final_burst_len_wr_req_ctrl;
+  wire final_last_wr_req_ctrl;
+  wire valid_wr_req_ctrl;
+
 
   
 
@@ -221,16 +231,6 @@ module rah_gati #(
       .final_last_wr_req_ctrl(final_last_wr_req_ctrl),
       .valid_wr_req_ctrl(valid_wr_req_ctrl)
   );
-  wire         wr_id_o_wready ;                              
-  wire [(ACC_DW * OP_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
-  wire final_o_data_last;  //comes from dram wr ctrl
-  wire o_data_valid;  //comes from dram wr ctrl
-  wire req_wr_req_ctrl;
-  wire [7:0] address_wr_req_ctrl;
-  wire [BURST_LENGTH_WIDTH-1 : 0] final_burst_len_wr_req_ctrl;
-  wire final_last_wr_req_ctrl;
-  wire valid_wr_req_ctrl;
-
  wire [NUM_PORTS-1:0] select_wr,select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
   assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};

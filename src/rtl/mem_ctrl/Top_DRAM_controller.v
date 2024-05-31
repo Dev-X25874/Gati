@@ -165,7 +165,7 @@ assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin an
   reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter
   reg [2:0] ResetShiftReg   = 3'h0  ; //Reset Shift Regist
   wire      DdrResetCtrl            ; //DDR Controller Reset Control
-  assign DdrResetCtrl = ~Axi0Rst_N  ;
+  assign DdrResetCtrl = ~rst ;
   always @( posedge clk) if (&PllLocked)    
   begin
     PowerOnResetCnt <=  PowerOnResetCnt + {7'h0,(~&PowerOnResetCnt)};

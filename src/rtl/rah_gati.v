@@ -221,7 +221,7 @@ module rah_gati #(
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
       .i_data(o_data[31:0]),
-      .ddr_sel(select_wr[`MIPI_Wr]),
+      .ddr_sel(select_wr[0]),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),
       .o_fifo_data(o_fifo_data),

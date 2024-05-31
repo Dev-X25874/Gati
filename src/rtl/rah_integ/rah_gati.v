@@ -132,7 +132,6 @@ module rah_gati #(
 
 ) (
     input i_clk,
-    input clk,
     input s_clk,
     input i_rst,
     input user_start,
@@ -140,8 +139,16 @@ module rah_gati #(
     input [47:0] data,
     output  reg rden=0,
 	////////////////
+	input [1:0] PllLocked,
+	output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
+    output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output      DdrCtrl_CFG_SEQ_START ,   
+
+
+
 	output  [      7:0] aid     ,
-    output  [     31:0] aaddr   , 
+    
+	output  [     31:0] aaddr   , 
     output  [      7:0] alen    , 
     output  [      2:0] asize   , 
     output  [      1:0] aburst  , 
@@ -171,7 +178,7 @@ module rah_gati #(
 	assign o_data=data; 
   reg valid_data = 0;
 
-  always @(posedge clk) begin
+  always @(posedge i_clk) begin
 
     if (!empty) begin
       rden <= 1;
@@ -246,10 +253,10 @@ module rah_gati #(
   )
   Top_DRAM_controller_inst (
     .clk(clk),
-    .PllLocked(),
-    .DdrCtrl_CFG_RST_N(),
-    .DdrCtrl_CFG_SEQ_RST(),
-    .DdrCtrl_CFG_SEQ_START(),
+    .PllLocked(PllLocked),
+    .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
+    .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
+    .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
     .port_ctrl_i_valid(i_valid),
     .port_ctrl_i_address(in_adress),
     .port_ctrl_i_BLEN(in_BLEN),

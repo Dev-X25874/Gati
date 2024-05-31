@@ -1,3 +1,5 @@
+`include "../common/portid.vh"
+`include "../common/instructions.vh"
 module rah_gati #(
     //globalutput [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
     parameter SYS_CLK_PERIOD = 32'd100_000_000,  //System Clock Period
@@ -128,7 +130,7 @@ module rah_gati #(
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
       .i_data(r_data),
-      .ddr_sel(select_wr),
+      .ddr_sel(select_wr[`MIPI_Wr]),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),
       .o_fifo_data(o_fifo_data),
@@ -183,7 +185,7 @@ module rah_gati #(
     .port_ctrl_i_BLEN(in_BLEN),
     .port_ctrl_i_rw_enable(i_enable),
     .port_ctrl_i_last(i_last),
-    .axi_read_o_delay_data(axi_read_o_delay_data),
+    .axi_read_o_delay_data(dram_rd_data),
     .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),

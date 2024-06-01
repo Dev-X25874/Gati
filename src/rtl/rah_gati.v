@@ -336,7 +336,7 @@ end
       .PORT_SIZE(AXI_DATA_WIDTH),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_data (
-      .sel(select_wr[1:0]),
+      .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
       .in (in_wr_data_mux),
       .out(dram_in_wrdata)
 
@@ -352,7 +352,7 @@ end
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
-	  .sel(select_wr[1:0]),
+	  .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
 
@@ -370,7 +370,7 @@ end
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_last (
-      .sel(select_wr[1:0]),
+      .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
 	  .in (in_wr_last_mux),
       .out(dram_in_wrlast)
 
@@ -485,7 +485,7 @@ end
     .wr_axi_blen(wr_burst_len),
      .wr_axi_valid(dram_in_wrvalid),
     .wr_axi_last(dram_in_wrlast),
-     .wr_axi_data(nram_in_wrdata),
+     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
     .aid(aid),

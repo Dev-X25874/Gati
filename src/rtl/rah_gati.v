@@ -250,7 +250,7 @@ end
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
-  assign in_wr_data_mux = {p_dram_fifo, o_fifo_data};
+  assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
 
   //////////////////////////////// gati module instatiation

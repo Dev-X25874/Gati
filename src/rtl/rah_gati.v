@@ -389,7 +389,7 @@ assign o_rden=rden;
     mc_op_write_valid
   };
 
-  assign in_adress = {
+  assign in_address = {
     address_wr_req_ctrl,
     mc_config_addr,
     mc_img_addr,
@@ -471,7 +471,7 @@ assign o_rden=rden;
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
     .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
     .port_ctrl_i_valid(i_valid),
-    .port_ctrl_i_address(in_adress),
+    .port_ctrl_i_address(in_address),
     .port_ctrl_i_BLEN(in_BLEN),
     .port_ctrl_i_rw_enable(i_enable),
     .port_ctrl_i_last(i_last),

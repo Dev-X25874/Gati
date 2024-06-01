@@ -193,11 +193,18 @@ assign o_rden=rden;
       rden <= 0;
     end
 
-    if (o_rden) valid_data <= 1;
-    else valid_data <= 0;
+	  if (o_rden)  begin 
+		  valid_data <= 1;
+	  end
+	  else begin 
+		  valid_data <= 0;
+	  end 
 
     //if (valid_data) r_data <= data;
   end
+
+
+
   wire         wr_id_o_wready ;                              
   wire [(ACC_DW * OP_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
   wire final_o_data_last;  //comes from dram wr ctrl

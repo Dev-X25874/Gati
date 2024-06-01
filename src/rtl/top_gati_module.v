@@ -23,7 +23,7 @@ module top_gati_module #(
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
 
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 10, //Number of read and write requestors
+    parameter NUM_PORTS = 9, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,

@@ -35,7 +35,7 @@ assign extra_cycles = (i_size%MOD == 0)? 0 : MOD-(i_size%MOD);
 
 always@(posedge clk)
 begin
-   if(rst) begin
+   if(!rst) begin
     countps <= 0;
     doutps  <= 0;
     o_dvps  <= 0;

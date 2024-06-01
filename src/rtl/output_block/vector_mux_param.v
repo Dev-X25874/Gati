@@ -1,5 +1,5 @@
-module vector_mux_param #(parameter PORT_SIZE=2,
-                     parameter NO_PORT=256  )
+module vector_mux_param #(parameter PORT_SIZE=1'b1,
+                     parameter NO_PORT=2  )
  (
        input [PORT_SIZE*NO_PORT -1:0] in,
     output wor  [PORT_SIZE-1:0] out,

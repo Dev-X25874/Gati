@@ -250,7 +250,7 @@ end
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
-  assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
+  assign in_wr_data_mux = {p_dram_fifo, o_fifo_data};
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
 
   //////////////////////////////// gati module instatiation
@@ -437,8 +437,6 @@ end
     mc_wghts_last,
     mc_fc_last,
     mc_bias_last,
-    mc_fc_last,
-    mc_bias_last,
     mc_fc_bias_last,
     mc_acc_last,
     mc_op_write_last
@@ -485,12 +483,9 @@ end
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),
-    // .wr_axi_valid(dram_in_wrvalid),
-    //.wr_axi_last(dram_in_wrlast),
-	.wr_axi_valid(o_data_valid),
-    .wr_axi_last(final_o_data_last),
-    // .wr_axi_data(dram_in_wrdata),
-	.wr_axi_data(o_fifo_data),
+     .wr_axi_valid(dram_in_wrvalid),
+    .wr_axi_last(dram_in_wrlast),
+     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
     .aid(aid),

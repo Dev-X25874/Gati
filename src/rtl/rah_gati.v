@@ -178,8 +178,8 @@ module rah_gati #(
 
 );
 
-  wire  [47:0] o_data ;
-	assign o_data=data; 
+  wire  [31:0] o_data ;
+	assign o_data=data[31:0]; 
   reg valid_data = 0;
  
   wire o_rden;
@@ -223,8 +223,8 @@ assign o_rden=rden;
       .i_clk(i_clk),
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
-      .i_data(o_data[31:0]),
-      .ddr_sel(select_wr[0]),
+      .i_data(o_data),
+      .ddr_sel(select_wr[`MIPI_Wr]),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),
       .o_fifo_data(o_fifo_data),

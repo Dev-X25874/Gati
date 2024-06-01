@@ -194,7 +194,7 @@ assign o_rden=rden;
     end
 end 
 
-	always @(posedge clk) begin 
+	always @(posedge i_clk) begin 
 		 if (o_rden)  begin 
 			  valid_data <= 1;
 			 

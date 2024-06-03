@@ -483,9 +483,9 @@ end
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),
-     .wr_axi_valid(dram_in_wrvalid),
+    .wr_axi_valid(dram_in_wrvalid),
     .wr_axi_last(dram_in_wrlast),
-     .wr_axi_data(dram_in_wrdata),
+    .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
     .aid(aid),
@@ -608,7 +608,7 @@ end
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),
       .NO_PORT_BAFC(NO_PORT_BAFC)
-    ) top_gati_module (
+    ) top_gati_module_inst (
       .i_clk(i_clk),
       .s_clk(s_clk),
       .i_rst(i_rst),

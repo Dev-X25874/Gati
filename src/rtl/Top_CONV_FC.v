@@ -215,7 +215,7 @@ module Top_CONV_FC #(
   ) im2col (
       .i_valid_mat_size(valid_img_size_im2col),
       .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'd1),
+      .i_im2col_data(8'hff),
       .i_clk(i_clk),
       .i_rstn(rst),
       .o_im2col_data(im2col_o_data),
@@ -233,7 +233,7 @@ module Top_CONV_FC #(
       .i_zero_pad(zero_pad_enable),
       .o_valid_data(im2col_o_valid),
       .o_valid_buff(read_buf_data), //read signal to im2col buffers
-      .i_valid_data(1'b0),
+      .i_valid_data(1'b1),
       .im2col_done(im2col_done)
   );
 

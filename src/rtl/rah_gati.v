@@ -315,8 +315,8 @@ end
   ///////////////////////operators data
 
   //Signals from DRAM ctrl to internal operator blocks
-  wire [NUM_PORTS-1:0] select;
-  assign select = select_rd | select_wr;
+ // wire [NUM_PORTS-1:0] select;
+ // assign select = select_rd | select_wr;
   //Read block signals
   // wire sel_rd
   wire dram_rd_datavalid;
@@ -653,7 +653,7 @@ end
       .mc_op_write_valid(mc_op_write_valid),
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
-      .select(select),
+      .select((select_rd|select_wr)),
      // .dram_rd_datavalid(dram_rd_datavalid),
      // .dram_rd_data_last(dram_rd_data_last),
      // .dram_rd_data(dram_rd_data),

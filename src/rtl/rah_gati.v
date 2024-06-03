@@ -656,7 +656,7 @@ end
       .select(select),
       .dram_rd_datavalid(dram_rd_datavalid),
       .dram_rd_data_last(dram_rd_data_last),
-      .dram_rd_data(dram_rd_data),
+      .dram_rd_data(rdata),
 	  .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),
       .data_last_op_write(data_last_op_write),

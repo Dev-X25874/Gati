@@ -181,6 +181,7 @@ module Top_CONV_FC #(
 
   wire sel_mux;
   wire im2col_o_valid;
+  wire [DATA_WIDTH -1:0] im2col_o_data;
   assign sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
@@ -189,7 +190,6 @@ module Top_CONV_FC #(
   wire [COL_SA-1:0] x_final_valid;
 
 
-  wire [DATA_WIDTH -1:0] im2col_o_data;
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}};

@@ -17,7 +17,7 @@ module fifo_wr_ctrl#(
     output [N_FIFO-1 : 0] o_write_enable,   //sends write enable signal to fifo array
     output [W_DATA-1 : 0] o_data,           //sends data to store into fifo array
     output o_valid,
-	output soft_start
+	output reg soft_start
 );
 
 reg valid = 0;

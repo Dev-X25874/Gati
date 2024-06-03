@@ -215,7 +215,7 @@ module Top_CONV_FC #(
   ) im2col (
       .i_valid_mat_size(valid_img_size_im2col),
       .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'b0),
+      .i_im2col_data(8'd1),
       .i_clk(i_clk),
       .i_rstn(rst),
       .o_im2col_data(im2col_o_data),

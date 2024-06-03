@@ -136,7 +136,6 @@ module rah_gati #(
     input i_clk,
     input s_clk,
     input i_rst,
-    input user_start,
     input empty,
     input [47:0] data,
     output  reg rden=0,
@@ -218,7 +217,7 @@ end
   wire [BURST_LENGTH_WIDTH-1 : 0] final_burst_len_wr_req_ctrl;
   wire final_last_wr_req_ctrl;
   wire valid_wr_req_ctrl;
-
+	wire user_start;
 
   
 
@@ -245,7 +244,8 @@ end
       .address_wr_req_ctrl(address_wr_req_ctrl),
       .final_burst_len_wr_req_ctrl(final_burst_len_wr_req_ctrl),
       .final_last_wr_req_ctrl(final_last_wr_req_ctrl),
-      .valid_wr_req_ctrl(valid_wr_req_ctrl)
+      .valid_wr_req_ctrl(valid_wr_req_ctrl),
+	  .soft_start(user_start)
   );
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;

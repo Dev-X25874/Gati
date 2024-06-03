@@ -11,7 +11,7 @@ module RD_ID_Manager #(
     input rlast,
     input [ID_WIDTH-1:0] rid,
     output reg r_en_ack = 0,
-    output reg [NUM_PORTS_SEL-1:0] select_rd = 4'b0000,
+    output reg [NUM_PORTS_SEL-1:0] select_rd =0,
     output reg rd_r_valid = 0 ,
     output reg rd_r_last = 0 ,
     output reg ack_rd = 0 
@@ -82,14 +82,14 @@ end
 
 always @ (posedge clk) begin 
     if (!rst) begin 
-        select_rd <=4'b0000 ;
+        select_rd <=0;
         ack_rd <= 1'b0 ;
     end
     else begin 
     rd_r_valid <= rvalid ;
     rd_r_last  <= rlast ;
         if ((current_sent == rid) && rvalid)  begin
-        select_rd [current_sent] <= 1 ;            
+        select_rd [current_sent] <= 1'b1 ;            
         ack_rd <= 1'b1 ;
         end 
         

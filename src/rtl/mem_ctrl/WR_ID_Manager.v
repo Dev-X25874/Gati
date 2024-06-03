@@ -30,7 +30,7 @@ reg [1:0] state = 0 ; // FSM state register
 always @(posedge clk) begin
     if (!rst) begin
         state <= IDLE;
-        select <= 4'b0000 ;
+        select <= 0  ;
         ack <= 0 ;
         w_en_ack <= 0 ;
         
@@ -44,10 +44,10 @@ always @(posedge clk) begin
                     w_en_ack <= 0 ;
                     state <= STORE_ID;
                      ack <= 0 ;
-                    select <= 4'b0000 ;
+                    select <=0 ;
                 end
                 else begin 
-                    select <= 4'b0000 ;
+                    select <= 0 ;
                     w_en_ack <= 0 ;
                     state <= IDLE ;
                 end 
@@ -55,7 +55,7 @@ always @(posedge clk) begin
             STORE_ID: begin
               if (wready) begin
                     if ( wid == aid) begin 
-                       select [wid] <= 1 ;
+                       select [wid] <= 1'b1 ;
                         w_en_ack <= 0 ;
                          ack <= 1'b1 ;
                         state <= WAIT_DATAEND;

@@ -4,7 +4,7 @@ module Top_DRAM_controller #(
     parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
     parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
-     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001},   // only use for port controller 
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]

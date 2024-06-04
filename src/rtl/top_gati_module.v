@@ -781,7 +781,7 @@ module top_gati_module #(
       .o_fifo_empty(image_fifo_empty),
       .o_fifo_full(),
       .o_fifo_dv(),
-      .o_occupants()
+      .o_occupants(img_fifo_occupants)
   );
   
   //fifo weight 

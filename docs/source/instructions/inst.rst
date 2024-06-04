@@ -75,6 +75,10 @@
 	`define OutputBlock_ImageDimAcc_WIDTH 16
 	`define OutputBlock_AccEn 124:124
 	`define OutputBlock_AccEn_WIDTH 1
+	`define OutputBlock_DispatchEn 125:125
+	`define OutputBlock_DispatchEn_WIDTH 1
+	`define OutputBlock_DispatchID 157:126
+	`define OutputBlock_DispatchID_WIDTH 32
 
 	`define OP_START 'hff
 	`define START_Opcode 3:0
@@ -132,6 +136,15 @@
 	`define POOL_MAX 'h00
 	`define POOL_AVERAGE 'h01
 	`define POOL_GLOBAL_AVG 'h02
+	`define WORD_SIZE 32
+	`define ACC_SIZE 32
+	`define GATI_INST_ORG 0
+	`define DWP_HEADER_BYTES 12
+	`define DWP_PACKET_SZ 4
+	`define DWP_SOP 'hffffffff
+	`define DWP_SOP_INDEX 0
+	`define DWP_DS_INDEX 1
+	`define DWP_ADDR_INDEX 2
 
 .. code::
 
@@ -245,6 +258,12 @@
 	#define OutputBlock_AccEn_LOW 124
 	#define OutputBlock_AccEn_HIGH 124
 	#define OutputBlock_AccEn_COUNT 1
+	#define OutputBlock_DispatchEn_LOW 125
+	#define OutputBlock_DispatchEn_HIGH 125
+	#define OutputBlock_DispatchEn_COUNT 1
+	#define OutputBlock_DispatchID_LOW 126
+	#define OutputBlock_DispatchID_HIGH 157
+	#define OutputBlock_DispatchID_COUNT 32
 
 	#define OP_START 0xff
 	#define START_Opcode_LOW 0
@@ -326,6 +345,15 @@
 	#define POOL_MAX 0x00
 	#define POOL_AVERAGE 0x01
 	#define POOL_GLOBAL_AVG 0x02
+	#define WORD_SIZE 32
+	#define ACC_SIZE 32
+	#define GATI_INST_ORG 0
+	#define DWP_HEADER_BYTES 12
+	#define DWP_PACKET_SZ 4
+	#define DWP_SOP 0xffffffff
+	#define DWP_SOP_INDEX 0
+	#define DWP_DS_INDEX 1
+	#define DWP_ADDR_INDEX 2
 
 	inline std::map<std::string,int> get_conv_table(const std::bitset<INST_SIZE_BITS>& inst) {
 		std::map<std::string,int> tbl;
@@ -380,6 +408,8 @@
 		tbl.insert({"ImageDimOutput", bitset_range_get<OutputBlock_ImageDimOutput_COUNT, INST_SIZE_BITS>(inst, OutputBlock_ImageDimOutput_LOW, OutputBlock_ImageDimOutput_HIGH)});
 		tbl.insert({"ImageDimAcc", bitset_range_get<OutputBlock_ImageDimAcc_COUNT, INST_SIZE_BITS>(inst, OutputBlock_ImageDimAcc_LOW, OutputBlock_ImageDimAcc_HIGH)});
 		tbl.insert({"AccEn", bitset_range_get<OutputBlock_AccEn_COUNT, INST_SIZE_BITS>(inst, OutputBlock_AccEn_LOW, OutputBlock_AccEn_HIGH)});
+		tbl.insert({"DispatchEn", bitset_range_get<OutputBlock_DispatchEn_COUNT, INST_SIZE_BITS>(inst, OutputBlock_DispatchEn_LOW, OutputBlock_DispatchEn_HIGH)});
+		tbl.insert({"DispatchID", bitset_range_get<OutputBlock_DispatchID_COUNT, INST_SIZE_BITS>(inst, OutputBlock_DispatchID_LOW, OutputBlock_DispatchID_HIGH)});
 		return tbl;
 	}
 	inline void pretty_print_outputblock(const std::bitset<INST_SIZE_BITS>& inst) {

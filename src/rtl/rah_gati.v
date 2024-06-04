@@ -654,7 +654,7 @@ end
       .mc_op_write_valid(mc_op_write_valid),
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
-      .select((select_rd|select_wr)),
+      .select(select_wr),
      // .dram_rd_datavalid(dram_rd_datavalid),
      // .dram_rd_data_last(dram_rd_data_last),
      // .dram_rd_data(dram_rd_data),

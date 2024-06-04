@@ -132,6 +132,7 @@ module rah_gati #(
     parameter NO_PORT_BAC   = 2,
     parameter NO_PORT_BAFC  = 8
 
+
 ) (
     input i_clk,
     input s_clk,

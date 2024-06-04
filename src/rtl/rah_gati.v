@@ -661,7 +661,7 @@ end
 	 .dram_rd_datavalid(rvalid),
      .dram_rd_data_last(rlast),
      .dram_rd_data(rdata),
-
+	 .wready(wr_id_o_wready),
 	  .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),
       .data_last_op_write(data_last_op_write),

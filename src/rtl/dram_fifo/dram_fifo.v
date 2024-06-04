@@ -35,7 +35,7 @@ generate
             .wr_en_i(i_write_enable[i]),
             .rd_en_i(i_read_enable[i]),
             .wdata(i_data[(W_DATA*(DIMENSION-i)-1) -:W_DATA]),
-            .datacount_o(o_occupants[((W_ADDR + 1) * (i + 1)) - 1 -: (W_ADDR + 1)]),
+            .datacount_o(o_occupants[((W_ADDR + 1) * (DIMENSION -i )) - 1 -: (W_ADDR + 1)]),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (DIMENSION - i)) -1) -: W_DATA]),
             .a_rst_i(nw_rst),

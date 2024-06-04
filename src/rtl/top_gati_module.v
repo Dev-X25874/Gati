@@ -699,7 +699,8 @@ module top_gati_module #(
       .burst_length(mc_acc_bl),
       .last(mc_acc_last)
   );
-
+  wire o_data_last_op_write ;
+  assign  data_last_op_write=o_data_last_op_write;
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   top_op_write_mem_req_ctrl#(
@@ -720,7 +721,7 @@ module top_gati_module #(
     .clkin(i_clk),
     .i_rstn(i_rst),
     .i_start(start),
-    .i_data_last(data_last_op_write), //i-wire: data last signal from dram write controller
+    .i_data_last(o_data_last_op_write), //i-wire: data last signal from dram write controller
     .i_acc_address(acc_start_address), //i-wire: accumulant start address from inst.
     .i_op_start(op_start_address), //i-wire: start address of quantized o/p from inst.
     .i_channel_itr(channel_iteration),
@@ -1175,7 +1176,7 @@ module top_gati_module #(
     .wready(wready), // from DRAM ctrler (WR_ID mger)
     .blen(wr_burst_len), // from DRAM ctler ()
     .data_valid(dv_op_write),
-    .data_last(data_last_op_write),
+    .data_last(o_data_last_op_write),
     .fifo_rd_en(op_dram_rden)
   );
 

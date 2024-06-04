@@ -37,6 +37,7 @@ module top_fifo_sharing#(
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
 localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
 
+wire [COL-1 : 0] weight_ff_array_read_en;
 wire [COL-1 : 0] weight_ff_array_empty;
 wire [COL-1 : 0] weight_ff_array_dv;
 wire [(COL * W_DATA)-1 : 0] weight_ff_array_data;
@@ -96,7 +97,6 @@ demux#(
     .o_sa_dv(o_dv_mux_sa)
 );
 
-wire [COL-1 : 0] weight_ff_array_read_en;
 
 //mux to send read enable signal from SA and FC into weight fifo array
 rden_mux#(

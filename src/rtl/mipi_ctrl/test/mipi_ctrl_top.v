@@ -10,9 +10,9 @@ module mipi_ctrl_top#(
     input i_rstn,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
-//	input ddr_sel,
-//	input ddr_wready,
-//	input [W_BURST_LEN-1 : 0]ddr_blen,
+	input ddr_sel,
+	input ddr_wready,
+	input [W_BURST_LEN-1 : 0]ddr_blen,
     output [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
     output final_o_data_last, //comes from dram wr ctrl
     output o_data_valid, //comes from dram wr ctrl
@@ -115,7 +115,7 @@ dram_wr_ctrl#(
     .o_fifo_read_enable(ff_read_enable),
     .o_data_last(o_data_last),
     .o_data_valid(o_data_valid)
-);
+);/*
 wire ddr_sel;
 wire ddr_wready;
 wire [W_BURST_LEN-1 : 0]ddr_blen;
@@ -130,5 +130,5 @@ counters#(
     .o_select(ddr_sel),
     .o_burst_length(ddr_blen),
     .o_w_ready(ddr_wready)
-);
+);*/
 endmodule

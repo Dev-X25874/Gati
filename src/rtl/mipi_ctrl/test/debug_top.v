@@ -16,7 +16,8 @@ module debug_top#(
     output [7:0] address_wr_req_ctrl,
     output [W_BURST_LEN-1 : 0] burst_len_wr_req_ctrl,
     output last_wr_req_ctrl,
-    output valid_wr_req_ctrl
+    output o_start,
+	output valid_wr_req_ctrl
 );
 wire [31:0] fifo_data;
 wire fifo_dv;
@@ -39,7 +40,7 @@ pulse_gen one_pulse_generator(
     .b(w_trigger)
 );
 
-test_top#(
+mipi_ctrl_top#(
     .N_FIFO(N_FIFO),
     .W_DATA(W_DATA),
     .BURST_LEN(BURST_LEN),
@@ -48,7 +49,6 @@ test_top#(
     .AXI_BYTES(AXI_BYTES)
 )mipi_controller_top(
     .i_clk(i_clk),
-    .i_trigger(w_trigger),
     .i_rstn(i_rstn),
     .i_data_valid(fifo_dv),
     .i_data(fifo_data),
@@ -59,7 +59,8 @@ test_top#(
     .address_wr_req_ctrl(address_wr_req_ctrl),
     .final_burst_len_wr_req_ctrl(burst_len_wr_req_ctrl),
     .final_last_wr_req_ctrl(last_wr_req_ctrl),
-    .valid_wr_req_ctrl(valid_wr_req_ctrl)
+   	.soft_start(o_start),
+	.valid_wr_req_ctrl(valid_wr_req_ctrl)
 );
     
 endmodule

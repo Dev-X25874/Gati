@@ -10,9 +10,9 @@ module mipi_ctrl_top#(
     input i_rstn,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
-	input ddr_sel,
-	input ddr_wready,
-	input [W_BURST_LEN-1 : 0]ddr_blen,
+//	input ddr_sel,
+//	input ddr_wready,
+//	input [W_BURST_LEN-1 : 0]ddr_blen,
     output [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
     output final_o_data_last, //comes from dram wr ctrl
     output o_data_valid, //comes from dram wr ctrl
@@ -79,7 +79,7 @@ wr_req_ctrl#(
 
 wire [((N_FIFO * (W_ADDR + 1)))-1 : 0] ff_array_occ;
 wire [N_FIFO-1 : 0] ff_array_empty;
-
+wire [N_FIFO-1:0] dv;
 image_fifo_array#(
     .DIMENSION(N_FIFO),
     .W_DATA(W_DATA),
@@ -93,7 +93,7 @@ image_fifo_array#(
     .i_read_enable(ff_read_enable),
     .o_data(o_fifo_data),
     .o_fifo_empty(ff_array_empty),
-    .o_fifo_dv(),
+    .o_fifo_dv(dv),
     .o_fifo_full(),
     .o_occupants(ff_array_occ)
 );
@@ -107,6 +107,7 @@ dram_wr_ctrl#(
     .W_BURST_LEN(W_BURST_LEN)
 )dram_write_controller(
     .i_clk(i_clk),
+	.i_dv(&dv),
     .i_rstn(i_rstn),
     .i_select(ddr_sel),
     .i_write_ready(ddr_wready),
@@ -115,7 +116,6 @@ dram_wr_ctrl#(
     .o_data_last(o_data_last),
     .o_data_valid(o_data_valid)
 );
-/*
 wire ddr_sel;
 wire ddr_wready;
 wire [W_BURST_LEN-1 : 0]ddr_blen;
@@ -131,5 +131,4 @@ counters#(
     .o_burst_length(ddr_blen),
     .o_w_ready(ddr_wready)
 );
-   */ 
 endmodule

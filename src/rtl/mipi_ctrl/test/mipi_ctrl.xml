@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="mipi_ctrl" description="" last_change="1716636941" sw_version="2023.2.307" last_run_state="pass" last_run_flow="syn" config_result_in_sync="true" design_ood="sync" place_ood="change" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="mipi_ctrl" description="" last_change="1717593754" sw_version="2023.2.307" last_run_state="pass" last_run_flow="syn" config_result_in_sync="true" design_ood="sync" place_ood="change" route_ood="" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
@@ -9,7 +9,6 @@
         <efx:top_module name="debug_top"/>
         <efx:design_file name="data_mem_ctrl.v" version="default" library="default"/>
         <efx:design_file name="debug_top.v" version="default" library="default"/>
-        <efx:design_file name="test_top.v" version="default" library="default"/>
         <efx:design_file name="counters.v" version="default" library="default"/>
         <efx:design_file name="dram_wr_ctrl.v" version="default" library="default"/>
         <efx:design_file name="fifo_wr_ctrl.v" version="default" library="default"/>
@@ -17,6 +16,7 @@
         <efx:design_file name="image_fifo_array.v" version="default" library="default"/>
         <efx:design_file name="pulse_gen.v" version="default" library="default"/>
         <efx:design_file name="sync_fifo.v" version="default" library="default"/>
+        <efx:design_file name="mipi_ctrl_top.v" version="default" library="default"/>
         <efx:top_vhdl_arch name=""/>
     </efx:design_info>
     <efx:constraint_info>

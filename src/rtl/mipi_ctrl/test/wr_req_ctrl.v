@@ -59,15 +59,17 @@ always @(posedge i_clk)begin
         case (state)
             0:begin
                 if(i_data_valid)begin
-                    r_addr <= i_start_address;
-                    state <= 4;
+                    
+					data_size<=i_data_size;
+					state <= 4;
                 end
             end
 
 
 			4:begin 
 				if(i_data_valid) begin 
-					data_size<=i_data_size;
+				
+                    r_addr <= i_start_address;
 					state<=1;
 				end
 			end

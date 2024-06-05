@@ -7,7 +7,7 @@ module data_mem_ctrl (
 );
 
 reg [1:0] state = 2'b00;
-reg [31:0] mem [65:0];
+reg [31:0] mem [66:0];
 reg [8:0] count_data = 0;
 
 localparam IDLE = 2'b00;
@@ -36,7 +36,7 @@ always @(posedge clk ) begin
             DIVIDE_DATA: begin
                 data <= mem[count_data];
                 valid <= 1;
-                if (count_data < 66) begin
+                if (count_data < 67) begin
                     count_data <= count_data + 1;
                     state <= DIVIDE_DATA;
                     valid <= 1;

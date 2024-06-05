@@ -184,7 +184,7 @@ module rah_gati #(
  
   wire o_rden;
 assign o_rden=rden;
-	 
+
   always @(posedge i_clk) begin
 
     if (!empty) begin
@@ -218,7 +218,23 @@ end
   wire [BURST_LENGTH_WIDTH-1 : 0] final_burst_len_wr_req_ctrl;
   wire final_last_wr_req_ctrl;
   wire valid_wr_req_ctrl;
-	wire user_start;
+  wire user_start;
+
+				
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
 
   
 

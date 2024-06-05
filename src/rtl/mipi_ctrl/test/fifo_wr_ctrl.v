@@ -1,3 +1,5 @@
+`include "../../common/instructions.vh"
+
 /*
     Receives data and data valid from mipi fifo,
     segregates AXI address, data size and send write request 
@@ -19,6 +21,10 @@ module fifo_wr_ctrl#(
     output o_valid,
 	output reg soft_start
 );
+	local parameter IDLE=0;
+	local parameter DATA_SIZE=1;
+	local parameter ADDR=2;
+	local parameter NEXT=3;
 
 reg valid = 0;
 reg [2:0] state = 0;
@@ -34,7 +40,7 @@ assign o_write_enable = wren;
 assign o_data_size = data_size;
 assign o_start_address = start_addr;
 assign o_valid = valid;
-	reg start=0;
+	reg last=0;
 
 always @(posedge i_clk)begin
     if(~i_rstn)begin
@@ -45,80 +51,178 @@ always @(posedge i_clk)begin
         wren <= 0;
         wr_counter <= 0;
     end else begin
-        case (state)
-           3: begin
-			   soft_start<=0;
-                if(i_data_valid)begin
-                    page_number <= i_data;
-                    valid <= 1'b1;
-                    state <= 0;
-                end
-            end
+		case(state) 
+			IDLE:begin 
+				soft_start<=0;
+				last<=0;
+				if(i_data==`SOF) begin 
+					state<=DATA_SIZE;
+				end
+			end
+			DATA_SIZE: begin 
+				if(i_data_valid) begin 
+					data_size<=i_data;
+					state<=ADDR;
+				end
+			end
+
+			ADDR: begin 
+				if(data_size==0) begin 
+					last<=1;
+				end
+				if(i_data_valid) begin 
+					start_addr<=i_data;
+					state<=NEXT;
+				end 
+			end
+
+			NEXT: begin 
+				if(i_data_valid && data_size!=0 && (~last)) begin 
+					if(data_size>0)begin 
+						data<=i_data;
+						data_size<=data_size-4;
+					end
+					 
+					if (wr_counter == N_FIFO-1 ) begin 
+                          wr_counter <= 0;
+                	end
+                	else begin 
+                		wr_counter <= wr_counter + 1;
+                	end
+                	wren[wr_counter] <= 1;
+                                                        
+                     if(N_FIFO > 1) begin
+                         if (wr_counter == 0)
+                             wren[N_FIFO - 1] <= 0;
+                         else
+                             wren[wr_counter - 1] <= 0;
+                     end
+				end
+				else if(last) begin
+					soft_start<=1;
+					state<=IDLE;
+				end
+				else if(i_data==`SOF && data_size ==0) begin 
+						state<=DATA_SIZE;
+						
+				end
+			end
+			else begin 
+				wr_counter<=wr_counter;
+				wren<=0;
+			end
+	end
+		endcase
+
+end
+	end
 
 
-			0: begin
-                if(i_data_valid)begin
-                    start_addr <= i_data;
-                    valid <= 1'b1;
-                    state <= 1;
-					if(page_number==0) begin 
-						start<=1;
-					end 
-                end
-            end
+			
 
-            1: begin
-               if(i_data_valid)begin
-                    data_size <= i_data;
-                    valid <= 1'b1;
-                    state <= 2;
-               end
-            end
 
-            2: begin
-                if(i_data_valid)begin
-                    //reset everything once all the data from mipi packet is written
-                    if(counter == (data_size >> 2))begin
-                        counter <= 0;
-						state <= 0;
-						page_number<=i_data;
-						if(start) begin 
-							soft_start<=1;
-							state<=3;
-						end 
-			//			start_addr<=i_data;
-                        wr_counter <= 0;
-                        wren <= 0;
-                        data <= 0;
-                    end else begin
-                        counter <= counter + 1;
-                        data <= i_data;
-                        valid <= 1'b1;
-                        //asserting write enable signal, one by one,for each fifo in fifo array
-						if (wr_counter == N_FIFO-1 ) begin 
-                            wr_counter <= 0;
-						end
-						else begin 
-							wr_counter <= wr_counter + 1;
-						end
-						wren[wr_counter] <= 1;
 
-                       if(N_FIFO > 1) begin
-                           if (wr_counter == 0)
-                               wren[N_FIFO - 1] <= 0;
-                           else
-                               wren[wr_counter - 1] <= 0;
-                       end
-                    end
-                end 
-				else begin
-                    wr_counter <= wr_counter;
-                    wren <= 0;
-                end
-            end
 
-            default: state <= 3; 
-        endcase
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+					
+
+					
+
+
+
+
+
+
+
+
+      //  case (state)
+      //     3: begin
+	  //  	   soft_start<=0;
+      //          if(i_data_valid)begin
+      //              page_number <= i_data;
+      //              valid <= 1'b1;
+      //              state <= 0;
+      //          end
+      //      end
+
+
+	  //  	0: begin
+      //          if(i_data_valid)begin
+      //              start_addr <= i_data;
+      //              valid <= 1'b1;
+      //              state <= 1;
+	  //  			if(page_number==0) begin 
+	  //  				start<=1;
+	  //  			end 
+      //          end
+      //      end
+
+      //      1: begin
+      //         if(i_data_valid)begin
+      //              data_size <= i_data;
+      //              valid <= 1'b1;
+      //              state <= 2;
+      //         end
+      //      end
+
+      //      2: begin
+      //          if(i_data_valid)begin
+      //              //reset everything once all the data from mipi packet is written
+      //              if(counter == (data_size >> 2))begin
+      //                  counter <= 0;
+	  //  				state <= 0;
+	  //  				page_number<=i_data;
+	  //  				if(start) begin 
+	  //  					soft_start<=1;
+	  //  					state<=3;
+	  //  				end 
+	  //  	//			start_addr<=i_data;
+      //                  wr_counter <= 0;
+      //                  wren <= 0;
+      //                  data <= 0;
+      //              end else begin
+      //                  counter <= counter + 1;
+      //                  data <= i_data;
+      //                  valid <= 1'b1;
+      //                  //asserting write enable signal, one by one,for each fifo in fifo array
+	  //  				if (wr_counter == N_FIFO-1 ) begin 
+      //                      wr_counter <= 0;
+	  //  				end
+	  //  				else begin 
+	  //  					wr_counter <= wr_counter + 1;
+	  //  				end
+	  //  				wren[wr_counter] <= 1;
+
+      //                 if(N_FIFO > 1) begin
+      //                     if (wr_counter == 0)
+      //                         wren[N_FIFO - 1] <= 0;
+      //                     else
+      //                         wren[wr_counter - 1] <= 0;
+      //                 end
+      //              end
+      //          end 
+	  //  		else begin
+      //              wr_counter <= wr_counter;
+      //              wren <= 0;
+      //          end
+      //      end
+
+      //      default: state <= 3; 
+      //  endcase
     end
 end
 

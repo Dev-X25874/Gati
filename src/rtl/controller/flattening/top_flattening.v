@@ -10,7 +10,10 @@ module top_flattening#(
     parameter W_KERNAL_CNT = 16,
     parameter W_IMG_DIM = 20,
     parameter W_IMG_BRAM_ADDR = 10,
-    parameter IMG_FF_DEPTH = 1024
+    parameter IMG_FF_DEPTH = 1024,
+    parameter SHFT_REG_X = 4,
+    parameter N_SA = 4,
+    parameter DRAM_BW = 32
 )(
     input clk,
     input rstn,
@@ -39,7 +42,10 @@ wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] flattened_data;
 conv_output_reorder#(
     .N_BRAM(N_BRAM),
     .N_BANK(N_BANK),
-    .W_DATA(W_DATA)
+    .W_DATA(W_DATA),
+    .SHFT_REG_X(SHFT_REG_X),
+    .N_SA(N_SA),
+    .DRAM_BW(DRAM_BW)
 )data_flattening(
     .clk(clk),
     .rstn(rstn),

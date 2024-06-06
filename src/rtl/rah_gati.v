@@ -138,7 +138,7 @@ module rah_gati #(
     input s_clk,
     input i_rst,
     input empty,
-    input [47:0] data,
+    input [31:0] data,
     output  reg rden=0,
 	
 
@@ -179,7 +179,7 @@ module rah_gati #(
 );
 
   wire  [31:0] o_data ;
-	assign o_data=data[31:0]; 
+	assign o_data=data; 
   reg valid_data = 0;
  
   wire o_rden;

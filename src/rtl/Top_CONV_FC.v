@@ -322,6 +322,9 @@ module Top_CONV_FC #(
     .W_IMG_DIM(W_FC_IMAG_DIM),
     .W_IMG_BRAM_ADDR(W_FC_RW_COUNTER),
     .IMG_FF_DEPTH(FC_BRAM_DEPTH) //Depth of BRAM
+    .SHFT_REG_X(SHFT_REG_X),
+    .N_SA(N_SA),
+    .DRAM_BW(DRAM_BW)
   )
   top_flattening_inst(
     .clk(i_clk),

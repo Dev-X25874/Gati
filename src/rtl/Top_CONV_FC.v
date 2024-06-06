@@ -85,7 +85,7 @@ module Top_CONV_FC #(
     input [(OP_FIFO*DATA_WIDTH_OB)-1:0] vector_add_values,
     input [OP_FIFO-1:0] vector_add_wren,
     
-    // input [W_CONV_OP_IMAGE_DIM-1:0] maxpool_threshold, //CONV output (OW) width
+    input [W_CONV_OP_IMAGE_DIM-1:0] maxpool_threshold, //CONV output (OW) width
     input layer_done,
     input iteration_Done,
     input channel_done,
@@ -396,6 +396,9 @@ module Top_CONV_FC #(
     .ACC_DW(ACC_DW), //data width of accumulator output
     .COL_FC(COL_FC), //number of cols in FC engine
     .ACC_DATA_REORDER(ACC_DATA_REORDER) //param-If '0' pass the data as is and if '1' reorders the data to make it convenient for shift register
+    .DRAM_BW(DRAM_BW),
+    .N_SA(N_SA),
+    .SHFT_REG_X(SHFT_REG_X)
   )
   FC_OP_Data_reorder_inst(
       .clk(i_clk),

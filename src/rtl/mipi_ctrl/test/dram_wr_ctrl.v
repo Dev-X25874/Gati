@@ -6,15 +6,18 @@ module dram_wr_ctrl#(
     input i_clk,
     input i_rstn,
    input i_dv,
+	input s_start,
 	input i_select,
     input i_write_ready,
     input [W_BURST_LEN-1 : 0]i_burst_length,
     output [N_FIFO-1 : 0] o_fifo_read_enable,
     output o_data_last,
+	output reg soft_start,
     output o_data_valid
 );
 reg data_last = 0;
 reg dv = 0;
+reg s_flag=0;
 reg [2:0] state = 0;
 reg [W_BURST_LEN-1 : 0] rd_counter = 0;
 reg [N_FIFO-1 : 0] rden = 0;
@@ -28,6 +31,10 @@ assign o_data_last = data_last;
 	assign o_data_valid=i_dv;
 	always @(posedge i_clk) begin 
 		prev<=i_write_ready;
+		if(s_start) begin 
+			s_flag<=1;	
+		end
+
 	end
 always @(posedge i_clk)begin
     if(~i_rstn)begin
@@ -39,6 +46,7 @@ always @(posedge i_clk)begin
         case (state)
             0:begin
 				data_last<=0;
+				soft_start<=0;
                 if(i_select)begin
                     r_blen <= i_burst_length;
                     if(i_write_ready)begin
@@ -66,6 +74,9 @@ always @(posedge i_clk)begin
                		     rd_counter <= 0;
                		     rden <= 0;
                		     state <= 0;
+						 if(s_flag) begin 
+							 soft_start<=1;
+						end
                		     data_last <= 1'b1;
                		     dv <= 1'b1;
                		 end 

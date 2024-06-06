@@ -81,7 +81,7 @@ always @(posedge i_clk)begin
                 if(i_fifo_occupants >= fifo_occupants) begin
                 	state <= 2;
                 end
-				if(data_size<512) begin 
+				if(data_size<512 && data_size!=0) begin 
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 

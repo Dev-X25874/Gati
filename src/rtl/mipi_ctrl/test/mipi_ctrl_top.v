@@ -10,9 +10,9 @@ module mipi_ctrl_top#(
     input i_rstn,
     input i_data_valid,
     input [W_DATA-1 : 0] i_data,
-	input ddr_sel,
-	input ddr_wready,
-	input [W_BURST_LEN-1 : 0]ddr_blen,
+//	input ddr_sel,
+//	input ddr_wready,
+//	input [W_BURST_LEN-1 : 0]ddr_blen,
     output [(W_DATA * N_FIFO)-1 : 0] o_fifo_data,  //comes from fifo array
     output final_o_data_last, //comes from dram wr ctrl
     output o_data_valid, //comes from dram wr ctrl
@@ -47,8 +47,9 @@ fifo_wr_ctrl#(
     .o_write_enable(ff_write_enable),   //sends write enable signal to fifo array
     .o_data(data_ff_wr_ctrl),            //sends data to store into fifo array
     .o_valid(dv_ff_wr_ctrl),
-	.soft_start(soft_start)
+	.soft_start(w_start)
 );
+wire w_start;
 // wire req_wr_req_ctrl;
 // wire [7:0] address_wr_req_ctrl;
 wire [W_BURST_LEN-1 : 0] burst_len_wr_req_ctrl;
@@ -108,14 +109,16 @@ dram_wr_ctrl#(
 )dram_write_controller(
     .i_clk(i_clk),
 	.i_dv(&dv),
+	.s_start(w_start),
     .i_rstn(i_rstn),
     .i_select(ddr_sel),
     .i_write_ready(ddr_wready),
     .i_burst_length(ddr_blen),
     .o_fifo_read_enable(ff_read_enable),
     .o_data_last(o_data_last),
+	.soft_start(soft_start),
     .o_data_valid(o_data_valid)
-);/*
+);
 wire ddr_sel;
 wire ddr_wready;
 wire [W_BURST_LEN-1 : 0]ddr_blen;
@@ -130,5 +133,5 @@ counters#(
     .o_select(ddr_sel),
     .o_burst_length(ddr_blen),
     .o_w_ready(ddr_wready)
-);*/
+);
 endmodule

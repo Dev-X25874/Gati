@@ -31,13 +31,13 @@ module iteration_cnt #(
     input FC_BIAS_EN,
 
     //enable signals for tail blocks
-    output acc_en,
-    output relu_en,
-    output quant_en,
-    output bias_en,
-    output fc_bias_en,
-    output pool_en,
-    output en,   //enable signal for shift register to select accumulant o/p and quantized o/p
+    output reg acc_en,
+    output reg relu_en,
+    output reg quant_en,
+    output reg bias_en,
+    output reg fc_bias_en,
+    output reg pool_en,
+    output reg en,   //enable signal for shift register to select accumulant o/p and quantized o/p
 
     //'ack' signals for config blk
     output Conv_Ack,
@@ -165,9 +165,10 @@ end
 
 //Generation of enable 'en' signals for tail and o/p block based on c_ctr and c_iter
 //Also check the "EN" signals of instructions.
-    //en-for shift register
+// wire acc_en, relu_en, quant_en, bias_en, pool_en, en;    //en-for shift register
+// wire fc_bias_en;
 
-
+/*
 assign  acc_en      =   (ACC_EN==0)?0 : ((c_ctr==0)?0:1);
 assign  relu_en     =   (RELU_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);
 assign  quant_en    =   (QUANT_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);
@@ -175,6 +176,107 @@ assign  bias_en     =   (BIAS_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);
 assign  fc_bias_en  =   (FC_BIAS_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);
 assign  pool_en     =   (POOL_EN==0)?0 : ((c_ctr==c_iter-1)?1:0);
 assign  en          =   (c_ctr==c_iter-1)?1:0;
+*/
+
+always@(posedge i_clk) begin
+    if(!rst) begin
+        acc_en  <=  0;
+    end
+    else begin
+        if(ACC_EN==0) begin
+            acc_en <= 0;
+        end
+        else begin
+            if(c_ctr==0) acc_en <= 0;
+            else         acc_en <= 1;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        relu_en <= 0;
+    end
+    else begin
+        if(RELU_EN==0) begin
+            relu_en <= 0;
+        end
+        else begin
+            if(c_ctr==c_iter-1) relu_en <= 1;
+            else                relu_en <= 0;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        quant_en <= 0;
+    end
+    else begin
+        if(QUANT_EN==0) begin
+            quant_en <= 0;
+        end
+        else begin
+            if(c_ctr==c_iter-1) quant_en <= 1;
+            else                quant_en <= 0;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        bias_en <= 0;
+    end
+    else begin
+        if(BIAS_EN==0) begin
+            bias_en <= 0;
+        end
+        else begin
+            if(c_ctr==c_iter-1) bias_en <= 1;
+            else                bias_en <= 0;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        fc_bias_en <= 0;
+    end
+    else begin
+        if(FC_BIAS_EN==0) begin
+            fc_bias_en <= 0;
+        end
+        else begin
+            if(c_ctr==c_iter-1) fc_bias_en <= 1;
+            else                fc_bias_en <= 0;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        pool_en <= 0;
+    end
+    else begin
+        if(POOL_EN==0) begin
+            pool_en <= 0;
+        end
+        else begin
+            if(c_ctr==c_iter-1) pool_en <= 1;
+            else                pool_en <= 0;
+        end
+    end
+end
+
+always@(posedge i_clk)begin
+    if(!rst) begin
+        en <= 0;
+    end
+    else begin
+        if(c_ctr==c_iter-1) en <= 1;
+        else                en <= 0;
+    end
+end
 
 //Generation of 'ack' signals for config blk
 assign Conv_Ack     =   ((c_ctr==c_iter-1)&&(k_ctr==k_iter-1))? SA_done : 0;

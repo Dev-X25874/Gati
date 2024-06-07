@@ -136,7 +136,8 @@ module rah_gati #(
 ) (
     input i_clk,
     input s_clk,
-    input i_rst,
+    input m_clk,
+	input i_rst,
     input empty,
     input [31:0] data,
     output  reg rden=0,

@@ -23,14 +23,14 @@ module Req_Manager #(
 reg [7:0] w_data = 0;
 reg [7:0] n_ports = 0;
 	reg [NUM_PORTS-1:0] r_rd_valid=0;
-	always @(posedge clk) begin 
-		r_rd_valid<=rd_valid;
-	end
+//	always @(posedge clk) begin 
+//		r_rd_valid<=rd_valid;
+//	end
 onehot_to_bin #(
     .ONEHOT_WIDTH (NUM_PORTS),
     .BIN_WIDTH (BIN_WIDTH)
 ) onehot_inst (
-    .onehot (r_rd_valid),
+    .onehot (rd_valid),
     .bin (r_rd_sel_binary)
 );
 
@@ -45,15 +45,15 @@ end
 
 
 wire [BIN_WIDTH-1:0] r_rd_sel_binary;
-//reg [DATA_WIDTH-1:0] data_sel=0;
+reg signed [DATA_WIDTH-1:0] data_sel=0;
 
-(* syn_use_dsp = "no" *) reg  signed [DATA_WIDTH-1:0] data_sel;
+//(* syn_use_dsp = "no" *) reg  signed [DATA_WIDTH-1:0] data_sel;
 
 always @(posedge clk) begin
     if(~rst)begin
         valid_req <= 1'b0;
     end else begin
-        if((r_rd_valid))begin
+        if((rd_valid))begin
             data_sel <= in_data_div [DATA_WIDTH*(NUM_PORTS-r_rd_sel_binary) -1 -: DATA_WIDTH] ;
             valid_req <= 1'b1;
         end else begin

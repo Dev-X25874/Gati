@@ -1,7 +1,10 @@
 module FC_OP_Data_reorder#(
     parameter ACC_DW = 32,
     parameter COL_FC = 32,
-    parameter ACC_DATA_REORDER = 1
+    parameter ACC_DATA_REORDER = 1,
+    parameter SHFT_REG_X = 4,
+    parameter N_SA = 4,
+    parameter DRAM_BW = 32
 )
 (
     input clk,
@@ -12,6 +15,7 @@ module FC_OP_Data_reorder#(
     output reg [(ACC_DW*COL_FC)-1:0] reorder_data_FC,
     output reg o_dv_reorder
 );
+    wire [(ACC_DW*COL_FC)-1:0] temp_FC;
 
     always@(posedge clk) begin
         if(!rst) begin
@@ -25,18 +29,8 @@ module FC_OP_Data_reorder#(
                     o_dv_reorder <= 1;
                 end
                 else begin
-                    reorder_data_FC <=
-                        {
-                         data_FC[1023:896],
-                         data_FC[511:384],
-                         data_FC[895:768],
-                         data_FC[383:256],
-                         data_FC[767:640],
-                         data_FC[255:128],
-                         data_FC[639:512],
-                         data_FC[127:0]
-                        };
                     o_dv_reorder <= 1;
+                    reorder_data_FC <= temp_FC;
                 end
 
             end
@@ -46,5 +40,21 @@ module FC_OP_Data_reorder#(
             end
         end
     end
+
+  localparam OFFSET = N_SA;
+  localparam UPPER_LOOP = N_SA;
+  localparam LOWER_LOOP = (DRAM_BW/(SHFT_REG_X*N_SA));
+
+    
+  genvar i,j;
+  generate
+  for(i=0;i<UPPER_LOOP;i=i+1) begin
+    for (j=0;j<LOWER_LOOP;j=j+1) begin
+        localparam k = i * LOWER_LOOP + j;
+        assign temp_FC[(((SHFT_REG_X*ACC_DW)*((DRAM_BW/SHFT_REG_X)- k))-1) -: SHFT_REG_X*ACC_DW] =
+        data_FC[(((SHFT_REG_X*ACC_DW)*(((DRAM_BW/SHFT_REG_X)-i)-(j*OFFSET)))-1) -: SHFT_REG_X*ACC_DW];
+    end
+  end
+  endgenerate
 
 endmodule

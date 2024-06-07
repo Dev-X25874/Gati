@@ -11,13 +11,15 @@ module Top_CONV_FC #(
     parameter W_PSUM = 20,
     parameter MOD1=2,
     parameter MOD2 = 8,
-    parameter DATA_WIDTH_OB = 32,
+    parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
+    parameter DATA_WIDTH_ACC = 16, //data width of intermediate accumulants(SA)
     // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
     parameter SHFT_REG_X = 4,
     parameter BIAS_FIFO = 8, // Number of bias fifos
     parameter OP_FIFO = 8, // Number of o/p fifos
+    parameter ACC_FIFO = 8, // Number of accumulant fifos
     parameter WEIGHT_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH = 1024,
     parameter PSUM_FIFO_DEPTH = 8192,
@@ -82,8 +84,8 @@ module Top_CONV_FC #(
     input i_sel_fc_fifosharing,
 
     //vector addition signals
-    input [(OP_FIFO*DATA_WIDTH_OB)-1:0] vector_add_values,
-    input [OP_FIFO-1:0] vector_add_wren,
+    input [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values,
+    input [ACC_FIFO-1:0] vector_add_wren,
     
     input [W_CONV_OP_IMAGE_DIM-1:0] maxpool_threshold, //CONV output (OW) width
     input layer_done,
@@ -117,7 +119,7 @@ module Top_CONV_FC #(
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     
     // output write signals
-    output [(DATA_WIDTH_OB*(OP_FIFO)) -1:0] op_write_dmux_data,
+    output [(DATA_WIDTH_ACC*(OP_FIFO)) -1:0] op_write_dmux_data,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
@@ -130,7 +132,7 @@ module Top_CONV_FC #(
     output FC_layerdone,
 
     //FIFO status signals for memory request controllers
-    output [(($clog2(ACC_FIFO_DEPTH)+1)*OP_FIFO)-1:0] acc_fifo_occupants,
+    output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants
 
@@ -448,9 +450,10 @@ module Top_CONV_FC #(
   top_output_block #(
       .DRAM_BW(DRAM_BW),
       .DATA_WIDTH(DATA_WIDTH_OB),
+      .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
       .N(N_SA),
-      .FIFO_NO(OP_FIFO),
+      .FIFO_NO(ACC_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA)
   ) vector_addition (
@@ -581,10 +584,10 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
       .datavalid_o(maxpool_valid)
   );
   
-
+  wire [(DATA_WIDTH_ACC*COL_SA)-1 : 0] zp_unquantized_din;
   wire [COL_SA-1:0] zp_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] zp_data;
-  wire [(DATA_WIDTH_OB*COL_SA) -1:0] zp_unquant_data;
+  wire [(DATA_WIDTH_ACC*COL_SA) -1:0] zp_unquant_data;
   wire [COL_SA -1:0] zp_unquant_dv;
 
   //zero padding circuit
@@ -604,9 +607,18 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
     .o_dv(zp_valid)
   );
   
+  localparam REMOVE = DATA_WIDTH_OB - DATA_WIDTH_ACC;
+  
+  genvar i;
+  generate
+    for(i=0;i<COL_SA;i=i+1) begin
+      zp_unquantized_din[((DATA_WIDTH_ACC*(COL_SA-i))-1) -: DATA_WIDTH_ACC] = 
+      unquantized_output[((DATA_WIDTH_OB*(COL_SA-i)-REMOVE)-1) -: DATA_WIDTH_ACC];
+    end
+  endgenerate
 
   top_zero # (
-    .DW(DATA_WIDTH_OB),
+    .DW(DATA_WIDTH_ACC),
     .COL(COL_SA),
     .I_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
     .MOD(MOD2)
@@ -615,7 +627,7 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
     .clk(i_clk),
     .rst(rst),
     .i_size(i_img_dim_Acc), // image dimension of accumlant o/p (from op block inst.)
-    .data_in(unquantized_output),
+    .data_in(zp_unquantized_din),
     .i_dv(unquantized_valid),
     .data_out(zp_unquant_data),
     .o_dv(zp_unquant_dv)
@@ -645,7 +657,7 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
   generate_shift_register #(
       .N(COL_SA),
       .NUM_SHIFT(SHFT_REG_X),
-      .ACC_DATA_WIDTH(DATA_WIDTH_OB),
+      .ACC_DATA_WIDTH(DATA_WIDTH_ACC),
       .QUANT_DATA_WIDTH(DATA_WIDTH),
       .DATA_WIDTH(DATA_WIDTH)
   ) shift_register_x (
@@ -666,7 +678,7 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
 
   Demux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
-    .DATA_WIDTH(DATA_WIDTH_OB),
+    .DATA_WIDTH(DATA_WIDTH_ACC),
     .COL_SA(COL_SA)
   )
   dmux_param_inst(

@@ -1,5 +1,5 @@
-`include "common/instructions.vh"
-`include "common/portid.vh"
+`include "F:/Vicharak/Gati/Integration_v1/rtl/common/instructions.vh"
+`include "F:/Vicharak/Gati/Integration_v1/rtl/common/portid.vh"
 
 module top_gati_module #(
     
@@ -61,6 +61,7 @@ module top_gati_module #(
     parameter ROW           = 9,
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
+    parameter DATA_WIDTH_ACC = 32,
     parameter IMAGE_DIM     = 224,
 
     // FC inst. related params
@@ -113,6 +114,7 @@ module top_gati_module #(
     parameter SHFT_REG_X    = 4, // Number of shift register blocks
     parameter BIAS_FIFO     = 8, // Number of bias FIFOs
     parameter OP_FIFO       = 8,  // Number of output write FIFOs
+    parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter NO_PORT_VA    = 2,
     parameter NO_PORT_BAC   = 2,
@@ -199,7 +201,7 @@ module top_gati_module #(
     input [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len,
     input wready,
     output dv_op_write,
-    output data_last_op_write,
+    output o_data_last_op_write,
     output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
 
 );
@@ -702,6 +704,8 @@ module top_gati_module #(
 
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
+  wire data_last_op_write;
+
   top_op_write_mem_req_ctrl#(
     .N(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
@@ -886,12 +890,12 @@ module top_gati_module #(
 
   assign fc_img_fifo_status = 1'b1;
 
-  wire [(($clog2(ACC_FIFO_DEPTH)+1)*OP_FIFO)-1:0] acc_fifo_occupants;
+  wire [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*OP_FIFO)-1:0] bias_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
-  assign acc_fifo_status = (acc_fifo_occupants<={OP_FIFO{OP_FIFO}})? 1 : 0;
+  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{ACC_FIFO}})? 1 : 0;
   assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC}})? 1 : 0;
 
@@ -901,11 +905,11 @@ module top_gati_module #(
   assign zero_pad_enable = |(conv_zeropad);
   
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
-  wire [OP_FIFO-1:0] vector_add_wren;
+  wire [ACC_FIFO-1:0] vector_add_wren;
   // DRAM Data write ctlers for accumulants, bias, fcbias
   Mem_read_ctrl#(
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .N_FIFO(OP_FIFO) //Accumulant FIFOs = 8, each 32-bit 
+        .N_FIFO(ACC_FIFO) //Accumulant FIFOs
   )Accumulant_blk_data_write_ctrl(
         .clk(i_clk),
         .rst(i_rst),
@@ -994,7 +998,7 @@ module top_gati_module #(
   endgenerate
 
   wire [OP_FIFO-1:0] op_wren;
-  wire [(DATA_WIDTH_OB*OP_FIFO)-1:0] data_op_write_dram_fifo;
+  wire [(DATA_WIDTH_ACC*OP_FIFO)-1:0] data_op_write_dram_fifo;
   wire shift_reg_en;
   wire [SHFT_REG_X-1:0] shift_reg_sel;
   assign shift_reg_sel = {SHFT_REG_X{shift_reg_en}};
@@ -1026,11 +1030,13 @@ module top_gati_module #(
       .MOD1(MOD1),
       .MOD2(MOD2),
       .DATA_WIDTH_OB(DATA_WIDTH_OB),
+      .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_CONV_IMAGE_DIM(CONV_IW_WIDTH),
       .W_CONV_OP_IMAGE_DIM(CONV_OW_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .OP_FIFO(OP_FIFO),
+      .ACC_FIFO(ACC_FIFO),
       .WEIGHT_FIFO_DEPTH(WEIGHT_FIFO_DEPTH),
       .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
       .PSUM_FIFO_DEPTH(PSUM_FIFO_DEPTH),
@@ -1147,7 +1153,7 @@ module top_gati_module #(
   wire [OP_FIFO-1:0] op_dram_rden;
   dram_fifo #(
       .DIMENSION(OP_FIFO),
-      .W_DATA(DATA_WIDTH_OB),
+      .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
   ) op_write_dram_fifo (
@@ -1179,7 +1185,7 @@ module top_gati_module #(
     .fifo_rd_en(op_dram_rden)
   );
 
-
+  assign o_data_last_op_write = data_last_op_write;
  /* Iteration counter module that generates iteration 'done' signals based on the status
     of various operators. Also generates 'enable'signals to various tail blocks
     based on the instruction fields. Also generates 'acc_en' signal that specifies

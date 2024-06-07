@@ -187,7 +187,7 @@ module rah_gati #(
   wire o_rden;
 assign o_rden=rden;
 
-  always @(posedge m_clk) begin
+  always @(posedge t_clk) begin
 
     if (!empty) begin
       rden <= 1;

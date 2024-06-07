@@ -1,5 +1,5 @@
-`include "F:/Vicharak/Gati/Integration_v1/rtl/common/instructions.vh"
-`include "F:/Vicharak/Gati/Integration_v1/rtl/common/portid.vh"
+`include "common/instructions.vh"
+`include "common/portid.vh"
 
 module top_gati_module #(
     

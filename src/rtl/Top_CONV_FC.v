@@ -323,7 +323,7 @@ module Top_CONV_FC #(
     .W_KERNAL_CNT(W_KERNEL_CNT),
     .W_IMG_DIM(W_FC_IMAG_DIM),
     .W_IMG_BRAM_ADDR(W_FC_RW_COUNTER),
-    .IMG_FF_DEPTH(FC_BRAM_DEPTH) //Depth of BRAM
+    .IMG_FF_DEPTH(FC_BRAM_DEPTH), //Depth of BRAM
     .SHFT_REG_X(SHFT_REG_X),
     .N_SA(N_SA),
     .DRAM_BW(DRAM_BW)
@@ -400,7 +400,7 @@ module Top_CONV_FC #(
   FC_OP_Data_reorder#(
     .ACC_DW(ACC_DW), //data width of accumulator output
     .COL_FC(COL_FC), //number of cols in FC engine
-    .ACC_DATA_REORDER(ACC_DATA_REORDER) //param-If '0' pass the data as is and if '1' reorders the data to make it convenient for shift register
+    .ACC_DATA_REORDER(ACC_DATA_REORDER), //param-If '0' pass the data as is and if '1' reorders the data to make it convenient for shift register
     .DRAM_BW(DRAM_BW),
     .N_SA(N_SA),
     .SHFT_REG_X(SHFT_REG_X)
@@ -609,11 +609,11 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
   
   localparam REMOVE = DATA_WIDTH_OB - DATA_WIDTH_ACC;
   
-  genvar i;
+  genvar j;
   generate
-    for(i=0;i<COL_SA;i=i+1) begin
-      zp_unquantized_din[((DATA_WIDTH_ACC*(COL_SA-i))-1) -: DATA_WIDTH_ACC] = 
-      unquantized_output[((DATA_WIDTH_OB*(COL_SA-i)-REMOVE)-1) -: DATA_WIDTH_ACC];
+    for(j=0;j<COL_SA;j=j+1) begin
+      assign zp_unquantized_din[((DATA_WIDTH_ACC*(COL_SA-j))-1) -: DATA_WIDTH_ACC] = 
+      unquantized_output[((DATA_WIDTH_OB*(COL_SA-j)-REMOVE)-1) -: DATA_WIDTH_ACC];
     end
   endgenerate
 

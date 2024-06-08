@@ -186,7 +186,7 @@ module rah_gati #(
   wire o_rden;
 assign o_rden=rden;
 
-  always @(posedge  m_clk) begin
+  always @(posedge  i_clk) begin
 
     if (!empty) begin
       rden <= 1;
@@ -195,7 +195,7 @@ assign o_rden=rden;
     end
 end 
 
-	always @(posedge  m_clk) begin 
+	always @(posedge  i_clk) begin 
 		 if (o_rden)  begin 
 			  valid_data <= 1;
 			 
@@ -248,7 +248,7 @@ end
       .W_ADDR(IN_ADDR),
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
-      .i_clk(m_clk),
+      .i_clk(i_clk),
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
       .i_data(o_data),

@@ -9,7 +9,7 @@ module Dmux_param #(
     output [(NUM_PORTS*DATA_WIDTH*COL_SA)-1 : 0 ] o_dout,
     output reg [(NUM_PORTS*COL_SA)-1 : 0] o_datavalid
 );
-	assign o_dout=r_o_dout;
+//	assign o_dout=r_o_dout;
 //    integer i;
 //    initial begin
 //     for(i=0;i<NUM_PORTS;i=i+1)

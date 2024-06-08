@@ -678,7 +678,7 @@ end
 	 .wready(wr_id_o_wready),
 	  .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),
-      .data_last_op_write(data_last_op_write),
+      .o_data_last_op_write(data_last_op_write),
       .op_dram_fifo(op_dram_fifo)
   );
   ///////////////////////////////	

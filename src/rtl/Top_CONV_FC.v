@@ -58,7 +58,7 @@ module Top_CONV_FC #(
     input [DRAM_BW-1:0] image_fifo_empty,
     input CONV_FC,
     // input switch_enable,
-	input CONV_FC,  
+//	input CONV_FC,  
 	input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
 
     //weight fifo sharing signals
@@ -290,7 +290,6 @@ module Top_CONV_FC #(
       .FIFO(OP_FIFO)
   ) op_psum_rden_inst (
       .clk(i_clk),
-      .rst(rst),
       .empty_vector(empty_vector),
       .empty_sa(empty_sa),
       .vector_enable(vector_add_enable),
@@ -334,10 +333,7 @@ module Top_CONV_FC #(
     .W_KERNAL_CNT(W_KERNEL_CNT),
     .W_IMG_DIM(W_FC_IMAG_DIM),
     .W_IMG_BRAM_ADDR(W_FC_RW_COUNTER),
-    .IMG_FF_DEPTH(FC_BRAM_DEPTH), //Depth of BRAM
-    .SHFT_REG_X(SHFT_REG_X),
-    .N_SA(N_SA),
-    .DRAM_BW(DRAM_BW)
+    .IMG_FF_DEPTH(FC_BRAM_DEPTH) //Depth of BRAM
   )
   top_flattening_inst(
     .clk(i_clk),
@@ -474,7 +470,6 @@ module Top_CONV_FC #(
   top_output_block #(
       .DRAM_BW(DRAM_BW),
       .DATA_WIDTH(DATA_WIDTH_OB),
-      .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
       .N(N_SA),
       .FIFO_NO(ACC_FIFO),

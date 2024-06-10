@@ -39,7 +39,7 @@ for the im2col block.
 
 Below given is the block diagram of im2col architecture
 
-<img src="E:\project\im2col\im2col.drawio.png" alt="im2col Block">
+<img src="test\images\im2col.drawio.png" alt="im2col Block">
 
 ## Steps for testing the design
 

@@ -7,14 +7,14 @@
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
         <efx:top_module name="top_im2col"/>
-        <efx:design_file name="stride_mod.v" version="default" library="default"/>
-        <efx:design_file name="stride_block.v" version="default" library="default"/>
-        <efx:design_file name="mod_op.v" version="default" library="default"/>
-        <efx:design_file name="gen_mod_op.v" version="default" library="default"/>
-        <efx:design_file name="delay_reg.v" version="default" library="default"/>
-        <efx:design_file name="index_coordinate.v" version="default" library="default"/>
-        <efx:design_file name="bound_generation.v" version="default" library="default"/>
-        <efx:design_file name="top_im2col.v" version="default" library="default"/>
+        <efx:design_file name="../stride_mod.v" version="default" library="default"/>
+        <efx:design_file name="../stride_block.v" version="default" library="default"/>
+        <efx:design_file name="../mod_op.v" version="default" library="default"/>
+        <efx:design_file name="../gen_mod_op.v" version="default" library="default"/>
+        <efx:design_file name="../delay_reg.v" version="default" library="default"/>
+        <efx:design_file name="../index_coordinate.v" version="default" library="default"/>
+        <efx:design_file name="../bound_generation.v" version="default" library="default"/>
+        <efx:design_file name="../top_im2col.v" version="default" library="default"/>
         <efx:design_file name="test_data_ctrl.v" version="default" library="default"/>
         <efx:design_file name="rd_ctrl.v" version="default" library="default"/>
         <efx:design_file name="top_test.v" version="default" library="default"/>

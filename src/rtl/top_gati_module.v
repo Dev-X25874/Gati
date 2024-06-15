@@ -125,7 +125,7 @@ module top_gati_module #(
     input i_clk,
     input s_clk,
     input i_rst,
-    
+  // 	input n_clk, 
     ///////config block input
     input user_start,
 

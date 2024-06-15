@@ -40,6 +40,17 @@ assign o_start_address = start_addr;
 assign o_valid = valid;
 	reg last=0;
 	reg [31:0] sof={32{1'b1}};
+
+	reg 				r_i_data_valid;                     //comes from mipi fifo
+    reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
+
+	always @(posedge i_clk) begin 
+		r_i_data_valid<=i_data_valid;
+		r_i_data<=i_data;
+	end
+
+
+
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         counter <= 0;
@@ -54,13 +65,13 @@ always @(posedge i_clk)begin
 			IDLE:begin 
 				soft_start<=0;
 				last<=0;
-				if(i_data==sof) begin 
+				if(r_i_data==sof) begin 
 					state<=DATA_SIZE;
 				end
 			end
 			DATA_SIZE: begin 
-				if(i_data_valid) begin 
-					data_size<=i_data;
+				if(r_i_data_valid) begin 
+					data_size<=r_i_data;
 					valid <= 1'b1;
 					state<=ADDR;
 				end
@@ -71,17 +82,17 @@ always @(posedge i_clk)begin
 				if(data_size==0) begin 
 					last<=1;
 				end
-				if(i_data_valid) begin 
+				if(r_i_data_valid) begin 
 					valid <= 1'b1;	
-					start_addr<=i_data;
+					start_addr<=r_i_data;
 					state<=NEXT;
 				end 
 			end
 
 			NEXT: begin 
-				if((i_data_valid==1) && (counter!=0) && (~last)) begin 
+				if((r_i_data_valid==1) && (counter!=0) && (~last)) begin 
 					if(data_size>0)begin 
-						data<=i_data;
+						data<=r_i_data;
 						valid <= 1'b1;	
 						counter<=counter-4;
 					end

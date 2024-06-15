@@ -32,7 +32,8 @@ reg [1:0] state = 0;
 reg [N_BRAM-1 : 0] rden = 0;
 reg done = 0;
 reg [N_BANK-1 : 0]bank_en = 0;
-reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
+(* sync_use_dsp="0" *) reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
+	integer i;
 
 assign o_done = done;
 assign o_read_enable = rden;
@@ -58,9 +59,26 @@ reg [W_ADDR:0] bank_shift_counter = 0;
 reg [W_KERNAL_CNT-1:0] kernal_counter = 0;
 //holds number of address to be read from a bank
 wire[W_ADDR:0] temp_value;
+	reg r_w_done;
+    reg r_accumulator_valid;
+    reg r_flatten;
+    reg [W_KERNAL_CNT-1 : 0] r_kernal_count;
+    reg [(N_BANK * N_BRAM)-1 : 0] r_weight_ff_array_empty;
+    reg [W_IMG_DIM-1 : 0] r_image_dimension;
+    reg [W_IMG_BRAM_ADDR-1 : 0] r_i_addr_counter;
 
-assign temp_value = (image_dimension >> ($clog2(N_BRAM))) + ((image_dimension % N_BRAM) == 0 ? 0 : 1);
+assign temp_value = (r_image_dimension >> ($clog2(N_BRAM))) + ((r_image_dimension % N_BRAM) == 0 ? 0 : 1);
+	always @(posedge clk) begin 
+		
+		r_w_done<=w_done;
+		r_accumulator_valid<=accumulator_valid;
+		r_flatten<=flatten;
+		r_kernal_count<=kernal_count;
+		r_weight_ff_array_empty<=weight_ff_array_empty;
+		r_image_dimension<=image_dimension;
+		r_i_addr_counter<=i_addr_counter;
 
+	end
 //Asserts bank enable signal and handles address incrementation
 always @(posedge clk) begin
     if(~rstn)begin
@@ -70,7 +88,7 @@ always @(posedge clk) begin
         bank_counter <= 0;
         element_counter <= 0;
     end else begin
-       case(flatten)
+       case(r_flatten)
             1'b0:begin
                 case (state)
                     0:begin
@@ -81,14 +99,14 @@ always @(posedge clk) begin
                         bank_counter <= 0;
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
-                       if(w_done)begin
+                       if(r_w_done)begin
                         state <= 1;
                        end 
                     end
                     1: begin
-                        if(weight_ff_array_empty == 0)begin
-                            if(kernal_counter < kernal_count)begin
-                                if(bank_shift_counter < i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
+                        if(r_weight_ff_array_empty == 0)begin
+                            if(kernal_counter < r_kernal_count)begin
+                                if(bank_shift_counter < r_i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
                                         if(element_counter == (N_BRAM-1))begin
                                             
                                             rden_counter <= 0;
@@ -103,7 +121,15 @@ always @(posedge clk) begin
 
                                             bank_counter <= bank_counter + 1;
                                             element_counter <= 0;
-                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                           for(i=0;i<=3;i=i+1) begin
+												if(bank_counter==i) begin 
+													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+
+												end
+											
+											end
+
+											//addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
                                             addr_counter <= next_addr;
                                             if(rden_counter == 0)
                                                 rden[N_BRAM-1] <= 0;
@@ -114,10 +140,24 @@ always @(posedge clk) begin
                                         end else begin
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;
-                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            for(i=0;i<=3;i=i+1) begin
+												if(bank_counter==i) begin 
+													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+
+												end
+											
+											end
+
+
+
+
+
+
+
+											//addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
                                             
                                             //update read counter conditions
-                                            if(addr_counter == i_addr_counter)begin
+                                            if(addr_counter == r_i_addr_counter)begin
                                                 rden <= 0;
                                             end else begin
                                                     rden_counter <= rden_counter + 1;
@@ -167,7 +207,7 @@ always @(posedge clk) begin
                         addr <= 0;
                         addr_counter <= 0;
                         next_addr = 0;
-                        if(accumulator_valid)begin
+                        if(r_accumulator_valid)begin
                             kernal_counter <= kernal_counter + 1;
                             state <= 1;
                         end
@@ -185,15 +225,15 @@ always @(posedge clk) begin
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
                         next_addr = 0;
-                    if(w_done)begin
+                    if(r_w_done)begin
                         state <= 1;
                     end 
                     end
                     1: begin
-                        if(weight_ff_array_empty == 0)begin
-                            if(kernal_counter < kernal_count)begin
-                                if(bank_shift_counter < i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
-                                        if(element_counter == (image_dimension-1))begin
+                        if(r_weight_ff_array_empty == 0)begin
+                            if(kernal_counter < r_kernal_count)begin
+                                if(bank_shift_counter < r_i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
+                                        if(element_counter == (r_image_dimension-1))begin
                                             
                                             if(bank_counter == 3) begin
                                                 next_addr = addr_counter + 1;
@@ -202,7 +242,16 @@ always @(posedge clk) begin
 
                                             bank_counter <= bank_counter + 1;
                                             element_counter <= 0;
-                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                          	for(i=0;i<=3;i=i+1) begin
+												if(bank_counter==i) begin 
+													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+
+												end
+											
+											end
+
+
+										//	addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
                                             addr_counter <= next_addr;
                                             rden_counter <= 0;
                                             if(rden_counter == 0)
@@ -212,10 +261,30 @@ always @(posedge clk) begin
                                         end else begin
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;
-                                            addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
-                                            
+                                           // addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            for(i=0;i<=3;i=i+1) begin
+												if(bank_counter==i) begin 
+													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+
+												end
+											
+											end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                             //update read counter conditions
-                                            if(addr_counter == i_addr_counter)begin
+                                            if(addr_counter == r_i_addr_counter)begin
                                                 rden <= 0;
                                                 bank_en <= 0;
                                             end else begin
@@ -270,7 +339,7 @@ always @(posedge clk) begin
                         bank_shift_counter <= 0;
                         bank_counter <= 0;
                         addr <= 0;
-                        if(accumulator_valid)begin
+                        if(r_accumulator_valid)begin
                             kernal_counter <= kernal_counter + 1;
                             state <= 1;
                         end 

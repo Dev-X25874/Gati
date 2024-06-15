@@ -30,18 +30,17 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     input                                   i_start_im2col_index,
     input                                   i_valid_data,
     input                                   clk,
-    output [$clog2(UPPER_BOUND)-1:0]        row,
-    output [$clog2(UPPER_BOUND)-1:0]        col,
     input [DATA_WIDTH-1:0]                  i_data,
     input                                   rstn,
-    output [DATA_WIDTH-1:0]                 o_data,
     input [$clog2(UPPER_BOUND)-1:0]         mat_size,
-    output [$clog2(UPPER_BOUND)-1:0]        o_mat_size,
     input                                   zero_pad,
     output                                  o_valid_buff,
     output                                  o_valid_data,
-    output                                  im2col_done
-
+    output                                  im2col_done,
+	 output [$clog2(UPPER_BOUND)-1:0]        row,
+    output [$clog2(UPPER_BOUND)-1:0]        col,
+    output [$clog2(UPPER_BOUND)-1:0]        o_mat_size,
+    output [DATA_WIDTH-1:0]                 o_data
 );
 
     reg [$clog2(UPPER_BOUND)-1:0]           curr_row = LOWER_BOUND;
@@ -61,12 +60,39 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
    - Repeat the above process till both row and column counters reach maximum 
    (i.e., (row,col)=(224,224))*/
 //############################################################################## 
+	reg                                   r_valid_mat_size;
+    reg                                   r_i_start_im2col_index;
+    reg                                   r_i_valid_data;
+    reg [DATA_WIDTH-1:0]                  r_i_data;
+    reg [$clog2(UPPER_BOUND)-1:0]         r_mat_size;
+    reg                                   r_zero_pad;
+
+
+
+	always @(posedge clk) begin 
+
+	r_valid_mat_size<=valid_mat_size;
+	r_i_start_im2col_index<=i_start_im2col_index;
+	r_i_valid_data<=i_valid_data;
+	r_i_data<=i_data;
+	r_mat_size<=mat_size;
+	r_zero_pad<=zero_pad;
+	end
+
+
+
+
+
+
+
+
+
 
     always @(posedge clk) begin
       if(!rstn) begin
           curr_col <= 0;
           curr_row <= 0;
-      end else if (r_start_im2col | i_valid_data) begin
+      end else if (r_start_im2col | r_i_valid_data) begin
       if (curr_row == o_mat_size && curr_col == o_mat_size) begin
           curr_row <= LOWER_BOUND;
           curr_col <= LOWER_BOUND;
@@ -93,14 +119,14 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     
 
     always @(posedge clk) begin
-      if (i_start_im2col_index) begin
+      if (r_i_start_im2col_index) begin
         r_start_im2col <= 1'b1;
       end else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
         r_start_im2col <= 1'b0;
       end
     end
     
-    assign o_valid_buff = zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 
+    assign o_valid_buff = r_zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 
             | ((curr_row == o_mat_size)&&(curr_col == o_mat_size)) 
             | (curr_row == o_mat_size)|(curr_row == 1) 
             | (curr_col == o_mat_size - 1) 
@@ -108,14 +134,14 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     
     
 
-    assign  {o_valid_data,o_data} = r_start_im2col? (zero_pad ? (((curr_row == LOWER_BOUND) 
+    assign  {o_valid_data,o_data} = r_start_im2col? (r_zero_pad ? (((curr_row == LOWER_BOUND) 
             && (curr_col>=LOWER_BOUND) && (curr_col<=o_mat_size)) ?{1'd1,8'd0} :
             ((curr_row == o_mat_size) && (curr_col>=LOWER_BOUND) && (curr_col<=o_mat_size)) ? {1'd1,8'd0} :
             ((curr_col == LOWER_BOUND) && (curr_row>=LOWER_BOUND) && (curr_row<=o_mat_size)) ? {1'd1,8'd0} :
             ((curr_col == o_mat_size) && (curr_row>=LOWER_BOUND) && (curr_row<=o_mat_size)) ? {1'd1,8'd0} : 
-            {i_valid_data,i_data}) : {i_valid_data,i_data}) : {i_valid_data,i_data};              
+            {r_i_valid_data,r_i_data}) : {r_i_valid_data,r_i_data}) : {r_i_valid_data,r_i_data};              
 
-    assign o_mat_size = r_start_im2col? (valid_mat_size ?(zero_pad ? mat_size + 2 : mat_size) : 0) : 0; 
+    assign o_mat_size = r_start_im2col? (r_valid_mat_size ?(r_zero_pad ? r_mat_size + 2 : r_mat_size) : 0) : 0; 
 
     assign im2col_done = (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
 

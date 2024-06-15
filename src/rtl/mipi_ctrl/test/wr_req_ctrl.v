@@ -46,6 +46,32 @@ assign o_burst_len = burst_len;
 assign o_last = last;
 assign o_valid = valid;
 
+	reg r_i_data_last;   //burst last; comes from DDR write controller
+    reg r_i_data_valid;
+    reg [((W_ADDR + 1) * N_FIFO)-1 : 0] r_i_fifo_occupants; //comes from fifo array
+    reg [W_DATA-1 : 0] r_i_start_address;   //comes from fifo_wr_ctrl
+    reg [W_DATA-1 : 0] r_i_data_size;   //comes from fifo_wr_ctrl
+
+	always @ (posedge i_clk) begin 
+	
+		r_i_data_last<=i_data_last;
+		r_i_data_valid<=i_data_valid;
+		r_i_fifo_occupants<=i_fifo_occupants;
+		r_i_start_address<=i_start_address;
+		r_i_data_size<=i_data_size;
+	end
+
+
+
+
+
+
+
+
+
+
+
+
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         // req <= 0;
@@ -58,18 +84,18 @@ always @(posedge i_clk)begin
     end else begin
         case (state)
             0:begin
-                if(i_data_valid)begin
+                if(r_i_data_valid)begin
                     
-					data_size<=i_data_size;
+					data_size<=r_i_data_size;
 					state <= 4;
                 end
             end
 
 
 			4:begin 
-				if(i_data_valid) begin 
+				if(r_i_data_valid) begin 
 				
-                    r_addr <= i_start_address;
+                    r_addr <= r_i_start_address;
 					state<=1;
 				end
 			end
@@ -78,7 +104,7 @@ always @(posedge i_clk)begin
 
             1: begin
                 // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
-                if(i_fifo_occupants >= fifo_occupants) begin
+                if(r_i_fifo_occupants >= fifo_occupants) begin
                 	state <= 2;
                 end
 				if(data_size<512 && data_size!=0) begin 
@@ -118,13 +144,13 @@ always @(posedge i_clk)begin
                 if(data_size != 0 )begin
                     if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )&& (data_size[31]!=1) )) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
-						if(i_data_last) begin 
+						if(r_i_data_last) begin 
                             state <= 1;
 						    r_addr <= r_addr + offset;
 						end
                     end else begin
                         r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
-						if(i_data_last) begin 
+						if(r_i_data_last) begin 
                             state <= 1;
 							r_addr <= r_addr + offset;
 						end
@@ -132,7 +158,7 @@ always @(posedge i_clk)begin
 
                     end
                 end else begin
-					if(i_data_last) begin 
+					if(r_i_data_last) begin 
                     state <= 0;
 					end
                 end

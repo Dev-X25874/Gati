@@ -18,19 +18,15 @@ module Req_Queue_gen #(
 genvar i ;
 generate
     for (i = 0; i < NUM_QUEUE; i = i + 1) begin
-        data_fifo#(
-            .DATA_WIDTH(DATA_WIDTH),
-            .FF_DEPTH(RAM_DEPTH)
+        sync_fifo#(
+            .W_DATA(DATA_WIDTH),
+            .W_ADDR($clog2(RAM_DEPTH))
         ) fifo_inst (
-            .prog_full_o(),
-            .full_o(),
             .empty_o(empty_flag[i]),
             .clk_i(clk),
             .wr_en_i(Wr_en[i]),
             .rd_en_i(rd_en[i]),
             .wdata(data_in [(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
-            .datacount_o(),
-            .rst_busy(),
             .rdata(data_out[(DATA_WIDTH * (NUM_QUEUE - i))-1 -: DATA_WIDTH]),
             .a_rst_i(~rst),
             .o_valid(rd_out[i])

@@ -182,10 +182,13 @@ module Top_CONV_FC #(
   wire [ROW-1:0] o_valid_squares;
 
 
-  wire sel_mux;
+  reg  sel_mux;
   wire im2col_o_valid;
   wire [DATA_WIDTH -1:0] im2col_o_data;
-  assign sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
+  
+  always @(*) begin
+	   sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
+  end
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
   wire  [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
@@ -403,13 +406,6 @@ module Top_CONV_FC #(
   assign FC_done = &(dv_FC_accumulator_data);
   
   
-  wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
-  wire o_dv_reorder;
-  wire [$clog2(NO_PORT_FC)-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
-  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
-  wire valid_out_FC;
-  wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  wire [COL_SA-1:0] dv_SA_FC;
  
   //interconnect of SA and FC
   assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
@@ -568,8 +564,6 @@ module Top_CONV_FC #(
 );
 
 
-wire [COL_SA -1:0] relu_valid;
-wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
 
   top_relu_gen #(
       .N(COL_SA),

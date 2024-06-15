@@ -135,6 +135,7 @@ module rah_gati #(
 
 ) (
     input i_clk,
+	//input g_clk,
     input s_clk,
     input m_clk,
 	input i_rst,
@@ -628,7 +629,8 @@ end
       .NO_PORT_BAFC(NO_PORT_BAFC)
     ) top_gati_module_inst (
       .i_clk(i_clk),
-      .s_clk(s_clk),
+   //   .g_clk(g_clk),
+	  .s_clk(s_clk),
       .i_rst(i_rst),
       .user_start(user_start),
       .mc_config_addr(mc_config_addr),

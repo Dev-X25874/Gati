@@ -10,6 +10,7 @@ module image_fifo_array#(
 )(
     input i_clk,
     input i_rstn,
+    input dr_clk,
     input [W_DATA-1 : 0]i_data,
     input [DIMENSION-1:0] i_read_enable,
     input [DIMENSION-1:0] i_write_enable,
@@ -23,17 +24,18 @@ module image_fifo_array#(
 genvar i;
 generate
     for(i = 0; i < DIMENSION; i = i + 1)begin
-        sync_fifo #(
+        async_81#(
             .W_DATA(W_DATA),
             .W_ADDR(W_ADDR)
         ) fifo_inst (
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),
-            .clk_i(i_clk),
+            .wr_clk_i(i_clk),
+	    .rd_clk_i(dr_clk),	
             .wr_en_i(i_write_enable[i]),
             .rd_en_i(i_read_enable[i]),
             .wdata(i_data),
-            .datacount_o(o_occupants[((W_ADDR + 1) * (i + 1)) - 1 -: (W_ADDR + 1)]),
+            .wr_datacount_o(o_occupants[((W_ADDR + 1) * (i + 1)) - 1 -: (W_ADDR + 1)]),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (DIMENSION - i)) -1) -: W_DATA]),
             .a_rst_i(~i_rstn),

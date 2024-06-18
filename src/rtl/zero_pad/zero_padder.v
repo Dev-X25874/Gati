@@ -25,14 +25,23 @@ output          o_dv;
 reg [DW-1:0] doutns, doutps;
 reg o_dvns, o_dvps;
 
+
 reg [I_SIZE_WIDTH:0] countps,countns;
 
 wire [I_SIZE_WIDTH:0] count_max;
 wire [I_SIZE_WIDTH:0] extra_cycles;
 
-assign count_max = i_size + extra_cycles;
-assign extra_cycles = (i_size%MOD == 0)? 0 : MOD-(i_size%MOD);
+assign count_max = r_i_size + extra_cycles;
+assign extra_cycles = (r_i_size%MOD == 0)? 0 : MOD-(r_i_size%MOD);
+reg [I_SIZE_WIDTH-1:0]    r_i_size;
+reg [DW-1:0]              r_data_in;
+reg                       r_i_dv;
+always @(posedge clk) begin 
 
+r_i_size<=i_size;
+r_data_in<=data_in;
+r_i_dv<=i_dv;
+end
 always@(posedge clk)
 begin
    if(!rst) begin
@@ -47,26 +56,33 @@ begin
    end
 end
 
+reg flag1,flag2;
+always @ (*) begin 
+	
+ 	flag1=(countps>=r_i_size && countps<=count_max)?1:0;
+	flag2=((countps == count_max)||(countps == 0))?1:0;
+end 
 
-always@(*)
+
+always@(posedge clk) 
 begin
     if(i_dv==1'b1)
     begin
-        doutns  = data_in;
+        doutns  = r_data_in;
         o_dvns  = 1'b1;
         countns = countps + 1;
     end
     
     else
     begin
-        if((countps == count_max)||(countps == 0))
+        if(flag2)
         begin
             doutns  =  doutps;
             o_dvns  =  1'b0;
             countns =  0;
         end
         
-        else if(countps>=i_size && countps<=count_max)
+        else if(flag1)
         begin
             doutns  = 0;
             o_dvns  = 1'b1;

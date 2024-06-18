@@ -16,7 +16,8 @@ module Top_DRAM_controller #(
     parameter   ABN_C               = AXI_BYTE_NUMBER   
 ) (
     input clk,
-    input   [ 1:0]  PllLocked ,
+    input c_81_clk,
+	input   [ 1:0]  PllLocked ,
     input rst ,                                            // active low
     
     //DDR Controner Control Signal
@@ -97,6 +98,7 @@ Port_ctrl_gen #(
 ) 
 port_ctrl_gen_inst(
     .clk (clk),
+	.c_81_clk(c_81_clk),
     .rst(Axi0Rst_N), 
     .valid(port_ctrl_i_valid),        
     .last (port_ctrl_i_last),       
@@ -116,6 +118,7 @@ Req_Queue_gen #(
 ) 
 Req_Queue_gen_inst(
     .clk (clk),
+	.c_81_clk(c_81_clk),
     .rst (Axi0Rst_N), 
     .empty_flag (fifo_empty_out),
     .rd_en (fifo_rd_en),

@@ -49,13 +49,31 @@ module inst_read_ctrl#(
   reg [NUM_INSTRUCTIONS-1:0]psedo_ack_reg=0; //interim register
   reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0;
 
+
+reg f1,f2;
+always @(*) begin 
+
+	f1<=((layer_number==total_layers)&&(opcode==ALL_ONES))?1:0;
+	f2<=((status_inst_q && done_status)| (flag&&status_inst_q))?1:0;
+
+end
+
+
+
+
+
+
+
+
+
+
   always @(posedge clkin)
   begin
     case(super_state)
       4'd0:
       begin
         //layer_done<=0;
-        if((layer_number==total_layers)&&(opcode==ALL_ONES)) //if conditions match make config block wait for user start again
+        if(f1) //if conditions match make config block wait for user start again
         begin
           if(flag_2)
           begin
@@ -96,7 +114,7 @@ module inst_read_ctrl#(
             4'd1:
             begin
 
-              if((status_inst_q && done_status)| (flag&&status_inst_q)) //send read signal
+              if(f2) //send read signal
               begin
                 read_signal_reg<=1'b1;
                 flag<=0;

@@ -10,6 +10,7 @@ module Port_ctrl_gen #(
     parameter PORT_ID_WIDTH = 4
 ) (
     input    clk,
+	input    c_81_clk,
     input    rst, 
     input [NUM_PORTS-1:0]       valid,        
     input [NUM_PORTS-1:0]       last,         
@@ -24,7 +25,30 @@ module Port_ctrl_gen #(
   genvar i;
   generate
     for (i = 0; i < NUM_PORTS; i = i + 1) begin
-      Port_controller #(
+     if(i==0) begin  
+	  Port_controller #(
+        .PORT_ID_VALUE (PORT_ID[(PORT_ID_WIDTH * (NUM_PORTS - i))-1 -: PORT_ID_WIDTH]) ,
+        .ADDR_SEGMENTS (4),
+        .ADDRESS_WIDTH (ADDRESS_WIDTH),
+        .IN_ADDR (IN_ADDR) ,
+        .COMBINED_DATA_WIDTH (COMBINED_DATA_WIDTH),
+        .BURST_LENGTH_WIDTH (BURST_LENGTH_WIDTH),
+        .PORT_ID_WIDTH (PORT_ID_WIDTH)
+      ) Port_controller_inst (
+        .clk(c_81_clk),
+        .rst(rst),
+        .valid(valid[i]),  
+        .last (last[i]), 
+        .in_address(in_address[(IN_ADDR * (NUM_PORTS - i))-1 -: IN_ADDR]),        
+        .in_enable_rw(in_enable_rw[i]),           
+        .in_burst_len(in_burst_len[(BURST_LENGTH_WIDTH * (NUM_PORTS - i))- 1 -: BURST_LENGTH_WIDTH]),
+        .o_valid (o_valid[i]),
+        .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
+      );
+	  end
+
+	  else begin 
+	  Port_controller #(
         .PORT_ID_VALUE (PORT_ID[(PORT_ID_WIDTH * (NUM_PORTS - i))-1 -: PORT_ID_WIDTH]) ,
         .ADDR_SEGMENTS (4),
         .ADDRESS_WIDTH (ADDRESS_WIDTH),
@@ -43,6 +67,7 @@ module Port_ctrl_gen #(
         .o_valid (o_valid[i]),
         .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
       );
+	  end
     end
   endgenerate
   

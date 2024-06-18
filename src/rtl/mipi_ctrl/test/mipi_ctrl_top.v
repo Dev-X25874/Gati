@@ -9,7 +9,8 @@ module mipi_ctrl_top#(
     input i_clk,
     input i_rstn,
     input i_data_valid,
-    input [W_DATA-1 : 0] i_data,
+    input dr_clk,
+	input [W_DATA-1 : 0] i_data,
 	input ddr_sel,
 	input ddr_wready,
 	input [W_BURST_LEN-1 : 0]ddr_blen,
@@ -89,6 +90,7 @@ image_fifo_array#(
 )mul_fifo_array(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
+	 .dr_clk(dr_clk),
     .i_data(data_ff_wr_ctrl),
     .i_write_enable(ff_write_enable),
     .i_read_enable(ff_read_enable),
@@ -107,7 +109,7 @@ dram_wr_ctrl#(
     .N_FIFO(N_FIFO),
     .W_BURST_LEN(W_BURST_LEN)
 )dram_write_controller(
-    .i_clk(i_clk),
+    .i_clk(dr_clk),
 	.i_dv(&dv),
 	.s_start(w_start),
     .i_rstn(i_rstn),

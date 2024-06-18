@@ -16,86 +16,181 @@ module dram_wr_ctrl#(
     output o_data_valid
 );
 reg data_last = 0;
+
 reg dv = 0;
 reg s_flag=0;
-reg [2:0] state = 0;
-reg [W_BURST_LEN-1 : 0] rd_counter = 0;
-reg [N_FIFO-1 : 0] rden = 0;
-reg [W_BURST_LEN-1 : 0] r_blen = 0;
+wire [N_FIFO-1 : 0] rden;
 wire [((W_ADDR + 1) * N_FIFO)-1 : 0] fifo_occupants;
+reg data_valid;
+
+	reg [1:0] state;
+    reg [W_BURST_LEN-1 : 0] r_blen;
+    reg [W_BURST_LEN : 0] count_blen;
+	reg DataWrLast;
+    wire DataWrEnd;
+
+	always @(posedge i_clk) begin 
+		if(s_start) begin 
+			s_flag<=1;	
+		end
+	end
+
+    always@(posedge i_clk)begin
+        if (!i_rstn) begin
+            count_blen <= 0;
+            state <= 2'd0;
+			soft_start <= 0;
+        end else begin
+            case(state)
+                2'd0:begin
+					soft_start <= 0;
+                    if(i_select==1) begin
+                        state <= 2'd1;
+                        count_blen <= 0;
+                        data_valid <= 1'b0;
+                        r_blen <= i_burst_length;
+                    end
+                    else begin
+                        state <= 0;
+                        count_blen <= 0;
+                        data_valid <= 1'b0;
+                        r_blen <= r_blen;
+                    end
+                end
+
+                2'd1:begin
+                    if(i_select==1)
+                        state <= 2'd2;
+                    else
+                        state <= 2'd0;
+                end
+
+                2'd2:begin
+                    if((count_blen > r_blen) && DataWrEnd) begin
+                        data_valid <= 1'b0;
+                        state <= 0;
+                        count_blen <= 0;
+						if(s_flag) begin 
+							soft_start<=1;
+					    end
+                    end
+                    else if (count_blen == r_blen) begin
+                        if(i_write_ready) begin
+                            data_valid <= 1'b1;
+                            count_blen <= count_blen + 1;
+                            state <= 2'd2;
+                        end
+                        else begin
+                            data_valid <= data_valid;
+                            count_blen <= count_blen;
+                            state <= 2'd2;
+                        end
+                    end
+                    else begin
+                        if(i_write_ready) begin
+                            data_valid <= 1'b1;
+                            count_blen <= count_blen + 1;
+                            state <= 2'd2;
+                        end
+                        else begin
+                            data_valid <= data_valid;
+                            count_blen <= count_blen;
+                            state <= 2'd2;
+                        end
+                    end
+                end
+
+                default: begin
+                    state <= 0;
+                    count_blen <= 0;
+                    data_valid <= 0;
+                end
+
+            endcase
+        end
+    end
+
+    assign rden = (data_valid & i_write_ready) ? {N_FIFO{1'b1}} : {N_FIFO{1'b0}};
+
+    assign DataWrEnd = DataWrLast & data_valid & i_write_ready;
+        
+    always@( posedge i_clk)
+    begin
+        if(!i_rstn)                                                DataWrLast <= 1'b0;
+        else if (data_valid && i_write_ready && (count_blen==r_blen))  DataWrLast <= 1'b1;
+        else if (DataWrEnd)                                     DataWrLast <= 1'b0;
+    end
+
+	always@(posedge i_clk) begin
+		data_last <= DataWrEnd;
+	end
+
 assign fifo_occupants = {N_FIFO{1'b0,r_blen}};
 //assign o_data_valid = dv;
 assign o_fifo_read_enable = rden;
 assign o_data_last = data_last;
-	reg  prev=0;
-	assign o_data_valid=i_dv;
-	always @(posedge i_clk) begin 
-		prev<=i_write_ready;
-		if(s_start) begin 
-			s_flag<=1;	
-		end
+assign o_data_valid=i_dv;
+	
+// always @(posedge i_clk)begin
+//     if(~i_rstn)begin
+//         data_last <= 0;
+//         rden <= 0;
+//         state <= 0;
+//         dv <= 0;
+//     end else begin
+//         case (state)
+//             0:begin
+// 				data_last<=0;
+// 				soft_start<=0;
+//                 if(i_select)begin
+//                     r_blen <= i_burst_length;
+//                     if(i_write_ready)begin
+//                         state <= 1;
+// 						rden <= {N_FIFO{1'b1}};
+//                     end 
+//                 end
+//             end
 
-	end
-always @(posedge i_clk)begin
-    if(~i_rstn)begin
-        data_last <= 0;
-        rden <= 0;
-        state <= 0;
-        dv <= 0;
-    end else begin
-        case (state)
-            0:begin
-				data_last<=0;
-				soft_start<=0;
-                if(i_select)begin
-                    r_blen <= i_burst_length;
-                    if(i_write_ready)begin
-                        state <= 1;
-						rden <= {N_FIFO{1'b1}};
-                    end 
-                end
-            end
+// 			1: begin
+// 					if(prev) begin 
+//                         rden <= {N_FIFO{1'b1}};
+//                         rd_counter <= rd_counter + 1;
+//                         state <= 2;
+// 					end
+// 					else begin 
+// 						rden<=0;
+// 					end
+//             end
 
-			1: begin
-					if(prev) begin 
-                        rden <= {N_FIFO{1'b1}};
-                        rd_counter <= rd_counter + 1;
-                        state <= 2;
-					end
-					else begin 
-						rden<=0;
-					end
-            end
+//             2: begin
+// 				if(prev) begin 
 
-            2: begin
-				if(prev) begin 
+//                		 if(rd_counter == r_blen)begin
+//                		     rd_counter <= 0;
+//                		     rden <= 0;
+//                		     state <= 0;
+// 						 if(s_flag) begin 
+// 							 soft_start<=1;
+// 						end
+//                		     data_last <= 1'b1;
+//                		     dv <= 1'b1;
+//                		 end 
+//                	      else begin
+//                		     rden <= {N_FIFO{1'b1}};
+//                		     rd_counter <= rd_counter + 1;
+//                		     dv <= 1'b1;
+//                		 end
+// 				end
+// 				else begin 
+// 					rden<=0;
+// 					dv<=0;
+// 				end
 
-               		 if(rd_counter == r_blen)begin
-               		     rd_counter <= 0;
-               		     rden <= 0;
-               		     state <= 0;
-						 if(s_flag) begin 
-							 soft_start<=1;
-						end
-               		     data_last <= 1'b1;
-               		     dv <= 1'b1;
-               		 end 
-               	      else begin
-               		     rden <= {N_FIFO{1'b1}};
-               		     rd_counter <= rd_counter + 1;
-               		     dv <= 1'b1;
-               		 end
-				end
-				else begin 
-					rden<=0;
-					dv<=0;
-				end
+//             end
 
-            end
-
-            default: state <= 0;
-        endcase
-    end
-end
+//             default: state <= 0;
+//         endcase
+//     end
+// end
     
 endmodule

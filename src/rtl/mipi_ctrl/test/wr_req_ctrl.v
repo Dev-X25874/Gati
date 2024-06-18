@@ -87,22 +87,22 @@ always @(posedge i_clk)begin
                 if(r_i_data_valid)begin
                     
 					data_size<=r_i_data_size;
-					state <= 4;
+					state <= 1;
                 end
             end
 
 
-			4:begin 
+			1:begin 
 				if(r_i_data_valid) begin 
 				
                     r_addr <= r_i_start_address;
-					state<=1;
+					state<=3;
 				end
 			end
 
 			
 
-            1: begin
+            3: begin
                 // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
                 if(r_i_fifo_occupants >= fifo_occupants) begin
                 	state <= 2;
@@ -137,21 +137,21 @@ always @(posedge i_clk)begin
                     addr_counter <= 0;
                     last <= 1'b0;
                     valid <= 1'b0;
-                    state <= 3;
+                    state <= 6;
                 end
             end
-            3: begin
+            6: begin
                 if(data_size != 0 )begin
                     if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )&& (data_size[31]!=1) )) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
 						if(r_i_data_last) begin 
-                            state <= 1;
+                            state <= 3;
 						    r_addr <= r_addr + offset;
 						end
                     end else begin
                         r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 						if(r_i_data_last) begin 
-                            state <= 1;
+                            state <= 3;
 							r_addr <= r_addr + offset;
 						end
 

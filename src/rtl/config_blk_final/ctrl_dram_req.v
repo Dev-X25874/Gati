@@ -32,7 +32,7 @@ reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
 reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
-
+integer i;
 always @(posedge clkin)begin
   case(state)
     4'd0:
@@ -48,10 +48,15 @@ always @(posedge clkin)begin
     end
     4'd1:
     begin
-      o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
+     // o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
       dv<=1'b1;
       counter1<=counter1+8;
-
+		
+		for(i=0;i<25;i=i+8) begin
+			if(counter1==i) begin 
+				o_address_reg<=internal_reg_start[(ADDR_W-i)-1-:8];
+			end
+		end
       burst_len_reg<=0;
       if(counter1==24)
       begin
@@ -103,9 +108,14 @@ always @(posedge clkin)begin
     4'd4:
     begin
       //send address to mem controller in 8bits with required signals
-      o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
+   //   o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
       counter1<=counter1+8;
       dv<=1'b1;
+	   for(i=0;i<25;i=i+8) begin
+			if(counter1==i) begin 
+				o_address_reg<=internal_reg_start[(ADDR_W-i)-1-:8];
+			end
+		end
 
       burst_len_reg<=BURST_LEN_AXI;
       if(counter1==24)

@@ -135,7 +135,7 @@ module rah_gati #(
 
 ) (
     input i_clk,
-	//input g_clk,
+	input c_81_clk,
     input s_clk,
     input m_clk,
 	input i_rst,
@@ -187,7 +187,7 @@ module rah_gati #(
   wire o_rden;
 assign o_rden=rden;
 
-  always @(posedge  i_clk) begin
+  always @(posedge c_81_clk) begin
 
     if (!empty) begin
       rden <= 1;
@@ -196,7 +196,7 @@ assign o_rden=rden;
     end
 end 
 
-	always @(posedge  i_clk) begin 
+	always @(posedge c_81_clk) begin 
 		 if (o_rden)  begin 
 			  valid_data <= 1;
 			 
@@ -249,7 +249,8 @@ end
       .W_ADDR(IN_ADDR),
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
-      .i_clk(i_clk),
+      .i_clk(c_81_clk),
+	  .dr_clk(m_clk),
       .i_rstn(i_rst),
       .i_data_valid(valid_data),
       .i_data(o_data),
@@ -487,7 +488,8 @@ end
   )
   Top_DRAM_controller_inst (
     .clk(m_clk),
-    .rst(i_rst),
+    .c_81_clk(c_81_clk),
+	.rst(i_rst),
 	.PllLocked(PllLocked),
     .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),

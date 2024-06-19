@@ -28,11 +28,17 @@ reg [7:0] o_address_reg=0;
 reg dv;
 reg read_req_reg;
 reg last_reg=0;
-reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0,shifted_burst_len_reg=0;
 reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
 integer i;
+	reg [$clog2(BURST_LEN_AXI):0] r_o_burst_shifted;
+
+	always @ (posedge clkin) begin 
+		r_o_burst_shifted<=(burst_len+1)<<$clog2(ADDR_W);
+		shifted_burst_len_reg<=(burst_len_reg+1)<<$clog2(ADDR_W);
+	end 
 always @(posedge clkin)begin
   case(state)
     4'd0:
@@ -143,16 +149,16 @@ always @(posedge clkin)begin
     end
     4'd5:
     begin
-      if(((internal_reg_stop-((burst_len+1)<<$clog2(ADDR_W)))>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
+      if(((internal_reg_stop-r_o_burst_shifted)>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
       begin
         if(status)
         begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
+          internal_reg_start<=internal_reg_start+shifted_burst_len_reg;//for testing 32'h200;   //+//32'h10000; // update internal reg
           state<=4'd4;
         end
         else
         begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
+			internal_reg_start<=internal_reg_start+shifted_burst_len_reg;//for testing 32'h200;   //+//32'h10000; // update internal reg
           state<=4'd3; //Back to check status of instruction queue
         end
       end

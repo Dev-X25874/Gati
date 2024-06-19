@@ -44,10 +44,10 @@ assign o_valid = valid;
 	reg 				r_i_data_valid;                     //comes from mipi fifo
     reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
 
-	always @(posedge i_clk) begin 
-		r_i_data_valid<=i_data_valid;
-		r_i_data<=i_data;
-	end
+//	always @(posedge i_clk) begin 
+//		r_i_data_valid<=i_data_valid;
+//		r_i_data<=i_data;
+//	end
 
 
 
@@ -65,13 +65,13 @@ always @(posedge i_clk)begin
 			IDLE:begin 
 				soft_start<=0;
 				last<=0;
-				if(r_i_data==sof) begin 
+				if(i_data==sof) begin 
 					state<=DATA_SIZE;
 				end
 			end
 			DATA_SIZE: begin 
-				if(r_i_data_valid) begin 
-					data_size<=r_i_data;
+				if(i_data_valid) begin 
+					data_size<=i_data;
 					valid <= 1'b1;
 					state<=ADDR;
 				end
@@ -82,17 +82,17 @@ always @(posedge i_clk)begin
 				if(data_size==0) begin 
 					last<=1;
 				end
-				if(r_i_data_valid) begin 
+				if(i_data_valid) begin 
 					valid <= 1'b1;	
-					start_addr<=r_i_data;
+					start_addr<=i_data;
 					state<=NEXT;
 				end 
 			end
 
 			NEXT: begin 
-				if((r_i_data_valid==1) && (counter!=0) && (~last)) begin 
+				if((i_data_valid==1) && (counter!=0) && (~last)) begin 
 					if(data_size>0)begin 
-						data<=r_i_data;
+						data<=i_data;
 						valid <= 1'b1;	
 						counter<=counter-4;
 					end

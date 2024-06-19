@@ -53,20 +53,22 @@ begin
     countps <= countns;
     doutps  <= doutns;
     o_dvps  <= o_dvns;
+    flag1<=(countps-1>=r_i_size && countps<count_max)?1:0;
+    flag2<=((countps -1 == count_max)||(countps == 0))?1:0;
    end
 end
 
 reg flag1,flag2;
-always @ (*) begin 
-	
- 	flag1=(countps>=r_i_size && countps<=count_max)?1:0;
-	flag2=((countps == count_max)||(countps == 0))?1:0;
-end 
+//always @ (posedge clk)  begin 
+//	
+// 	
+//	
+//end 
 
 
-always@(posedge clk) 
+always@(*) 
 begin
-    if(i_dv==1'b1)
+    if(r_i_dv==1'b1)
     begin
         doutns  = r_data_in;
         o_dvns  = 1'b1;

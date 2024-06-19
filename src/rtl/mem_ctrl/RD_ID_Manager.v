@@ -80,6 +80,7 @@ always @(posedge clk) begin
     end
 end 
 
+integer i = 0;
 always @ (posedge clk) begin 
     if (!rst) begin 
         select_rd <=0;
@@ -88,20 +89,28 @@ always @ (posedge clk) begin
     else begin 
     rd_r_valid <= rvalid ;
     rd_r_last  <= rlast ;
-        if ((current_sent == rid) && rvalid)  begin
-        select_rd [current_sent] <= 1'b1 ;            
-        ack_rd <= 1'b1 ;
-        end 
         
+        for(i=0;i<NUM_PORTS_SEL;i=i+1) begin
+            if((i == rid) && rvalid) begin
+                select_rd[i] <= 1;
+            end
+            else select_rd[i] <= 0;
+        end
+
+        /*
+        if ((current_sent == rid) && rvalid)  begin
+            select_rd [current_sent] <= 1'b1 ;            
+            ack_rd <= 1'b1 ;
+        end  
         else if (rd_r_last && rd_r_valid ) begin 
             select_rd  <= 0;
             ack_rd <= 0 ;
         end 
-        
         else begin 
             select_rd <= select_rd ;
             ack_rd <= ack_rd ;
         end 
+        */
     end 
 end 
 endmodule

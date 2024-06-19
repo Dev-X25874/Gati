@@ -49,8 +49,8 @@ module buffers #(
 
   reg [(BUFFER_SIZE*(DRAM_BW/N_SA))-1:0] buffer = 0;
 
-  reg [$clog2((DRAM_BW/N_SA))-1:0] j = 0;
-
+  reg  [$clog2((DRAM_BW/N_SA))-1:0] j = 0;
+	integer i;
   //	reg [2:0] element_count=3'd7;	 
 
 
@@ -68,7 +68,11 @@ module buffers #(
 
 
     if (data_signal) begin
-      data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-j)-1-:BUFFER_SIZE];
+		for( i=0;i<(DRAM_BW/N_SA);i=i+1) begin 
+			if(j==i) begin 
+				data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-i)-1-:BUFFER_SIZE];
+			end
+		end 
       j <= j + 1;
       element_poped <= element_poped + 1;
 

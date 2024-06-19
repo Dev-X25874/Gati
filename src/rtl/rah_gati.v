@@ -675,21 +675,46 @@ end
       .mc_op_write_valid(mc_op_write_valid),
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
-      .select((select_wr|select_rd)),
-     .dram_rd_datavalid(dram_rd_datavalid),
-     .dram_rd_data_last(dram_rd_data_last),
-     .dram_rd_data(dram_rd_data),
-	 .wready(wr_id_o_wready),
-	  .wr_burst_len(wr_burst_len),
+      .select(s_s),
+     .dram_rd_datavalid(s_dram_rd_datavalid),
+     .dram_rd_data_last(s_dram_rd_data_last),
+     .dram_rd_data(s_dram_rd_data),
+	 .wready(s_wr_id_o_wready),
+	  .wr_burst_len(s_wr_burst_len),
       .dv_op_write(dv_op_write),
       .o_data_last_op_write(data_last_op_write),
       .op_dram_fifo(op_dram_fifo)
   );
   ///////////////////////////////	
-
+(* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;
+  (* async_reg="true" *) reg f_dram_rd_data_last,s_dram_rd_data_last;
+   (* async_reg="true" *) reg   f_dram_rd_datavalid,s_dram_rd_datavalid;
+    (* async_reg="true" *) reg  f_wr_id_o_wready,s_wr_id_o_wready ;                              
+    (* async_reg="true" *) reg  [BURST_LENGTH_WIDTH-1 : 0] f_wr_burst_len,s_wr_burst_len;
+  (* async_reg="true" *) reg [NUM_PORTS-1:0]f_s,s_s; 
   //////////////////////////////////// MIPI controller tx
+  always @ (posedge i_clk) begin 
+	  f_dram_rd_data<=dram_rd_data;
+	  s_dram_rd_data<=f_dram_rd_data;
 
-  ///////////////////////////////////
+	  f_dram_rd_data_last<=dram_rd_data_last;
+	  s_dram_rd_data_last<=f_dram_rd_data_last;
+
+     f_dram_rd_datavalid<=dram_rd_datavalid;
+	s_dram_rd_datavalid<=f_dram_rd_datavalid;
+  
+	 f_wr_id_o_wready<=wr_id_o_wready;
+	s_wr_id_o_wready<=f_wr_id_o_wready;
+
+	f_wr_burst_len<=wr_burst_len;
+		s_wr_burst_len<=f_wr_burst_len;
+
+	   	f_s<=(select_rd|select_wr);
+ 		s_s<=f_s;
+
+
+  end 
+	  ///////////////////////////////////
 
 endmodule
 

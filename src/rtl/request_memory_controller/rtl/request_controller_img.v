@@ -18,6 +18,7 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
 //reg [31:0] r_addr_out = 0;
+integer i;
 reg [4:0] count = 0;
 reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
 reg [2:0] state = 0;
@@ -57,7 +58,11 @@ always @(posedge clk) begin
     end
     START_ADDR: begin
         if(count < 3) begin
-            addr_out <= nxt_addr[32-(count*8)-1 -:8];
+			for(i=0;i<3;i=i+1) begin 
+				if(i==count)begin 
+					addr_out <= nxt_addr[32-(i*8)-1 -:8];
+				end
+			end
             wr_enable <= 0;
             valid <= 1;
             r_burst_length <= r_burst_length;
@@ -65,7 +70,7 @@ always @(posedge clk) begin
             count <= count + 1;
         end
         else begin
-            addr_out <= nxt_addr[32-(count*8)-1 -:8];
+            addr_out <= nxt_addr[7:0];
             wr_enable <= 0;
             last <= 1;
             valid <= 1;

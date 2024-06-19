@@ -146,6 +146,11 @@
 	`define DWP_DS_INDEX 1
 	`define DWP_ADDR_INDEX 2
 
+	`define ZerothStartAddress 31:0
+	`define ZerothStartAddress_WIDTH 32
+	`define ZerothEndAddress 63:32
+	`define ZerothEndAddress_WIDTH 32
+
 .. code::
 
 	#define OP_CONV 0x00
@@ -355,6 +360,13 @@
 	#define DWP_DS_INDEX 1
 	#define DWP_ADDR_INDEX 2
 
+	#define ZerothStartAddress_LOW 0
+	#define ZerothStartAddress_HIGH 31
+	#define ZerothStartAddress_COUNT 32
+	#define ZerothEndAddress_LOW 32
+	#define ZerothEndAddress_HIGH 63
+	#define ZerothEndAddress_COUNT 32
+
 	inline std::map<std::string,int> get_conv_table(const std::bitset<INST_SIZE_BITS>& inst) {
 		std::map<std::string,int> tbl;
 		tbl.insert({"Opcode", bitset_range_get<CONV_Opcode_COUNT, INST_SIZE_BITS>(inst, CONV_Opcode_LOW, CONV_Opcode_HIGH)});
@@ -454,5 +466,14 @@
 	}
 	inline void pretty_print_tailblock(const std::bitset<INST_SIZE_BITS>& inst) {
 		auto tbl = get_tailblock_table(inst);
+		print_table(tbl);
+	}
+	inline std::map<std::string,int> get_zerothstartaddress_table(const std::bitset<INST_SIZE_BITS>& inst) {
+		std::map<std::string,int> tbl;
+		tbl.insert({"ZerothEndAddress", bitset_range_get<ZerothStartAddress_ZerothEndAddress_COUNT, INST_SIZE_BITS>(inst, ZerothStartAddress_ZerothEndAddress_LOW, ZerothStartAddress_ZerothEndAddress_HIGH)});
+		return tbl;
+	}
+	inline void pretty_print_zerothstartaddress(const std::bitset<INST_SIZE_BITS>& inst) {
+		auto tbl = get_zerothstartaddress_table(inst);
 		print_table(tbl);
 	}

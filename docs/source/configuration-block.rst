@@ -1,3 +1,5 @@
+.. _configuration_block:
+
 Configuration Block
 *******************
 This document presents the design of configuration block that reads the instructions from DDR and send to the

@@ -8,6 +8,8 @@ Gati
     sa
     quantization
     dram
+    configuration-block
+    memory-controller
 
 .. contents:: Table of Contents
    :local:
@@ -387,10 +389,10 @@ transpositions on them happens once, at the start, on CPU and later by the FPGA.
 
 For concrete details on the layout and access pattern, see :ref:`ddr_layout_and_access`.
 
+For implementation of memory controller, see :ref:`memory_controller`
+
 Configuration Block
 *******************
-
-.. TODO
 
 .. note::
 
@@ -407,6 +409,9 @@ Each table above shows a config packet of 256 bits. Understand these
 packets as instructions where the instruction width is 256. None of the
 above configs currently take all 256 bits, this is not a problem, these
 least significant remaining bits can be assumed to be reserved.
+
+For implementation details of config block, see
+:ref:`configuration_block`
 
 .. sectionauthor:: Shreeyash Pandey (@bojle)
 

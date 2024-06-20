@@ -38,7 +38,7 @@ ID and then starts sending data to FIFO and checks for the config_done signal to
 
 ### Block diagram of fpga2cpu architecture
 
-<img src="test\images\fpga2cpu.drawio.png" alt="fpga2cpu block">
+<img src="test\fpga2cpu.drawio.png" alt="fpga2cpu block">
 
 
 ## Steps to test the design

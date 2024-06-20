@@ -36,7 +36,7 @@ keeps on updating according to the data size which keeps on updating itself and 
 This block is responsible for slicing the incoming 256-bit data from DDR into 32-bit chunks. As soon as it receives the valid_rq from it latches the data size and
 ID and then starts sending data to FIFO and checks for the config_done signal to send the SOF  and indicate the end of the operation.
 
-Below given is the block diagram of fpga2cpu architecture
+### Block diagram of fpga2cpu architecture
 
 <img src="test\images\fpga2cpu.drawio.png" alt="fpga2cpu block">
 

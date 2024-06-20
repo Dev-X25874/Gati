@@ -14,7 +14,7 @@
         <efx:design_file name="../request_generator.v" version="default" library="default"/>
         <efx:design_file name="test_data_ctrl.v" version="default" library="default"/>
         <efx:design_file name="top_test.v" version="default" library="default"/>
-        <efx:design_file name="../top_fpga_dram.v" version="default" library="default"/>
+        <efx:design_file name="top_fpga_dram.v" version="default" library="default"/>
         <efx:design_file name="controller.v" version="default" library="default"/>
         <efx:design_file name="top_test_dram.v" version="default" library="default"/>
         <efx:design_file name="top_dram_cpu.v" version="default" library="default"/>

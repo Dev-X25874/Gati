@@ -1,193 +1,194 @@
-//make id 32 bit, datasize 2 chunks 16,16, SOF 32 Bit
-module mipi_formatter#(
-    parameter IDWIDTH=32,
-    parameter DATASIZE_WIDTH=32,
-    parameter DATA_WIDTH=256,
-    parameter MIPI_S=48,
-    parameter LCM_MIPI=768,
-    parameter SOF_W=32
-  )(
-    input clkin,
-    input [IDWIDTH-1:0]id,
-    input [DATASIZE_WIDTH-1:0]data_size,
-    input valid_req,
-    input start,
-    input [DATA_WIDTH-1:0]data_fifo,
-    input data_valid,
-    output reg ready_sig,
-    output reg [MIPI_S-1:0]mipi_packet,
-    output reg mipi_valid,
-    output reg read_enable
-  );
-  reg [31:0]SOF={SOF_W{1'b1}};
-  reg [LCM_MIPI-1:0]reg_array=0;// forstoring 768 bits which is send easily
-  //reg [LCM_MIPI-1:0]splice_array=0;//for remaining data which has to be zero padded
-  reg [4:0]state=0;
-  reg [IDWIDTH-1:0]id_reg;
-  reg signed [DATASIZE_WIDTH-1:0]data_size_reg;
-  //reg [DATASIZE_WIDTH-1:0]data_size_reg_1;
-  reg [DATASIZE_WIDTH-1:0]zero_pad;
-  reg [3:0]data_count=0;
-  reg [4:0]count=(LCM_MIPI/MIPI_S);
-  reg [10:0]splice_value=0;
-  reg [6:0]splice_count=0;
-  reg [8:0]packet_count=0;
-  reg [7:0]i=0;
-  reg flag=1;//to load remaining data once
-  always @(posedge clkin)
-  begin
-    case(state)
-      4'd0:
-      begin
-        ready_sig<=1;
-        if(valid_req)
-        begin
-          data_size_reg<=data_size;
-          //data_size_reg_1<=data_size;
-          id_reg<=id;
-        end
-        if(start)
-        begin
-          state<=4'd1;
-        end
-      end
-      4'd1:
-      begin
-        ready_sig<=0;
-        /*         //precalculation if zero padding is needed
-                if(data_size_reg_1>=6)
-                begin
-                  data_size_reg_1=data_size_reg_1-6;
-                  state<=4'd1;
-                end
-                else
-                begin
-                  zero_pad<=(6-data_size_reg_1)<<3;//in bits
-                  state<=4'd2;
-                end */
-        zero_pad<=(6-(data_size_reg%6))<<3;//in bits
-        state<=4'd2;
-      end
-      4'd2:
-      begin
-        mipi_packet[(MIPI_S-1)-:DATASIZE_WIDTH]<=SOF;
-        mipi_packet[((DATASIZE_WIDTH>>1)-1)-:(DATASIZE_WIDTH>>1)]<=data_size_reg[DATASIZE_WIDTH-1 -:DATASIZE_WIDTH>>1];
-        mipi_valid<=1;
-        state<=4'd3;
-      end
-      4'd3:
-      begin
-        mipi_packet[(MIPI_S-1)-:(DATASIZE_WIDTH>>1)]<=data_size_reg[0+:(DATASIZE_WIDTH>>1)];
-        mipi_packet[0+:DATASIZE_WIDTH]<=id_reg;
-        mipi_valid<=1;
-        state<=4'd4;
-      end
-      4'd4:
-      begin
-        //mipi_packet<=0;
-        mipi_valid<=0;
-        state<=4'd5;
-        read_enable<=1;//make data fifo send data
-        //make either mipi_packet or mipi valid 0
-      end
-      //first 2 frames done
-      //now data frames
-      4'd5:
-      begin
-        if((data_size_reg)>=96)//768/8
-        begin
-          if(data_count<(LCM_MIPI/DATA_WIDTH))//------->3
-          begin
-            if(data_valid)
-            begin
-              data_count<=data_count+1;
-              //[((data_count)<<$clog2(DATA_WIDTH))-:DATA_WIDTH]reg_array<=data_fifo;
-              reg_array[((LCM_MIPI-1)-((data_count)<<$clog2(DATA_WIDTH)))-:DATA_WIDTH]<=data_fifo;
-              data_size_reg<=data_size_reg-(DATA_WIDTH>>3);//-------->
+module mipi_formatter #(
+    parameter DATA_SIZE = 20,
+    parameter ID = 10,
+    parameter AXI_DATA_WIDTH = 256,
+    parameter CPU_DATA_WIDTH = 32)
+(
+    input  clk,
+    input  rst,
+    input  valid_req,
+    input  [DATA_SIZE-1:0] i_data_size,
+    input  [ID-1:0] i_id,
+    input  empty,
+    input  config_done, //comes from config block
+    input  full,
+    input  fifo_valid,
+    input  [AXI_DATA_WIDTH-1:0] data_in,
+    output [CPU_DATA_WIDTH-1:0] data_out,
+    output reg ready,
+    output reg valid,
+    output reg rd_en
+);
+
+reg [CPU_DATA_WIDTH-1:0] r_data_out = 0;
+reg [3:0] state = 0;
+reg [DATA_SIZE-1:0] data_size_count = 0; //reg for updating the data size
+reg [ID-1:0] r_id = 0;
+reg [CPU_DATA_WIDTH -1:0] sof = 32'hFFFFFFFF;
+reg [3:0] packet_count = 0;
+reg [AXI_DATA_WIDTH-1:0] r_data_in = 0; //reg for holding th input data before slicing into 32 bits and sending to MIPI fifo
+reg r_config_done = 0; //reg for holding the done instruction
+
+assign data_out = r_data_out;
+
+always @ (posedge clk) begin
+    if(!rst) begin
+        state <= 0;
+        r_data_out <= 0;
+        ready <= 0;
+        valid <= 0;
+        data_size_count <= 0;
+        r_id <= 0;
+        packet_count <= 0;
+        r_data_in <= 0;
+    end
+
+    else begin
+        case(state)
+        0:begin
+            ready <= 1;
+            r_data_out <= 0;
+            valid <= 0;
+            if(valid_req) begin
+                data_size_count <= i_data_size;
+                r_id <= i_id;
+                state <= 1;
             end
-          end
-          else
-          begin
-            data_count<=0;
-            state<=4'd6;//---->mipi it
-            read_enable<=0;
-          end
-        end
-        else
-        begin
-          if(flag)
-          begin
-            splice_value<=(data_size_reg<<3)+zero_pad;//how much data is left to be spliced out in bits
-            flag<=0;
-          end
-          if(data_size_reg>0)
-          begin
-            if(data_valid)
-            begin
-              reg_array[(LCM_MIPI-1-(splice_count<<8))-:DATASIZE_WIDTH]<=data_fifo;
-              data_size_reg<=data_size_reg-32;
-              splice_count<=splice_count+1;
+            else begin
+                data_size_count <= 0;
+                r_id <= 0;
+                state <= 0;
             end
-          end
-          else
-          begin
-            state<=7;
-            read_enable<=0;
-            splice_count<=0;
-          end
         end
-      end
-      4'd6:
-      begin
-        if(count>0)
-        begin
-          mipi_packet<=reg_array[((count*48)-1)-:MIPI_S];
-          mipi_valid<=1;
-          count<=count-1;
+
+        1:begin
+            ready <= 0;
+            if(!empty) begin
+                r_data_out <= sof;
+                valid <= 1;
+                state <= 2;
+            end
+            else begin
+                r_data_out <= 0;
+                valid <= 0;
+                state <= 1;
+            end
         end
-        else
-        begin
-          count<=(LCM_MIPI/MIPI_S);
-          mipi_packet<=0;
-          state<=5;
-          read_enable<=1;
-          mipi_valid<=0;
-          reg_array<=0;
+
+        2:begin
+            rd_en <= 0;
+            r_data_out <= data_size_count;
+            valid <= 1;
+            state <= 3;
         end
-      end
-      4'd7:
-      begin
-        //calculate number of mipi packets remaining
-        /*         if(splice_value>0)
-                begin
-                  splice_value=splice_value-48;
-                  packet_count<=packet_count+1
-                end
-                else
-                begin
-                  state<=8;
-                end */
-        packet_count<=splice_value/48;
-        state<=8;
-      end
-      4'd8:
-      begin
-        if(packet_count>0)
-        begin
-          mipi_packet<=reg_array[((LCM_MIPI-1) - (i * MIPI_S)) -: MIPI_S];
-          i=i+1;
-          packet_count<=packet_count-1;
+
+        3:begin
+            rd_en <= 1;
+            r_data_out <= r_id;
+            valid <= 1;
+            state <= 4;
         end
-        else
-        begin
-          state<=0;
-          flag<=1;
-          reg_array<=0;
-          splice_value<=0;
-          packet_count<=0;
-          i<=0;
+        
+        4:begin
+            rd_en <= 0;
+            if(fifo_valid) begin
+                r_data_in <= data_in;
+                state <= 5;
+            end
+            else begin
+                r_data_in <= r_data_in;
+                state <= 4;
+            end
+        end        
+
+        5:begin //slicing the data and sending it in 8 cycles of 32 bits
+            if(packet_count < 7) begin
+                r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
+                valid <= 1;
+                state <= 5;
+                packet_count <= packet_count + 1;
+            end
+            else if (packet_count == 7) begin
+                r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
+                valid <= 1;
+                packet_count <= packet_count + 1;
+                data_size_count <= data_size_count - 32;
+                state <= 5;
+            end
+            else begin
+                packet_count <= 0;
+                valid <= 0;
+                state <= 6;
+            end
         end
-      end
-    endcase
-  end
+
+        6:begin
+            if((data_size_count > 0) && (data_size_count[DATA_SIZE-1] != 1)) begin //check if all the data has been sent or not
+                rd_en <= 1;
+                state <= 4;
+            end
+            else begin
+                if(r_config_done)begin //check whether the current request was the last request 
+                    rd_en <= 0;
+                    data_size_count <= 0;
+                    r_id <= 0;
+                    state <= 7;
+                    end
+                else begin
+                    rd_en <= 0;
+                    data_size_count <= 0;
+                    r_id <= 0;
+                    state <= 0;
+                end    
+            end
+        end
+
+        7:begin
+            if(full) begin
+            valid <= 0;
+            state <= 7;
+            end
+            else begin
+            r_data_out <= sof;
+            valid <= 1;
+            state <= 8;
+            end
+        end
+
+        8:begin
+            r_data_out <= data_size_count;
+            valid <= 1;
+            state <= 9;
+        end
+
+        9:begin
+            r_data_out <= r_id;
+            valid <= 1;
+            state <= 0;
+        end
+        endcase
+    end
+end
+
+always @ (posedge clk) begin
+if(!rst) begin
+r_config_done <= 0;
+end
+else begin
+if (config_done) begin
+r_config_done <= 1;
+end
+else if(state == 8) begin
+r_config_done <= 0;
+end
+else begin
+r_config_done <= r_config_done;
+end
+end
+end
+
 endmodule
+
+
+
+

@@ -263,7 +263,8 @@ module top_gati_module #(
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
   ) config_blk_inst (
       .clkin(i_clk),
-      .user_start(user_start),
+      .rst(i_rst),
+	  .user_start(user_start),
       .valid(dram_rd_datavalid),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),

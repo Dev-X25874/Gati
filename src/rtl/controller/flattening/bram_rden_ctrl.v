@@ -32,7 +32,7 @@ reg [1:0] state = 0;
 reg [N_BRAM-1 : 0] rden = 0;
 reg done = 0;
 reg [N_BANK-1 : 0]bank_en = 0;
-(* sync_use_dsp="0" *) reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
+ reg [(N_BANK * (W_ADDR + 1))-1 : 0] addr = 0;
 	integer i;
 
 assign o_done = done;
@@ -64,12 +64,14 @@ wire[W_ADDR:0] temp_value;
     reg r_flatten;
     reg [W_KERNAL_CNT-1 : 0] r_kernal_count;
     reg [(N_BANK * N_BRAM)-1 : 0] r_weight_ff_array_empty;
-    reg [W_IMG_DIM-1 : 0] r_image_dimension;
+    reg [W_IMG_DIM-1 : 0] r_image_dimension,shift_rim,mod_rim;
     reg [W_IMG_BRAM_ADDR-1 : 0] r_i_addr_counter;
 
-assign temp_value = (r_image_dimension >> ($clog2(N_BRAM))) + ((r_image_dimension % N_BRAM) == 0 ? 0 : 1);
+assign temp_value = shift_rim + (mod_rim == 0 ? 0 : 1);
 	always @(posedge clk) begin 
-		
+		mod_rim<=r_image_dimension % N_BRAM;
+		shift_rim<=r_image_dimension >> ($clog2(N_BRAM));
+
 		r_w_done<=w_done;
 		r_accumulator_valid<=accumulator_valid;
 		r_flatten<=flatten;
@@ -95,7 +97,7 @@ always @(posedge clk) begin
                         done <= 0;
                         bank_en <= 0;
                         element_counter <= 0;
-                        next_addr = 0;
+                        next_addr <= 0;
                         bank_counter <= 0;
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
@@ -114,7 +116,7 @@ always @(posedge clk) begin
 
 
                                             if(bank_counter == 3) begin
-                                                next_addr = addr_counter + 1;
+                                                next_addr <= addr_counter + 1;
                                                 // bank_counter <= 0;
                                                 bank_shift_counter <= bank_shift_counter + 1;
                                             end
@@ -206,7 +208,7 @@ always @(posedge clk) begin
                         element_counter <= 0;
                         addr <= 0;
                         addr_counter <= 0;
-                        next_addr = 0;
+                        next_addr <= 0;
                         if(r_accumulator_valid)begin
                             kernal_counter <= kernal_counter + 1;
                             state <= 1;
@@ -224,7 +226,7 @@ always @(posedge clk) begin
                         bank_counter <= 0;
                         bank_shift_counter <= 0;
                         kernal_counter <= 0;
-                        next_addr = 0;
+                        next_addr <= 0;
                     if(r_w_done)begin
                         state <= 1;
                     end 
@@ -236,7 +238,7 @@ always @(posedge clk) begin
                                         if(element_counter == (r_image_dimension-1))begin
                                             
                                             if(bank_counter == 3) begin
-                                                next_addr = addr_counter + 1;
+                                                next_addr <= addr_counter + 1;
                                                 bank_shift_counter <= bank_shift_counter + temp_value;
                                             end
 
@@ -269,19 +271,6 @@ always @(posedge clk) begin
 												end
 											
 											end
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                                             //update read counter conditions
                                             if(addr_counter == r_i_addr_counter)begin
@@ -335,7 +324,7 @@ always @(posedge clk) begin
                     2: begin
                         rden_counter <= 0;
                         addr_counter <= 0;
-                        next_addr = 0;
+                        next_addr <= 0;
                         bank_shift_counter <= 0;
                         bank_counter <= 0;
                         addr <= 0;

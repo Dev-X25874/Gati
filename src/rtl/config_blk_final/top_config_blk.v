@@ -18,6 +18,7 @@ module config_blk #(
     parameter STATUS_DRAM_LIM=10)
   (
     input clkin,
+    input rst,
     input user_start,
     input valid,
     input sel,
@@ -88,7 +89,8 @@ module config_blk #(
                .STATUS_DRAM_LIM(STATUS_DRAM_LIM))
              inst_q_3(
                .clkin(clkin),
-               .instruct_mem(instruction_2_3),
+               .rst(rst),
+				.instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
                .instruct_valid(instruction_v_2_3),
                .o_instruction(o_instruction_3_5),

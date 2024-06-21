@@ -28,7 +28,9 @@ input  [AXI_DATA_WIDTH-1:0] i_data_in,
 input  i_data_last,
 input  i_data_valid,
 input  config_done,
-output o_mipi_ready
+input  mipi_rd_en,
+output o_mipi_ready,
+output [AXI_DATA_WIDTH-1:0] mipi_fifo_out
 );
 
 reg  mipi_fifo_status;
@@ -45,7 +47,7 @@ wire [ADDR_W-1:0] w_addr;
 wire [DATA_SIZE-1:0] w_data_size;
 wire [ID-1:0] w_id;
 wire w_data_last;
-wire dram_wr_en;
+wire [N_FIFO-1:0] dram_wr_en;
 wire [AXI_DATA_WIDTH-1:0] fifo_in;
 wire [AXI_DATA_WIDTH-1:0] fifo_out;
 wire dram_rd_en;
@@ -175,10 +177,10 @@ sync_fifo #(.W_DATA(CPU_DATA_WIDTH), .W_ADDR(W_ADDR)) mipi_fifo(
 .a_rst_i(~rst),
 .clk_i(clk),
 .wdata(mipi_fifo_in),
-.rdata(),
+.rdata(mipi_fifo_out),
 .o_valid(),
 .wr_en_i(mipi_wr_en),
-.rd_en_i(),
+.rd_en_i(mipi_rd_en),
 .empty_o(),
 .full_o(fullflag),
 .datacount_o(datacount)

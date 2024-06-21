@@ -9,13 +9,13 @@ module Req_Manager #(
     input clk,
     input rst,
     input [NUM_PORTS-1:0] req_in,
-    output reg [NUM_PORTS-1:0] req_out = 0,
     input [(NUM_PORTS*DATA_WIDTH)-1:0] in_data_div,
+    input [NUM_PORTS-1:0] rd_valid ,
+    output reg [NUM_PORTS-1:0] req_out = 0,
     output [ADDRESS_WIDTH-1:0] o_addr_div ,
     output [BURST_WIDTH-1:0] o_burst_div ,
     output [PORT_ID_WIDTH-1:0] o_port_div ,
     output reg o_rw_div = 0,
-    input [NUM_PORTS-1:0] rd_valid ,
     output [BIN_WIDTH-1 :0] rd_sel_binary,
     output reg valid_req = 0
 );
@@ -24,7 +24,15 @@ reg [7:0] w_data = 0;
 reg [7:0] n_ports = 0;
 reg  [DATA_WIDTH-1:0] data_sel=0;
 
+	reg [NUM_PORTS-1:0] r_req_in;
+    reg [(NUM_PORTS*DATA_WIDTH)-1:0] r_in_data_div;
+    reg [NUM_PORTS-1:0] r_rd_valid ;
 
+always @ (posedge clk) begin 
+ 	r_req_in<=req_in;
+	r_in_data_div<=in_data_div;
+	r_rd_valid<=rd_valid;
+end
 
 
 assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;
@@ -33,7 +41,7 @@ assign o_port_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-1:DATA_WIDTH-
 //assign o_rw_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH-1];
 
 always @(*) begin
-    req_out = req_in;
+    req_out = r_req_in;
 end
 
 
@@ -46,8 +54,8 @@ always @(posedge clk) begin
         valid_req <= 1'b0;
     end else begin
 		for(i=0;i<NUM_PORTS;i=i+1) begin
-			if(rd_valid[i])begin
-    	        data_sel <= in_data_div [(DATA_WIDTH*(NUM_PORTS-i)) -1 -: DATA_WIDTH] ;
+			if(r_rd_valid[i])begin
+    	        data_sel <= r_in_data_div [(DATA_WIDTH*(NUM_PORTS-i)) -1 -: DATA_WIDTH] ;
     	        valid_req <= 1'b1;
     	    end else begin
     	        valid_req <= 1'b0;

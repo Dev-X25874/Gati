@@ -80,7 +80,7 @@ end
     reg r_Tail_done;
     reg r_op_fifo_empty;
     reg r_FC_done;
-	reg [CITER_CNT_WIDTH-1:0] r_c_iter;
+	reg [CITER_CNT_WIDTH-1:0] r_c_iter,sub_iter;
     reg [KITER_CNT_WIDTH-1:0] r_k_iter;
     
     //Enable signals from instruction
@@ -103,7 +103,7 @@ reg r_layer_done;
         r_Tail_done<=Tail_done;
         r_op_fifo_empty<=op_fifo_empty;
         r_FC_done<=FC_done;
-		r_c_iter<=c_iter;
+		r_c_iter<=c_iter-1;
 		r_k_iter<=k_iter;
 		r_BIAS_EN<=BIAS_EN;
 		r_RELU_EN<=RELU_EN;
@@ -111,6 +111,7 @@ reg r_layer_done;
 		r_POOL_EN<=POOL_EN;
 		r_ACC_EN<=ACC_EN;
 		r_FC_BIAS_EN<=FC_BIAS_EN;
+		
 	end
 always@(posedge i_clk) begin
     if(!rst) begin
@@ -174,7 +175,7 @@ always@(posedge i_clk) begin
         
         3'd5:begin
             iter_done <= 0;
-            if(c_ctr==r_c_iter-1) begin
+            if(c_ctr==r_c_iter) begin
                 c_done <= 1;
                 k_ctr <= k_ctr + 1;
                 c_ctr <= 0;
@@ -235,7 +236,7 @@ always@(posedge i_clk)begin
             relu_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter-1) relu_en <= 1;
+            if(c_ctr==r_c_iter) relu_en <= 1;
             else                relu_en <= 0;
         end
     end
@@ -250,7 +251,7 @@ always@(posedge i_clk)begin
             quant_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter-1) quant_en <= 1;
+            if(c_ctr==r_c_iter) quant_en <= 1;
             else                quant_en <= 0;
         end
     end
@@ -265,7 +266,7 @@ always@(posedge i_clk)begin
             bias_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter-1) bias_en <= 1;
+            if(c_ctr==r_c_iter) bias_en <= 1;
             else                bias_en <= 0;
         end
     end
@@ -280,7 +281,7 @@ always@(posedge i_clk)begin
             fc_bias_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter-1) fc_bias_en <= 1;
+            if(c_ctr==r_c_iter) fc_bias_en <= 1;
             else                fc_bias_en <= 0;
         end
     end
@@ -295,7 +296,7 @@ always@(posedge i_clk)begin
             pool_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter-1) pool_en <= 1;
+            if(c_ctr==r_c_iter) pool_en <= 1;
             else                pool_en <= 0;
         end
     end
@@ -306,15 +307,15 @@ always@(posedge i_clk)begin
         en <= 0;
     end
     else begin
-        if(c_ctr==r_c_iter-1) en <= 1;
+        if(c_ctr==r_c_iter) en <= 1;
         else                en <= 0;
     end
 end
 
 //Generation of 'ack' signals for config blk
-assign Conv_Ack     =   ((c_ctr==r_c_iter-1)&&(k_ctr==r_k_iter-1))? SA_done : 0;
+assign Conv_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? SA_done : 0;
 //assign OpBlock_Ack  =   ((c_ctr==c_iter-1)&&(k_ctr==k_iter-1))? iter_done : 0;
 assign OpBlock_Ack  =   o_layer_done;
-assign Tail_Ack     =   ((c_ctr==r_c_iter-1)&&(k_ctr==r_k_iter-1))? r_Tail_done : 0;
+assign Tail_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? r_Tail_done : 0;
 
 endmodule

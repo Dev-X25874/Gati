@@ -34,11 +34,24 @@ assign write_done = w_done;
 assign write_enable = wren;
 assign o_data = data;
 assign o_waddr = {N_BANK{waddr}};
-
+	reg r_start;
+    reg r_data_valid;
+    reg [W_KERNAL_CNT-1 : 0] r_i_kernal_counter;    //reg from instruction
+    reg [W_KERNAL_CNT-1 : 0] r_kernal_counter;      //reg from read enable controller
+    reg [W_IMG_BRAM_ADDR-1 : 0] r_i_addr_counter;
+    reg [((N_BANK * N_BRAM) * W_DATA)-1 : 0] r_i_data;
+	always @ (posedge clk) begin 
+		r_start<=start;
+		r_data_valid<=data_valid;
+		r_i_kernal_counter<=i_kernal_counter;
+		r_kernal_counter<=kernal_counter;
+		r_i_addr_counter<=i_addr_counter;
+		r_i_data<=i_data;
+	end
 wire w_start;
 //gives out one pulse output of trigger received as input from GPIO
 pulse_gen one_pulse_generator(
-    .a(start),
+    .a(r_start),
     .i_rstn(rstn),
     .clk(clk),
     .b(w_start)
@@ -59,8 +72,8 @@ always @(posedge clk) begin
             end
 
             1:begin
-                if(data_valid)begin
-                    data <= i_data;
+                if(r_data_valid)begin
+                    data <= r_i_data;
                     counter <= counter + 1;
                     wren <= {(N_BANK * N_BRAM){1'b1}};
                     w_done <= 1'b0;
@@ -69,8 +82,8 @@ always @(posedge clk) begin
             end
 
             2: begin
-                if(data_valid)begin
-                    if(counter == i_addr_counter)begin
+                if(r_data_valid)begin
+                    if(counter == r_i_addr_counter)begin
                          counter <= 0;
                          waddr <= 0;
                          wren <= {(N_BANK * N_BRAM){1'b0}};
@@ -78,7 +91,7 @@ always @(posedge clk) begin
                          data <= 0;
                          state <= 3;
                     end else begin
-                         data <= i_data;
+                         data <= r_i_data;
                          counter <= counter + 1;
                          wren <= {(N_BANK * N_BRAM){1'b1}};
                          waddr <= waddr + 1;
@@ -94,7 +107,7 @@ always @(posedge clk) begin
             end
 
             3: begin
-                if(kernal_counter == i_kernal_counter)  //32 weight are loaded at once into FC, so 4096/32 = 128
+                if(r_kernal_counter == r_i_kernal_counter)  //32 weight are loaded at once into FC, so 4096/32 = 128
                     state <= 0;
             end
         endcase

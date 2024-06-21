@@ -363,11 +363,21 @@ module Top_CONV_FC #(
 
  
   // FC Computing Engine
-  wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  wire [COL_SA-1:0] dv_SA_FC;
+  reg [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
+  reg [COL_SA-1:0] dv_SA_FC;
   //interconnect of SA and FC
- assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
- assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
+  always @ (posedge i_clk) begin
+	if(CONV_FC) begin 
+		data_SA_FC<=op_data_mux_FC;
+		dv_SA_FC<={COL_SA{valid_out_FC}};
+	end 
+	else begin 
+		data_SA_FC<=result_tree;
+		dv_SA_FC<=valid_tree;
+	end
+  end
+// assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
+ //assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
 
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
@@ -408,8 +418,8 @@ module Top_CONV_FC #(
   
  
   //interconnect of SA and FC
-  assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
-  assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
+ // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
+  //assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
   
   //Interconnect to pass SA output or FC ouput
 

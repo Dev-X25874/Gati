@@ -64,14 +64,14 @@ wire[W_ADDR:0] temp_value;
     reg r_flatten;
     reg [W_KERNAL_CNT-1 : 0] r_kernal_count;
     reg [(N_BANK * N_BRAM)-1 : 0] r_weight_ff_array_empty;
-    reg [W_IMG_DIM-1 : 0] r_image_dimension,shift_rim,mod_rim;
+    reg [W_IMG_DIM-1 : 0] r_image_dimension,shift_rim,mod_rim,sub1_rim;
     reg [W_IMG_BRAM_ADDR-1 : 0] r_i_addr_counter;
 
 assign temp_value = shift_rim + (mod_rim == 0 ? 0 : 1);
 	always @(posedge clk) begin 
 		mod_rim<=r_image_dimension % N_BRAM;
 		shift_rim<=r_image_dimension >> ($clog2(N_BRAM));
-
+		sub1_rim<=image_dimension-1;
 		r_w_done<=w_done;
 		r_accumulator_valid<=accumulator_valid;
 		r_flatten<=flatten;
@@ -235,7 +235,7 @@ always @(posedge clk) begin
                         if(r_weight_ff_array_empty == 0)begin
                             if(kernal_counter < r_kernal_count)begin
                                 if(bank_shift_counter < r_i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
-                                        if(element_counter == (r_image_dimension-1))begin
+                                        if(element_counter == (sub1_rim))begin
                                             
                                             if(bank_counter == 3) begin
                                                 next_addr <= addr_counter + 1;

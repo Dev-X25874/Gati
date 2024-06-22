@@ -901,9 +901,10 @@ module top_gati_module #(
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC}})? 1 : 0;
 
 
-  wire zero_pad_enable;
-
-  assign zero_pad_enable = |(conv_zeropad);
+  reg  zero_pad_enable;
+always @ (posedge i_clk) begin 
+   zero_pad_enable <= |(conv_zeropad);
+   end
   
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
   wire [ACC_FIFO-1:0] vector_add_wren;

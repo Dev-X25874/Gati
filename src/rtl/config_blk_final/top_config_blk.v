@@ -62,7 +62,7 @@ module config_blk #(
                  .status(status_3_1),
                  .global_reg_address_start(global_start),
                  .global_reg_address_stop(global_stop),
-                 .address_valid(instruction_v_2_3),
+                 .address_valid(address_valid),
                  .read_req(memory_read_r),
                  .valid(memory_valid),
                  .o_address(mem_address),
@@ -79,6 +79,7 @@ module config_blk #(
                       .i_instruction_data(instruction_data),
                       .o_instruction(instruction_2_3),
                       .o_instruction_valid(instruction_v_2_3),
+                      .o_address_valid(address_valid),
                       .o_global_start(global_start),
                       .o_global_stop(global_stop)
                     );

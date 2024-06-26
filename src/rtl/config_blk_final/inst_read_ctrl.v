@@ -217,7 +217,7 @@ end
                     start_out<=1;
                     read_signal_reg<=1'b1;
                     state_start<=4'd2;
-                    bus_master_valid<=1'b1;
+                    bus_master_valid<=1'b0;
 
                   end
                   4'd2:
@@ -270,7 +270,7 @@ end
             start_command<=psedo_ack_reg;
             start_out<=1;
             state_start_2<=4'd2;
-            bus_master_valid<=1'b1;
+            bus_master_valid<=1'b0;
 
           end
           4'd2:

@@ -25,7 +25,8 @@ assign data_valid = r_dv;
 localparam BIN_WIDTH_RDEN = $clog2(N_BRAM);
 localparam BIN_WIDTH_BANK_EN = $clog2(N_BANK);
 localparam BIN_WIDTH = BIN_WIDTH_RDEN + BIN_WIDTH_BANK_EN;
-integer i;
+	reg if_cond=0;
+	integer i;
 wire [BIN_WIDTH_RDEN-1 : 0] read_en_bin;
 onehot_to_bin#(
     .ONEHOT_WIDTH(N_BRAM)
@@ -44,13 +45,16 @@ onehot_to_bin#(
 
 wire [BIN_WIDTH-1 : 0] select;
 assign select = {bank_en_bin, read_en_bin};
+always @ (posedge clk) begin 
+	if_cond<=((i_rden!=0) && (i_bank_en!=0))?1:0;
+end
 
 always @(posedge clk) begin
     if(~rstn)begin
         r_data <= 0;
     end else begin
         if(i_weight_ff_array_empty === 0)begin
-            if((i_rden!=0) && (i_bank_en!=0))begin
+            if(if_cond)begin
                 for(i=0;i<2**BIN_WIDTH;i=i+1) begin
 				
 				if(select==i) begin

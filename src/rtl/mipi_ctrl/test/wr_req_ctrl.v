@@ -73,7 +73,7 @@ always @(posedge i_clk)begin
         case (state)
             0:begin
                 if(r_i_data_valid)begin
-                    
+					r_burst_len<=BURST_LEN;
 					data_size<=r_i_data_size;
 					state <= 1;
                 end
@@ -99,7 +99,7 @@ always @(posedge i_clk)begin
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 
-					r_burst_len<=15;
+					r_burst_len<=BURST_LEN;
 				end
 			end
             2: begin

@@ -39,18 +39,6 @@ assign burst_length = r_burst_length;
 //		r_fifo_status<=fifo_status;
 //		r_enable<=enable;
 //	end
-
-
-
-
-
-
-
-
-
-
-
-
 always @(posedge clk) begin
     if(enable) begin
         case(state) 

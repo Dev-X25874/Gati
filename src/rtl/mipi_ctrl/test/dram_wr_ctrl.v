@@ -126,71 +126,9 @@ reg data_valid;
 	end
 
 assign fifo_occupants = {N_FIFO{1'b0,r_blen}};
-//assign o_data_valid = dv;
 assign o_fifo_read_enable = rden;
 assign o_data_last = data_last;
 assign o_data_valid=i_dv;
 	
-// always @(posedge i_clk)begin
-//     if(~i_rstn)begin
-//         data_last <= 0;
-//         rden <= 0;
-//         state <= 0;
-//         dv <= 0;
-//     end else begin
-//         case (state)
-//             0:begin
-// 				data_last<=0;
-// 				soft_start<=0;
-//                 if(i_select)begin
-//                     r_blen <= i_burst_length;
-//                     if(i_write_ready)begin
-//                         state <= 1;
-// 						rden <= {N_FIFO{1'b1}};
-//                     end 
-//                 end
-//             end
-
-// 			1: begin
-// 					if(prev) begin 
-//                         rden <= {N_FIFO{1'b1}};
-//                         rd_counter <= rd_counter + 1;
-//                         state <= 2;
-// 					end
-// 					else begin 
-// 						rden<=0;
-// 					end
-//             end
-
-//             2: begin
-// 				if(prev) begin 
-
-//                		 if(rd_counter == r_blen)begin
-//                		     rd_counter <= 0;
-//                		     rden <= 0;
-//                		     state <= 0;
-// 						 if(s_flag) begin 
-// 							 soft_start<=1;
-// 						end
-//                		     data_last <= 1'b1;
-//                		     dv <= 1'b1;
-//                		 end 
-//                	      else begin
-//                		     rden <= {N_FIFO{1'b1}};
-//                		     rd_counter <= rd_counter + 1;
-//                		     dv <= 1'b1;
-//                		 end
-// 				end
-// 				else begin 
-// 					rden<=0;
-// 					dv<=0;
-// 				end
-
-//             end
-
-//             default: state <= 0;
-//         endcase
-//     end
-// end
     
 endmodule

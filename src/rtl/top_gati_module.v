@@ -1075,7 +1075,7 @@ always @ (posedge i_clk) begin
       .image_fifo_empty(image_fifo_empty),
       .CONV_FC(CONV_FC),
     //   .switch_enable(switch_enable),
-      .fifo_o(fifo_imgo_data),
+      .fifo_o(img_ip_conv),
       //fifo sharing signals
       .sel_sa_rden(sel_sa_rden),
       .weight_read_en_fc(weight_read_en_fc),

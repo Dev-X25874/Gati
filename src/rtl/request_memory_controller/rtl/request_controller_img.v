@@ -17,13 +17,13 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     output reg last = 0,
     output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
-//reg [31:0] r_addr_out = 0;
 integer i;
+//reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
-reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
+reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_burst=0;
 reg [2:0] state = 0;
 reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
-reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0;
+reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_add1=0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
@@ -31,6 +31,12 @@ parameter ADDR_ITR = 3'b011;
 parameter C_DONE = 3'b100;
 parameter KERNEL_ITR = 3'b101;
 assign burst_length = r_burst_length;
+
+always @ (posedge clk) begin 
+	rbl_add1<=r_burst_length+1;
+	nxt_burst<=(nxt_addr+rbl_add1)<<$clog2(AXI_DATA_BYTES);
+end
+
 
 always @(posedge clk) begin
     case(state) 
@@ -57,15 +63,22 @@ always @(posedge clk) begin
         end
     end
     START_ADDR: begin
+        if(nxt_burst > stop_addr) begin
+            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
+        end
+        else begin
+            r_burst_length <= r_burst_length;
+        end
+
         if(count < 3) begin
-			for(i=0;i<3;i=i+1) begin 
-				if(i==count)begin 
-					addr_out <= nxt_addr[32-(i*8)-1 -:8];
-				end
-			end
+		for(i=0;i<3;i=i+1) begin
+		if(count==i) begin 
+		   addr_out <= nxt_addr[32-(i*8)-1 -:8];
+		   end
+		   end
+
             wr_enable <= 0;
             valid <= 1;
-            r_burst_length <= r_burst_length;
             state <= START_ADDR;
             count <= count + 1;
         end
@@ -74,14 +87,12 @@ always @(posedge clk) begin
             wr_enable <= 0;
             last <= 1;
             valid <= 1;
-            r_burst_length <= r_burst_length;
             state <= ADDR_ITR;
             count <= 0;
         end
     end
     ADDR_ITR: begin
         last <= 0;
-        nxt_addr <= (nxt_addr + ((BURST_LENGTH + 1) << $clog2(AXI_DATA_BYTES)));
         if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed  
             state <= C_DONE; 
             addr_out <= 0;
@@ -89,18 +100,19 @@ always @(posedge clk) begin
             r_burst_length <= r_burst_length;
             wr_enable <= 0;
         end
-        else if(nxt_addr > stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
-            state <= FIFO_STATUS;
+        else if(nxt_burst >= stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
+            state <= C_DONE;
             wr_enable <= 0;
             valid <= 0;
-            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
-            nxt_addr <= stop_addr;
+            r_burst_length <= r_burst_length;
+            nxt_addr <= nxt_addr;
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
             state <= FIFO_STATUS;
             wr_enable <= 0;
             valid <= 0;
             r_burst_length <= r_burst_length;
+            nxt_addr <= (nxt_addr + ((r_burst_length + 1) << $clog2(AXI_DATA_BYTES)));
         end
     end
     C_DONE: begin

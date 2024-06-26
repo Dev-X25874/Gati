@@ -12,7 +12,7 @@ module Top_CONV_FC #(
     parameter MOD1=2,
     parameter MOD2 = 8,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
-    parameter DATA_WIDTH_ACC = 16, //data width of intermediate accumulants(SA)
+    parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
     // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
@@ -187,7 +187,7 @@ module Top_CONV_FC #(
   wire [DATA_WIDTH -1:0] im2col_o_data;
   
   always @(*) begin
-	   sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
+	   sel_mux = (im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
@@ -221,7 +221,7 @@ module Top_CONV_FC #(
   ) im2col (
       .i_valid_mat_size(valid_img_size_im2col),
       .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'hff),
+      .i_im2col_data(8'd0),
       .i_clk(i_clk),
       .i_rstn(rst),
       .o_im2col_data(im2col_o_data),
@@ -239,7 +239,7 @@ module Top_CONV_FC #(
       .i_zero_pad(zero_pad_enable),
       .o_valid_data(im2col_o_valid),
       .o_valid_buff(read_buf_data), //read signal to im2col buffers
-      .i_valid_data(1'b1),
+      .i_valid_data(1'b0),
       .im2col_done(im2col_done)
   );
 

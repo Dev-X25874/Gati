@@ -17,14 +17,32 @@ module request_controller_weights #(parameter BURST_LENGTH_WIDTH = 8,
 );
 
 reg [4:0] count = 0;
-reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
+reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_bl=0;
 reg [2:0] state = 0;
-reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0;
+reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_ad1=0;
 parameter IDLE = 3'b000;
 parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
 parameter ADDR_ITR = 3'b011;
 assign burst_length = r_burst_length;
+	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
+    reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
+    reg r_config_start;
+    reg r_fifo_status; //occupancy check
+    reg r_data_last;
+
+
+	always @ (posedge clk) begin 
+
+	 rbl_ad1<=r_burst_length+1;
+	 nxt_bl<=(nxt_addr+rbl_ad1)<<$clog2(AXI_DATA_BYTES);
+	
+	 r_start_addr<=start_addr;
+	 r_stop_addr<=stop_addr;
+	 r_config_start<=config_start;
+	 r_fifo_status<=fifo_status;
+	 r_data_last<=data_last;
+	end 
 
 always @(posedge clk) begin
     case(state) 
@@ -33,9 +51,9 @@ always @(posedge clk) begin
         wr_enable <= 0;
         valid <= 0;
         last <= 0;
-        if(config_start) begin
+        if(r_config_start) begin
             state <= FIFO_STATUS;
-            nxt_addr <= start_addr;
+            nxt_addr <= r_start_addr;
             r_burst_length <= BURST_LENGTH;
         end
         else begin
@@ -43,7 +61,7 @@ always @(posedge clk) begin
         end
     end
     FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
-        if(fifo_status) begin
+        if(r_fifo_status) begin
             state <= START_ADDR;
         end
         else begin
@@ -51,8 +69,8 @@ always @(posedge clk) begin
         end
     end
     START_ADDR: begin
-        if((nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES))) > stop_addr) begin
-            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
+        if(nxt_bl > r_stop_addr) begin
+            r_burst_length <= ((r_stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
         end
         else begin
             r_burst_length <= r_burst_length;
@@ -76,7 +94,7 @@ always @(posedge clk) begin
     end
     ADDR_ITR: begin
         last <= 0;
-        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to IDLE state.    
+        if(nxt_addr == r_stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to IDLE state.    
             state <= IDLE; 
             addr_out <= 0;
             valid <= 0;  
@@ -84,8 +102,8 @@ always @(posedge clk) begin
             wr_enable <= 0;
             nxt_addr <= nxt_addr;
         end
-        else if((nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES))) >= stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
-            if(data_last) begin
+        else if(nxt_bl >= r_stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
+            if(r_data_last) begin
                 state <= IDLE;
                 wr_enable <= 0;
                 valid <= 0;
@@ -97,7 +115,7 @@ always @(posedge clk) begin
             end
         end
         else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
-            if(data_last) begin
+            if(r_data_last) begin
                 state <= FIFO_STATUS;
                 wr_enable <= 0;
                 valid <= 0;

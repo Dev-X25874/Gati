@@ -31,10 +31,23 @@ parameter ADDR_ITR = 3'b011;
 parameter C_DONE = 3'b100;
 parameter KERNEL_ITR = 3'b101;
 assign burst_length = r_burst_length;
+	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
+    reg [KERNELITR_WIDTH - 1 : 0] 	r_kernelitr;
+    reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
+    reg r_config_start;
+    reg r_fifo_status; //occupancy check
+    reg r_c_done;
 
 always @ (posedge clk) begin 
 	rbl_add1<=r_burst_length+1;
 	nxt_burst<=(nxt_addr+rbl_add1)<<$clog2(AXI_DATA_BYTES);
+
+	r_start_addr<=start_addr;
+	r_kernelitr<=kernelitr;
+	r_stop_addr<=stop_addr;
+	r_config_start<=config_start;
+	r_fifo_status<=fifo_status;
+	r_c_done<=c_done;
 end
 
 
@@ -45,9 +58,9 @@ always @(posedge clk) begin
         wr_enable <= 0;
         valid <= 0;
         last <= 0;
-        if(config_start) begin
+        if(r_config_start) begin
             state <= FIFO_STATUS;
-            nxt_addr <= start_addr;
+            nxt_addr <= r_start_addr;
             r_burst_length <= BURST_LENGTH;
         end
         else begin
@@ -55,7 +68,7 @@ always @(posedge clk) begin
         end
     end
     FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
-        if(fifo_status) begin
+        if(r_fifo_status) begin
             state <= START_ADDR;
         end
         else begin
@@ -63,8 +76,8 @@ always @(posedge clk) begin
         end
     end
     START_ADDR: begin
-        if(nxt_burst > stop_addr) begin
-            r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
+        if(nxt_burst > r_stop_addr) begin
+            r_burst_length <= ((r_stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
         end
         else begin
             r_burst_length <= r_burst_length;
@@ -93,14 +106,14 @@ always @(posedge clk) begin
     end
     ADDR_ITR: begin
         last <= 0;
-        if(nxt_addr == stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed  
+        if(nxt_addr == r_stop_addr) begin  //if stop_address is equal to nxt_address then the data request will end and state will move to kernel_itr state to check for the no. of kernel itreration needed  
             state <= C_DONE; 
             addr_out <= 0;
             valid <= 0;  
             r_burst_length <= r_burst_length;
             wr_enable <= 0;
         end
-        else if(nxt_burst >= stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
+        else if(nxt_burst >= r_stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
             state <= C_DONE;
             wr_enable <= 0;
             valid <= 0;
@@ -116,7 +129,7 @@ always @(posedge clk) begin
         end
     end
     C_DONE: begin
-        if (c_done) begin
+        if (r_c_done) begin
             state <= KERNEL_ITR;
         end
         else begin
@@ -124,8 +137,8 @@ always @(posedge clk) begin
         end
     end
     KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
-        if (count_kernel < kernelitr) begin
-            nxt_addr <= start_addr;
+        if (count_kernel < r_kernelitr) begin
+            nxt_addr <= r_start_addr;
             state <= FIFO_STATUS;
             count_kernel <= count_kernel + 1;
             r_burst_length <= BURST_LENGTH;

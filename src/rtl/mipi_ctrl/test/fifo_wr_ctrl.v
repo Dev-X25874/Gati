@@ -117,7 +117,7 @@ always @(posedge i_clk)begin
 					state<=IDLE;
 					wren<=0;
 				end
-				else if((i_data==sof) && (counter==0)) begin 
+				else if((i_data==sof) && (counter==0) && (i_data_valid==1)) begin 
 						state<=DATA_SIZE;
 						wren<=0;
 				end

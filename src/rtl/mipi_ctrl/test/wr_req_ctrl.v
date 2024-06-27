@@ -72,7 +72,7 @@ always @(posedge i_clk)begin
     end else begin
         case (state)
             0:begin
-                if(r_i_data_valid)begin
+                if(r_i_data_valid && (r_i_data_size!=0))begin
 					r_burst_len<=BURST_LEN;
 					data_size<=r_i_data_size;
 					state <= 1;

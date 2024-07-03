@@ -27,7 +27,7 @@ reg [ID-1:0] r_id = 0;
 reg [CPU_DATA_WIDTH -1:0] sof = 32'hFFFFFFFF;
 reg [3:0] packet_count = 0;
 reg [AXI_DATA_WIDTH-1:0] r_data_in = 0; //reg for holding th input data before slicing into 32 bits and sending to MIPI fifo
-reg r_config_done = 0; //reg for holding the done instruction
+//reg r_config_done = 0; //reg for holding the done instruction
 
 assign data_out = r_data_out;
 
@@ -128,7 +128,11 @@ always @ (posedge clk) begin
                 state <= 4;
             end
             else begin
-                if(r_config_done)begin //check whether the current request was the last request 
+                rd_en <= 0;
+                data_size_count <= 0;
+                r_id <= 0;
+                state <= 7;
+                /*if(r_config_done)begin //check whether the current request was the last request 
                     rd_en <= 0;
                     data_size_count <= 0;
                     r_id <= 0;
@@ -139,7 +143,7 @@ always @ (posedge clk) begin
                     data_size_count <= 0;
                     r_id <= 0;
                     state <= 0;
-                end    
+                end */   
             end
         end
 
@@ -170,7 +174,7 @@ always @ (posedge clk) begin
     end
 end
 
-always @ (posedge clk) begin
+/*always @ (posedge clk) begin
 if(!rst) begin
 r_config_done <= 0;
 end
@@ -185,7 +189,7 @@ else begin
 r_config_done <= r_config_done;
 end
 end
-end
+end*/
 
 endmodule
 

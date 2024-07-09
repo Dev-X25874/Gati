@@ -2,7 +2,7 @@
     Array of fifo used inside the SA engine for storing
     and loading weights and image into PE grid.
 */
-module image_fifo_array#(
+module image_fifo_array_async#(
     parameter DIMENSION = 64,
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
@@ -31,7 +31,7 @@ generate
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),
             .wr_clk_i(i_clk),
-	    .rd_clk_i(dr_clk),	
+	        .rd_clk_i(dr_clk),	
             .wr_en_i(i_write_enable[i]),
             .rd_en_i(i_read_enable[i]),
             .wdata(i_data),

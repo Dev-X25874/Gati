@@ -21,6 +21,7 @@ module config_blk #(
     input rst,
     input user_start,
     input valid,
+    input data_last,
     input sel,
     input [INST_W-1:0]instruction_data,
     input done,//from bus master
@@ -62,7 +63,7 @@ module config_blk #(
                  .status(status_3_1),
                  .global_reg_address_start(global_start),
                  .global_reg_address_stop(global_stop),
-                 .address_valid(instruction_v_2_3),
+                 .address_valid(address_valid),
                  .read_req(memory_read_r),
                  .valid(memory_valid),
                  .o_address(mem_address),
@@ -74,11 +75,13 @@ module config_blk #(
   controller_inst_q #(.INSTRUCT_W(INST_W),.ADDR_W(ADDR_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
+                      .data_last(data_last),
                       .sel(sel),
                       .user_start(user_start),
                       .i_instruction_data(instruction_data),
                       .o_instruction(instruction_2_3),
                       .o_instruction_valid(instruction_v_2_3),
+                      .o_address_valid(address_valid),
                       .o_global_start(global_start),
                       .o_global_stop(global_stop)
                     );
@@ -90,7 +93,7 @@ module config_blk #(
              inst_q_3(
                .clkin(clkin),
                .rst(rst),
-				.instruct_mem(instruction_2_3),
+				       .instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
                .instruct_valid(instruction_v_2_3),
                .o_instruction(o_instruction_3_5),
@@ -105,6 +108,7 @@ module config_blk #(
                    .LAY_N(LAY_N),
                    .TOTAL_LAY_N(TOTAL_LAY_N))inst_read_ctrl_4(
                    .clkin(clkin),
+                   .valid_inst(o_instruction_3_5_v),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
                    .ack_in(ack_6_4),

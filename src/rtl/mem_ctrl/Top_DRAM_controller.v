@@ -40,6 +40,7 @@ module Top_DRAM_controller #(
     input [AXI_DATA_WIDTH-1:0] wr_axi_data ,                     // write data for AXI
     output [NUM_PORTS-1:0] select_wr ,                            // select signal for selecting the write port
     output [NUM_PORTS-1:0] select_rd ,                            // select signal for selecting the read port
+    output                 DdrInitDone, //Indicates the user that DDR initialization is done and data transfer can begin
     
 ////DDR controller Axi signals /////////////    
     output  [      7:0] aid     ,
@@ -332,12 +333,23 @@ always @ (posedge clk) begin
     axi_read_o_delay_data <= rdata ;
 end 
 
+reg flag;
+always@(posedge clk) begin
+    if(!Axi0Rst_N) flag <= 0;
+    else begin
+        if(fifo_rd_en!=0) flag <= 1;
+        else if(w_en_ack|r_en_ack) flag <= 0;
+        // else flag <= 1;
+    end
+end
 ////// this logic is use in arbiter module ///////
 always@(*) begin
-    if(!Axi0Rst_N) RR_en_pin <= 1;
+    if(!Axi0Rst_N) RR_en_pin = 1;
     else begin
-        if(fifo_rd_en!=0) RR_en_pin <= 0;
-        else if (w_en_ack|r_en_ack) RR_en_pin <=1;
+        if(fifo_rd_en!=0) RR_en_pin = 0;
+        else if (w_en_ack|r_en_ack) RR_en_pin = 1;
+        else if ((fifo_rd_en == 0) && ~flag) RR_en_pin = 1;
+        else RR_en_pin = 0;
     end
 
 end

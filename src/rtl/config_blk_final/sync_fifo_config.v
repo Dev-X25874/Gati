@@ -55,7 +55,7 @@ parameter  STATUS_DRAM_LIM=10 ) (
       else
       begin
         data_out_valid<=1'b0;
-        data_out<=256'd0;
+        data_out<=data_out;
       end
       
       case((w_en&&!full)+(r_en&&!empty)) //occupants logic

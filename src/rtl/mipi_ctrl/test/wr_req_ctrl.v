@@ -77,6 +77,7 @@ always @(posedge i_clk)begin
         // req <= 0;
         state <= 0;
         burst_len <= 0;
+        r_burst_len <= 0;
         addr <= 0;
         r_addr <= 0;
         data_size <= 0;
@@ -84,8 +85,8 @@ always @(posedge i_clk)begin
     end else begin
         case (state)
             0:begin
-                if(r_i_data_valid)begin
-                    
+                if(r_i_data_valid && (r_i_data_size!=0))begin
+                    r_burst_len <= BURST_LEN;
 					data_size<=r_i_data_size;
 					state <= 1;
                 end
@@ -93,11 +94,16 @@ always @(posedge i_clk)begin
 
 
 			1:begin 
-				if(r_i_data_valid) begin 
-				
-                    r_addr <= r_i_start_address;
-					state<=3;
-				end
+                if(r_i_data_size==0) begin
+                    state <= 0;
+                end
+                else begin
+                    if(r_i_data_valid) begin 				
+                        r_addr <= r_i_start_address;
+                        r_burst_len <= BURST_LEN;
+                        state<=3;
+                    end
+                end
 			end
 
 			
@@ -111,7 +117,7 @@ always @(posedge i_clk)begin
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 
-					r_burst_len<=15;
+					r_burst_len <= r_burst_len;
 				end
 			end
             2: begin
@@ -132,7 +138,7 @@ always @(posedge i_clk)begin
                     last <= 1'b1;
                     valid <= 1'b1;
                     //reduce data size
-                    data_size <= (data_size - (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )));  //For eg, 98x4 - 256/8
+                    data_size <= (data_size - (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1)));  //For eg, 98x4 - 256/8
                 end else begin
                     addr_counter <= 0;
                     last <= 1'b0;

@@ -39,18 +39,6 @@ assign burst_length = r_burst_length;
 //		r_fifo_status<=fifo_status;
 //		r_enable<=enable;
 //	end
-
-
-
-
-
-
-
-
-
-
-
-
 always @(posedge clk) begin
     if(enable) begin
         case(state) 
@@ -69,7 +57,7 @@ always @(posedge clk) begin
             end
         end
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
-            if(r_ENABLE) begin
+            if(ENABLE) begin
                 if(fifo_status) begin
                     state <= START_ADDR;
                 end

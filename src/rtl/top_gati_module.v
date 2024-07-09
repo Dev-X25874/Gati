@@ -264,8 +264,9 @@ module top_gati_module #(
   ) config_blk_inst (
       .clkin(i_clk),
       .rst(i_rst),
-	  .user_start(user_start),
+	    .user_start(user_start),
       .valid(dram_rd_datavalid),
+      .data_last(dram_rd_data_last),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
       .memory_read_r(mc_config_rdreq),

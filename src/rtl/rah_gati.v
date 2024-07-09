@@ -1,14 +1,14 @@
 `include "common/portid.vh"
 `include "common/instructions.vh"
 module rah_gati #(
-     parameter   SYS_CLK_PERIOD    = 32'd100_000_000 ,             //System Clock Period
+     parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
    // parameter   NUM_PORTS = 4,                                    // number of ports
    // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
     parameter NO_PORT_WR=2,
 	parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000},   // only use for port controller 
-    parameter   POINTER_COUNT = 10,                               // fifo depth
+    parameter   POINTER_COUNT = 9,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
     parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
@@ -135,26 +135,27 @@ module rah_gati #(
 
 ) (
     input i_clk,
-	input c_81_clk,
+	  input c_81_clk,
     input s_clk,
     input m_clk,
-	input i_rst,
+	  input i_rst,
     input empty,
     input [31:0] data,
+    input valid_32,
     output  reg rden=0,
 	
 
 
-	input [1:0] PllLocked,
-	output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
+    input [1:0] PllLocked,
+    output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
     output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
+    output      DdrInitDone           ,
 
 
+	  output  [      7:0] aid     ,
+	  output  [     31:0] aaddr   , 
 
-	output  [      7:0] aid     ,
-    
-	output  [     31:0] aaddr   , 
     output  [      7:0] alen    , 
     output  [      2:0] asize   , 
     output  [      1:0] aburst  , 
@@ -182,10 +183,12 @@ module rah_gati #(
 
   wire  [31:0] o_data ;
 	assign o_data=data; 
-  reg valid_data = 0;
+
+  wire valid_data;
+  assign valid_data = valid_32;
  
   wire o_rden;
-assign o_rden=rden;
+  assign o_rden=rden;
 
   always @(posedge c_81_clk) begin
 
@@ -194,20 +197,18 @@ assign o_rden=rden;
     end else begin
       rden <= 0;
     end
-end 
+  end 
 
-	always @(posedge c_81_clk) begin 
-		 if (o_rden)  begin 
-			  valid_data <= 1;
-			 
-		 end
-		 else begin 
-			  valid_data <= 0;
-			 
-		 end 
-
-    //if (valid_data) r_data <= data;
-  end
+	// always @(posedge c_81_clk) begin 
+		//  if (o_rden)  begin 
+			  // valid_data <= 1;
+			//  
+		//  end
+		//  else begin 
+			  // valid_data <= 0;
+			//  
+		//  end 
+  // end
 
 
 
@@ -222,25 +223,7 @@ end
   wire valid_wr_req_ctrl;
   wire user_start;
 
-				
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  ////////////////////////////MIPI controller rx
+	////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
       .N_FIFO(OP_FIFO ),
       .W_DATA(ACC_DW),
@@ -250,8 +233,9 @@ end
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
       .i_clk(c_81_clk),
-	  .dr_clk(m_clk),
+	    .dr_clk(m_clk),
       .i_rstn(i_rst),
+      // .i_rstn(1'b1),
       .i_data_valid(valid_data),
       .i_data(o_data),
       .ddr_sel(select_wr[`MIPI_Wr]),
@@ -402,16 +386,76 @@ end
   wire [NUM_PORTS-1:0] i_enable;
   wire [NUM_PORTS-1:0] i_last;
 
+  // assign i_valid = {
+  //   valid_wr_req_ctrl,
+  //   mc_config_valid,
+  //   mc_img_valid,
+  //   mc_wghts_valid,
+  //   mc_fc_valid,
+  //   mc_bias_valid,
+  //   mc_fc_bias_valid,
+  //   mc_acc_valid,
+  //   mc_op_write_valid
+  // };
+
+  // assign in_address = {
+  //   address_wr_req_ctrl,
+  //   mc_config_addr,
+  //   mc_img_addr,
+  //   mc_wghts_addr,
+  //   mc_fc_addr,
+  //   mc_bias_addr,
+  //   mc_fc_bias_addr,
+  //   mc_acc_addr,
+  //   mc_op_write_addr
+  // };
+
+  // assign in_BLEN = {
+  //   final_burst_len_wr_req_ctrl,
+  //   mc_config_bl,
+  //   mc_img_bl,
+  //   mc_wghts_bl,
+  //   mc_fc_bl,
+  //   mc_bias_bl,
+  //   mc_fc_bias_bl,
+  //   mc_acc_bl,
+  //   mc_op_write_bl
+  // };
+
+  // assign i_enable = {
+  //   req_wr_req_ctrl,
+  //   mc_config_rdreq,
+  //   mc_img_rdreq,
+  //   mc_wghts_rdreq,
+  //   mc_fc_rdreq,
+  //   mc_bias_rdreq,
+  //   mc_fc_bias_rdreq,
+  //   mc_acc_rdreq,
+  //   mc_op_writereq
+  // };
+
+  // assign i_last = {
+  //   final_last_wr_req_ctrl,
+  //   mc_config_last,
+  //   mc_img_last,
+  //   mc_wghts_last,
+  //   mc_fc_last,
+  //   mc_bias_last,
+  //   mc_fc_bias_last,
+  //   mc_acc_last,
+  //   mc_op_write_last
+  // };
+
   assign i_valid = {
-    valid_wr_req_ctrl,
-    mc_config_valid,
-    mc_img_valid,
-    mc_wghts_valid,
-    mc_fc_valid,
-    mc_bias_valid,
     mc_fc_bias_valid,
+    mc_bias_valid,
+    mc_op_write_valid,
     mc_acc_valid,
-    mc_op_write_valid
+    mc_fc_valid,
+    mc_wghts_valid,
+    mc_img_valid,
+    mc_config_valid,
+    valid_wr_req_ctrl
   };
 
   assign in_address = {
@@ -420,10 +464,10 @@ end
     mc_img_addr,
     mc_wghts_addr,
     mc_fc_addr,
-    mc_bias_addr,
-    mc_fc_bias_addr,
     mc_acc_addr,
-    mc_op_write_addr
+    mc_op_write_addr,
+    mc_bias_addr,
+    mc_fc_bias_addr
   };
 
   assign in_BLEN = {
@@ -432,38 +476,38 @@ end
     mc_img_bl,
     mc_wghts_bl,
     mc_fc_bl,
-    mc_bias_bl,
-    mc_fc_bias_bl,
     mc_acc_bl,
-    mc_op_write_bl
+    mc_op_write_bl,
+    mc_bias_bl,
+    mc_fc_bias_bl    
   };
 
   assign i_enable = {
-    req_wr_req_ctrl,
-    mc_config_rdreq,
-    mc_img_rdreq,
-    mc_wghts_rdreq,
-    mc_fc_rdreq,
-    mc_bias_rdreq,
     mc_fc_bias_rdreq,
+    mc_bias_rdreq,
+    mc_op_writereq,
     mc_acc_rdreq,
-    mc_op_writereq
+    mc_fc_rdreq,
+    mc_wghts_rdreq,
+    mc_img_rdreq,
+    mc_config_rdreq,
+    req_wr_req_ctrl
   };
 
   assign i_last = {
-    final_last_wr_req_ctrl,
-    mc_config_last,
-    mc_img_last,
-    mc_wghts_last,
-    mc_fc_last,
-    mc_bias_last,
     mc_fc_bias_last,
+    mc_bias_last,
+    mc_op_write_last,
     mc_acc_last,
-    mc_op_write_last
+    mc_fc_last,
+    mc_wghts_last,
+    mc_img_last,
+    mc_config_last,
+    final_last_wr_req_ctrl
   };
 
 
-
+  wire DdrInitDone;
 
   //////////////////////////////
 
@@ -489,8 +533,8 @@ end
   Top_DRAM_controller_inst (
     .clk(m_clk),
     .c_81_clk(c_81_clk),
-	.rst(i_rst),
-	.PllLocked(PllLocked),
+    .rst(i_rst),
+    .PllLocked(PllLocked),
     .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
     .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
@@ -509,6 +553,7 @@ end
     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
+    .DdrInitDone(DdrInitDone),
     .aid(aid),
     .aaddr(aaddr),
     .alen(alen),
@@ -632,8 +677,9 @@ end
     ) top_gati_module_inst (
       .i_clk(i_clk),
    //   .g_clk(g_clk),
-	  .s_clk(s_clk),
+	    .s_clk(s_clk),
       .i_rst(i_rst),
+      // .i_rst(DdrInitDone),
       .user_start(user_start),
       .mc_config_addr(mc_config_addr),
       .mc_config_rdreq(mc_config_rdreq),

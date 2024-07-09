@@ -16,7 +16,7 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output valid,
+                output reg valid,
                 output reg ready = 0,
                 output reg [OP_CODE_WIDTH -1 : 0] opcode = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] accumulantaddr = 0,
@@ -36,7 +36,7 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011; 
-assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
+// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
 
 
 always @(posedge clk) begin
@@ -44,14 +44,15 @@ always @(posedge clk) begin
     IDLE: begin
         data_instruction <= 0;
         ready <= 0;
-        opcode <= 0;
-        accumulantaddr <= 0;
-        outputaddr <= 0;
-        channelItr <= 0;
-        kernelItr <= 0;
-        ImageDimOutput <= 0;
-        ImageDimAcc <= 0;
-        AccEn <= 0;
+        valid <= 0;
+        // opcode <= 0;
+        // accumulantaddr <= 0;
+        // outputaddr <= 0;
+        // channelItr <= 0;
+        // kernelItr <= 0;
+        // ImageDimOutput <= 0;
+        // ImageDimAcc <= 0;
+        // AccEn <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -73,7 +74,7 @@ always @(posedge clk) begin
         end
     end
     CONCAT: begin
-        if(done) begin
+        // if(done) begin
             opcode <= data_instruction[`OutputBlock_Opcode];
             accumulantaddr <= data_instruction[`OutputBlock_AccumulantAddr];
             outputaddr <= data_instruction[`OutputBlock_OutputAddr];
@@ -82,9 +83,9 @@ always @(posedge clk) begin
             ImageDimOutput <= data_instruction[`OutputBlock_ImageDimOutput];
             ImageDimAcc <= data_instruction[`OutputBlock_ImageDimAcc];
             AccEn <= data_instruction[`OutputBlock_AccEn];
-            //valid <= 1'b1;
+            valid <= 1'b1;
             state <= IDLE;
-        end
+        // end
     end
     endcase
 end

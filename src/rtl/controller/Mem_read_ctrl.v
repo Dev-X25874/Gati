@@ -37,5 +37,8 @@ module Mem_read_ctrl #(
         end
     end
 
-    always@(posedge clk) o_data_last <= i_data_last;
+    always@(posedge clk) begin
+        if(select==1) o_data_last <= i_data_last;
+        else o_data_last <= 0;
+    end
 endmodule

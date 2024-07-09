@@ -14,6 +14,7 @@ module request_controller_FC #(parameter BURST_LENGTH_WIDTH = 8,
     output reg last = 0,
     output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
+integer i;
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
 reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0;
@@ -24,6 +25,17 @@ parameter FIFO_STATUS = 3'b001;
 parameter START_ADDR = 3'b010;
 parameter ADDR_ITR = 3'b011;
 assign burst_length = r_burst_length;
+	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
+    reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
+    reg r_config_start;
+    reg r_fifo_status; //occupancy check
+	
+	always @ (posedge clk) begin
+		r_start_addr<=start_addr;
+		r_stop_addr<=stop_addr;
+		r_config_start<=config_start;
+		r_fifo_status<=fifo_status;
+	end
 
 always @(posedge clk) begin
     case(state) 
@@ -51,7 +63,14 @@ always @(posedge clk) begin
     end
     START_ADDR: begin
         if(count < 3) begin
-            addr_out <= nxt_addr[32-(count*8)-1 -:8];
+            
+		for(i=0;i<3;i=i+1) begin 
+		
+			if(i==count) begin
+				addr_out <= nxt_addr[32-(i*8)-1 -:8];
+			end
+		end
+
             wr_enable <= 0;
             valid <= 1;
             r_burst_length <= r_burst_length;
@@ -59,7 +78,7 @@ always @(posedge clk) begin
             count <= count + 1;
         end
         else begin
-            addr_out <= nxt_addr[32-(count*8)-1 -:8];
+            addr_out <= nxt_addr[7:0];
             wr_enable <= 0;
             last <= 1;
             valid <= 1;

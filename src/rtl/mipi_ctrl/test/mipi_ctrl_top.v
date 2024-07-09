@@ -82,7 +82,7 @@ wr_req_ctrl#(
 wire [((N_FIFO * (W_ADDR + 1)))-1 : 0] ff_array_occ;
 wire [N_FIFO-1 : 0] ff_array_empty;
 wire [N_FIFO-1:0] dv;
-image_fifo_array#(
+image_fifo_array_async#(
     .DIMENSION(N_FIFO),
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),

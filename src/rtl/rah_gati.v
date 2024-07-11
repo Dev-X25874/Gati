@@ -150,7 +150,7 @@ module rah_gati #(
     output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
     output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
-    output      DdrInitDone           ,
+  //  output      DdrInitDone           ,
 
 	output d_done,
 	output  [      7:0] aid     ,
@@ -387,139 +387,65 @@ assign valid_data=valid_32;
   wire [NUM_PORTS-1:0] i_enable;
   wire [NUM_PORTS-1:0] i_last;
 
-  // assign i_valid = {
-  //   valid_wr_req_ctrl,
-  //   mc_config_valid,
-  //   mc_img_valid,
-  //   mc_wghts_valid,
-  //   mc_fc_valid,
-  //   mc_bias_valid,
-  //   mc_fc_bias_valid,
-  //   mc_acc_valid,
-  //   mc_op_write_valid
-  // };
+   assign i_valid = {
+     valid_wr_req_ctrl,
+     mc_config_valid,
+     mc_img_valid,
+     mc_wghts_valid,
+     mc_fc_valid,
+     mc_bias_valid,
+     mc_fc_bias_valid,
+     mc_acc_valid,
+     mc_op_write_valid
+   };
 
-  // assign in_address = {
-  //   address_wr_req_ctrl,
-  //   mc_config_addr,
-  //   mc_img_addr,
-  //   mc_wghts_addr,
-  //   mc_fc_addr,
-  //   mc_bias_addr,
-  //   mc_fc_bias_addr,
-  //   mc_acc_addr,
-  //   mc_op_write_addr
-  // };
+   assign in_address = {
+     address_wr_req_ctrl,
+     mc_config_addr,
+     mc_img_addr,
+     mc_wghts_addr,
+     mc_fc_addr,
+     mc_bias_addr,
+     mc_fc_bias_addr,
+     mc_acc_addr,
+     mc_op_write_addr
+   };
 
-  // assign in_BLEN = {
-  //   final_burst_len_wr_req_ctrl,
-  //   mc_config_bl,
-  //   mc_img_bl,
-  //   mc_wghts_bl,
-  //   mc_fc_bl,
-  //   mc_bias_bl,
-  //   mc_fc_bias_bl,
-  //   mc_acc_bl,
-  //   mc_op_write_bl
-  // };
+   assign in_BLEN = {
+     final_burst_len_wr_req_ctrl,
+     mc_config_bl,
+     mc_img_bl,
+     mc_wghts_bl,
+     mc_fc_bl,
+     mc_bias_bl,
+     mc_fc_bias_bl,
+     mc_acc_bl,
+     mc_op_write_bl
+   };
 
-  // assign i_enable = {
-  //   req_wr_req_ctrl,
-  //   mc_config_rdreq,
-  //   mc_img_rdreq,
-  //   mc_wghts_rdreq,
-  //   mc_fc_rdreq,
-  //   mc_bias_rdreq,
-  //   mc_fc_bias_rdreq,
-  //   mc_acc_rdreq,
-  //   mc_op_writereq
-  // };
+   assign i_enable = {
+     req_wr_req_ctrl,
+     mc_config_rdreq,
+     mc_img_rdreq,
+     mc_wghts_rdreq,
+     mc_fc_rdreq,
+     mc_bias_rdreq,
+     mc_fc_bias_rdreq,
+     mc_acc_rdreq,
+     mc_op_writereq
+   };
 
-  // assign i_last = {
-  //   final_last_wr_req_ctrl,
-  //   mc_config_last,
-  //   mc_img_last,
-  //   mc_wghts_last,
-  //   mc_fc_last,
-  //   mc_bias_last,
-  //   mc_fc_bias_last,
-  //   mc_acc_last,
-  //   mc_op_write_last
-  // };
-
-  assign i_valid = {
-   valid_wr_req_ctrl,
-   mc_config_valid,
-    mc_img_valid,
-    mc_wghts_valid,
-    mc_fc_valid,
-    mc_bias_valid,
-
-    mc_fc_bias_valid,
-    mc_bias_valid,
-    mc_op_write_valid,
-    mc_acc_valid,
-    mc_op_write_valid
-
-
-
-  };
- assign in_address = {
-    
-    address_wr_req_ctrl,
-    mc_config_addr,
-    mc_img_addr,
-    mc_wghts_addr,
-    mc_fc_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_bias_addr,
-    mc_fc_bias_addr
-  };
-
-assign in_BLEN = {
-   
-final_burst_len_wr_req_ctrl,
-    mc_config_bl,
-    mc_img_bl,
-    mc_wghts_bl,
-    mc_fc_bl,
-    mc_acc_bl,
-    mc_op_write_bl
- };
-	assign i_enable = {
-	req_wr_req_ctrl,
-   mc_config_rdreq,
-    mc_img_rdreq,
-    mc_wghts_rdreq,
-    mc_fc_rdreq,
-    mc_bias_rdreq,
-    mc_fc_bias_rdreq,
-    mc_bias_rdreq,
-    mc_op_writereq,
-    mc_acc_rdreq,
-    mc_op_writereq
-
-
-  };
-
-
-	assign i_last = {
-    final_last_wr_req_ctrl,
-   mc_config_last,
-    mc_img_last,
-    mc_wghts_last,
-    mc_fc_last,
-    mc_bias_last,
-    mc_fc_bias_last,
-    mc_bias_last,
-    mc_op_write_last,
-    mc_acc_last,
-    mc_op_write_last
-   
-
-
-	};
+   assign i_last = {
+     final_last_wr_req_ctrl,
+     mc_config_last,
+     mc_img_last,
+     mc_wghts_last,
+     mc_fc_last,
+     mc_bias_last,
+     mc_fc_bias_last,
+     mc_acc_last,
+     mc_op_write_last
+   };
    
 
 
@@ -570,7 +496,7 @@ final_burst_len_wr_req_ctrl,
     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
-    .DdrInitDone(DdrInitDone),
+   // .DdrInitDone(DdrInitDone),
     .aid(aid),
     .aaddr(aaddr),
     .alen(alen),

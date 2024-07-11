@@ -31,18 +31,16 @@ assign burst_length = r_burst_length;
     reg r_fifo_status; //occupancy check
     reg r_data_last;
 
+always @ (posedge clk) begin 
+    // rbl_add1<=r_burst_length+1;
+    nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
 
-	always @ (posedge clk) begin 
-
-	 rbl_ad1<=r_burst_length+1;
-	 nxt_bl<=(nxt_addr+(rbl_ad1<<$clog2(AXI_DATA_BYTES)));
-	
-	 r_start_addr<=start_addr;
-	 r_stop_addr<=stop_addr;
-	 r_config_start<=config_start;
-	 r_fifo_status<=fifo_status;
-	 r_data_last<=data_last;
-	end 
+    r_start_addr<=start_addr;
+    r_stop_addr<=stop_addr;
+    r_config_start<=config_start;
+    r_fifo_status<=fifo_status;
+    r_data_last<=data_last;
+end 
 
 always @(posedge clk) begin
     case(state) 

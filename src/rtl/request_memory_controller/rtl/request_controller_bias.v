@@ -17,7 +17,7 @@ module request_controller_bias #(parameter BURST_LENGTH_WIDTH = 8,
 );
 //reg [31:0] r_addr_out = 0;
 reg [4:0] count = 0;
-reg [31:0] nxt_addr = 0,nxt_burst=0;
+reg [AXI_ADDRESS_WIDTH - 1:0] nxt_addr = 0,nxt_burst=0;
 reg [2:0] state = 0;
 reg [7:0] r_burst_length = 0,rbl_add1=0;
 reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
@@ -75,7 +75,9 @@ always @(posedge clk) begin
 
             if(count < 3) begin
 				for(i=0;i<3;i=i+1) begin 
-					addr_out <= nxt_addr[32-(i*8)-1 -:8];
+                    if(i==count) begin
+					    addr_out <= nxt_addr[32-(i*8)-1 -:8];
+                    end
 				end
 
 				wr_enable <= 0;

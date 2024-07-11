@@ -129,6 +129,7 @@
 `define TailBlock_BiasEndAddress_WIDTH 32
 
 `define ACT_RELU 'h00
+`define ACT_CLIP 'h01
 `define POOL_MAX 'h00
 `define POOL_AVERAGE 'h01
 `define POOL_GLOBAL_AVG 'h02

@@ -96,7 +96,7 @@ module Top_CONV_FC #(
     input channel_done,
     input [SHFT_REG_X-1:0] shift_reg_sel,
     input systolic_array_trigger,
-    input [(COL_SA*RELU_CLIP_WIDTH)-1:0] relu_clip_value,
+    input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
@@ -114,8 +114,8 @@ module Top_CONV_FC #(
     input [BIAS_FIFO -1:0] bias_wren,
     input [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc,
     input [BIAS_FIFO_FC -1:0] bias_wren_fc,
-    input [(COL_SA*QUANT_SHIFT) -1:0] shift_value,
-    input [(COL_SA*QUANT_SCALE)-1:0] quant_scale,
+    input [(QUANT_SHIFT) -1:0] shift_value,
+    input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
     input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
@@ -171,7 +171,7 @@ module Top_CONV_FC #(
       .DRAM_BW(32)
   ) buffers (
       .clk(i_clk),
-      .rst(rst),
+      .rst(rst&(~im2col_done)),
       .data_in(fifo_o),
       .data_signal(read_buf_data),
       .data_out(buff_out),
@@ -527,14 +527,14 @@ module Top_CONV_FC #(
   ) quant (
       .top_i_clk(i_clk),
       .top_i_data_quant(bias_output),
-      .top_i_data_scale(quant_scale), //from tail inst.
+      .top_i_data_scale({COL_SA{quant_scale}}), //from tail inst.
       .enable_quant(quant_enable),  //from iteration cnter
       .top_o_data(quantized_output),
       .quantized_passthrough(unquantized_output),
       .top_i_data_valid(bias_valid),
       .unquantized_valid(unquantized_valid),
       .top_o_data_valid(tail_valid),
-      .top_i_bit_shift(shift_value) //from tail inst.
+      .top_i_bit_shift({COL_SA{shift_value}}) //from tail inst.
   );
   
   
@@ -576,7 +576,7 @@ module Top_CONV_FC #(
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),
-      .top_i_clip(relu_clip_value) //from tail inst.
+      .top_i_clip({COL_SA{relu_clip_value}}) //from tail inst.
   );
   
    maxpool_gen #(

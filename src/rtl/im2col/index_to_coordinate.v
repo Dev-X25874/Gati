@@ -130,7 +130,8 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
             | ((curr_row == o_mat_size)&&(curr_col == o_mat_size)) 
             | (curr_row == o_mat_size)|(curr_row == 1) 
             | (curr_col == o_mat_size - 1) 
-            | (curr_col == o_mat_size)) ? 0 : 1) : 1;
+            | (curr_col == o_mat_size)
+            | ((curr_row == 0)&&(curr_col == 0))) ? 0 : 1) : 1;
     
     
 

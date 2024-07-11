@@ -142,7 +142,6 @@ module rah_gati #(
 	  input i_rst,
     input empty,
     input [31:0] data,
-    input valid_32,
     output  reg rden=0,
 	//input start_gpio,	
 

@@ -153,6 +153,8 @@ module rah_gati #(
     output      DdrInitDone           ,
 
 	output d_done,
+	output  [      7:0] aid     ,
+    output  [     31:0] aaddr   , 
 
     output  [      7:0] alen    , 
     output  [      2:0] asize   , 

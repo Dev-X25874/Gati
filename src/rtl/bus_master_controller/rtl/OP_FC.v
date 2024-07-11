@@ -17,7 +17,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 input write,
                 input done,
                 input clk,
-                output valid,
+                output reg valid,
                 output reg ready = 0,
                 output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
                 output reg [WEIGHTROWS_WIDTH - 1 : 0] weightrows = 0,
@@ -41,25 +41,26 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011; 
-assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
+// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
 
 always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
+        valid <= 0;
         ready <= 0;
-        opcode <= 0;
-        weightrows <= 0;
-        weightcols <= 0;
-        inputrows <= 0;
-        dropoutconstant <= 0;
-        flatten <= 0;
-        imagedim <= 0;
-        ImageStartAddress <= 0;
-        ImageEndAddr <= 0;
-        WeightStartAddress <= 0;
-        WeightEndAddress <= 0;
-        FC_Vec2MatCols <= 0;
+        // opcode <= 0;
+        // weightrows <= 0;
+        // weightcols <= 0;
+        // inputrows <= 0;
+        // dropoutconstant <= 0;
+        // flatten <= 0;
+        // imagedim <= 0;
+        // ImageStartAddress <= 0;
+        // ImageEndAddr <= 0;
+        // WeightStartAddress <= 0;
+        // WeightEndAddress <= 0;
+        // FC_Vec2MatCols <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -81,7 +82,7 @@ always @(posedge clk) begin
         end
     end
     CONCAT: begin
-        if(done) begin
+        // if(done) begin
             opcode <= data_instruction[`FC_Opcode];
             weightrows <= data_instruction[`FC_WeightRows];
             weightcols <= data_instruction[`FC_WeightCols];
@@ -94,9 +95,9 @@ always @(posedge clk) begin
             WeightStartAddress <= data_instruction[`FC_WeightStartAddress];
             WeightEndAddress <= data_instruction[`FC_WeightEndAddress];
             FC_Vec2MatCols <= data_instruction[`FC_Vec2MatCols];
-            //valid <= 1'b1;
+            valid <= 1'b1;
             state <= IDLE;
-        end
+        // end
     end
     endcase
 end

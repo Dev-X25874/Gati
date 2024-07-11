@@ -7,7 +7,7 @@ module rah_gati #(
     parameter NO_PORT_WR=2,
 	parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000},   // only use for port controller 
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
@@ -135,6 +135,7 @@ module rah_gati #(
 
 ) (
     input i_clk,
+	input valid_32,
 	input c_81_clk,
     input s_clk,
     input m_clk,
@@ -142,7 +143,7 @@ module rah_gati #(
     input empty,
     input [31:0] data,
     output  reg rden=0,
-	
+	//input start_gpio,	
 
 
 	input [1:0] PllLocked,
@@ -150,7 +151,7 @@ module rah_gati #(
     output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
 
-
+	output d_done,
 
 	output  [      7:0] aid     ,
     
@@ -182,7 +183,8 @@ module rah_gati #(
 
   wire  [31:0] o_data ;
 	assign o_data=data; 
-  reg valid_data = 0;
+  wire valid_data;
+assign valid_data=valid_32;
  
   wire o_rden;
 assign o_rden=rden;
@@ -196,18 +198,18 @@ assign o_rden=rden;
     end
 end 
 
-	always @(posedge c_81_clk) begin 
-		 if (o_rden)  begin 
-			  valid_data <= 1;
-			 
-		 end
-		 else begin 
-			  valid_data <= 0;
-			 
-		 end 
+	//always @(posedge c_81_clk) begin 
+	//	 if (o_rden)  begin 
+	//		  valid_data <= 1;
+	//		 
+	//	 end
+	//	 else begin 
+	//		  valid_data <= 0;
+	//		 
+	//	 end 
 
     //if (valid_data) r_data <= data;
-  end
+ // end
 
 
 
@@ -403,8 +405,8 @@ end
   wire [NUM_PORTS-1:0] i_last;
 
   assign i_valid = {
-    valid_wr_req_ctrl,
-    mc_config_valid,
+   valid_wr_req_ctrl,
+   mc_config_valid,
     mc_img_valid,
     mc_wghts_valid,
     mc_fc_valid,
@@ -412,9 +414,12 @@ end
     mc_fc_bias_valid,
     mc_acc_valid,
     mc_op_write_valid
-  };
 
-  assign in_address = {
+
+
+  };
+ assign in_address = {
+    
     address_wr_req_ctrl,
     mc_config_addr,
     mc_img_addr,
@@ -426,8 +431,9 @@ end
     mc_op_write_addr
   };
 
-  assign in_BLEN = {
-    final_burst_len_wr_req_ctrl,
+assign in_BLEN = {
+   
+final_burst_len_wr_req_ctrl,
     mc_config_bl,
     mc_img_bl,
     mc_wghts_bl,
@@ -436,11 +442,10 @@ end
     mc_fc_bias_bl,
     mc_acc_bl,
     mc_op_write_bl
-  };
-
-  assign i_enable = {
-    req_wr_req_ctrl,
-    mc_config_rdreq,
+ };
+	assign i_enable = {
+	req_wr_req_ctrl,
+   mc_config_rdreq,
     mc_img_rdreq,
     mc_wghts_rdreq,
     mc_fc_rdreq,
@@ -448,11 +453,14 @@ end
     mc_fc_bias_rdreq,
     mc_acc_rdreq,
     mc_op_writereq
+
+
   };
 
-  assign i_last = {
+
+	assign i_last = {
     final_last_wr_req_ctrl,
-    mc_config_last,
+   mc_config_last,
     mc_img_last,
     mc_wghts_last,
     mc_fc_last,
@@ -460,7 +468,11 @@ end
     mc_fc_bias_last,
     mc_acc_last,
     mc_op_write_last
-  };
+   
+
+
+	};
+   
 
 
 
@@ -500,7 +512,8 @@ end
     .port_ctrl_i_rw_enable(i_enable),
     .port_ctrl_i_last(i_last),
     .axi_read_o_delay_data(dram_rd_data),
-    .rd_r_last(dram_rd_data_last),
+    .d_done(d_done),
+	 .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),

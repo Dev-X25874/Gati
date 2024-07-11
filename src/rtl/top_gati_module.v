@@ -1,6 +1,6 @@
 `include "common/instructions.vh"
 `include "common/portid.vh"
-
+//`include "instruction.mem"
 module top_gati_module #(
     
     // FIFO Depth varies between operators to avoid overflow and underflow 
@@ -23,7 +23,7 @@ module top_gati_module #(
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
 
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 9, //Number of read and write requestors
+    parameter NUM_PORTS = 8, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -131,11 +131,11 @@ module top_gati_module #(
 
     //signals to DRAM ctrler
     ////config
-    output [7:0] mc_config_addr,
-    output mc_config_rdreq,
-    output mc_config_valid,
-    output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
-    output mc_config_last,
+   output [7:0] mc_config_addr,
+   output mc_config_rdreq,
+   output mc_config_valid,
+   output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
+   output mc_config_last,
 
     ////img
     output [7:0] mc_img_addr,
@@ -250,6 +250,13 @@ module top_gati_module #(
 
     wire [NUM_INSTRUCTIONS-1 : 0] valid_inst;
 
+	// wire  [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
+// wire mc_config_rdreq;
+//    wire mc_config_valid;
+
+
+
+		
   config_blk#(
       .ADDR_W(AXI_ADDR_W),
       .INST_W(INST_W),
@@ -262,13 +269,16 @@ module top_gati_module #(
       .LAY_N(LAYERCNT_WIDTH),
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
   ) config_blk_inst (
+	  //.temp_data(temp_data),
+	  //.temp_wren(temp_wren),
       .clkin(i_clk),
       .rst(i_rst),
 	  .user_start(user_start),
       .valid(dram_rd_datavalid),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
-      .memory_read_r(mc_config_rdreq),
+
+	       .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),

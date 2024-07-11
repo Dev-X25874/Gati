@@ -29,11 +29,12 @@ reg dv;
 reg read_req_reg;
 	integer i;
 	reg last_reg=0;
-	reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0,shifted_burst_len_reg=0;
+	reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+	reg [ADDR_W-1:0] shifted_burst_len_reg=0;
 reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
-	reg [$clog2(BURST_LEN_AXI):0] r_o_burst_shifted;
+	reg [ADDR_W-1:0] r_o_burst_shifted;
 
 // reg temp; //added for debugging
 	always @ (posedge clkin) begin 

@@ -1,5 +1,4 @@
-`ifndef INSTRUCTIONS_VH
-`define INSTRUCTIONS_VH
+`ifndef instruction_vh
 
 `define OP_CONV 'h00
 `define CONV_Opcode 3:0
@@ -128,5 +127,10 @@
 `define TailBlock_BiasStartAddress_WIDTH 32
 `define TailBlock_BiasEndAddress 199:168
 `define TailBlock_BiasEndAddress_WIDTH 32
+
+`define ACT_RELU 'h00
+`define POOL_MAX 'h00
+`define POOL_AVERAGE 'h01
+`define POOL_GLOBAL_AVG 'h02
 
 `endif

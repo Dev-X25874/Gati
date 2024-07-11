@@ -58,7 +58,7 @@ assign o_iter_done = iter_done;
 assign o_layer_done = r_layer_done;
 assign o_c_done = c_done;
 
-assign layer_done = (k_ctr == r_k_iter);
+//assign layer_done = (k_ctr == r_k_iter);
 
 //assign c_done = (c_iter==1)? r_iter_done: ((c_ctr==c_iter-1)?1:0);
 
@@ -95,7 +95,7 @@ end
 reg r_layer_done;
 //always@(posedge i_clk) r_iter_done <= iter_done;
 	always@(posedge i_clk) begin 
-		r_layer_done <= layer_done;
+	//	r_layer_done <= layer_done;
 		r_i_start<=i_start;
 		r_CONV_FC<=CONV_FC;
 		r_im2col_done<=im2col_done;       	
@@ -118,6 +118,10 @@ always@(posedge i_clk) begin
         c_ctr <= 0;
         k_ctr <= 0;
         state <= 0;
+		iter_done <= 0;
+        c_done <= 0;
+        SA_done <= 0;
+        r_layer_done <= 0;
     end
     else begin
         case(state)
@@ -126,6 +130,8 @@ always@(posedge i_clk) begin
                 state <= 3'd1;
                 c_ctr <= 0;
                 k_ctr <= 0;
+				r_layer_done <= 1'b0;
+
             end
         end
         
@@ -135,6 +141,8 @@ always@(posedge i_clk) begin
                 k_ctr <= 0;
                 c_ctr <= 0;
                 state <= 3'd0;
+				r_layer_done <= 1'b1;
+
             end 
             else begin
                 if(r_CONV_FC==0)begin

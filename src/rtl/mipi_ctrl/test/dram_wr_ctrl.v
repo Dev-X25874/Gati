@@ -83,7 +83,9 @@ reg data_valid;
                     // else begin
                     // if((count_blen > r_blen) && DataWrEnd) begin
                     if(count_blen>r_blen) begin
-                        data_valid <= 1'b0;
+                        if(i_write_ready) begin
+                            data_valid <= 1'b0;
+                        end
                         if(data_last) begin
                             state <= 0;
                             count_blen <= 0;
@@ -135,9 +137,10 @@ reg data_valid;
 
     assign rden = (data_valid & i_write_ready) ? {N_FIFO{1'b1}} : {N_FIFO{1'b0}};
 
-    // assign DataWrEnd = DataWrLast & data_valid & i_write_ready;
+    assign DataWrEnd = (r_blen==0)? (DataWrLast & i_write_ready) : (DataWrLast & data_valid & i_write_ready);
 
-    assign DataWrEnd = DataWrLast & i_write_ready;
+    // assign DataWrEnd = DataWrLast & data_valid & i_write_ready;
+    // assign DataWrEnd = DataWrLast & i_write_ready;
 
     always@( posedge i_clk)
     begin
@@ -161,11 +164,17 @@ always@(posedge i_clk) begin
     end
 end
 
+reg dv1 = 0;
+always@(posedge i_clk) begin
+    dv1 <= data_valid;
+    dv  <= dv1;
+end
+
 assign fifo_occupants = {N_FIFO{1'b0,r_blen}};
-//assign o_data_valid = dv;
+assign o_data_valid = dv;
 assign o_fifo_read_enable = rden;
 assign o_data_last = data_last;
-assign o_data_valid=i_dv;
+// assign o_data_valid=i_dv;
 	
 // always @(posedge i_clk)begin
 //     if(~i_rstn)begin

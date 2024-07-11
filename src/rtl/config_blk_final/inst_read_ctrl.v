@@ -22,6 +22,7 @@ module inst_read_ctrl#(
     input status_inst_q,
     input user_start,
     input done_status,
+	input valid_inst,
     input [OPCODE_W-1:0]opcode, //opcode received from instruction data
     output reg bus_master_valid, //valid signal for bus master(start)
     output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
@@ -133,8 +134,11 @@ end
             end
             4'd3:
             begin
-              r_opcode<=opcode; //store opcode
-              top_state<=4'd4;
+				if(valid_inst) begin 
+					r_opcode<=opcode; //store opcode
+					top_state<=4'd4;
+				end
+
             end
             4'd4:
             begin

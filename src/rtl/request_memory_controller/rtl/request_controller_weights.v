@@ -35,7 +35,7 @@ assign burst_length = r_burst_length;
 	always @ (posedge clk) begin 
 
 	 rbl_ad1<=r_burst_length+1;
-	 nxt_bl<=(nxt_addr+rbl_ad1)<<$clog2(AXI_DATA_BYTES);
+	 nxt_bl<=(nxt_addr+(rbl_ad1<<$clog2(AXI_DATA_BYTES)));
 	
 	 r_start_addr<=start_addr;
 	 r_stop_addr<=stop_addr;

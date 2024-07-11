@@ -39,7 +39,9 @@ assign o_data_size = data_size;
 assign o_start_address = start_addr;
 assign o_valid = valid;
 	reg last=0;
-	reg [31:0] sof={32{1'b1}};
+//	reg [31:0] sof;
+	localparam SOF=32'hFFFFFFFF;
+
 
 	reg 				r_i_data_valid;                     //comes from mipi fifo
     reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
@@ -57,6 +59,7 @@ always @(posedge i_clk)begin
         start_addr <= 0;
         data_size <= 0;
         data <= 0;
+		state<=IDLE;
         wren <= 0;
         wr_counter <= 0;
     end 
@@ -65,9 +68,14 @@ always @(posedge i_clk)begin
 			IDLE:begin 
 				soft_start<=0;
 				last<=0;
-				if(i_data==sof) begin 
+				if(i_data==SOF) begin 
 					state<=DATA_SIZE;
 				end
+
+				else  begin 
+					state<=IDLE;
+				end
+
 			end
 			DATA_SIZE: begin 
 				if(i_data_valid) begin 
@@ -75,19 +83,40 @@ always @(posedge i_clk)begin
 					valid <= 1'b1;
 					state<=ADDR;
 				end
+				else begin 
+					data_size<=0;
+					valid<=1'b0;
+					state<=DATA_SIZE;
+				end
+
 			end
 
 			ADDR: begin
 				counter<=data_size;
-				if(data_size==0) begin 
-					last<=1;
-				end
-				if(i_data_valid) begin 
-					valid <= 1'b1;	
-					start_addr<=i_data;
-					state<=NEXT;
-				end 
+//				if(i_data_valid) begin 
+					if(data_size==0) begin 
+						last<=1;
+						state<=NEXT;
+					end
+					else if(i_data_valid)  begin 
+						valid <= 1'b1;	
+						start_addr<=i_data;
+						state<=NEXT;
+						
+					end
+					else begin 
+						state<=ADDR;
+						valid<=1'b0;
+					end
+					
+//				end
+//				else begin
+//					state<=ADDR;
+//					valid<=1'b0;
+//				end
+
 			end
+
 
 			NEXT: begin 
 				if((i_data_valid==1) && (counter!=0) && (~last)) begin 
@@ -96,14 +125,20 @@ always @(posedge i_clk)begin
 						valid <= 1'b1;	
 						counter<=counter-4;
 					end
+					else  begin 
+						data<=0;
+						valid<=1'b0;
+						counter<=counter;
+					end
+
 					 
+                	wren[wr_counter] <= 1;
 					if (wr_counter == N_FIFO-1 ) begin 
                           wr_counter <= 0;
                 	end
                 	else begin 
                 		wr_counter <= wr_counter + 1;
                 	end
-                	wren[wr_counter] <= 1;
                                                         
                      if(N_FIFO > 1) begin
                          if (wr_counter == 0)
@@ -117,7 +152,7 @@ always @(posedge i_clk)begin
 					state<=IDLE;
 					wren<=0;
 				end
-				else if((i_data==sof) && (counter==0) && (i_data_valid==1)) begin 
+				else if((&i_data) && (~|counter)) begin 
 						state<=DATA_SIZE;
 						wren<=0;
 				end

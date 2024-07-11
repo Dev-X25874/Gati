@@ -37,12 +37,12 @@ module Port_ctrl_gen #(
       ) Port_controller_inst (
         .clk(c_81_clk),
         .rst(rst),
-        .valid(valid[i]),  
-        .last (last[i]), 
+        .valid(valid[NUM_PORTS-i-1]),  
+        .last (last[NUM_PORTS-i-1]), 
         .in_address(in_address[(IN_ADDR * (NUM_PORTS - i))-1 -: IN_ADDR]),        
-        .in_enable_rw(in_enable_rw[i]),           
+        .in_enable_rw(in_enable_rw[NUM_PORTS-i-1]),           
         .in_burst_len(in_burst_len[(BURST_LENGTH_WIDTH * (NUM_PORTS - i))- 1 -: BURST_LENGTH_WIDTH]),
-        .o_valid (o_valid[i]),
+        .o_valid (o_valid[NUM_PORTS-i-1]),
         .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
       );
 	  end
@@ -59,12 +59,12 @@ module Port_ctrl_gen #(
       ) Port_controller_inst (
         .clk(clk),
         .rst(rst),
-        .valid(valid[i]),  
-        .last (last[i]), 
+        .valid(valid[NUM_PORTS-i-1]),  
+        .last (last[NUM_PORTS-i-1]), 
         .in_address(in_address[(IN_ADDR * (NUM_PORTS - i))-1 -: IN_ADDR]),        
-        .in_enable_rw(in_enable_rw[i]),           
+        .in_enable_rw(in_enable_rw[NUM_PORTS-i-1]),           
         .in_burst_len(in_burst_len[(BURST_LENGTH_WIDTH * (NUM_PORTS - i))- 1 -: BURST_LENGTH_WIDTH]),
-        .o_valid (o_valid[i]),
+        .o_valid (o_valid[NUM_PORTS-i-1]),
         .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
       );
 	  end

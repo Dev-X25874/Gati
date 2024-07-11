@@ -36,7 +36,7 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     input                                   zero_pad,
     output                                  o_valid_buff,
     output                                  o_valid_data,
-    output                                  im2col_done,
+    output                                 reg  im2col_done,
 	 output [$clog2(UPPER_BOUND)-1:0]        row,
     output [$clog2(UPPER_BOUND)-1:0]        col,
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size,
@@ -126,11 +126,12 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
       end
     end
     
-    assign o_valid_buff = r_zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 
+    assign o_valid_buff = r_start_im2col? (r_zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 
             | ((curr_row == o_mat_size)&&(curr_col == o_mat_size)) 
             | (curr_row == o_mat_size)|(curr_row == 1) 
             | (curr_col == o_mat_size - 1) 
-            | (curr_col == o_mat_size)) ? 0 : 1) : 1;
+            | (curr_col == o_mat_size)
+			| ((curr_row==0)&&(curr_col==0))) ? 0 : 1) : 1):0;
     
     
 
@@ -143,7 +144,9 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 
     assign o_mat_size = r_start_im2col? (r_valid_mat_size ?(r_zero_pad ? r_mat_size + 2 : r_mat_size) : 0) : 0; 
 
-    assign im2col_done = (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
+	always @ (posedge clk) begin 
+	    im2col_done <= (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
+	end
 
 endmodule
 

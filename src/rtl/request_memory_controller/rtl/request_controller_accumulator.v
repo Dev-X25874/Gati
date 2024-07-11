@@ -57,7 +57,7 @@ always @(posedge clk) begin
             end
         end
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
-            if(r_ENABLE) begin
+            if(ENABLE) begin
                 if(fifo_status) begin
                     state <= START_ADDR;
                 end

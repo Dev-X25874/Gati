@@ -1,0 +1,968 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ABN_C	Top_DRAM_controller.v	/^    parameter   ABN_C               = AXI_BYTE_NUMBER   $/;"	c
+ADDRESS_WIDTH	Port_controller.v	/^  parameter ADDRESS_WIDTH = 32,$/;"	c
+ADDRESS_WIDTH	Port_ctrl_gen.v	/^    parameter ADDRESS_WIDTH = 32,$/;"	c
+ADDRESS_WIDTH	Req_Manager.v	/^    parameter ADDRESS_WIDTH = 32,$/;"	c
+ADDRESS_WIDTH	test/Top_test_controller.v	/^    parameter ADDRESS_WIDTH = 32,       \/\/ address width$/;"	c
+ADDR_SEGMENTS	Port_controller.v	/^  parameter ADDR_SEGMENTS = 4,$/;"	c
+ADDR_WIDTH	Req_Queue_gen.v	/^    parameter ADDR_WIDTH = 10, $/;"	c
+ADW_C	Top_Axi.v	/^parameter  ADW_C               = AXI_DATA_WIDTH    ,$/;"	c
+ADW_C	test/Top_test_controller.v	/^    parameter  ADW_C               = AXI_DATA_WIDTH    ,$/;"	c
+ALMOST_FLAG	ip/data_fifo/data_fifo.v	/^    parameter ALMOST_FLAG        = 1,$/;"	c
+ALMOST_FLAG	ip/data_fifo/data_fifo.v	/^    parameter ALMOST_FLAG        = OPTIONAL_FLAGS,$/;"	c
+ARADDR	Axi4FullDeplex.v	/^  input   [     31:0] ARADDR  ; \/\/(I)[RdAddr]Read address. The read address gives the address of the first transfer in a read burst transaction.$/;"	p
+ARADDR	Rd_ctrl.v	/^  output  [     31:0] ARADDR      ; \/\/(I)[RdAddr]Read address. The read address gives the address of the first transfer in a read burst transaction.$/;"	p
+ARADDR	Rd_ctrl.v	/^  wire  [31:0]  ARADDR  = RdStartAddr   ; \/\/(I)[RdAddr]Read address. The read address gives the address of the first transfer in a read burst transaction.$/;"	n
+ARADDR	Top_Axi.v	/^wire [31:0] AWADDR, WSTRB , ARADDR ;$/;"	n
+ARBURST	Axi4FullDeplex.v	/^  input   [      1:0] ARBURST ; \/\/(I)[RdAddr]Burst type. The burst type and the size information determine how the address for each transfer within the burst is calculated.$/;"	p
+ARBURST	Rd_ctrl.v	/^  output  [      1:0] ARBURST     ; \/\/(I)[RdAddr]Burst type. The burst type and the size information determine how the address for each transfer within the burst is calculated.$/;"	p
+ARBURST	Rd_ctrl.v	/^  wire  [ 1:0]  ARBURST = 2'b01         ; \/\/(I)[RdAddr]Burst type. The burst type and the size information determine how the address for each transfer within the burst is calculated.$/;"	n
+ARBURST	Top_Axi.v	/^wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;$/;"	n
+ARID	Axi4FullDeplex.v	/^  input   [      7:0] ARID    ; \/\/(I)[RdAddr]Read address ID. This signal is the identification tag for the read address group of signals.$/;"	p
+ARID	Rd_ctrl.v	/^  output  [      7:0] ARID        ; \/\/(I)[RdAddr]Read address ID. This signal is the identification tag for the read address group of signals.$/;"	p
+ARID	Rd_ctrl.v	/^  wire  [ 7:0]  ARID    = axi_rd_id     ; \/\/(I)[RdAddr]Read address ID. This signal is the identification tag for the read address group of signals.$/;"	n
+ARID	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+ARLEN	Axi4FullDeplex.v	/^  input   [      7:0] ARLEN   ; \/\/(I)[RdAddr]Burst length. This signal indicates the exact number of transfers in a burst.$/;"	p
+ARLEN	Rd_ctrl.v	/^  output  [      7:0] ARLEN       ; \/\/(I)[RdAddr]Burst length. This signal indicates the exact number of transfers in a burst.$/;"	p
+ARLEN	Rd_ctrl.v	/^  wire  [ 7:0]  ARLEN   = RdBurstLen    ; \/\/(I)[RdAddr]Burst length. This signal indicates the exact number of transfers in a burst.$/;"	n
+ARLEN	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+ARLOCK	Axi4FullDeplex.v	/^  input   [      1:0] ARLOCK  ; \/\/(I)[RdAddr]Lock type. This signal provides additional information about the atomic characteristics of the transfer.$/;"	p
+ARLOCK	Rd_ctrl.v	/^  output  [      1:0] ARLOCK      ; \/\/(I)[RdAddr]Lock type. This signal provides additional information about the atomic characteristics of the transfer.$/;"	p
+ARLOCK	Rd_ctrl.v	/^  wire  [ 1:0]  ARLOCK  = 2'h00         ; \/\/(I)[RdAddr]Lock type. This signal provides additional information about the atomic characteristics of the transfer.$/;"	n
+ARLOCK	Top_Axi.v	/^wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;$/;"	n
+ARREADY	Axi4FullDeplex.v	/^  output              ARREADY ; \/\/(O)[RdAddr]Read address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	p
+ARREADY	Axi4FullDeplex.v	/^  wire          ARREADY = ~OpType & aready  ; \/\/(O)[RdAddr]Read address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	n
+ARREADY	Rd_ctrl.v	/^  input               ARREADY     ; \/\/(O)[RdAddr]Read address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	p
+ARREADY	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+ARSIZE	Axi4FullDeplex.v	/^  input   [      2:0] ARSIZE  ; \/\/(I)[RdAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	p
+ARSIZE	Rd_ctrl.v	/^  output  [      2:0] ARSIZE      ; \/\/(I)[RdAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	p
+ARSIZE	Rd_ctrl.v	/^  wire  [ 2:0]  ARSIZE  = AXI_DATA_SIZE ; \/\/(I)[RdAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	n
+ARSIZE	Top_Axi.v	/^wire [2:0] AWSIZE, ARSIZE ;$/;"	n
+ARVALID	Axi4FullDeplex.v	/^  input               ARVALID ; \/\/(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.$/;"	p
+ARVALID	Rd_ctrl.v	/^  output              ARVALID     ; \/\/(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.$/;"	p
+ARVALID	Rd_ctrl.v	/^  wire          ARVALID = AddrValid     ; \/\/(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.$/;"	n
+ARVALID	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+ASYM_WIDTH_RATIO	ip/data_fifo/data_fifo.v	/^    parameter ASYM_WIDTH_RATIO   = 4,$/;"	c
+AWADDR	Axi4FullDeplex.v	/^  input   [     31:0] AWADDR  ; \/\/(I)[WrAddr]Write address. The write address gives the address of the first transfer in a write burst transaction.$/;"	p
+AWADDR	Top_Axi.v	/^wire [31:0] AWADDR, WSTRB , ARADDR ;$/;"	n
+AWADDR	Wr_ctrl.v	/^  output  [31:0]    AWADDR      ; \/\/(O)[WrAddr]Write address. The write address gives the address of the first transfer in a write burst transaction.$/;"	p
+AWADDR	Wr_ctrl.v	/^  wire  [31:0]  AWADDR  = WrStartAddr   ; \/\/(O)[WrAddr]Write address. The write address gives the address of the first transfer in a write burst transaction.$/;"	n
+AWBURST	Axi4FullDeplex.v	/^  input   [      1:0] AWBURST ; \/\/(I)[WrAddr]Burst type. The burst type and the size information, determine how the address for each transfer within the burst is calculated.$/;"	p
+AWBURST	Top_Axi.v	/^wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;$/;"	n
+AWBURST	Wr_ctrl.v	/^  output  [ 1:0]    AWBURST     ; \/\/(O)[WrAddr]Burst type. The burst type and the size information, determine how the address for each transfer within the burst is calculated.$/;"	p
+AWBURST	Wr_ctrl.v	/^  wire  [ 1:0]  AWBURST = 2'b01         ; \/\/(O)[WrAddr]Burst type. The burst type and the size information, determine how the address for each transfer within the burst is calculated.$/;"	n
+AWID	Axi4FullDeplex.v	/^  input   [      7:0] AWID    ; \/\/(I)[WrAddr]Write address ID. This signal is the identification tag for the write address group of signals.$/;"	p
+AWID	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+AWID	Wr_ctrl.v	/^  output  [ 7:0]    AWID        ; \/\/(O)[WrAddr]Write address ID. This signal is the identification tag for the write address group of signals.$/;"	p
+AWID	Wr_ctrl.v	/^  wire  [ 7:0]  AWID    = axi_wr_id     ; \/\/(O)[WrAddr]Write address ID. This signal is the identification tag for the write address group of signals.$/;"	n
+AWLEN	Axi4FullDeplex.v	/^  input   [      7:0] AWLEN   ; \/\/(I)[WrAddr]Burst length. The burst length gives the exact number of transfers in a burst. This information determines the number of data transfers associated with the address.$/;"	p
+AWLEN	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+AWLEN	Wr_ctrl.v	/^  output  [ 7:0]    AWLEN       ; \/\/(O)[WrAddr]Burst length. The burst length gives the exact number of transfers in a burst. This information determines the number of data transfers associated with the address.$/;"	p
+AWLEN	Wr_ctrl.v	/^  wire  [ 7:0]  AWLEN   = WrBurstLen    ; \/\/(O)[WrAddr]Burst length. The burst length gives the exact number of transfers in a burst. This information determines the number of data transfers associated with the address.$/;"	n
+AWLOCK	Axi4FullDeplex.v	/^  input   [      1:0] AWLOCK  ; \/\/(I)[WrAddr]Lock type. Provides additional information about the atomic characteristics of the transfer.$/;"	p
+AWLOCK	Top_Axi.v	/^wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;$/;"	n
+AWLOCK	Wr_ctrl.v	/^  output  [ 1:0]    AWLOCK      ; \/\/(O)[WrAddr]Lock type. Provides additional information about the atomic characteristics of the transfer.$/;"	p
+AWLOCK	Wr_ctrl.v	/^  wire  [ 1:0]  AWLOCK  = 2'b00         ; \/\/(O)[WrAddr]Lock type. Provides additional information about the atomic characteristics of the transfer.$/;"	n
+AWREADY	Axi4FullDeplex.v	/^  output              AWREADY ; \/\/(O)[WrAddr]Write address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	p
+AWREADY	Axi4FullDeplex.v	/^  wire          AWREADY =  OpType & aready  ; \/\/(O)[WrAddr]Write address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	n
+AWREADY	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+AWREADY	Wr_ctrl.v	/^  input             AWREADY     ; \/\/(I)[WrAddr]Write address ready. This signal indicates that the slave is ready to accept an address and associated control signals.$/;"	p
+AWSIZE	Axi4FullDeplex.v	/^  input   [      2:0] AWSIZE  ; \/\/(I)[WrAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	p
+AWSIZE	Top_Axi.v	/^wire [2:0] AWSIZE, ARSIZE ;$/;"	n
+AWSIZE	Wr_ctrl.v	/^  output  [ 2:0]    AWSIZE      ; \/\/(O)[WrAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	p
+AWSIZE	Wr_ctrl.v	/^  wire  [ 2:0]  AWSIZE  = AXI_DATA_SIZE ; \/\/(O)[WrAddr]Burst size. This signal indicates the size of each transfer in the burst.$/;"	n
+AWVALID	Axi4FullDeplex.v	/^  input               AWVALID ; \/\/(I)[WrAddr]Write address valid. This signal indicates that the channel is signaling valid write address and control information.$/;"	p
+AWVALID	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+AWVALID	Wr_ctrl.v	/^  output            AWVALID     ; \/\/(O)[WrAddr]Write address valid. This signal indicates that the channel is signaling valid write address and control information.$/;"	p
+AWVALID	Wr_ctrl.v	/^  wire          AWVALID = AddrValid     ; \/\/(O)[WrAddr]Write address valid. This signal indicates that the channel is signaling valid write address and control information.$/;"	n
+AXI_BYTE_NUMBER	Top_DRAM_controller.v	/^    parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH\/8  ,                                  $/;"	c
+AXI_DATA_WIDTH	Axi4FullDeplex.v	/^  parameter   AXI_DATA_WIDTH      = 256 ;$/;"	c
+AXI_DATA_WIDTH	Rd_ctrl.v	/^  parameter   AXI_DATA_WIDTH  = 256              ;$/;"	c
+AXI_DATA_WIDTH	Top_Axi.v	/^parameter   AXI_DATA_WIDTH      = 256 ,$/;"	c
+AXI_DATA_WIDTH	Wr_ctrl.v	/^  parameter   AXI_DATA_WIDTH  = 256               ;$/;"	c
+AXI_DATA_WIDTH	test/Mem_ctrl_wr.v	/^parameter   AXI_DATA_WIDTH = 256$/;"	c
+AXI_DATA_WIDTH	test/Top_test_controller.v	/^    parameter  AXI_DATA_WIDTH      = 256 ,            \/\/ Axi data width $/;"	c
+AXI_ID_BLEN_CON	Top_DRAM_controller.v	/^    parameter   AXI_ID_BLEN_CON = 8 ,                             \/\/ burst length width for AXI$/;"	c
+AddValue	test/Mem_ctrl_wr.v	/^  wire  [15:0]      AddValue  [7:0];$/;"	n
+Adder	test/Mem_ctrl_wr.v	/^  tri0  [15:0]      Adder     [7:0];$/;"	n
+AddrData	test/Mem_ctrl_wr.v	/^ reg   [ADW_C-1:0]  AddrData  = {ADW_C{1'h0}};    $/;"	r
+AddrRdEn	Rd_ctrl.v	/^  wire AddrRdEn = (AddrValid & AddrReady);$/;"	n
+AddrReady	Rd_ctrl.v	/^  wire  AddrReady = ARREADY;$/;"	n
+AddrReady	Wr_ctrl.v	/^  wire AddrReady = AWREADY ;$/;"	n
+AddrVal	Axi4FullDeplex.v	/^  wire  [1:0]  AddrVal = {AWVALID , ARVALID} & OprateAva;$/;"	n
+AddrValid	Rd_ctrl.v	/^  reg     AddrValid = 1'h0; \/\/(I)[RdAddr]Read address valid. This signal indicates that the channel is signaling valid read address and control information.$/;"	r
+AddrValid	Wr_ctrl.v	/^  reg     AddrValid = 1'h0;$/;"	r
+AddrWrEn	Wr_ctrl.v	/^  wire AddrWrEn = (AddrValid & AddrReady);$/;"	n
+Axi0ResetReg	Top_DRAM_controller.v	/^  reg   [2:0] Axi0ResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+Axi0ResetReg	test/Top_test_controller.v	/^  reg   [2:0] Axi0ResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+Axi0Rst_N	Top_DRAM_controller.v	/^  wire    Axi0Rst_N  ;$/;"	n
+Axi0Rst_N	test/Top_test_controller.v	/^  wire    Axi0Rst_N  ;$/;"	n
+Axi1ResetReg	Top_DRAM_controller.v	/^  reg   [2:0] Axi1ResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+Axi1ResetReg	test/Top_test_controller.v	/^  reg   [2:0] Axi1ResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+Axi1Rst_N	Top_DRAM_controller.v	/^  wire    Axi1Rst_N  = Axi1ResetReg[2]; \/\/System Reset (Low Active)$/;"	n
+Axi1Rst_N	test/Top_test_controller.v	/^  wire    Axi1Rst_N  = Axi1ResetReg[2]; \/\/System Reset (Low Active)$/;"	n
+Axi4FullDeplex	Axi4FullDeplex.v	/^module Axi4FullDeplex$/;"	m
+BID	Axi4FullDeplex.v	/^  output  [      7:0] BID     ; \/\/(O)[WrResp]Response ID tag. This signal is the ID tag of the write response.$/;"	p
+BID	Axi4FullDeplex.v	/^  wire  [     7:0]  BID     = bid     ; \/\/(O)[WrResp]Response ID tag. This signal is the ID tag of the write response.$/;"	n
+BID	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+BID	Wr_ctrl.v	/^  input   [ 7:0]    BID         ; \/\/(I)[WrResp]Response ID tag. This signal is the ID tag of the write response.$/;"	p
+BIN_WIDTH	Req_Manager.v	/^    parameter BIN_WIDTH = $clog2(NUM_PORTS),$/;"	c
+BIN_WIDTH	onehot_to_bin.v	/^parameter BIN_WIDTH = $clog2(ONEHOT_WIDTH);$/;"	c
+BIN_WIDTH	test/Top_test_controller.v	/^    parameter BIN_WIDTH = $clog2(NUM_PORTS-1),$/;"	c
+BREADY	Axi4FullDeplex.v	/^  input               BREADY  ; \/\/(I)[WrResp]Response ready. This signal indicates that the master can accept a write response.$/;"	p
+BREADY	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+BREADY	Wr_ctrl.v	/^  output            BREADY      ; \/\/(O)[WrResp]Response ready. This signal indicates that the master can accept a write response.$/;"	p
+BREADY	Wr_ctrl.v	/^  wire    BREADY = BackReady; \/\/(O)[WrResp]Response ready. This signal indicates that the master can accept a write response.$/;"	n
+BURST_LENGTH_WIDTH	RR_ARB.v	/^  parameter BURST_LENGTH_WIDTH = 4 ,$/;"	c
+BURST_LENGTH_WIDTH	Top_DRAM_controller.v	/^    parameter   BURST_LENGTH_WIDTH = 8,                           \/\/ burst length$/;"	c
+BVALID	Axi4FullDeplex.v	/^  output              BVALID  ; \/\/(O)[WrResp]Write response valid. This signal indicates that the channel is signaling a valid write response.$/;"	p
+BVALID	Axi4FullDeplex.v	/^  wire              BVALID  = bvalid  ; \/\/(O)[WrResp]Write response valid. This signal indicates that the channel is signaling a valid write response.$/;"	n
+BVALID	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+BVALID	Wr_ctrl.v	/^  input             BVALID      ; \/\/(I)[WrResp]Write response valid. This signal indicates that the channel is signaling a valid write response.$/;"	p
+BYPASS_RESET_SYNC	ip/data_fifo/data_fifo.v	/^    parameter BYPASS_RESET_SYNC  = 0,             \/\/ New Param$/;"	c
+BackReady	Wr_ctrl.v	/^  reg     BackReady = 1'h0; \/\/(O)[WrResp]Response ready. This signal indicates that the master can accept a write response.$/;"	r
+BackRespond	Wr_ctrl.v	/^  wire    BackRespond = BackReady & BackValid;$/;"	n
+BackValid	Wr_ctrl.v	/^  wire    BackValid = BVALID;$/;"	n
+COMBINED_DATA_WIDTH	Port_controller.v	/^  parameter COMBINED_DATA_WIDTH = 41,$/;"	c
+COMBINED_DATA_WIDTH	Port_ctrl_gen.v	/^    parameter COMBINED_DATA_WIDTH = 41,$/;"	c
+CfgRdAddr	Rd_ctrl.v	/^  input   [     31:0] CfgRdAddr   ; \/\/(I)[DdrRdCtrl]Config Read Start Address$/;"	p
+CfgRdAddr	Top_Axi.v	/^input  [31:0] CfgRdAddr ,$/;"	p
+CfgRdBLen	Rd_ctrl.v	/^  input   [      7:0] CfgRdBLen   ; \/\/(I)[DdrRdCtrl]Config Read Burst Length$/;"	p
+CfgWrAddr	Top_Axi.v	/^input  [31:0] CfgWrAddr ,$/;"	p
+CfgWrAddr	Wr_ctrl.v	/^  input   [31:0]    CfgWrAddr   ; \/\/(I)[DdrWrCtrl]Config Write Start Address$/;"	p
+CfgWrBLen	Wr_ctrl.v	/^  input   [ 7:0]    CfgWrBLen   ; \/\/(I)[DdrWrCtrl]Config Write Burst Length$/;"	p
+DATA_WIDTH	RR_ARB.v	/^  parameter DATA_WIDTH = 41$/;"	c
+DATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter DATA_WIDTH         = 32,            \/\/ Reverted (Equivalent to WDATA_WIDTH)$/;"	c
+DATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter DATA_WIDTH = 256,$/;"	c
+DATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RDATA_WIDTH        = rdwidthcompute(ASYM_WIDTH_RATIO,DATA_WIDTH),$/;"	c
+DATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RD_DEPTH           = rddepthcompute(DEPTH,DATA_WIDTH,RDATA_WIDTH),$/;"	c
+DDR_WRITE_FIRST	Axi4FullDeplex.v	/^  parameter   DDR_WRITE_FIRST     = 1'h1;$/;"	c
+DataRdBusy	Rd_ctrl.v	/^  reg   DataRdBusy = 1'h0;$/;"	r
+DataRdData	Rd_ctrl.v	/^  wire  [ADW_C-1:0]  DataRdData  = RDATA   ; \/\/(O)[RdData]Read data.$/;"	n
+DataRdEn	Rd_ctrl.v	/^  wire  DataRdEn    = DataRdReady & DataRdValid;$/;"	n
+DataRdEnd	Rd_ctrl.v	/^  wire  DataRdEnd   = DataRdReady & DataRdValid & DataRdLast;$/;"	n
+DataRdEndReg	Rd_ctrl.v	/^  reg   DataRdEndReg;$/;"	r
+DataRdId	Rd_ctrl.v	/^  wire  [     7:0]   DataRdId    = RID     ; \/\/(O)[RdData]Read ID tag. This signal is the identification tag for the read data group of signals generated by the slave.$/;"	n
+DataRdLast	Rd_ctrl.v	/^  wire               DataRdLast  = RLAST   ; \/\/(O)[RdData]Read last. This signal indicates the last transfer in a read burst.$/;"	n
+DataRdReady	Rd_ctrl.v	/^  reg   DataRdReady = 1'h0;$/;"	r
+DataRdResp	Rd_ctrl.v	/^  wire  [     1:0]   DataRdResp  = RRESP   ; \/\/(O)[RdData]Read response. This signal indicates the status of the read transfer.$/;"	n
+DataRdStart	Rd_ctrl.v	/^   reg   DataRdStart = 0;$/;"	r
+DataRdValid	Rd_ctrl.v	/^  wire               DataRdValid = RVALID  ; \/\/(O)[RdData]Read valid. This signal indicates that the channel is signaling the required read data.$/;"	n
+DataWrEnd	test/Mem_ctrl_wr.v	/^wire DataWrEnd;$/;"	n
+DataWrLast	Wr_ctrl.v	/^  reg   DataWrLast      = 1'h0    ;$/;"	r
+DataWrLast	test/Mem_ctrl_wr.v	/^reg DataWrLast;$/;"	r
+DataWrReady	Wr_ctrl.v	/^  wire  DataWrReady     = WREADY  ;$/;"	n
+DataWrStart	Wr_ctrl.v	/^   reg   DataWrStart = 0;$/;"	r
+DataWrValid	Wr_ctrl.v	/^  reg   DataWrValid     = 1'h0    ;$/;"	r
+DdrCtrl_CFG_RST_N	Top_DRAM_controller.v	/^    output      DdrCtrl_CFG_RST_N     ,                        \/\/(O)[Control]DDR Controner Reset(Low Active)     $/;"	p
+DdrCtrl_CFG_SEQ_RST	test/Top_test_controller.v	/^    output      DdrCtrl_CFG_SEQ_RST   ,    \/\/(O)[Control]DDR Controner Sequencer Reset $/;"	p
+DdrCtrl_CFG_SEQ_START	Top_DRAM_controller.v	/^    output      DdrCtrl_CFG_SEQ_START ,                       \/\/(O)[Control]DDR Controner Sequencer Start $/;"	p
+DdrInitDone	Top_DRAM_controller.v	/^  wire  DdrInitDone   ;  \/\/DDR Initial Done status$/;"	n
+DdrInitDone	test/Top_test_controller.v	/^  wire  DdrInitDone   ;  \/\/DDR Initial Done status$/;"	n
+DdrResetCtrl	Top_DRAM_controller.v	/^  wire      DdrResetCtrl            ; \/\/DDR Controller Reset Control$/;"	n
+DdrResetCtrl	test/Top_test_controller.v	/^  wire      DdrResetCtrl            ; \/\/DDR Controller Reset Control$/;"	n
+DdrWrData	test/Mem_ctrl_wr.v	/^    output [255:0] DdrWrData ,$/;"	p
+ENDIANESS	ip/data_fifo/data_fifo.v	/^    parameter ENDIANESS 	= 0 \/\/0: Big endian (default)   1: Little endian $/;"	c
+FAMILY	ip/data_fifo/data_fifo.v	/^    parameter FAMILY             = "TRION",       \/\/ New Param$/;"	c
+FAMILY	ip/data_fifo/data_fifo.v	/^    parameter FAMILY             = "TRION",$/;"	c
+FAMILY	ip/data_fifo/data_fifo.v	/^    parameter FAMILY        = "TRION",$/;"	c
+FIFO_DEPTH	RD_ID_Manager.v	/^parameter FIFO_DEPTH = 4; $/;"	c
+FREQ	ddr_reset_sequencer.v	/^parameter FREQ = 100;			\/\/ default is 100 MHz.  Redefine as needed.$/;"	c
+HANDSHAKE_FLAG	ip/data_fifo/data_fifo.v	/^    parameter HANDSHAKE_FLAG     = 1$/;"	c
+ID_WIDTH	RD_ID_Manager.v	/^    parameter ID_WIDTH = 8,$/;"	c
+ID_WIDTH	test/Top_test_controller.v	/^    parameter ID_WIDTH = 8,          \/\/ ID width after the arbiter module $/;"	c
+IN_ADDR	Top_DRAM_controller.v	/^    parameter   IN_ADDR = 8,                                      \/\/ input address width of port controller$/;"	c
+IN_ADDR	test/Top_test_controller.v	/^    parameter IN_ADDR = 8, $/;"	c
+IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^`define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)$/;"	c
+IP_NAME_CONCAT	ip/data_fifo/data_fifo.v	/^`define IP_NAME_CONCAT(a,b) a``b$/;"	c
+IP_UUID	ip/data_fifo/data_fifo.v	/^`define IP_UUID _cb1f67efc7cc4c0388302be47d4b0892$/;"	c
+MODE	ip/data_fifo/data_fifo.v	/^    parameter MODE               = "STANDARD",$/;"	c
+MUX_WR_SEL	test/MUX_WR_SEL.v	/^module MUX_WR_SEL ($/;"	m
+Mem_Rd_ctrl	test/Mem_Rd_ctrl.v	/^module Mem_Rd_ctrl ($/;"	m
+Mem_ctrl_wr	test/Mem_ctrl_wr.v	/^module Mem_ctrl_wr #($/;"	m
+N	RR_ARB.v	/^  parameter N = 4,$/;"	c
+NUM_PORTS	Port_ctrl_gen.v	/^    parameter NUM_PORTS = 4,$/;"	c
+NUM_PORTS	Req_Manager.v	/^    parameter NUM_PORTS = 4,$/;"	c
+NUM_PORTS	test/Top_test_data_ctrl.v	/^parameter NUM_PORTS = 4 $/;"	c
+NUM_PORTS_SEL	WR_ID_Manager.v	/^  parameter NUM_PORTS_SEL = 4,$/;"	c
+NUM_QUEUE	Req_Queue_gen.v	/^    parameter NUM_QUEUE = 4,$/;"	c
+ONEHOT_WIDTH	onehot_to_bin.v	/^parameter ONEHOT_WIDTH = 32;$/;"	c
+OPTIONAL_FLAGS	ip/data_fifo/data_fifo.v	/^    parameter OPTIONAL_FLAGS     = 1,             \/\/ Reverted$/;"	c
+OUTPUT_REG	ip/data_fifo/data_fifo.v	/^    parameter OUTPUT_REG    = 1,$/;"	c
+OpType	Axi4FullDeplex.v	/^  reg           OpType = 1'h0;$/;"	r
+OperateSel	Axi4FullDeplex.v	/^  reg   OperateSel = 1'h0;$/;"	r
+OprateAva	Axi4FullDeplex.v	/^  reg   [1:0] OprateAva = 2'h3;$/;"	r
+POINTER_COUNT	Top_DRAM_controller.v	/^    parameter   POINTER_COUNT = 10,                               \/\/ fifo depth$/;"	c
+POINTER_COUNT	test/Top_test_controller.v	/^    parameter POINTER_COUNT = 10,     $/;"	c
+PORT_ID_WIDTH	Port_controller.v	/^  parameter PORT_ID_WIDTH = 4$/;"	c
+PORT_ID_WIDTH	Port_ctrl_gen.v	/^    parameter PORT_ID_WIDTH = 4$/;"	c
+PORT_ID_WIDTH	RR_ARB.v	/^  parameter PORT_ID_WIDTH = 4 ,$/;"	c
+PORT_ID_WIDTH	Top_DRAM_controller.v	/^    parameter   PORT_ID_WIDTH = 4,                                \/\/ ID width before the arbiter module [port controller, fifo, arbiter and request manager]$/;"	c
+PROGRAMMABLE_EMPTY	ip/data_fifo/data_fifo.v	/^    parameter PROGRAMMABLE_EMPTY = "NONE",$/;"	c
+PROGRAMMABLE_FULL	ip/data_fifo/data_fifo.v	/^    parameter PROGRAMMABLE_FULL  = "STATIC_DUAL", \/\/ Set to "NONE" if not require this feature$/;"	c
+PROG_EMPTY_ASSERT	ip/data_fifo/data_fifo.v	/^    parameter PROG_EMPTY_ASSERT  = 5,$/;"	c
+PROG_EMPTY_NEGATE	ip/data_fifo/data_fifo.v	/^    parameter PROG_EMPTY_NEGATE  = 0,$/;"	c
+PROG_FULL_ASSERT	ip/data_fifo/data_fifo.v	/^    parameter PROG_FULL_ASSERT   = 0,$/;"	c
+PROG_FULL_NEGATE	ip/data_fifo/data_fifo.v	/^    parameter PROG_FULL_NEGATE   = 23,$/;"	c
+PllLocked	Top_DRAM_controller.v	/^	input   [ 1:0]  PllLocked ,$/;"	p
+PllLocked	test/Top_test_controller.v	/^    input   [ 1:0]  PllLocked ,$/;"	p
+Port_controller	Port_controller.v	/^module Port_controller #($/;"	m
+Port_ctrl_gen	Port_ctrl_gen.v	/^module Port_ctrl_gen #($/;"	m
+PowerOnResetCnt	Top_DRAM_controller.v	/^  reg [7:0] PowerOnResetCnt = 8'h0  ; \/\/Power On Reset Counter$/;"	r
+PowerOnResetCnt	test/Top_test_controller.v	/^  reg [7:0] PowerOnResetCnt = 8'h0  ; \/\/Power On Reset Counter$/;"	r
+RADDR_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RADDR_WIDTH        = 9,$/;"	c
+RADDR_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RADDR_WIDTH        = depth2width(RD_DEPTH),$/;"	c
+RAM_MUX_RATIO	ip/data_fifo/data_fifo.v	/^    parameter RAM_MUX_RATIO      = 1,$/;"	c
+RDATA	Axi4FullDeplex.v	/^  output  [ADW_C-1:0] RDATA   ; \/\/(O)[RdData]Read data.$/;"	p
+RDATA	Axi4FullDeplex.v	/^  wire [ADW_C-1:0]  RDATA   = rdata   ; \/\/(O)[RdData]Read data.$/;"	n
+RDATA	Rd_ctrl.v	/^  input   [ADW_C-1:0] RDATA       ; \/\/(O)[RdData]Read data.$/;"	p
+RDATA	Top_Axi.v	/^wire [255:0] WDATA, RDATA ;$/;"	n
+RDATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RDATA_WIDTH        = rdwidthcompute(ASYM_WIDTH_RATIO,DATA_WIDTH),$/;"	c
+RDATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter RD_DEPTH           = rddepthcompute(DEPTH,DATA_WIDTH,RDATA_WIDTH),$/;"	c
+RD_DEPTH	ip/data_fifo/data_fifo.v	/^    parameter RD_DEPTH           = rddepthcompute(DEPTH,DATA_WIDTH,RDATA_WIDTH),$/;"	c
+RD_ID_Manager	RD_ID_Manager.v	/^module RD_ID_Manager #($/;"	m
+RID	Axi4FullDeplex.v	/^  output  [      7:0] RID     ; \/\/(O)[RdData]Read ID tag. This signal is the identification tag for the read data group of signals generated by the slave.$/;"	p
+RID	Axi4FullDeplex.v	/^  wire  [     7:0]  RID     = rid  ; \/\/(O)[RdData]Read ID tag. This signal is the identification tag for the read data group of signals generated by the slave.$/;"	n
+RID	Rd_ctrl.v	/^  input   [      7:0] RID         ; \/\/(O)[RdData]Read ID tag. This signal is the identification tag for the read data group of signals generated by the slave.$/;"	p
+RID	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+RLAST	Axi4FullDeplex.v	/^  output              RLAST   ; \/\/(O)[RdData]Read last. This signal indicates the last transfer in a read burst.$/;"	p
+RLAST	Axi4FullDeplex.v	/^  wire              RLAST   = rlast   ; \/\/(O)[RdData]Read last. This signal indicates the last transfer in a read burst.$/;"	n
+RLAST	Rd_ctrl.v	/^  input               RLAST       ; \/\/(O)[RdData]Read last. This signal indicates the last transfer in a read burst.$/;"	p
+RLAST	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+RREADY	Axi4FullDeplex.v	/^  input               RREADY  ; \/\/(I)[RdData]Read ready. This signal indicates that the master can accept the read data and response information.$/;"	p
+RREADY	Rd_ctrl.v	/^  output              RREADY      ; \/\/(I)[RdData]Read ready. This signal indicates that the master can accept the read data and response information.$/;"	p
+RREADY	Rd_ctrl.v	/^  wire  RREADY  = DataRdReady ; \/\/(I)[RdData]Read ready. This signal indicates that the master can accept the read data and response information.$/;"	n
+RREADY	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+RRESP	Axi4FullDeplex.v	/^  output  [      1:0] RRESP   ; \/\/(O)[RdData]Read response. This signal indicates the status of the read transfer.$/;"	p
+RRESP	Axi4FullDeplex.v	/^  wire  [     1:0]  RRESP   = rresp   ; \/\/(O)[RdData]Read response. This signal indicates the status of the read transfer.$/;"	n
+RRESP	Rd_ctrl.v	/^  input   [      1:0] RRESP       ; \/\/(O)[RdData]Read response. This signal indicates the status of the read transfer.$/;"	p
+RRESP	Top_Axi.v	/^wire [1:0] AWBURST, AWLOCK, ARBURST, ARLOCK, RRESP ;$/;"	n
+RR_ARB	RR_ARB.v	/^module RR_ARB #($/;"	m
+RR_en_pin	Top_DRAM_controller.v	/^reg RR_en_pin;$/;"	r
+RR_o_addr	Top_DRAM_controller.v	/^wire [ADDRESS_WIDTH-1:0]  RR_o_addr;                          \/\/ output address from RR module $/;"	n
+RR_o_blen	Top_DRAM_controller.v	/^wire [BURST_LENGTH_WIDTH-1:0] RR_o_blen;                      \/\/ output burst length from RR module$/;"	n
+RR_o_port_id	Top_DRAM_controller.v	/^wire [PORT_ID_WIDTH-1:0] RR_o_port_id;                        \/\/ output port id from RR module$/;"	n
+RR_o_rw	Top_DRAM_controller.v	/^wire RR_o_rw ;                                                \/\/ output read or write enable from RR module$/;"	n
+RR_o_valid_req	Top_DRAM_controller.v	/^wire RR_o_valid_req ;$/;"	n
+RVALID	Axi4FullDeplex.v	/^  output              RVALID  ; \/\/(O)[RdData]Read valid. This signal indicates that the channel is signaling the required read data.$/;"	p
+RVALID	Axi4FullDeplex.v	/^  wire              RVALID  = rvalid  ; \/\/(O)[RdData]Read valid. This signal indicates that the channel is signaling the required read data.$/;"	n
+RVALID	Rd_ctrl.v	/^  input               RVALID      ; \/\/(O)[RdData]Read valid. This signal indicates that the channel is signaling the required read data.$/;"	p
+RVALID	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+RamRdData	Rd_ctrl.v	/^  output  [ADW_C-1:0] RamRdData   ; \/\/(O)[DdrRdCtrl]Ram Read Data$/;"	p
+RamRdData	Rd_ctrl.v	/^  reg   [ADW_C-1:0]   RamRdData ; \/\/(O)[DdrRdCtrl]Ram Read Data$/;"	r
+RamRdStart	Rd_ctrl.v	/^  input               RamRdStart  ; \/\/(I)[DdrRdCtrl]Ram Read Start$/;"	p
+RamRdStart	Top_Axi.v	/^input  RamRdStart ,$/;"	p
+RamWrData	Wr_ctrl.v	/^  input [ADW_C-1:0] RamWrData   ; \/\/(I)[DdrWrCtrl]Ram Write Data$/;"	p
+RamWrStart	Top_Axi.v	/^input  RamWrStart,$/;"	p
+RamWrStart	Wr_ctrl.v	/^  input             RamWrStart  ; \/\/(I)[DdrWrCtrl]Ram Operate Start$/;"	p
+RdAddrCnt	Rd_ctrl.v	/^  reg  [31:0]  RdAddrCnt = 32'h0  ; \/\/(O)[DdrRdCtrl]Ram Read Addrdss$/;"	r
+RdBurstLen	Rd_ctrl.v	/^  reg   [7 :0]  RdBurstLen  = 8'h0;$/;"	r
+RdByteNum	Rd_ctrl.v	/^  wire [7:0]   RdByteNum =  AXI_BYTE_NUMBER ;$/;"	n
+RdStartAddr	Rd_ctrl.v	/^  reg   [31:0]  RdStartAddr = 32'h0;$/;"	r
+Rd_ctrl	Rd_ctrl.v	/^module  Rd_ctrl$/;"	m
+Req_Manager	Req_Manager.v	/^module Req_Manager #($/;"	m
+Req_Queue_gen	Req_Queue_gen.v	/^module Req_Queue_gen #($/;"	m
+ResetShiftReg	Top_DRAM_controller.v	/^  reg [2:0] ResetShiftReg   = 3'h0  ; \/\/Reset Shift Regist$/;"	r
+ResetShiftReg	test/Top_test_controller.v	/^  reg [2:0] ResetShiftReg   = 3'h0  ; \/\/Reset Shift Regist$/;"	r
+Reset_N	Axi4FullDeplex.v	/^  input               Reset_N ; \/\/System Reset$/;"	p
+Reset_N	Rd_ctrl.v	/^  input         Reset_N   ;     \/\/System Reset$/;"	p
+Reset_N	Top_DRAM_controller.v	/^  wire    Reset_N  = SysClkResetReg[2]; \/\/System Reset (Low Active)$/;"	n
+Reset_N	Wr_ctrl.v	/^  input         Reset_N   ;     \/\/System Reset$/;"	p
+Reset_N	test/Top_test_controller.v	/^  wire    Reset_N  = SysClkResetReg[2]; \/\/System Reset (Low Active)$/;"	n
+STAGE	ip/data_fifo/data_fifo.v	/^    parameter STAGE = 32,$/;"	c
+SYNC_STAGE	ip/data_fifo/data_fifo.v	/^    parameter SYNC_STAGE         = 2,$/;"	c
+SYS_CLK_PERIOD	Top_DRAM_controller.v	/^    parameter   SYS_CLK_PERIOD    = 32'd100_000_000 ,             \/\/System Clock Period$/;"	c
+SYS_CLK_PERIOD	test/Top_test_controller.v	/^    parameter   SYS_CLK_PERIOD    = 32'd100_000_000 , \/\/System Clock Period$/;"	c
+SysClk	Axi4FullDeplex.v	/^  input               SysClk  ; \/\/System Clock$/;"	p
+SysClk	Rd_ctrl.v	/^  input         SysClk    ;     \/\/System Clock$/;"	p
+SysClk	Top_Axi.v	/^input  SysClk,$/;"	p
+SysClk	Wr_ctrl.v	/^  input         SysClk    ;     \/\/System Clock$/;"	p
+SysClkResetReg	Top_DRAM_controller.v	/^  reg   [2:0] SysClkResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+SysClkResetReg	test/Top_test_controller.v	/^  reg   [2:0] SysClkResetReg = 3'h0;    \/\/System Clock Reset Register$/;"	r
+TCo_C	Axi4FullDeplex.v	/^  parameter   TCo_C  = 1;$/;"	c
+TCo_C	Rd_ctrl.v	/^  parameter   TCo_C           = 1;$/;"	c
+TCo_C	Wr_ctrl.v	/^  parameter   TCo_C           = 1                 ;$/;"	c
+Test_data_ctrl	test/Test_data_ctrl.v	/^module Test_data_ctrl ($/;"	m
+Test_data_ctrl_1	test/Test_data_ctrl_1.v	/^module Test_data_ctrl_1 ($/;"	m
+Test_data_ctrl_2	test/Test_data_ctrl_2.v	/^module Test_data_ctrl_2 ($/;"	m
+Test_data_ctrl_3	test/Test_data_ctrl_3.v	/^module Test_data_ctrl_3 ($/;"	m
+Top_Axi	Top_Axi.v	/^module Top_Axi #($/;"	m
+Top_DRAM_controller	Top_DRAM_controller.v	/^module Top_DRAM_controller #($/;"	m
+Top_test_controller	test/Top_test_controller.v	/^module Top_test_controller #($/;"	m
+Top_test_data_ctrl	test/Top_test_data_ctrl.v	/^module Top_test_data_ctrl # ($/;"	m
+WADDR_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter WADDR_WIDTH   = 9,$/;"	c
+WDATA	Axi4FullDeplex.v	/^  input   [ADW_C-1:0] WDATA   ; \/\/(I)[WrData]Write data.$/;"	p
+WDATA	Top_Axi.v	/^wire [255:0] WDATA, RDATA ;$/;"	n
+WDATA	Wr_ctrl.v	/^  output[ADW_C-1:0] WDATA       ; \/\/(I)[WrData]Write data.$/;"	p
+WDATA	Wr_ctrl.v	/^  wire  [ADW_C-1:0]   WDATA   = RamWrData     ; \/\/(I)[WrData]Write data.$/;"	n
+WDATA_WIDTH	ip/data_fifo/data_fifo.v	/^    parameter WDATA_WIDTH   = 8,$/;"	c
+WID	Axi4FullDeplex.v	/^  input   [      7:0] WID     ; \/\/(I)[WrData]Write ID tag. This signal is the ID tag of the write data transfer.$/;"	p
+WID	Top_Axi.v	/^wire [7:0] AWID, WID, AWLEN, BID, ARID, ARLEN, RID ;$/;"	n
+WID	Wr_ctrl.v	/^  output  [ 7:0]    WID         ; \/\/(O)[WrData]Write ID tag. This signal is the ID tag of the write data transfer.$/;"	p
+WID	Wr_ctrl.v	/^  wire  [      7:0]   WID     = axi_wr_id     ; \/\/(O)[WrData]Write ID tag. This signal is the ID tag of the write data transfer.$/;"	n
+WLAST	Axi4FullDeplex.v	/^  input               WLAST   ; \/\/(I)[WrData]Write last. This signal indicates the last transfer in a write burst.$/;"	p
+WLAST	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+WLAST	Wr_ctrl.v	/^  output            WLAST       ; \/\/(O)[WrData]Write last. This signal indicates the last transfer in a write burst.$/;"	p
+WLAST	Wr_ctrl.v	/^  wire                WLAST   = w_ctrl_last    ; \/\/(O)[WrData]Write last. This signal indicates the last transfer in a write burst.$/;"	n
+WREADY	Axi4FullDeplex.v	/^  output              WREADY  ; \/\/(O)[WrData]Write ready. This signal indicates that the slave can accept the write data.$/;"	p
+WREADY	Axi4FullDeplex.v	/^  wire              WREADY  = wready  ; \/\/(O)[WrData]Write ready. This signal indicates that the slave can accept the write data.$/;"	n
+WREADY	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+WREADY	Wr_ctrl.v	/^  input             WREADY      ; \/\/(O)[WrData]Write ready. This signal indicates that the slave can accept the write data.$/;"	p
+WR_DEPTH	ip/data_fifo/data_fifo.v	/^    parameter WR_DEPTH           = 512,$/;"	c
+WR_DEPTH	ip/data_fifo/data_fifo.v	/^    parameter WR_DEPTH      = 512,$/;"	c
+WR_ID_Manager	WR_ID_Manager.v	/^module WR_ID_Manager #($/;"	m
+WSTRB	Axi4FullDeplex.v	/^  input   [ABN_C-1:0] WSTRB   ; \/\/(I)[WrData]Write strobes. This signal indicates which byte lanes hold valid data. There is one write strobe bit for each eight bits of the write data bus.$/;"	p
+WSTRB	Top_Axi.v	/^wire [31:0] AWADDR, WSTRB , ARADDR ;$/;"	n
+WSTRB	Wr_ctrl.v	/^  output[ABN_C-1:0] WSTRB       ; \/\/(O)[WrData]Write strobes. This signal indicates which byte lanes hold valid data. There is one write strobe bit for each eight bits of the write data bus.$/;"	p
+WSTRB	Wr_ctrl.v	/^  wire  [ABN_C-1:0]   WSTRB   = {ABN_C{1'h1}} ; \/\/(O)[WrData]Write strobes. This signal indicates which byte lanes hold valid data. There is one write strobe bit for each eight bits of the write data bus.$/;"	n
+WVALID	Axi4FullDeplex.v	/^  input               WVALID  ; \/\/(I)[WrData]Write valid. This signal indicates that valid write data and strobes are available.$/;"	p
+WVALID	Top_Axi.v	/^wire AWVALID, AWREADY,WLAST, WREADY, WVALID,BVALID, BREADY , ARVALID, ARREADY, RLAST, RREADY, RVALID ;$/;"	n
+WVALID	Wr_ctrl.v	/^  output            WVALID      ; \/\/(O)[WrData]Write valid. This signal indicates that valid write data and strobes are available.$/;"	p
+WVALID	Wr_ctrl.v	/^  wire                WVALID  = w_ctrl_valid   ; \/\/(O)[WrData]Write valid. This signal indicates that valid write data and strobes are available.$/;"	n
+WrAddrCnt	Wr_ctrl.v	/^  reg   [31:0]  WrAddrCnt = 32'h0           ;  \/\/(O)Ram Write Address$/;"	r
+WrBurstLen	Wr_ctrl.v	/^  reg   [ 7:0]  WrBurstLen  =  8'h0;$/;"	r
+WrByteNum	Wr_ctrl.v	/^  wire  [ 7:0]  WrByteNum = AXI_BYTE_NUMBER ;$/;"	n
+WrStartAddr	Wr_ctrl.v	/^  reg   [31:0]  WrStartAddr = 32'h0;$/;"	r
+Wr_ctrl	Wr_ctrl.v	/^module  Wr_ctrl$/;"	m
+WriteEn	test/Mem_ctrl_wr.v	/^wire  WriteEn ;$/;"	n
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_bin2gray)$/;"	m
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_ctl) # ($/;"	m
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_datasync) #($/;"	m
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_gray2bin)$/;"	m
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_ram) #($/;"	m
+`IP_MODULE_NAME	ip/data_fifo/data_fifo.v	/^module `IP_MODULE_NAME(efx_fifo_top) # ($/;"	m
+a	test/one_pulse.v	/^    input a,$/;"	p
+a_rst_i	ip/data_fifo/data_fifo.v	/^input a_rst_i,$/;"	p
+aaddr	Axi4FullDeplex.v	/^  output  [     31:0] aaddr   ; \/\/(O)[Addres]Address$/;"	p
+aaddr	Axi4FullDeplex.v	/^  wire  [     31:0] aaddr   = OpType ? AWADDR   : ARADDR  ; \/\/(O)[Addres]Address$/;"	n
+aaddr	test/Top_test_controller.v	/^    output  [     31:0] aaddr   , $/;"	p
+aburst	Axi4FullDeplex.v	/^  output  [      1:0] aburst  ; \/\/(O)[Addres]Address Burst type$/;"	p
+aburst	Axi4FullDeplex.v	/^  wire  [      1:0] aburst  = OpType ? AWBURST  : ARBURST ; \/\/(O)[Addres]Address Burst type$/;"	n
+aburst	Top_Axi.v	/^output  [      1:0] aburst  , $/;"	p
+aburst	Top_DRAM_controller.v	/^    output  [      1:0] aburst  , $/;"	p
+addr	test/Mem_ctrl_wr.v	/^reg [31:0] addr = 0 ;$/;"	r
+addr	test/Test_data_ctrl.v	/^    output  [7:0] addr,$/;"	p
+addr	test/Test_data_ctrl_1.v	/^    output  [7:0] addr,$/;"	p
+addr	test/Test_data_ctrl_2.v	/^    output  [7:0] addr,$/;"	p
+addr	test/Test_data_ctrl_3.v	/^    output  [7:0] addr,$/;"	p
+addr	test/Top_test_data_ctrl.v	/^wire [7:0] addr, addr_in_1, addr_in_2, addr_in_3 ;$/;"	n
+addr_in_1	test/Top_test_data_ctrl.v	/^wire [7:0] addr, addr_in_1, addr_in_2, addr_in_3 ;$/;"	n
+addr_in_2	test/Top_test_data_ctrl.v	/^wire [7:0] addr, addr_in_1, addr_in_2, addr_in_3 ;$/;"	n
+addr_in_3	test/Top_test_data_ctrl.v	/^wire [7:0] addr, addr_in_1, addr_in_2, addr_in_3 ;$/;"	n
+address_reg	Port_controller.v	/^  reg [ADDRESS_WIDTH-1:0] address_reg = 0;$/;"	r
+aid	Axi4FullDeplex.v	/^  output  [      7:0] aid     ; \/\/(O)[Addres]Address ID$/;"	p
+aid	Axi4FullDeplex.v	/^  wire  [      7:0] aid     = OpType ? AWID     : ARID ; \/\/(O)[Addres]Address ID$/;"	n
+aid	Top_Axi.v	/^output  [      7:0] aid     ,$/;"	p
+aid	Top_DRAM_controller.v	/^    output  [      7:0] aid     ,$/;"	p
+aid	WR_ID_Manager.v	/^    input [ID_WIDTH-1:0] aid,$/;"	p
+alen	Axi4FullDeplex.v	/^  output  [      7:0] alen    ; \/\/(O)[Addres]Address Brust Length$/;"	p
+alen	Axi4FullDeplex.v	/^  wire  [      7:0] alen    = OpType ? AWLEN    : ARLEN   ; \/\/(O)[Addres]Address Brust Length$/;"	n
+alen	Top_Axi.v	/^output  [      7:0] alen    , $/;"	p
+alen	Top_DRAM_controller.v	/^    output  [      7:0] alen    , $/;"	p
+alock	Axi4FullDeplex.v	/^  output  [      1:0] alock   ; \/\/(O)[Addres]Address Lock type$/;"	p
+alock	Axi4FullDeplex.v	/^  wire  [      1:0] alock   = OpType ? AWLOCK   : ARLOCK  ; \/\/(O)[Addres]Address Lock type$/;"	n
+alock	test/Top_test_controller.v	/^    output  [      1:0] alock   , $/;"	p
+aready	Axi4FullDeplex.v	/^  input               aready  ; \/\/(I)[Addres]Address Ready$/;"	p
+aready	test/Top_test_controller.v	/^    input               aready  , $/;"	p
+asize	Axi4FullDeplex.v	/^  output  [      2:0] asize   ; \/\/(O)[Addres]Address Burst size$/;"	p
+asize	Axi4FullDeplex.v	/^  wire  [      2:0] asize   = OpType ? AWSIZE   : ARSIZE  ; \/\/(O)[Addres]Address Burst size$/;"	n
+asize	test/Top_test_controller.v	/^    output  [      2:0] asize   , $/;"	p
+asym_option	ip/data_fifo/data_fifo.v	/^input [31:0] asym_option;$/;"	p
+atype	Axi4FullDeplex.v	/^  output              atype   ; \/\/(O)[Addres]Operate Type 0=Read, 1=Write$/;"	p
+atype	Axi4FullDeplex.v	/^  wire              atype   = OpType                      ; \/\/(O)[Addres]Operate Type 0=Read, 1=Write$/;"	n
+atype	RD_ID_Manager.v	/^    input atype,$/;"	p
+atype	Top_Axi.v	/^output              atype   ,$/;"	p
+atype	Top_DRAM_controller.v	/^    output              atype   ,$/;"	p
+atype	WR_ID_Manager.v	/^    input atype,$/;"	p
+avalid	Axi4FullDeplex.v	/^  output              avalid  ; \/\/(O)[Addres]Address Valid$/;"	p
+avalid	Axi4FullDeplex.v	/^  wire              avalid  = OpType ? AWVALID  : ARVALID ; \/\/(O)[Addres]Address Valid$/;"	n
+avalid	Top_Axi.v	/^output              avalid  , $/;"	p
+avalid	Top_DRAM_controller.v	/^    output              avalid  , $/;"	p
+axi_id	Top_DRAM_controller.v	/^wire [AXI_ID_BLEN_CON-1:0 ] axi_id, rd_blen ;$/;"	n
+axi_rd_id	Rd_ctrl.v	/^  input    [7:0]      axi_rd_id ;$/;"	p
+axi_rd_id	Top_Axi.v	/^input [7:0] axi_rd_id ,$/;"	p
+axi_rd_start	Top_DRAM_controller.v	/^wire axi_wr_start, axi_rd_start ;                             \/\/ starting the read or write operation in axi - DDR$/;"	n
+axi_read_o_data	Top_DRAM_controller.v	/^wire [AXI_DATA_WIDTH-1 :0 ] axi_read_o_data ;$/;"	n
+axi_wr_id	Wr_ctrl.v	/^  input   [7:0 ]    axi_wr_id   ;$/;"	p
+axi_wr_start	Top_DRAM_controller.v	/^wire axi_wr_start, axi_rd_start ;                             \/\/ starting the read or write operation in axi - DDR$/;"	n
+bid	Axi4FullDeplex.v	/^  input   [      7:0] bid     ; \/\/(I)[Answer]Response Write ID$/;"	p
+bid	test/Top_test_controller.v	/^    input   [      7:0] bid     , $/;"	p
+bin	onehot_to_bin.v	/^output  [BIN_WIDTH-1:0] bin;$/;"	p
+bin_1	ip/data_fifo/data_fifo.v	/^      wire [1:0] bin_1;$/;"	n
+bin_i	ip/data_fifo/data_fifo.v	/^ input [WIDTH-1:0] bin_i$/;"	p
+bit_xor	ip/data_fifo/data_fifo.v	/^function bit_xor ($/;"	f
+blen	test/Top_test_controller.v	/^wire [AXI_ID_BLEN_CON-1:0 ] id_in, blen ;$/;"	n
+blen_in	test/Top_test_data_ctrl.v	/^wire [3:0] blen_in, blen_in_1, blen_in_2, blen_in_3 ;$/;"	n
+blen_in_1	test/Top_test_data_ctrl.v	/^wire [3:0] blen_in, blen_in_1, blen_in_2, blen_in_3 ;$/;"	n
+blen_in_2	test/Top_test_data_ctrl.v	/^wire [3:0] blen_in, blen_in_1, blen_in_2, blen_in_3 ;$/;"	n
+blen_in_3	test/Top_test_data_ctrl.v	/^wire [3:0] blen_in, blen_in_1, blen_in_2, blen_in_3 ;$/;"	n
+blen_wr	test/Top_test_controller.v	/^wire [7:0] blen_wr ;$/;"	n
+bready	Axi4FullDeplex.v	/^  output              bready  ; \/\/(O)[Answer]Response Ready$/;"	p
+bready	Axi4FullDeplex.v	/^  wire              bready  = BREADY  ; \/\/(O)[Answer]Response Ready$/;"	n
+bready	test/Top_test_controller.v	/^    output              bready  ,$/;"	p
+burst_len_reg	Port_controller.v	/^  reg [BURST_LENGTH_WIDTH-1:0]  burst_len_reg = 0;$/;"	r
+bvalid	Axi4FullDeplex.v	/^  input               bvalid  ; \/\/(I)[Answer]Response valid$/;"	p
+bvalid	Top_Axi.v	/^input               bvalid  , $/;"	p
+bvalid	Top_DRAM_controller.v	/^    input               bvalid  , $/;"	p
+clk	RD_ID_Manager.v	/^    input clk,$/;"	p
+clk	Req_Manager.v	/^    input clk,$/;"	p
+clk	Req_Queue_gen.v	/^    input clk,$/;"	p
+clk	WR_ID_Manager.v	/^    input clk,$/;"	p
+clk	test/MUX_WR_SEL.v	/^    input clk,$/;"	p
+clk	test/Mem_Rd_ctrl.v	/^    input clk,$/;"	p
+clk	test/Test_data_ctrl.v	/^    input clk,$/;"	p
+clk	test/Test_data_ctrl_1.v	/^    input clk,$/;"	p
+clk	test/Test_data_ctrl_2.v	/^    input clk,$/;"	p
+clk	test/Test_data_ctrl_3.v	/^    input clk,$/;"	p
+clk	test/Top_test_controller.v	/^    input clk,$/;"	p
+cnt	ddr_reset_sequencer.v	/^reg [19:0] cnt;$/;"	r
+cnt_start	ddr_reset_sequencer.v	/^reg [1:0] cnt_start;$/;"	r
+combined_out	test/Top_test_controller.v	/^wire [(NUM_PORTS * DATA_WIDTH)-1:0] combined_out ;$/;"	n
+count_addr	test/Test_data_ctrl.v	/^reg [2:0] count_addr = 0;$/;"	r
+count_addr	test/Test_data_ctrl_1.v	/^reg [2:0] count_addr = 0;$/;"	r
+count_addr	test/Test_data_ctrl_2.v	/^reg [2:0] count_addr = 0;$/;"	r
+count_addr	test/Test_data_ctrl_3.v	/^reg [2:0] count_addr = 0;$/;"	r
+count_blen	test/Mem_ctrl_wr.v	/^reg [4:0] count_blen = 0 ;$/;"	r
+count_data	test/Test_data_ctrl.v	/^reg [2:0] count_data = 0;$/;"	r
+count_data	test/Test_data_ctrl_1.v	/^reg [2:0] count_data = 0;$/;"	r
+count_data	test/Test_data_ctrl_2.v	/^reg [2:0] count_data = 0;$/;"	r
+count_data	test/Test_data_ctrl_3.v	/^reg [2:0] count_data = 0;$/;"	r
+current_sent	RD_ID_Manager.v	/^reg [7:0] current_sent = 0 ;$/;"	r
+data_fifo	ip/data_fifo/data_fifo.v	/^module data_fifo#($/;"	m
+data_in	Req_Queue_gen.v	/^    input [(NUM_QUEUE * DATA_WIDTH)-1:0 ] data_in ,$/;"	p
+data_in1	test/MUX_WR_SEL.v	/^    input [255:0] data_in1,$/;"	p
+data_sel	Req_Manager.v	/^reg  [DATA_WIDTH-1:0] data_sel=0;$/;"	r
+ddr_reset_sequencer	ddr_reset_sequencer.v	/^module ddr_reset_sequencer ($/;"	m
+ddr_rstn	ddr_reset_sequencer.v	/^output ddr_rstn,				\/\/ Master Reset$/;"	p
+ddr_rstn_i	ddr_reset_sequencer.v	/^input ddr_rstn_i,				\/\/ main user DDR reset, active low$/;"	p
+delay_rd	test/Mem_Rd_ctrl.v	/^reg [255:0] delay_rd = 0 ;$/;"	r
+depth	ip/data_fifo/data_fifo.v	/^input [31:0] depth;$/;"	p
+div_out_data	test/Top_test_controller.v	/^wire [(NUM_PORTS*DATA_WIDTH)-1 : 0]  div_out_data ;$/;"	n
+e_flag	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] e_flag;$/;"	n
+empty_o	ip/data_fifo/data_fifo.v	/^output empty_o,$/;"	p
+en_pin	RR_ARB.v	/^input           en_pin ,$/;"	p
+en_pin	test/Top_test_controller.v	/^reg en_pin;$/;"	r
+enable_rw_reg	Port_controller.v	/^  reg        enable_rw_reg = 0;$/;"	r
+fifo_empty_out	Top_DRAM_controller.v	/^wire [NUM_PORTS-1:0] fifo_empty_out;               $/;"	n
+fifo_o_data	Top_DRAM_controller.v	/^wire [(NUM_PORTS*DATA_WIDTH)-1 : 0]  fifo_o_data ;            \/\/ output of fifo$/;"	n
+fifo_rd_en	Top_DRAM_controller.v	/^wire [NUM_PORTS-1:0] port_ctrl_o_valid, fifo_rd_en ;$/;"	n
+fifo_rd_o_valid	Top_DRAM_controller.v	/^wire [NUM_PORTS-1:0] fifo_rd_o_valid ;                        \/\/ fifo read valid$/;"	n
+flag	Top_DRAM_controller.v	/^reg flag;$/;"	r
+grant	RR_ARB.v	/^reg [N-1 : 0 ] grant = 0 ;$/;"	r
+grant_comb	RR_ARB.v	/^wire	[N-1:0]	grant_comb;$/;"	n
+gray_i	ip/data_fifo/data_fifo.v	/^ input [WIDTH-1:0] gray_i);$/;"	p
+i	RD_ID_Manager.v	/^integer i = 0;$/;"	r
+i	Req_Manager.v	/^	integer i=0;$/;"	r
+i	ip/data_fifo/data_fifo.v	/^        		integer i;$/;"	r
+i	ip/data_fifo/data_fifo.v	/^            	integer i;$/;"	r
+i	ip/data_fifo/data_fifo.v	/^integer i;$/;"	r
+i_enable	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] i_enable ;$/;"	n
+i_last	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] i_last ;$/;"	n
+i_valid	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] i_valid ;$/;"	n
+id_in	test/Top_test_controller.v	/^wire [AXI_ID_BLEN_CON-1:0 ] id_in, blen ;$/;"	n
+in_BLEN	test/Top_test_controller.v	/^wire [(NUM_PORTS * 4)-1:0] in_BLEN;$/;"	n
+in_address	Port_controller.v	/^  input  [IN_ADDR-1:0]                 in_address,   \/\/ 8-bit input address$/;"	p
+in_address	test/Top_test_controller.v	/^wire [(NUM_PORTS * 8)-1:0] in_address;$/;"	n
+in_burst_len	Port_ctrl_gen.v	/^    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] in_burst_len, $/;"	p
+in_data_div	Req_Manager.v	/^    input [(NUM_PORTS*DATA_WIDTH)-1:0] in_data_div,$/;"	p
+in_enable_rw	Port_controller.v	/^  input                                in_enable_rw, \/\/ Read\/Write enable input$/;"	p
+init_set	ip/data_fifo/data_fifo.v	/^        reg init_set;$/;"	r
+input	Port_controller.v	/^  input                                last,         \/\/ Last signal  $/;"	p
+input	Port_controller.v	/^  input                                rst,          \/\/ Reset signal  $/;"	c
+input	Port_controller.v	/^  input  [BURST_LENGTH_WIDTH-1:0]      in_burst_len, \/\/ 4-bit input burst length$/;"	p
+input	Port_ctrl_gen.v	/^	input    c_81_clk,$/;"	c
+input	Port_ctrl_gen.v	/^    input [(NUM_PORTS * IN_ADDR)-1:0] in_address,   $/;"	p
+input	Port_ctrl_gen.v	/^    input [NUM_PORTS-1:0]       in_enable_rw, $/;"	p
+input	Port_ctrl_gen.v	/^    input [NUM_PORTS-1:0]       valid,        $/;"	p
+input	RD_ID_Manager.v	/^    input [ID_WIDTH-1:0] id_rd_in,$/;"	p
+input	RD_ID_Manager.v	/^    input [ID_WIDTH-1:0] rid,$/;"	p
+input	RD_ID_Manager.v	/^    input rst,$/;"	p
+input	RD_ID_Manager.v	/^    input rvalid,$/;"	p
+input	RR_ARB.v	/^input		    clk,$/;"	c
+input	RR_ARB.v	/^input [(N*DATA_WIDTH)-1 : 0] in_data_div ,$/;"	p
+input	Req_Manager.v	/^    input [NUM_PORTS-1:0] rd_valid ,$/;"	p
+input	Req_Manager.v	/^    input rst,$/;"	p
+input	Req_Queue_gen.v	/^	input c_81_clk,$/;"	p
+input	Req_Queue_gen.v	/^    input [NUM_QUEUE-1:0] Wr_en,$/;"	p
+input	Top_Axi.v	/^input               aready  , $/;"	p
+input	Top_Axi.v	/^input               rvalid  , $/;"	p
+input	Top_Axi.v	/^input               wready  , $/;"	p
+input	Top_Axi.v	/^input   [      1:0] rresp   , $/;"	p
+input	Top_Axi.v	/^input   [      7:0] bid     , $/;"	p
+input	Top_Axi.v	/^input   [      7:0] rid     , $/;"	p
+input	Top_Axi.v	/^input  [7:0] CfgRdBLen,$/;"	p
+input	Top_Axi.v	/^input  [7:0] CfgWrBlen,$/;"	p
+input	Top_Axi.v	/^input  [ADW_C-1 : 0] RamWrData ,$/;"	p
+input	Top_Axi.v	/^input  rst,$/;"	p
+input	Top_Axi.v	/^input [7:0] axi_wr_id ,$/;"	p
+input	Top_Axi.v	/^input w_ctrl_last,$/;"	p
+input	Top_DRAM_controller.v	/^    input               aready  , $/;"	p
+input	Top_DRAM_controller.v	/^    input               rvalid  , $/;"	p
+input	Top_DRAM_controller.v	/^    input               wready  , $/;"	p
+input	Top_DRAM_controller.v	/^    input         wr_axi_last ,                                   \/\/ last signal for indicating the last data of write $/;"	p
+input	Top_DRAM_controller.v	/^    input   [      1:0] rresp   , $/;"	p
+input	Top_DRAM_controller.v	/^    input   [      7:0] bid     , $/;"	p
+input	Top_DRAM_controller.v	/^    input   [      7:0] rid     , $/;"	p
+input	Top_DRAM_controller.v	/^    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] port_ctrl_i_BLEN,     \/\/ 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)$/;"	p
+input	Top_DRAM_controller.v	/^    input [NUM_PORTS-1:0] port_ctrl_i_last ,         $/;"	p
+input	Top_DRAM_controller.v	/^    input [NUM_PORTS-1:0] port_ctrl_i_valid ,                           \/\/ valid signal for port controller$/;"	p
+input	Top_DRAM_controller.v	/^    input c_81_clk,$/;"	c
+input	Top_DRAM_controller.v	/^    input rst ,                                            \/\/ active low$/;"	p
+input	WR_ID_Manager.v	/^    input rst,$/;"	p
+input	WR_ID_Manager.v	/^    input valid,$/;"	p
+input	WR_ID_Manager.v	/^    input wready, $/;"	p
+input	ddr_reset_sequencer.v	/^input clk,						\/\/ user clock$/;"	p
+input	ip/data_fifo/data_fifo.v	/^    input   wire                   rd_rst,$/;"	c
+input	ip/data_fifo/data_fifo.v	/^    input  wire                     rclk,$/;"	c
+input	ip/data_fifo/data_fifo.v	/^  input [31:0] curr_bit,$/;"	p
+input	ip/data_fifo/data_fifo.v	/^input clk_i,$/;"	p
+input	ip/data_fifo/data_fifo.v	/^input rd_en_i,$/;"	p
+input	test/MUX_WR_SEL.v	/^    input [255:0] data_in2,$/;"	p
+input	test/MUX_WR_SEL.v	/^    input rst, $/;"	p
+input	test/MUX_WR_SEL.v	/^    input sel_in2,$/;"	p
+input	test/MUX_WR_SEL.v	/^    input w_last2,$/;"	p
+input	test/MUX_WR_SEL.v	/^    input w_valid_2,$/;"	p
+input	test/Mem_Rd_ctrl.v	/^    input [255:0] rdata_in,$/;"	p
+input	test/Mem_Rd_ctrl.v	/^    input rst,$/;"	p
+input	test/Mem_Rd_ctrl.v	/^    input rvalid_rd ,$/;"	p
+input	test/Mem_ctrl_wr.v	/^    input [31:0] in_Addr ,$/;"	p
+input	test/Mem_ctrl_wr.v	/^    input [7:0] BLEN_w$/;"	p
+input	test/Mem_ctrl_wr.v	/^    input rst,$/;"	c
+input	test/Mem_ctrl_wr.v	/^    input wready_w,$/;"	p
+input	test/Test_data_ctrl.v	/^    input rst,$/;"	p
+input	test/Test_data_ctrl_1.v	/^    input rst,$/;"	p
+input	test/Test_data_ctrl_2.v	/^    input rst,$/;"	p
+input	test/Test_data_ctrl_3.v	/^    input rst,$/;"	p
+input	test/Top_test_controller.v	/^    input               bvalid  , $/;"	p
+input	test/Top_test_controller.v	/^    input               rlast   , $/;"	p
+input	test/Top_test_controller.v	/^    input   [ADW_C-1:0] rdata   , $/;"	p
+input	test/Top_test_controller.v	/^    input t_in,$/;"	p
+input	test/Top_test_data_ctrl.v	/^input rst,$/;"	c
+input	test/one_pulse.v	/^    input clk,$/;"	p
+integer	ip/data_fifo/data_fifo.v	/^function integer depth2width;$/;"	f
+integer	ip/data_fifo/data_fifo.v	/^function integer rddepthcompute;$/;"	f
+integer	ip/data_fifo/data_fifo.v	/^function integer rdwidthcompute;$/;"	f
+integer	ip/data_fifo/data_fifo.v	/^function integer width2depth;$/;"	f
+last	Port_ctrl_gen.v	/^    input [NUM_PORTS-1:0]       last,         $/;"	p
+last	test/Top_test_data_ctrl.v	/^wire last, last_1, last_2, last_3 ;$/;"	n
+last_1	test/Top_test_data_ctrl.v	/^wire last, last_1, last_2, last_3 ;$/;"	n
+last_2	test/Top_test_data_ctrl.v	/^wire last, last_1, last_2, last_3 ;$/;"	n
+last_3	test/Top_test_data_ctrl.v	/^wire last, last_1, last_2, last_3 ;$/;"	n
+lsbaddr	ip/data_fifo/data_fifo.v	/^        		reg  [LSB_WIDTH-1 :0 ]   lsbaddr;        $/;"	r
+lsbaddr	ip/data_fifo/data_fifo.v	/^        		reg  [LSB_WIDTH-1 :0 ]   lsbaddr; $/;"	r
+lsbaddr	ip/data_fifo/data_fifo.v	/^        		reg  [LSB_WIDTH-1 :0 ]   lsbaddr;$/;"	r
+lsbaddr	ip/data_fifo/data_fifo.v	/^            	reg  [LSB_WIDTH-1 :0 ]   lsbaddr;        $/;"	r
+lsbaddr	ip/data_fifo/data_fifo.v	/^            	reg  [LSB_WIDTH-1 :0 ]   lsbaddr;$/;"	r
+mask_grant	RR_ARB.v	/^wire	[N-1:0]	mask_grant;$/;"	n
+mask_req	RR_ARB.v	/^wire	[N-1:0]	mask_req;$/;"	n
+mem	test/Test_data_ctrl.v	/^reg [36:0] mem [4:0];$/;"	r
+mem	test/Test_data_ctrl_1.v	/^reg [36:0] mem [4:0];$/;"	r
+mem	test/Test_data_ctrl_2.v	/^reg [36:0] mem [4:0];$/;"	r
+mem	test/Test_data_ctrl_3.v	/^reg [36:0] mem [4:0];$/;"	r
+n_ports	Req_Manager.v	/^reg [7:0] n_ports = 0;$/;"	r
+nex_bit	ip/data_fifo/data_fifo.v	/^  input [31:0] nex_bit,$/;"	p
+no_mask_req	RR_ARB.v	/^wire		    no_mask_req;$/;"	n
+nomask_grant	RR_ARB.v	/^wire	[N-1:0] nomask_grant;$/;"	n
+o_addr_div	test/Top_test_controller.v	/^wire [ADDRESS_WIDTH-1:0]  o_addr_div;$/;"	n
+o_burst_div	RR_ARB.v	/^output [(BURST_LENGTH_WIDTH-1) : 0]  o_burst_div, $/;"	p
+o_burst_div	Req_Manager.v	/^    output [BURST_WIDTH-1:0] o_burst_div ,$/;"	p
+o_burst_div	test/Top_test_controller.v	/^wire [BURST_LENGTH_WIDTH-1:0] o_burst_div;$/;"	n
+o_port_div	test/Top_test_controller.v	/^wire [PORT_ID_WIDTH-1:0] o_port_div;$/;"	n
+o_rw_div	RR_ARB.v	/^output o_rw_div ,$/;"	p
+o_rw_div	Req_Manager.v	/^    output o_rw_div,$/;"	p
+o_rw_div	test/Top_test_controller.v	/^wire o_rw_div ;$/;"	n
+o_valid	Port_ctrl_gen.v	/^    output [NUM_PORTS-1 : 0] o_valid,$/;"	p
+o_valid	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] o_valid, r_en ;$/;"	n
+o_valid_req	test/Top_test_controller.v	/^wire o_valid_req ;$/;"	n
+one_pulse	test/one_pulse.v	/^module one_pulse($/;"	m
+onehot	onehot_to_bin.v	/^input [ONEHOT_WIDTH-1:0] onehot;$/;"	p
+onehot_to_bin	onehot_to_bin.v	/^module onehot_to_bin (onehot,bin);$/;"	m
+out_BLEN	test/Top_test_data_ctrl.v	/^output  [(NUM_PORTS * 4)-1:0] out_BLEN,$/;"	p
+out_last	test/Top_test_data_ctrl.v	/^output  [NUM_PORTS-1:0] out_last $/;"	p
+out_valid	test/Top_test_data_ctrl.v	/^output  [NUM_PORTS-1:0] out_valid,$/;"	p
+output	Port_controller.v	/^  output   reg                          o_valid = 0,$/;"	p
+output	Port_ctrl_gen.v	/^    output [(COMBINED_DATA_WIDTH * NUM_PORTS)-1 : 0] combined_out$/;"	p
+output	RR_ARB.v	/^output [(N-1) : 0] o_port_div ,$/;"	p
+output	RR_ARB.v	/^output [ADDRESS_WIDTH-1 : 0] o_addr_div,$/;"	p
+output	RR_ARB.v	/^output [BIN_WIDTH-1 : 0] rd_sel_binary,$/;"	p
+output	RR_ARB.v	/^output [N-1:0]	grant_out ,$/;"	p
+output	RR_ARB.v	/^output valid_req $/;"	p
+output	Req_Manager.v	/^    output [ADDRESS_WIDTH-1:0] o_addr_div ,$/;"	p
+output	Req_Manager.v	/^    output [PORT_ID_WIDTH-1:0] o_port_div ,$/;"	p
+output	Req_Manager.v	/^    output reg [NUM_PORTS-1:0] req_out = 0,$/;"	p
+output	Req_Manager.v	/^    output reg valid_req = 0$/;"	p
+output	Req_Queue_gen.v	/^    output [(NUM_QUEUE * DATA_WIDTH)-1:0] data_out,$/;"	p
+output	Req_Queue_gen.v	/^    output [NUM_QUEUE-1:0] empty_flag,$/;"	p
+output	Top_Axi.v	/^output              bready  $/;"	p
+output	Top_Axi.v	/^output              wlast   , $/;"	p
+output	Top_Axi.v	/^output  [      1:0] alock   , $/;"	p
+output	Top_Axi.v	/^output  [      2:0] asize   , $/;"	p
+output	Top_Axi.v	/^output  [      7:0] wid     , $/;"	p
+output	Top_Axi.v	/^output  [     31:0] aaddr   , $/;"	p
+output	Top_Axi.v	/^output [ADW_C-1:0] RamRdData ,$/;"	p
+output	Top_DRAM_controller.v	/^    output                d_done, \/\/Indicates the user that DDR initialization is done and data transfer can begin$/;"	p
+output	Top_DRAM_controller.v	/^    output              bready  $/;"	p
+output	Top_DRAM_controller.v	/^    output              wlast   , $/;"	p
+output	Top_DRAM_controller.v	/^    output         rd_r_valid ,                                   \/\/ delay of read axi valid signal$/;"	p
+output	Top_DRAM_controller.v	/^    output      DdrCtrl_CFG_SEQ_RST   ,                       \/\/(O)[Control]DDR Controner Sequencer Reset $/;"	p
+output	Top_DRAM_controller.v	/^    output  [      1:0] alock   , $/;"	p
+output	Top_DRAM_controller.v	/^    output  [      2:0] asize   , $/;"	p
+output	Top_DRAM_controller.v	/^    output  [      7:0] wid     , $/;"	p
+output	Top_DRAM_controller.v	/^    output  [     31:0] aaddr   , $/;"	p
+output	Top_DRAM_controller.v	/^    output [BURST_LENGTH_WIDTH-1:0] wr_axi_blen ,                 \/\/ write axi burst length$/;"	p
+output	Top_DRAM_controller.v	/^    output [NUM_PORTS-1:0] select_wr ,                            \/\/ select signal for selecting the write port$/;"	p
+output	WR_ID_Manager.v	/^    output reg w_en_ack = 0 ,$/;"	p
+output	WR_ID_Manager.v	/^    output reg wready_out = 0,$/;"	p
+output	ddr_reset_sequencer.v	/^output ddr_cfg_seq_rst,			\/\/ Sequencer Reset$/;"	p
+output	ip/data_fifo/data_fifo.v	/^output [ADDR_WIDTH:0] datacount_o,$/;"	p
+output	ip/data_fifo/data_fifo.v	/^output [DATA_WIDTH-1:0] rdata,$/;"	p
+output	ip/data_fifo/data_fifo.v	/^output full_o,$/;"	p
+output	ip/data_fifo/data_fifo.v	/^output o_valid$/;"	p
+output	test/Test_data_ctrl.v	/^    output reg last = 0,$/;"	p
+output	test/Test_data_ctrl_1.v	/^    output reg last = 0,$/;"	p
+output	test/Test_data_ctrl_2.v	/^    output reg last = 0,$/;"	p
+output	test/Test_data_ctrl_3.v	/^    output reg last = 0,$/;"	p
+output	test/Top_test_controller.v	/^    output              atype   ,$/;"	p
+output	test/Top_test_controller.v	/^    output              avalid  , $/;"	p
+output	test/Top_test_controller.v	/^    output              rready  , $/;"	p
+output	test/Top_test_controller.v	/^    output              wvalid  , $/;"	p
+output	test/Top_test_controller.v	/^    output         data_valid $/;"	p
+output	test/Top_test_controller.v	/^    output      DdrCtrl_CFG_RST_N     ,     \/\/(O)[Control]DDR Controner Reset(Low Active)     $/;"	p
+output	test/Top_test_controller.v	/^    output      DdrCtrl_CFG_SEQ_START ,    \/\/(O)[Control]DDR Controner Sequencer Start $/;"	p
+output	test/Top_test_controller.v	/^    output  [      1:0] aburst  , $/;"	p
+output	test/Top_test_controller.v	/^    output  [      7:0] aid     ,$/;"	p
+output	test/Top_test_controller.v	/^    output  [      7:0] alen    , $/;"	p
+output	test/Top_test_controller.v	/^    output  [ABN_C-1:0] wstrb   , $/;"	p
+output	test/Top_test_controller.v	/^    output  [ADW_C-1:0] wdata   , $/;"	p
+output	test/Top_test_controller.v	/^    output [255:0] r_data_out_1 ,$/;"	p
+output	test/Top_test_data_ctrl.v	/^output  [(NUM_PORTS * 8)-1:0] out_test_addr,$/;"	p
+output	test/Top_test_data_ctrl.v	/^output  [NUM_PORTS-1:0] out_enable,$/;"	p
+parameter	Port_controller.v	/^  parameter BURST_LENGTH_WIDTH = 4,$/;"	c
+parameter	Port_controller.v	/^  parameter IN_ADDR = 8 ,$/;"	c
+parameter	Port_controller.v	/^  parameter PORT_ID_VALUE = 0,$/;"	c
+parameter	Port_ctrl_gen.v	/^    parameter BURST_LENGTH_WIDTH = 4,$/;"	c
+parameter	Port_ctrl_gen.v	/^    parameter IN_ADDR = 8 ,$/;"	c
+parameter	Port_ctrl_gen.v	/^    parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},$/;"	c
+parameter	RD_ID_Manager.v	/^    parameter NUM_PORTS_SEL = 4$/;"	c
+parameter	RR_ARB.v	/^  parameter ADDRESS_WIDTH = 32,$/;"	c
+parameter	RR_ARB.v	/^  parameter BIN_WIDTH = $clog2(NUM_PORTS),$/;"	c
+parameter	RR_ARB.v	/^  parameter NUM_PORTS = 4,$/;"	c
+parameter	Req_Manager.v	/^    parameter BURST_WIDTH = 4,$/;"	c
+parameter	Req_Manager.v	/^    parameter DATA_WIDTH = 41,$/;"	c
+parameter	Req_Manager.v	/^    parameter PORT_ID_WIDTH = 4$/;"	c
+parameter	Req_Queue_gen.v	/^    parameter DATA_WIDTH = 41,$/;"	c
+parameter	Req_Queue_gen.v	/^    parameter RAM_DEPTH = (1 << ADDR_WIDTH)$/;"	c
+parameter	Top_Axi.v	/^parameter  ABN_C               = AXI_BYTE_NUMBER   $/;"	c
+parameter	Top_Axi.v	/^parameter  AXI_BYTE_NUMBER     = AXI_DATA_WIDTH\/8  ,                                  $/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   ADDRESS_WIDTH = 32,                               \/\/ address width                 $/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   ADW_C               = AXI_DATA_WIDTH    ,$/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   AXI_DATA_WIDTH      = 256 ,                       \/\/ Axi data width $/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   ID_WIDTH = 8,                                     \/\/ ID width after the arbiter module$/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   NUM_PORTS = 10,                                    \/\/ number of ports$/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001},   \/\/ only use for port controller $/;"	c
+parameter	Top_DRAM_controller.v	/^    parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 \/\/ fifo depth$/;"	c
+parameter	WR_ID_Manager.v	/^  parameter ID_WIDTH = 8 $/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter ASYM_WIDTH_RATIO   = 4,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter DEPTH              = 512,           \/\/ Reverted (Equivalent to WDATA_DEPTH) $/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter ENDIANESS		 = 0$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter FF_DEPTH = 512$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter HANDSHAKE_FLAG     = OPTIONAL_FLAGS,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter MODE               = "STANDARD",$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter MODE          = "STANDARD",$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter OUTPUT_REG         = 0,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PIPELINE_REG       = 1,             \/\/ Reverted (By default is ON)$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PIPELINE_REG       = 1,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROGRAMMABLE_EMPTY = "STATIC_DUAL", \/\/ Set to "NONE" if not require this feature$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROGRAMMABLE_FULL  = "NONE",$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROG_EMPTY_ASSERT  = 0,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROG_EMPTY_NEGATE  = 7,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROG_FULL_ASSERT   = 27,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter PROG_FULL_NEGATE   = 0,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter RADDR_WIDTH   = 9,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter RAM_MUX_RATIO = 4,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter RDATA_WIDTH   = 8,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter RD_DEPTH      = 512,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter SYNC_CLK           = 0,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter SYNC_CLK           = 1,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter SYNC_STAGE         = 2,             \/\/ New Param$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter WADDR_WIDTH        = 9,$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter WADDR_WIDTH        = depth2width(DEPTH),$/;"	c
+parameter	ip/data_fifo/data_fifo.v	/^    parameter WIDTH = 4$/;"	c
+parameter	test/Top_test_controller.v	/^    parameter  ABN_C               = AXI_BYTE_NUMBER   $/;"	c
+parameter	test/Top_test_controller.v	/^    parameter  AXI_BYTE_NUMBER     = AXI_DATA_WIDTH\/8  ,                                  $/;"	c
+parameter	test/Top_test_controller.v	/^    parameter AXI_ID_BLEN_CON = 8 ,$/;"	c
+parameter	test/Top_test_controller.v	/^    parameter BURST_LENGTH_WIDTH = 8,   \/\/ burst length$/;"	c
+parameter	test/Top_test_controller.v	/^    parameter NUM_PORTS = 4,        \/\/ number of ports$/;"	c
+parameter	test/Top_test_controller.v	/^    parameter PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011},  \/\/ only use for port controller $/;"	c
+parameter	test/Top_test_controller.v	/^    parameter PORT_ID_WIDTH = 4,      \/\/ ID width before the arbiter module [port controller, fifo, arbiter and request manager]$/;"	c
+parameter	test/Top_test_controller.v	/^    parameter RAM_DEPTH = (1 << POINTER_COUNT),$/;"	c
+port_ctrl_i_address	Top_DRAM_controller.v	/^    input [(NUM_PORTS * 8)-1:0] port_ctrl_i_address,                   \/\/ 8 bit of address for port controller generator $/;"	p
+port_ctrl_i_rw_enable	Top_DRAM_controller.v	/^    input [NUM_PORTS-1:0] port_ctrl_i_rw_enable ,                          \/\/ read\/ write enable pin for port controller generator module$/;"	p
+port_ctrl_o_valid	Top_DRAM_controller.v	/^wire [NUM_PORTS-1:0] port_ctrl_o_valid, fifo_rd_en ;$/;"	n
+port_ctrl_req_out	Top_DRAM_controller.v	/^wire [(NUM_PORTS * DATA_WIDTH)-1:0] port_ctrl_req_out ;       \/\/ request out is combine the output of meta data $/;"	n
+port_id	Port_controller.v	/^  wire [PORT_ID_WIDTH-1:0]  port_id;$/;"	n
+port_id_temp	Port_controller.v	/^  wire [PORT_ID_WIDTH-1:0] port_id_temp;$/;"	n
+prog_full_o	ip/data_fifo/data_fifo.v	/^output prog_full_o,$/;"	p
+r_addr	test/Test_data_ctrl.v	/^reg [31:0] r_addr = 0;$/;"	r
+r_addr	test/Test_data_ctrl_1.v	/^reg [31:0] r_addr = 0;$/;"	r
+r_addr	test/Test_data_ctrl_2.v	/^reg [31:0] r_addr = 0;$/;"	r
+r_addr	test/Test_data_ctrl_3.v	/^reg [31:0] r_addr = 0;$/;"	r
+r_en	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] o_valid, r_en ;$/;"	n
+r_en_ack	Top_DRAM_controller.v	/^wire r_en_ack, w_en_ack ;                                     \/\/ acknowledge pin for read and write - use in en_pin logic [wr_id_manager, rd_id_manager]$/;"	n
+r_en_ack	test/Top_test_controller.v	/^wire r_en_ack, w_en_ack ;$/;"	n
+r_rdata_1P	ip/data_fifo/data_fifo.v	/^reg [RDATA_WIDTH-1:0]    r_rdata_1P;$/;"	r
+r_rdata_2P	ip/data_fifo/data_fifo.v	/^reg [RDATA_WIDTH-1:0]    r_rdata_2P;$/;"	r
+r_rw	Req_Manager.v	/^reg r_rw;$/;"	r
+r_sel_1	test/Top_test_controller.v	/^wire r_sel_1 , r_sel_2 ;$/;"	n
+r_sel_2	test/Top_test_controller.v	/^wire r_sel_1 , r_sel_2 ;$/;"	n
+r_valid	RR_ARB.v	/^input [NUM_PORTS-1 : 0] r_valid,$/;"	p
+r_w_en	test/Top_test_data_ctrl.v	/^wire r_w_en, r_w_en_1, r_w_en_2, r_w_en_3 ;$/;"	n
+r_w_en_1	test/Top_test_data_ctrl.v	/^wire r_w_en, r_w_en_1, r_w_en_2, r_w_en_3 ;$/;"	n
+r_w_en_2	test/Top_test_data_ctrl.v	/^wire r_w_en, r_w_en_1, r_w_en_2, r_w_en_3 ;$/;"	n
+r_w_en_3	test/Top_test_data_ctrl.v	/^wire r_w_en, r_w_en_1, r_w_en_2, r_w_en_3 ;$/;"	n
+raddr	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH-1:0] raddr;$/;"	n
+raddr_cntr	ip/data_fifo/data_fifo.v	/^reg  [RADDR_WIDTH:0] raddr_cntr;$/;"	r
+raddr_cntr_gry	ip/data_fifo/data_fifo.v	/^        wire [RADDR_WIDTH:0] raddr_cntr_gry;$/;"	n
+raddr_cntr_gry_r	ip/data_fifo/data_fifo.v	/^        reg  [RADDR_WIDTH:0] raddr_cntr_gry_r;$/;"	r
+raddr_cntr_gry_sync	ip/data_fifo/data_fifo.v	/^        wire [RADDR_WIDTH:0] raddr_cntr_gry_sync;$/;"	n
+raddr_cntr_r	ip/data_fifo/data_fifo.v	/^reg  [RADDR_WIDTH:0] raddr_cntr_r;$/;"	r
+raddr_cntr_sync_g2b	ip/data_fifo/data_fifo.v	/^        wire [RADDR_WIDTH:0] raddr_cntr_sync_g2b;$/;"	n
+raddr_cntr_sync_g2b_r	ip/data_fifo/data_fifo.v	/^            reg  [RADDR_WIDTH:0] raddr_cntr_sync_g2b_r;    $/;"	r
+raddr_cntr_w	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH:0] raddr_cntr_w;$/;"	n
+raddr_dcount	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH:0] raddr_dcount;$/;"	n
+raddr_int	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH:0] raddr_int;$/;"	n
+raddr_int_dcount	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH:0] raddr_int_dcount;$/;"	n
+ram	ip/data_fifo/data_fifo.v	/^reg [MEM_DATA_WIDTH-1:0] ram[MEM_DEPTH-1:0];$/;"	r
+ram_data	test/Top_test_controller.v	/^wire [AXI_DATA_WIDTH-1 :0 ] ram_data ;$/;"	n
+rd_blen	Top_DRAM_controller.v	/^wire [AXI_ID_BLEN_CON-1:0 ] axi_id, rd_blen ;$/;"	n
+rd_clk_int	ip/data_fifo/data_fifo.v	/^wire                   rd_clk_int;$/;"	n
+rd_datacount_int	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH :0]  rd_datacount_int;$/;"	n
+rd_datacount_int	ip/data_fifo/data_fifo.v	/^wire [RADDR_WIDTH:0] rd_datacount_int;$/;"	n
+rd_empty_fwft	ip/data_fifo/data_fifo.v	/^        reg rd_empty_fwft;$/;"	r
+rd_empty_int	ip/data_fifo/data_fifo.v	/^wire                 rd_empty_int;$/;"	n
+rd_en	Req_Queue_gen.v	/^    input [NUM_QUEUE-1:0 ] rd_en,$/;"	p
+rd_en_int	ip/data_fifo/data_fifo.v	/^wire                   rd_en_int;$/;"	n
+rd_out	Req_Queue_gen.v	/^    output [NUM_QUEUE-1:0] rd_out $/;"	p
+rd_out_en	test/Top_test_controller.v	/^wire [NUM_PORTS-1:0] rd_out_en ;$/;"	n
+rd_prog_empty_int	ip/data_fifo/data_fifo.v	/^        reg    rd_prog_empty_int;$/;"	r
+rd_r_last	Top_DRAM_controller.v	/^    output         rd_r_last ,                                    \/\/ delay of read axi last signal$/;"	p
+rd_r_last	test/Top_test_controller.v	/^    output         rd_r_last ,$/;"	p
+rd_r_valid	test/Top_test_controller.v	/^wire rd_r_valid ;$/;"	n
+rd_rst_int	ip/data_fifo/data_fifo.v	/^wire                   rd_rst_int;$/;"	n
+rd_sel_binary	Req_Manager.v	/^    output [BIN_WIDTH-1 :0] rd_sel_binary,$/;"	p
+rd_sel_binary	test/Top_test_controller.v	/^    output [BIN_WIDTH-1:0] rd_sel_binary,$/;"	p
+rd_start	test/Top_test_controller.v	/^wire wr_start, rd_start ;$/;"	n
+rd_valid	ip/data_fifo/data_fifo.v	/^reg                  rd_valid;$/;"	r
+rd_valid_r	ip/data_fifo/data_fifo.v	/^            reg rd_valid_r;$/;"	r
+rd_width	ip/data_fifo/data_fifo.v	/^input [31:0] rd_width;$/;"	p
+rdata	Axi4FullDeplex.v	/^  input   [ADW_C-1:0] rdata   ; \/\/(I)[Read]Data Data$/;"	p
+rdata	Top_Axi.v	/^input   [ADW_C-1:0] rdata   , $/;"	p
+rdata	Top_DRAM_controller.v	/^    input   [ADW_C-1:0] rdata   , $/;"	p
+re_int	ip/data_fifo/data_fifo.v	/^wire                     re_int;$/;"	n
+re_r	ip/data_fifo/data_fifo.v	/^                reg re_r;$/;"	r
+reg	Port_controller.v	/^  output reg [COMBINED_DATA_WIDTH-1:0]  combined_out = 0$/;"	p
+reg	RD_ID_Manager.v	/^    output reg [NUM_PORTS_SEL-1:0] select_rd =0,$/;"	p
+reg	RD_ID_Manager.v	/^    output reg ack_rd = 0 $/;"	p
+reg	RD_ID_Manager.v	/^    output reg r_en_ack = 0,$/;"	p
+reg	RD_ID_Manager.v	/^    output reg rd_r_last = 0 ,$/;"	p
+reg	RD_ID_Manager.v	/^    output reg rd_r_valid = 0 ,$/;"	p
+reg	Top_DRAM_controller.v	/^    output reg [AXI_DATA_WIDTH-1 :0 ] axi_read_o_delay_data ,         \/\/ delay for read data$/;"	p
+reg	WR_ID_Manager.v	/^    output reg [NUM_PORTS_SEL-1 :0] select = 0 ,$/;"	p
+reg	WR_ID_Manager.v	/^    output reg ack = 0 $/;"	p
+reg	ddr_reset_sequencer.v	/^output reg ddr_cfg_seq_start,	\/\/ Sequencer Start$/;"	p
+reg	ddr_reset_sequencer.v	/^output reg ddr_init_done		\/\/ Done status$/;"	p
+reg	ip/data_fifo/data_fifo.v	/^    output  reg                    rd_underflow$/;"	p
+reg	ip/data_fifo/data_fifo.v	/^    output  reg                    wr_ack,$/;"	p
+reg	ip/data_fifo/data_fifo.v	/^    output  reg                    wr_overflow,$/;"	p
+reg	test/MUX_WR_SEL.v	/^    output reg [255:0] w_odata_sel = 0$/;"	p
+reg	test/MUX_WR_SEL.v	/^    output reg w_last_out = 0,$/;"	p
+reg	test/MUX_WR_SEL.v	/^    output reg w_valid_out = 0 ,$/;"	p
+reg	test/Mem_Rd_ctrl.v	/^    output reg [255:0] rdata_out = 0,$/;"	p
+reg	test/Mem_Rd_ctrl.v	/^    output reg data_valid = 0 $/;"	p
+reg	test/Mem_ctrl_wr.v	/^    output reg wvalid_w = 0,$/;"	p
+reg	test/Test_data_ctrl.v	/^    output reg [3:0] blen_in = 0,$/;"	p
+reg	test/Test_data_ctrl.v	/^    output reg r_w_en = 0$/;"	p
+reg	test/Test_data_ctrl.v	/^    output reg valid = 0,$/;"	p
+reg	test/Test_data_ctrl_1.v	/^    output reg [3:0] blen_in = 0,$/;"	p
+reg	test/Test_data_ctrl_1.v	/^    output reg r_w_en = 0$/;"	p
+reg	test/Test_data_ctrl_1.v	/^    output reg valid = 0,$/;"	p
+reg	test/Test_data_ctrl_2.v	/^    output reg [3:0] blen_in = 0,$/;"	p
+reg	test/Test_data_ctrl_2.v	/^    output reg r_w_en = 0$/;"	p
+reg	test/Test_data_ctrl_2.v	/^    output reg valid = 0,$/;"	p
+reg	test/Test_data_ctrl_3.v	/^    output reg [3:0] blen_in = 0,$/;"	p
+reg	test/Test_data_ctrl_3.v	/^    output reg r_w_en = 0$/;"	p
+reg	test/Test_data_ctrl_3.v	/^    output reg valid = 0,$/;"	p
+reg	test/one_pulse.v	/^    output reg b$/;"	p
+req	RR_ARB.v	/^input	[N-1:0]	req,$/;"	p
+req_in	Req_Manager.v	/^    input [NUM_PORTS-1:0] req_in,$/;"	p
+req_out	RR_ARB.v	/^output [NUM_PORTS-1 :0 ] req_out ,$/;"	p
+rid	Axi4FullDeplex.v	/^  input   [      7:0] rid     ; \/\/(I)[Read]Data ID$/;"	p
+rid	test/Top_test_controller.v	/^    input   [      7:0] rid     , $/;"	p
+rlast	Axi4FullDeplex.v	/^  input               rlast   ; \/\/(I)[Read]Data Last$/;"	p
+rlast	RD_ID_Manager.v	/^    input rlast,$/;"	p
+rlast	Top_Axi.v	/^input               rlast   , $/;"	p
+rlast	Top_DRAM_controller.v	/^    input               rlast   , $/;"	p
+rlast_rd	test/Mem_Rd_ctrl.v	/^    input rlast_rd ,$/;"	p
+rotate_ptr	RR_ARB.v	/^reg	[N-1:0]	rotate_ptr = 0;$/;"	r
+rready	Axi4FullDeplex.v	/^  output              rready  ; \/\/(O)[Read]Data Ready$/;"	p
+rready	Axi4FullDeplex.v	/^  wire              rready  = RREADY  ; \/\/(O)[Read]Data Ready$/;"	n
+rready	Top_Axi.v	/^output              rready  , $/;"	p
+rready	Top_DRAM_controller.v	/^    output              rready  , $/;"	p
+rresp	Axi4FullDeplex.v	/^  input   [      1:0] rresp   ; \/\/(I)[Read]Response$/;"	p
+rresp	test/Top_test_controller.v	/^    input   [      1:0] rresp   , $/;"	p
+rst	Port_ctrl_gen.v	/^    input    rst, $/;"	p
+rst	Req_Queue_gen.v	/^    input rst, $/;"	p
+rst	test/Top_test_controller.v	/^reg rst = 0 ;$/;"	r
+rst_busy	ip/data_fifo/data_fifo.v	/^output rst_busy,$/;"	p
+rstn_dly	ddr_reset_sequencer.v	/^reg [1:0] rstn_dly;$/;"	r
+rvalid	Axi4FullDeplex.v	/^  input               rvalid  ; \/\/(I)[Read]Data Valid$/;"	p
+rvalid	test/Top_test_controller.v	/^    input               rvalid  , $/;"	p
+sel_in1	test/MUX_WR_SEL.v	/^    input sel_in1,$/;"	p
+select	test/Mem_ctrl_wr.v	/^    input select,$/;"	p
+select_rd	Top_DRAM_controller.v	/^    output [NUM_PORTS-1:0] select_rd ,                            \/\/ select signal for selecting the read port$/;"	p
+select_rd	test/Mem_Rd_ctrl.v	/^    input select_rd,$/;"	p
+select_rd	test/Top_test_controller.v	/^wire [3:0] select_rd ;$/;"	n
+select_wr	test/Top_test_controller.v	/^wire [3:0] select_wr ;$/;"	n
+state	Port_controller.v	/^  reg [1:0] state = 0;$/;"	r
+state	RD_ID_Manager.v	/^reg [1:0] state = 0 ;$/;"	r
+state	WR_ID_Manager.v	/^reg [1:0] state = 0 ; \/\/ FSM state register$/;"	r
+state	test/Mem_ctrl_wr.v	/^reg [1:0] state = 0 ;$/;"	r
+state	test/Test_data_ctrl.v	/^reg [1:0] state = 2'b00;$/;"	r
+state	test/Test_data_ctrl_1.v	/^reg [1:0] state = 2'b00;$/;"	r
+state	test/Test_data_ctrl_2.v	/^reg [1:0] state = 2'b00;$/;"	r
+state	test/Test_data_ctrl_3.v	/^reg [1:0] state = 2'b00;$/;"	r
+stored_rd_id	RD_ID_Manager.v	/^reg [7:0] stored_rd_id = 0 ;$/;"	r
+temp_a	test/one_pulse.v	/^reg temp_a,temp_b;$/;"	r
+temp_b	test/one_pulse.v	/^reg temp_a,temp_b;$/;"	r
+temp_r_addr_1	test/Test_data_ctrl.v	/^reg [7:0] temp_r_addr_1 = 0;$/;"	r
+temp_r_addr_1	test/Test_data_ctrl_1.v	/^reg [7:0] temp_r_addr_1 = 0;$/;"	r
+temp_r_addr_1	test/Test_data_ctrl_2.v	/^reg [7:0] temp_r_addr_1 = 0;$/;"	r
+temp_r_addr_1	test/Test_data_ctrl_3.v	/^reg [7:0] temp_r_addr_1 = 0;$/;"	r
+tmp_mask	onehot_to_bin.v	/^		wire [ONEHOT_WIDTH-1:0] tmp_mask;$/;"	n
+update_ptr	RR_ARB.v	/^wire		    update_ptr;$/;"	n
+valid	Port_controller.v	/^  input                                valid,        \/\/ Valid signal$/;"	p
+valid	RD_ID_Manager.v	/^    input valid,$/;"	p
+valid	test/Top_test_data_ctrl.v	/^wire valid, valid_1, valid_2, valid_3 ;$/;"	n
+valid_1	test/Top_test_data_ctrl.v	/^wire valid, valid_1, valid_2, valid_3 ;$/;"	n
+valid_2	test/Top_test_data_ctrl.v	/^wire valid, valid_1, valid_2, valid_3 ;$/;"	n
+valid_3	test/Top_test_data_ctrl.v	/^wire valid, valid_1, valid_2, valid_3 ;$/;"	n
+w_ctrl_last	Wr_ctrl.v	/^  input w_ctrl_last ;$/;"	p
+w_ctrl_valid	Top_Axi.v	/^input w_ctrl_valid ,$/;"	p
+w_ctrl_valid	Wr_ctrl.v	/^  input w_ctrl_valid ;$/;"	p
+w_data	Req_Manager.v	/^reg [7:0] w_data = 0;$/;"	r
+w_en_ack	Top_DRAM_controller.v	/^wire r_en_ack, w_en_ack ;                                     \/\/ acknowledge pin for read and write - use in en_pin logic [wr_id_manager, rd_id_manager]$/;"	n
+w_en_ack	test/Top_test_controller.v	/^wire r_en_ack, w_en_ack ;$/;"	n
+w_last1	test/MUX_WR_SEL.v	/^    input w_last1,$/;"	p
+w_sel_1	test/Top_test_controller.v	/^wire w_sel_1  ;$/;"	n
+w_sel_2	test/Top_test_controller.v	/^wire w_sel_2  ;$/;"	n
+w_valid_1	test/MUX_WR_SEL.v	/^    input w_valid_1,$/;"	p
+waddr	ip/data_fifo/data_fifo.v	/^wire [WADDR_WIDTH-1:0] waddr;$/;"	n
+waddr_cntr	ip/data_fifo/data_fifo.v	/^reg  [WADDR_WIDTH:0] waddr_cntr;$/;"	r
+waddr_cntr_gry	ip/data_fifo/data_fifo.v	/^        wire [WADDR_WIDTH:0] waddr_cntr_gry;$/;"	n
+waddr_cntr_gry_r	ip/data_fifo/data_fifo.v	/^        reg  [WADDR_WIDTH:0] waddr_cntr_gry_r;$/;"	r
+waddr_cntr_gry_sync	ip/data_fifo/data_fifo.v	/^        wire [WADDR_WIDTH:0] waddr_cntr_gry_sync;$/;"	n
+waddr_cntr_sync_g2b	ip/data_fifo/data_fifo.v	/^        wire [WADDR_WIDTH:0] waddr_cntr_sync_g2b;$/;"	n
+waddr_cntr_sync_g2b_r	ip/data_fifo/data_fifo.v	/^            reg  [WADDR_WIDTH:0] waddr_cntr_sync_g2b_r;        $/;"	r
+waddr_int	ip/data_fifo/data_fifo.v	/^wire [WADDR_WIDTH:0] waddr_int;$/;"	n
+wdata	Axi4FullDeplex.v	/^  output  [ADW_C-1:0] wdata   ; \/\/(O)[Write]Data Data$/;"	p
+wdata	Axi4FullDeplex.v	/^  wire  [ADW_C-1:0] wdata   = WDATA   ; \/\/(O)[Write]Data Data$/;"	n
+wdata	Top_Axi.v	/^output  [ADW_C-1:0] wdata   , $/;"	p
+wdata	Top_DRAM_controller.v	/^    output  [ADW_C-1:0] wdata   , $/;"	p
+wdata	ip/data_fifo/data_fifo.v	/^input [DATA_WIDTH-1:0] wdata,$/;"	p
+wdata_ctrl_1	test/Top_test_controller.v	/^wire [255:0] wdata_ctrl_1, wdata_ctrl_2 ;$/;"	n
+wdata_ctrl_2	test/Top_test_controller.v	/^wire [255:0] wdata_ctrl_1, wdata_ctrl_2 ;$/;"	n
+wid	Axi4FullDeplex.v	/^  output  [      7:0] wid     ; \/\/(O)[Write]Data ID$/;"	p
+wid	Axi4FullDeplex.v	/^  wire  [      7:0] wid     = WID     ; \/\/(O)[Write]Data ID$/;"	n
+wid	WR_ID_Manager.v	/^    input [ID_WIDTH-1:0] wid, \/\/ Write controller ID$/;"	p
+wid	test/Top_test_controller.v	/^    output  [      7:0] wid     , $/;"	p
+width	ip/data_fifo/data_fifo.v	/^input [31:0] width;$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input   wire                   rclk,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input   wire                   re,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input   wire                   wclk,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input   wire                   we,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                     re,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                     we,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   a_rd_rst_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   a_rst_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   a_wr_rst_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   clk_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   rd_clk_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   rd_en_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   wr_clk_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire                   wr_en_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire [(RADDR_WIDTH-1):0] raddr,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire [(WADDR_WIDTH-1):0] waddr,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire [(WDATA_WIDTH-1):0] wdata,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    input  wire [DATA_WIDTH-1:0]  wdata,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   rd_almost_empty,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   rd_empty,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   rd_en_int,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   rd_prog_empty,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   rd_vld,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   wr_almost_full,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   wr_en_int,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   wr_full,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire                   wr_prog_full,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire [RADDR_WIDTH-1:0] raddr,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire [RADDR_WIDTH:0]   rd_datacount,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire [WADDR_WIDTH-1:0] waddr,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output  wire [WADDR_WIDTH:0]   wr_datacount,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   almost_empty_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   almost_full_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   empty_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   full_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   overflow_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   prog_empty_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   prog_full_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   rd_valid_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   rst_busy$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   underflow_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire                   wr_ack_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire [(RDATA_WIDTH-1):0] rdata$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire [RADDR_WIDTH :0]  rd_datacount_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire [RDATA_WIDTH-1:0] rdata,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire [WADDR_WIDTH :0]  datacount_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^    output wire [WADDR_WIDTH :0]  wr_datacount_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^ input  wire             clk_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^ input  wire [WIDTH-1:0] d_i,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^ output wire [WIDTH-1:0] bin_o,$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^ output wire [WIDTH-1:0] d_o$/;"	p
+wire	ip/data_fifo/data_fifo.v	/^ output wire [WIDTH-1:0] gray_o,$/;"	p
+wlast	Axi4FullDeplex.v	/^  output              wlast   ; \/\/(O)[Write]Data Last$/;"	p
+wlast	Axi4FullDeplex.v	/^  wire              wlast   = WLAST   ; \/\/(O)[Write]Data Last$/;"	n
+wlast	WR_ID_Manager.v	/^    input wlast ,$/;"	p
+wlast	test/Top_test_controller.v	/^    output              wlast   , $/;"	p
+wlast_w	test/Mem_ctrl_wr.v	/^    output wlast_w,$/;"	p
+wr_axi_data	Top_DRAM_controller.v	/^    input [AXI_DATA_WIDTH-1:0] wr_axi_data ,                     \/\/ write data for AXI$/;"	p
+wr_axi_data	test/Top_test_controller.v	/^wire [255:0] wr_axi_data ;$/;"	n
+wr_axi_last	test/Top_test_controller.v	/^wire wr_axi_valid, wr_axi_last ;$/;"	n
+wr_axi_valid	Top_DRAM_controller.v	/^    input         wr_axi_valid,                                   \/\/ write valid signal for axi write data$/;"	p
+wr_axi_valid	test/Top_test_controller.v	/^wire wr_axi_valid, wr_axi_last ;$/;"	n
+wr_clk_int	ip/data_fifo/data_fifo.v	/^wire                   wr_clk_int;$/;"	n
+wr_datacount_int	ip/data_fifo/data_fifo.v	/^wire [WADDR_WIDTH :0]  wr_datacount_int;$/;"	n
+wr_datacount_int	ip/data_fifo/data_fifo.v	/^wire [WADDR_WIDTH:0] wr_datacount_int;$/;"	n
+wr_depth	ip/data_fifo/data_fifo.v	/^input [31:0] wr_depth;$/;"	p
+wr_en_i	ip/data_fifo/data_fifo.v	/^input wr_en_i,$/;"	p
+wr_en_int	ip/data_fifo/data_fifo.v	/^wire                   wr_en_int;$/;"	n
+wr_id_o_wready	Top_DRAM_controller.v	/^    output         wr_id_o_wready ,                               \/\/ delauy of wready signal$/;"	p
+wr_prog_full_int	ip/data_fifo/data_fifo.v	/^        reg    wr_prog_full_int;$/;"	r
+wr_rst_int	ip/data_fifo/data_fifo.v	/^wire                   wr_rst_int;$/;"	n
+wr_start	test/Top_test_controller.v	/^wire wr_start, rd_start ;$/;"	n
+wr_width	ip/data_fifo/data_fifo.v	/^input [31:0] wr_width;$/;"	p
+wready	Axi4FullDeplex.v	/^  input               wready  ; \/\/(I)[Write]Data Ready$/;"	p
+wready	test/Top_test_controller.v	/^    input               wready  , $/;"	p
+wready_out	test/Top_test_controller.v	/^wire wready_out ;$/;"	n
+wstrb	Axi4FullDeplex.v	/^  output  [ABN_C-1:0] wstrb   ; \/\/(O)[Write]Data Strobes(Byte valid)$/;"	p
+wstrb	Axi4FullDeplex.v	/^  wire  [ABN_C-1:0] wstrb   = WSTRB   ; \/\/(O)[Write]Data Strobes(Byte valid)$/;"	n
+wstrb	Top_Axi.v	/^output  [ABN_C-1:0] wstrb   , $/;"	p
+wstrb	Top_DRAM_controller.v	/^    output  [ABN_C-1:0] wstrb   , $/;"	p
+wvalid	Axi4FullDeplex.v	/^  output              wvalid  ; \/\/(O)[Write]Data Valid$/;"	p
+wvalid	Axi4FullDeplex.v	/^  wire              wvalid  = WVALID  ; \/\/(O)[Write]Data Valid$/;"	n
+wvalid	Top_Axi.v	/^output              wvalid  , $/;"	p
+wvalid	Top_DRAM_controller.v	/^    output              wvalid  , $/;"	p
+xor_in	ip/data_fifo/data_fifo.v	/^  input [WIDTH-1:0] xor_in);$/;"	p

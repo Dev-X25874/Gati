@@ -29,10 +29,10 @@ generate
             .empty_o(empty_flag[i]),
             .wr_clk_i(c_81_clk),
 			.rd_clk_i(clk),
-            .wr_en_i(Wr_en[i]),
+            .wr_en_i(Wr_en[NUM_QUEUE-i-1]),
             .rd_en_i(rd_en[i]),
-            .wdata(data_in [(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
-            .rdata(data_out[(DATA_WIDTH * (NUM_QUEUE - i))-1 -: DATA_WIDTH]),
+            .wdata(data_in[(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
+            .rdata(data_out[(DATA_WIDTH *  i) +: DATA_WIDTH]),
             .a_rst_i(~rst),
             .o_valid(rd_out[i])
         );
@@ -53,11 +53,11 @@ generate
             .W_ADDR($clog2(RAM_DEPTH))
         ) fifo_inst (
             .empty_o(empty_flag[i]),
-            .clk_i(clk),
-            .wr_en_i(Wr_en[i]),
+			.clk_i(clk),
+            .wr_en_i(Wr_en[NUM_QUEUE-i-1]),
             .rd_en_i(rd_en[i]),
-            .wdata(data_in [(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
-            .rdata(data_out[(DATA_WIDTH * (NUM_QUEUE - i))-1 -: DATA_WIDTH]),
+            .wdata(data_in[(DATA_WIDTH* (NUM_QUEUE - i)) -1 -: DATA_WIDTH]),
+            .rdata(data_out[((DATA_WIDTH *  i)) +: DATA_WIDTH]),
             .a_rst_i(~rst),
             .o_valid(rd_out[i])
         );

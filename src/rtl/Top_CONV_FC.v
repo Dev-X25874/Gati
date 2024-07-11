@@ -1,7 +1,7 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-	parameter DATA_WIDTH = 8,
+	  parameter DATA_WIDTH = 8,
     parameter COL_SA = 4,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
@@ -29,6 +29,7 @@ module Top_CONV_FC #(
     parameter N_FC_MUX = 4,
     parameter NO_PORT_FC = 8,
     parameter RELU_CLIP_WIDTH = 8,
+    parameter ACT_TYPE_WIDTH = 4,
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter NO_PORT_VA=2,
@@ -97,6 +98,7 @@ module Top_CONV_FC #(
     input [SHFT_REG_X-1:0] shift_reg_sel,
     input systolic_array_trigger,
     input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
+    input [ACT_TYPE_WIDTH-1:0] relu_act_type,
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
@@ -578,6 +580,7 @@ module Top_CONV_FC #(
   top_relu_gen #(
       .N(COL_SA),
       .DATA_WIDTH(DATA_WIDTH),
+      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .CLIP_WIDTH(RELU_CLIP_WIDTH)
   ) relu (
       .top_clk(i_clk),
@@ -586,7 +589,8 @@ module Top_CONV_FC #(
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),
-      .top_i_clip({COL_SA{relu_clip_value}}) //from tail inst.
+      .top_i_clip({COL_SA{relu_clip_value}}), //from tail inst.
+      .top_i_acttype({COL_SA{relu_act_type}})
   );
   
    maxpool_gen #(

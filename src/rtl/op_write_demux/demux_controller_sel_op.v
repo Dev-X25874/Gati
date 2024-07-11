@@ -16,7 +16,7 @@ module demux_controller_sel_op #(
 (*syn_use_dsp = "no"*) reg [OP_FIFO_WRITE-1:0] r_op_wren;
 always @(*)
 begin
-	if(flag)
+	if(data_valid=={COL{1'b1}})
 	begin 
 		// if(sel)
 		// begin

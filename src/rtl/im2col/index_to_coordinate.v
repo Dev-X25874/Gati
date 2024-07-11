@@ -117,23 +117,31 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
       end
     end
     
-
+	reg flag=0;
     always @(posedge clk) begin
       if (r_i_start_im2col_index) begin
         r_start_im2col <= 1'b1;
+		flag<=1;
+
       end else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
+		  if(flag)begin
+			  im2col_done<=1;
+				flag<=0;
+		  end
+
+		  else begin 
+			  im2col_done<=0;
+		  end
         r_start_im2col <= 1'b0;
       end
     end
     
-
     assign o_valid_buff = r_start_im2col? (r_zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 
             | ((curr_row == o_mat_size)&&(curr_col == o_mat_size)) 
             | (curr_row == o_mat_size)|(curr_row == 1) 
             | (curr_col == o_mat_size - 1) 
             | (curr_col == o_mat_size)
 			| ((curr_row==0)&&(curr_col==0))) ? 0 : 1) : 1):0;
-
     
     
 
@@ -146,9 +154,9 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 
     assign o_mat_size = r_start_im2col? (r_valid_mat_size ?(r_zero_pad ? r_mat_size + 2 : r_mat_size) : 0) : 0; 
 
-	always @ (posedge clk) begin 
-	    im2col_done <= (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
-	end
+//	always @ (posedge clk) begin 
+//	    im2col_done <= (curr_col == o_mat_size && curr_row == o_mat_size)? 1'b1 : 1'b0;
+//	end
 
 endmodule
 

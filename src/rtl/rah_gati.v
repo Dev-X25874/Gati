@@ -4,8 +4,8 @@ module rah_gati #(
      parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
    // parameter   NUM_PORTS = 4,                                    // number of ports
    // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
-    parameter NO_PORT_WR=2,
-	parameter   ADDRESS_WIDTH = 32,                               // address width                 
+    parameter   NO_PORT_WR=2,
+	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
@@ -393,10 +393,10 @@ assign valid_data=valid_32;
      mc_img_valid,
      mc_wghts_valid,
      mc_fc_valid,
-     mc_bias_valid,
-     mc_fc_bias_valid,
      mc_acc_valid,
-     mc_op_write_valid
+     mc_op_write_valid,
+     mc_bias_valid,
+     mc_fc_bias_valid
    };
 
    assign in_address = {
@@ -405,10 +405,10 @@ assign valid_data=valid_32;
      mc_img_addr,
      mc_wghts_addr,
      mc_fc_addr,
-     mc_bias_addr,
-     mc_fc_bias_addr,
      mc_acc_addr,
-     mc_op_write_addr
+     mc_op_write_addr,
+     mc_bias_addr,
+     mc_fc_bias_addr
    };
 
    assign in_BLEN = {
@@ -417,10 +417,10 @@ assign valid_data=valid_32;
      mc_img_bl,
      mc_wghts_bl,
      mc_fc_bl,
-     mc_bias_bl,
-     mc_fc_bias_bl,
      mc_acc_bl,
-     mc_op_write_bl
+     mc_op_write_bl,
+     mc_bias_bl,
+     mc_fc_bias_bl
    };
 
    assign i_enable = {
@@ -429,10 +429,10 @@ assign valid_data=valid_32;
      mc_img_rdreq,
      mc_wghts_rdreq,
      mc_fc_rdreq,
-     mc_bias_rdreq,
-     mc_fc_bias_rdreq,
      mc_acc_rdreq,
-     mc_op_writereq
+     mc_op_writereq,
+     mc_bias_rdreq,
+     mc_fc_bias_rdreq
    };
 
    assign i_last = {
@@ -441,10 +441,10 @@ assign valid_data=valid_32;
      mc_img_last,
      mc_wghts_last,
      mc_fc_last,
-     mc_bias_last,
-     mc_fc_bias_last,
      mc_acc_last,
-     mc_op_write_last
+     mc_op_write_last,
+     mc_bias_last,
+     mc_fc_bias_last
    };
    
 
@@ -487,7 +487,7 @@ assign valid_data=valid_32;
     .port_ctrl_i_last(i_last),
     .axi_read_o_delay_data(dram_rd_data),
     .d_done(d_done),
-	 .rd_r_last(dram_rd_data_last),
+	  .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),

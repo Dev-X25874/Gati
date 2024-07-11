@@ -88,6 +88,8 @@ wire [PORT_ID_WIDTH-1:0] RR_o_port_id;                        // output port id 
 wire RR_o_rw ;                                                // output read or write enable from RR module
 wire RR_o_valid_req ;
 
+assign d_done = DdrInitDone;
+
 Port_ctrl_gen #(
     .NUM_PORTS(NUM_PORTS),
     .ADDRESS_WIDTH (ADDRESS_WIDTH),

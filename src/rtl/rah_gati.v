@@ -393,10 +393,10 @@ assign valid_data=valid_32;
      mc_img_valid,
      mc_wghts_valid,
      mc_fc_valid,
-     mc_bias_valid,
-     mc_fc_bias_valid,
      mc_acc_valid,
-     mc_op_write_valid
+     mc_op_write_valid,
+	 mc_bias_valid,
+     mc_fc_bias_valid
    };
 
    assign in_address = {
@@ -405,10 +405,10 @@ assign valid_data=valid_32;
      mc_img_addr,
      mc_wghts_addr,
      mc_fc_addr,
-     mc_bias_addr,
-     mc_fc_bias_addr,
      mc_acc_addr,
-     mc_op_write_addr
+     mc_op_write_addr,
+	 mc_bias_addr,
+     mc_fc_bias_addr
    };
 
    assign in_BLEN = {
@@ -417,10 +417,10 @@ assign valid_data=valid_32;
      mc_img_bl,
      mc_wghts_bl,
      mc_fc_bl,
-     mc_bias_bl,
-     mc_fc_bias_bl,
      mc_acc_bl,
-     mc_op_write_bl
+     mc_op_write_bl,
+     mc_bias_bl,
+     mc_fc_bias_bl
    };
 
    assign i_enable = {
@@ -429,10 +429,10 @@ assign valid_data=valid_32;
      mc_img_rdreq,
      mc_wghts_rdreq,
      mc_fc_rdreq,
-     mc_bias_rdreq,
-     mc_fc_bias_rdreq,
      mc_acc_rdreq,
-     mc_op_writereq
+     mc_op_writereq,
+     mc_bias_rdreq,
+     mc_fc_bias_rdreq
    };
 
    assign i_last = {
@@ -441,10 +441,10 @@ assign valid_data=valid_32;
      mc_img_last,
      mc_wghts_last,
      mc_fc_last,
-     mc_bias_last,
-     mc_fc_bias_last,
      mc_acc_last,
-     mc_op_write_last
+     mc_op_write_last,
+     mc_bias_last,
+     mc_fc_bias_last
    };
    
 

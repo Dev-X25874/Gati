@@ -25,6 +25,8 @@ module fifo_wr_ctrl#(
 	localparam ADDR=2'd2;
 	localparam NEXT=2'd3;
 
+	localparam sof = 32'hFF_FF_FF_FF;
+
 reg valid = 0;
 reg [1:0] state = 0;
 reg [3:0] wr_counter = 0;
@@ -39,9 +41,7 @@ assign o_data_size = data_size;
 assign o_start_address = start_addr;
 assign o_valid = valid;
 	reg last=0;
-//	reg [31:0] sof;
-	localparam SOF=32'hFFFFFFFF;
-
+	// reg [31:0] sof={32{1'b1}};
 
 	reg 				r_i_data_valid;                     //comes from mipi fifo
     reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
@@ -56,6 +56,7 @@ assign o_valid = valid;
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         counter <= 0;
+		state <= 0;
         start_addr <= 0;
         data_size <= 0;
         data <= 0;
@@ -68,7 +69,8 @@ always @(posedge i_clk)begin
 			IDLE:begin 
 				soft_start<=0;
 				last<=0;
-				if(i_data==SOF) begin 
+
+				if(i_data_valid && (i_data==sof)) begin 
 					state<=DATA_SIZE;
 				end
 
@@ -79,7 +81,8 @@ always @(posedge i_clk)begin
 			end
 			DATA_SIZE: begin 
 				if(i_data_valid) begin 
-					data_size<=i_data;
+					data_size <= i_data;
+					counter <= i_data;
 					valid <= 1'b1;
 					state<=ADDR;
 				end
@@ -114,6 +117,7 @@ always @(posedge i_clk)begin
 //					state<=ADDR;
 //					valid<=1'b0;
 //				end
+
 
 			end
 
@@ -152,7 +156,8 @@ always @(posedge i_clk)begin
 					state<=IDLE;
 					wren<=0;
 				end
-				else if((&i_data) && (~|counter)) begin 
+
+				else if((i_data_valid==1) && (i_data==sof) && (counter==0)) begin 
 						state<=DATA_SIZE;
 						wren<=0;
 				end
@@ -166,7 +171,23 @@ always @(posedge i_clk)begin
 	end
 end
 
-
+/* Logic added for debugging */
+reg [15:0] counter1;
+always@(posedge i_clk) begin
+	if(~i_rstn) begin
+		counter1 <= 0;
+	end
+	else begin
+		// if(counter1 == 16'd33) begin
+		// 	counter1 <= 0;
+		// end
+		// else begin
+			if(counter==0 && i_data==sof && state==3) begin
+				counter1 <= counter1 + 1;
+			end
+		// end
+	end
+end
 			
 endmodule
 

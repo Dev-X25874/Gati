@@ -25,7 +25,7 @@ generate
 		async_81#(
             .W_DATA(DATA_WIDTH),
             .W_ADDR($clog2(RAM_DEPTH))
-        ) fifo_inst (
+        ) fifo_inst_1 (
             .empty_o(empty_flag[i]),
             .wr_clk_i(c_81_clk),
 			.rd_clk_i(clk),

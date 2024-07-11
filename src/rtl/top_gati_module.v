@@ -273,8 +273,9 @@ module top_gati_module #(
 	  //.temp_wren(temp_wren),
       .clkin(i_clk),
       .rst(i_rst),
-	  .user_start(user_start),
+	    .user_start(user_start),
       .valid(dram_rd_datavalid),
+      .data_last(dram_rd_data_last),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
 
@@ -1275,7 +1276,7 @@ always @ (posedge i_clk) begin
         .clk(i_clk),
         .rst(i_rst),
         .start(start_SA), //start_SA
-
+        .image_fifo_empty(&(image_fifo_empty)),
         .iter_done(iter_done),
         .c_iter(channel_iteration),
         .k_iter(kernel_iteration),

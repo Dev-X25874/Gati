@@ -10,6 +10,7 @@ module controller_inst_q #(
 )(
     input clkin,
     input valid,
+    input data_last,
     input sel,
     input user_start,
     input [INSTRUCT_W-1:0]i_instruction_data,
@@ -49,7 +50,7 @@ module controller_inst_q #(
       end
       4'd1:
       begin
-        if(sel && valid) 
+        if(sel && valid && data_last) 
         begin
             internal_start<=i_instruction_data[ADDR_W-1:0];
             internal_stop<=i_instruction_data[2*ADDR_W-1:ADDR_W];

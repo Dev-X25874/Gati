@@ -47,7 +47,7 @@ module iteration_cnt #(
 
 reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
 reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
-reg iter_done = 0;
+reg iter_done;
 reg c_done;
 reg SA_done;
 wire layer_done;
@@ -58,7 +58,7 @@ assign o_iter_done = iter_done;
 assign o_layer_done = r_layer_done;
 assign o_c_done = c_done;
 
-//assign layer_done = (k_ctr == r_k_iter);
+// assign layer_done = (k_ctr == k_iter);
 
 //assign c_done = (c_iter==1)? r_iter_done: ((c_ctr==c_iter-1)?1:0);
 
@@ -90,6 +90,7 @@ end
     reg r_POOL_EN;
     reg r_ACC_EN;
     reg r_FC_BIAS_EN;
+
 
 //reg r_iter_done;
 reg r_layer_done;
@@ -126,7 +127,7 @@ always@(posedge i_clk) begin
     else begin
         case(state)
         3'd0:begin
-            if(r_i_start) begin
+            if(i_start) begin
                 state <= 3'd1;
                 c_ctr <= 0;
                 k_ctr <= 0;
@@ -137,7 +138,7 @@ always@(posedge i_clk) begin
         
         3'd1: begin
             c_done <= 0;
-            if(k_ctr==r_k_iter) begin
+            if(k_ctr==k_iter) begin
                 k_ctr <= 0;
                 c_ctr <= 0;
                 state <= 3'd0;
@@ -145,17 +146,17 @@ always@(posedge i_clk) begin
 
             end 
             else begin
-                if(r_CONV_FC==0)begin
-                    if(r_im2col_done) state <= 3'd2;
+                if(CONV_FC==0)begin
+                    if(im2col_done) state <= 3'd2;
                 end
                 else begin
-                    if(r_FC_done) state <= 3'd3;
+                    if(FC_done) state <= 3'd3;
                 end
             end
         end
         
         3'd2: begin
-            if(r_SA_psum_fifo_empty) begin
+            if(SA_psum_fifo_empty) begin
                 state <= 3'd3;
                 SA_done <= 1'b1;
             end
@@ -167,11 +168,11 @@ always@(posedge i_clk) begin
         
         3'd3: begin
             SA_done <= 1'b0;
-            if(r_Tail_done) state <= 3'd4; //Tail_done status
+            if(Tail_done) state <= 3'd4; //Tail_done status
         end
         
         3'd4: begin
-            if(r_op_fifo_empty) begin
+            if(op_fifo_empty) begin
                 iter_done <= 1;
                 state <= 3'd5; //iter_done status
             end
@@ -225,7 +226,7 @@ always@(posedge i_clk) begin
         acc_en  <=  0;
     end
     else begin
-        if(r_ACC_EN==0) begin
+        if(ACC_EN==0) begin
             acc_en <= 0;
         end
         else begin
@@ -240,7 +241,7 @@ always@(posedge i_clk)begin
         relu_en <= 0;
     end
     else begin
-        if(r_RELU_EN==0) begin
+        if(RELU_EN==0) begin
             relu_en <= 0;
         end
         else begin
@@ -255,11 +256,12 @@ always@(posedge i_clk)begin
         quant_en <= 0;
     end
     else begin
-        if(r_QUANT_EN==0) begin
+        if(QUANT_EN==0) begin
             quant_en <= 0;
         end
         else begin
             if(c_ctr==r_c_iter) quant_en <= 1;
+
             else                quant_en <= 0;
         end
     end
@@ -270,7 +272,7 @@ always@(posedge i_clk)begin
         bias_en <= 0;
     end
     else begin
-        if(r_BIAS_EN==0) begin
+        if(BIAS_EN==0) begin
             bias_en <= 0;
         end
         else begin
@@ -285,7 +287,7 @@ always@(posedge i_clk)begin
         fc_bias_en <= 0;
     end
     else begin
-        if(r_FC_BIAS_EN==0) begin
+        if(FC_BIAS_EN==0) begin
             fc_bias_en <= 0;
         end
         else begin
@@ -300,7 +302,7 @@ always@(posedge i_clk)begin
         pool_en <= 0;
     end
     else begin
-        if(r_POOL_EN==0) begin
+        if(POOL_EN==0) begin
             pool_en <= 0;
         end
         else begin

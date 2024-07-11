@@ -14,6 +14,7 @@ module inst_read_ctrl#(
     parameter TOTAL_LAY_N=12
   )(
     input clkin,
+    input valid_inst,
     input [NUM_INSTRUCTIONS-1:0]valid_ack,
     input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
     input [NUM_INSTRUCTIONS-1:0]ack_in,
@@ -22,7 +23,6 @@ module inst_read_ctrl#(
     input status_inst_q,
     input user_start,
     input done_status,
-	input valid_inst,
     input [OPCODE_W-1:0]opcode, //opcode received from instruction data
     output reg bus_master_valid, //valid signal for bus master(start)
     output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
@@ -134,11 +134,10 @@ end
             end
             4'd3:
             begin
-				if(valid_inst) begin 
-					r_opcode<=opcode; //store opcode
-					top_state<=4'd4;
-				end
-
+              if(valid_inst) begin
+                r_opcode<=opcode; //store opcode
+                top_state<=4'd4;
+              end
             end
             4'd4:
             begin

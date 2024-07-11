@@ -35,7 +35,6 @@ reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
 	reg [ADDR_W-1:0] r_o_burst_shifted;
-
 // reg temp; //added for debugging
 	always @ (posedge clkin) begin 
 		r_o_burst_shifted<=(burst_len+1)<<$clog2(ADDR_W);
@@ -64,7 +63,7 @@ always @(posedge clkin)begin
 			if(counter1==i) begin 
 				o_address_reg<=internal_reg_start[(ADDR_W-i)-1-:8];
 			end
-		end
+		  end
       burst_len_reg<=0;
       if(counter1==24)
       begin
@@ -95,7 +94,7 @@ always @(posedge clkin)begin
           internal_reg_start<=global_reg_address_start;
           internal_reg_stop<=global_reg_address_stop;
           state<=4'd3;
-          // burst_len_reg <= BURST_LEN_AXI; //added on 15-6-24 (for debugging)
+          burst_len_reg <= BURST_LEN_AXI; 
       end
     end
 

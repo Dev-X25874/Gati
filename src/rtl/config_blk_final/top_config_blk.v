@@ -21,15 +21,14 @@ module config_blk #(
     input rst,
     input user_start,
     input valid,
+    input data_last,
     input sel,
-	//input [255:0] temp_data,
-	//input temp_wren,
     input [INST_W-1:0]instruction_data,
     input done,//from bus master
-    output  memory_read_r,memory_valid,
+    output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,
-    output  [BURST_LEN_WIDTH-1:0]mem_burst_len,
+    output [BURST_LEN_WIDTH-1:0]mem_burst_len,
     input [NUM_INSTRUCTIONS-1:0]ack_signals, //acknowledgement signals from slave blocks
     output[NUM_INSTRUCTIONS-1:0]start_command,// start command to slave blocks after receiving start instruction
     output start_out,// start pulse that pulses for each start instruction
@@ -72,10 +71,11 @@ module config_blk #(
                  .burst_len(mem_burst_len));
 
 
-////Instruction Queue Controller Instantiation                 
+//Instruction Queue Controller Instantiation                 
   controller_inst_q #(.INSTRUCT_W(INST_W),.ADDR_W(ADDR_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
+                      .data_last(data_last),
                       .sel(sel),
                       .user_start(user_start),
                       .i_instruction_data(instruction_data),
@@ -93,7 +93,7 @@ module config_blk #(
              inst_q_3(
                .clkin(clkin),
                .rst(rst),
-				.instruct_mem(instruction_2_3),
+				       .instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
                .instruct_valid(instruction_v_2_3),
                .o_instruction(o_instruction_3_5),
@@ -101,19 +101,17 @@ module config_blk #(
                .o_status_dram(status_3_1),
                .o_status_inst(status_3_4)
              );
-	
 
- 
 //Instruction Read Controller Instantiation             
   inst_read_ctrl #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
                    .OPCODE_W(OPCODE_W),
                    .LAY_N(LAY_N),
                    .TOTAL_LAY_N(TOTAL_LAY_N))inst_read_ctrl_4(
                    .clkin(clkin),
+                   .valid_inst(o_instruction_3_5_v),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
                    .ack_in(ack_6_4),
-	  			   .valid_inst(o_instruction_3_5_v),
                    .layer_number(o_instruction_3_5[`START_LayerNumber]),
                    .total_layers(o_instruction_3_5[`START_TotalLayers]),
                    .status_inst_q(status_3_4),

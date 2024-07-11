@@ -12,7 +12,7 @@ module Top_CONV_FC #(
     parameter MOD1=2,
     parameter MOD2 = 8,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
-    parameter DATA_WIDTH_ACC = 16, //data width of intermediate accumulants(SA)
+    parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
     // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
@@ -186,8 +186,8 @@ module Top_CONV_FC #(
   wire im2col_o_valid;
   wire [DATA_WIDTH -1:0] im2col_o_data;
   
-  always @(*) begin
-	   sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
+  always @(posedge i_clk) begin
+	   sel_mux <=(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
@@ -221,7 +221,7 @@ module Top_CONV_FC #(
   ) im2col (
       .i_valid_mat_size(valid_img_size_im2col),
       .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'hff),
+      .i_im2col_data(8'd0),
       .i_clk(i_clk),
       .i_rstn(rst),
       .o_im2col_data(im2col_o_data),
@@ -239,7 +239,7 @@ module Top_CONV_FC #(
       .i_zero_pad(zero_pad_enable),
       .o_valid_data(im2col_o_valid),
       .o_valid_buff(read_buf_data), //read signal to im2col buffers
-      .i_valid_data(1'b1),
+      .i_valid_data(1'b0),
       .im2col_done(im2col_done)
   );
 
@@ -363,11 +363,21 @@ module Top_CONV_FC #(
 
  
   // FC Computing Engine
-  wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  wire [COL_SA-1:0] dv_SA_FC;
+  reg [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
+  reg [COL_SA-1:0] dv_SA_FC;
   //interconnect of SA and FC
- assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
- assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
+  always @ (posedge i_clk) begin
+	if(CONV_FC) begin 
+		data_SA_FC<=op_data_mux_FC;
+		dv_SA_FC<={COL_SA{valid_out_FC}};
+	end 
+	else begin 
+		data_SA_FC<=result_tree;
+		dv_SA_FC<=valid_tree;
+	end
+  end
+// assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
+ //assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
 
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
@@ -408,8 +418,8 @@ module Top_CONV_FC #(
   
  
   //interconnect of SA and FC
-  assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
-  assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
+ // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
+  //assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
   
   //Interconnect to pass SA output or FC ouput
 

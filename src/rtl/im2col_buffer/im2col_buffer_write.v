@@ -28,35 +28,14 @@ module im2col_buffer_write #(
           rd <= 8'hFF;
           state <= ONGOING;
         end
-
         ONGOING: begin
-
           rd <= 8'h00;
           if (count == POP_THRESHOLD) begin
             rd <= 8'hFF;
             state <= ONGOING;
           end
-
         end
-
       endcase
-
-
-
-
-
     end
-
-
-
-
-
-
-
-
-
-
-
-
   end
 endmodule

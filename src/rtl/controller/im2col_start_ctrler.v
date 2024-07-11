@@ -18,6 +18,17 @@ module im2col_start_ctrler#(
 reg [2:0] state;
 reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
 reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
+	reg [CITER_CNT_WIDTH-1:0] r_c_iter;
+    reg [KITER_CNT_WIDTH-1:0] r_k_iter;
+
+always @ (posedge clk) begin 
+
+	r_c_iter<=c_iter-1;
+	r_k_iter<=k_iter;
+
+
+end 
+
 
 always@(posedge clk) begin
     if(!rst) begin
@@ -70,7 +81,7 @@ always@(posedge clk) begin
             
             3: begin
                 //else begin
-                    if(c_ctr==c_iter-1) begin
+                    if(c_ctr==r_c_iter) begin
                         k_ctr <= k_ctr + 1;
                         c_ctr <= 0;
                         state <= 4;
@@ -86,7 +97,7 @@ always@(posedge clk) begin
             end
             
             4: begin
-                if(k_ctr==k_iter) begin
+                if(k_ctr==r_k_iter) begin
                     k_ctr <= 0;
                     c_ctr <= 0;
                     state <= 0;
@@ -109,3 +120,4 @@ always@(posedge clk) begin
 
 end
 endmodule
+

@@ -40,7 +40,7 @@ module Top_DRAM_controller #(
     input [AXI_DATA_WIDTH-1:0] wr_axi_data ,                     // write data for AXI
     output [NUM_PORTS-1:0] select_wr ,                            // select signal for selecting the write port
     output [NUM_PORTS-1:0] select_rd ,                            // select signal for selecting the read port
-    output                 DdrInitDone, //Indicates the user that DDR initialization is done and data transfer can begin
+    output                d_done, //Indicates the user that DDR initialization is done and data transfer can begin
     
 ////DDR controller Axi signals /////////////    
     output  [      7:0] aid     ,
@@ -354,3 +354,4 @@ always@(*) begin
 
 end
 endmodule 
+

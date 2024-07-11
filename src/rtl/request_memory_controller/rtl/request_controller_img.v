@@ -39,7 +39,7 @@ assign burst_length = r_burst_length;
     reg r_c_done;
 
 always @ (posedge clk) begin 
-	// rbl_add1<=r_burst_length+1;
+//	rbl_add1<=r_burst_length+1;
 	nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
 
 	r_start_addr<=start_addr;
@@ -84,11 +84,12 @@ always @(posedge clk) begin
         end
 
         if(count < 3) begin
-            for(i=0;i<3;i=i+1) begin
-                if(count==i) begin 
-                    addr_out <= nxt_addr[32-(i*8)-1 -:8];
-                end
-            end
+		for(i=0;i<3;i=i+1) begin
+		if(count==i) begin 
+		   addr_out <= nxt_addr[32-(i*8)-1 -:8];
+		   end
+		   end
+
             wr_enable <= 0;
             valid <= 1;
             state <= START_ADDR;
@@ -152,3 +153,4 @@ always @(posedge clk) begin
 end
 
 endmodule
+

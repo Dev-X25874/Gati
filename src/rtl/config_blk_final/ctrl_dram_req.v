@@ -23,18 +23,18 @@ module ctrl_dram_req #(
   output last, //last chunk of 8 bits
   output [BURST_LEN_WIDTH-1:0]burst_len //burst length for dram (15-6-24: changed burst lenght width param)
 );
-	integer i;
 reg[5:0] counter1=0;
 reg [7:0] o_address_reg=0;
 reg dv;
 reg read_req_reg;
-reg last_reg=0;
-reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+	integer i;
+	reg last_reg=0;
+	reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+	reg [ADDR_W-1:0] shifted_burst_len_reg=0;
 reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
-reg [ADDR_W-1:0] r_o_burst_shifted,shifted_burst_len_reg;
-
+	reg [ADDR_W-1:0] r_o_burst_shifted;
 // reg temp; //added for debugging
 	always @ (posedge clkin) begin 
 		r_o_burst_shifted<=(burst_len+1)<<$clog2(ADDR_W);
@@ -164,7 +164,7 @@ always @(posedge clkin)begin
     end
     4'd5:
     begin
-      if((internal_reg_stop-r_o_burst_shifted)>internal_reg_start) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
+      if(((internal_reg_stop-r_o_burst_shifted)>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
       begin
         // if(status)
         // begin

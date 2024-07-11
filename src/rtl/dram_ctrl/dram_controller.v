@@ -39,8 +39,8 @@ localparam IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1);
 localparam IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1);
 
 reg [ADDR_WIDTH-1:0] op_start_add1 = 0;
-reg [W_CHANNEL_CNT-1:0] channel_itr = 0;
-reg [W_KERNEL_CNT-1:0] kernel_itr = 0;
+reg [W_CHANNEL_CNT-1:0] channel_itr = 0,sub_channel=0,sub2_channel=0;
+reg [W_KERNEL_CNT-1:0] kernel_itr = 0,sub_k=0;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim = 0;
 reg [IMAGE_DIM_WIDTH_OP-1:0] imag_dim_2 = 0;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim_init = 0;
@@ -76,7 +76,13 @@ assign o_burst_length = burst_length-1;
 assign o_burst_length_2 = burst_length_2-1;
 assign o_image_done = image_done;
 assign o_image_done_2= image_done_2;
+	always @ (posedge clkin) begin 
+		sub_channel<=channel_itr-1;
+		sub2_channel<=channel_itr-2;
+		sub_k<=kernel_itr-1;
 
+
+	end
 always@(posedge clkin)
 begin
   if(~i_rstn) begin
@@ -145,7 +151,7 @@ begin
       begin
         if(channel_itr<2)
         begin
-          if(kernel_count<=(kernel_itr-1))
+          if(kernel_count<=sub_k)
           begin
             case(case_1_output)
               5'd0:
@@ -217,16 +223,16 @@ begin
               end
             endcase
           end
-          else if(kernel_count>(kernel_itr-1))
+          else if(kernel_count>sub_k)
           begin
             top_state<=4'd0;
           end
         end
         else
         begin
-          if(kernel_count<=(kernel_itr-1))
+          if(kernel_count<=sub_k)
           begin
-            if(channel_count<(channel_itr-1))
+            if(channel_count<sub_channel)
             begin
               op_valid_1<=0;
               case_2_output<=0;
@@ -317,7 +323,7 @@ begin
                 end
               endcase
             end
-            else if(channel_count==(channel_itr-1))
+            else if(channel_count== sub_channel)
             begin
               case_2_acc<=0;
               acc_address_valid<=0;
@@ -463,7 +469,7 @@ begin
         case(imag_dim_case_2)
           5'd0:
           begin
-            if((case_1_output!=0)||(case_2_output!=0)||(channel_count==channel_itr-2))
+            if((case_1_output!=0)||(case_2_output!=0)||(channel_count==sub2_channel))
             begin
               if(imag_dim_2<IMAG_DIM_OUTPUT)
               begin

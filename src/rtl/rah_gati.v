@@ -7,8 +7,8 @@ module rah_gati #(
     parameter NO_PORT_WR=2,
 	parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000},   // only use for port controller 
-    parameter   POINTER_COUNT = 9,                               // fifo depth
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
+    parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
     parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
@@ -135,26 +135,26 @@ module rah_gati #(
 
 ) (
     input i_clk,
-	  input c_81_clk,
+	input valid_32,
+	input c_81_clk,
     input s_clk,
     input m_clk,
 	  input i_rst,
     input empty,
     input [31:0] data,
-    input valid_32,
     output  reg rden=0,
-	
+	//input start_gpio,	
 
 
     input [1:0] PllLocked,
     output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
     output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
-    output      DdrInitDone           ,
+  //  output      DdrInitDone           ,
 
-
-	  output  [      7:0] aid     ,
-	  output  [     31:0] aaddr   , 
+	output d_done,
+	output  [      7:0] aid     ,
+    output  [     31:0] aaddr   , 
 
     output  [      7:0] alen    , 
     output  [      2:0] asize   , 
@@ -183,9 +183,8 @@ module rah_gati #(
 
   wire  [31:0] o_data ;
 	assign o_data=data; 
-
   wire valid_data;
-  assign valid_data = valid_32;
+assign valid_data=valid_32;
  
   wire o_rden;
   assign o_rden=rden;
@@ -199,16 +198,18 @@ module rah_gati #(
     end
   end 
 
-	// always @(posedge c_81_clk) begin 
-		//  if (o_rden)  begin 
-			  // valid_data <= 1;
-			//  
-		//  end
-		//  else begin 
-			  // valid_data <= 0;
-			//  
-		//  end 
-  // end
+	//always @(posedge c_81_clk) begin 
+	//	 if (o_rden)  begin 
+	//		  valid_data <= 1;
+	//		 
+	//	 end
+	//	 else begin 
+	//		  valid_data <= 0;
+	//		 
+	//	 end 
+
+    //if (valid_data) r_data <= data;
+ // end
 
 
 
@@ -386,125 +387,66 @@ module rah_gati #(
   wire [NUM_PORTS-1:0] i_enable;
   wire [NUM_PORTS-1:0] i_last;
 
-  // assign i_valid = {
-  //   valid_wr_req_ctrl,
-  //   mc_config_valid,
-  //   mc_img_valid,
-  //   mc_wghts_valid,
-  //   mc_fc_valid,
-  //   mc_bias_valid,
-  //   mc_fc_bias_valid,
-  //   mc_acc_valid,
-  //   mc_op_write_valid
-  // };
+   assign i_valid = {
+     valid_wr_req_ctrl,
+     mc_config_valid,
+     mc_img_valid,
+     mc_wghts_valid,
+     mc_fc_valid,
+     mc_bias_valid,
+     mc_fc_bias_valid,
+     mc_acc_valid,
+     mc_op_write_valid
+   };
 
-  // assign in_address = {
-  //   address_wr_req_ctrl,
-  //   mc_config_addr,
-  //   mc_img_addr,
-  //   mc_wghts_addr,
-  //   mc_fc_addr,
-  //   mc_bias_addr,
-  //   mc_fc_bias_addr,
-  //   mc_acc_addr,
-  //   mc_op_write_addr
-  // };
+   assign in_address = {
+     address_wr_req_ctrl,
+     mc_config_addr,
+     mc_img_addr,
+     mc_wghts_addr,
+     mc_fc_addr,
+     mc_bias_addr,
+     mc_fc_bias_addr,
+     mc_acc_addr,
+     mc_op_write_addr
+   };
 
-  // assign in_BLEN = {
-  //   final_burst_len_wr_req_ctrl,
-  //   mc_config_bl,
-  //   mc_img_bl,
-  //   mc_wghts_bl,
-  //   mc_fc_bl,
-  //   mc_bias_bl,
-  //   mc_fc_bias_bl,
-  //   mc_acc_bl,
-  //   mc_op_write_bl
-  // };
+   assign in_BLEN = {
+     final_burst_len_wr_req_ctrl,
+     mc_config_bl,
+     mc_img_bl,
+     mc_wghts_bl,
+     mc_fc_bl,
+     mc_bias_bl,
+     mc_fc_bias_bl,
+     mc_acc_bl,
+     mc_op_write_bl
+   };
 
-  // assign i_enable = {
-  //   req_wr_req_ctrl,
-  //   mc_config_rdreq,
-  //   mc_img_rdreq,
-  //   mc_wghts_rdreq,
-  //   mc_fc_rdreq,
-  //   mc_bias_rdreq,
-  //   mc_fc_bias_rdreq,
-  //   mc_acc_rdreq,
-  //   mc_op_writereq
-  // };
+   assign i_enable = {
+     req_wr_req_ctrl,
+     mc_config_rdreq,
+     mc_img_rdreq,
+     mc_wghts_rdreq,
+     mc_fc_rdreq,
+     mc_bias_rdreq,
+     mc_fc_bias_rdreq,
+     mc_acc_rdreq,
+     mc_op_writereq
+   };
 
-  // assign i_last = {
-  //   final_last_wr_req_ctrl,
-  //   mc_config_last,
-  //   mc_img_last,
-  //   mc_wghts_last,
-  //   mc_fc_last,
-  //   mc_bias_last,
-  //   mc_fc_bias_last,
-  //   mc_acc_last,
-  //   mc_op_write_last
-  // };
-
-  assign i_valid = {
-    mc_fc_bias_valid,
-    mc_bias_valid,
-    mc_op_write_valid,
-    mc_acc_valid,
-    mc_fc_valid,
-    mc_wghts_valid,
-    mc_img_valid,
-    mc_config_valid,
-    valid_wr_req_ctrl
-  };
-
-  assign in_address = {
-    address_wr_req_ctrl,
-    mc_config_addr,
-    mc_img_addr,
-    mc_wghts_addr,
-    mc_fc_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_bias_addr,
-    mc_fc_bias_addr
-  };
-
-  assign in_BLEN = {
-    final_burst_len_wr_req_ctrl,
-    mc_config_bl,
-    mc_img_bl,
-    mc_wghts_bl,
-    mc_fc_bl,
-    mc_acc_bl,
-    mc_op_write_bl,
-    mc_bias_bl,
-    mc_fc_bias_bl    
-  };
-
-  assign i_enable = {
-    mc_fc_bias_rdreq,
-    mc_bias_rdreq,
-    mc_op_writereq,
-    mc_acc_rdreq,
-    mc_fc_rdreq,
-    mc_wghts_rdreq,
-    mc_img_rdreq,
-    mc_config_rdreq,
-    req_wr_req_ctrl
-  };
-
-  assign i_last = {
-    mc_fc_bias_last,
-    mc_bias_last,
-    mc_op_write_last,
-    mc_acc_last,
-    mc_fc_last,
-    mc_wghts_last,
-    mc_img_last,
-    mc_config_last,
-    final_last_wr_req_ctrl
-  };
+   assign i_last = {
+     final_last_wr_req_ctrl,
+     mc_config_last,
+     mc_img_last,
+     mc_wghts_last,
+     mc_fc_last,
+     mc_bias_last,
+     mc_fc_bias_last,
+     mc_acc_last,
+     mc_op_write_last
+   };
+   
 
 
   wire DdrInitDone;
@@ -544,7 +486,8 @@ module rah_gati #(
     .port_ctrl_i_rw_enable(i_enable),
     .port_ctrl_i_last(i_last),
     .axi_read_o_delay_data(dram_rd_data),
-    .rd_r_last(dram_rd_data_last),
+    .d_done(d_done),
+	 .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),
@@ -553,7 +496,7 @@ module rah_gati #(
     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
-    .DdrInitDone(DdrInitDone),
+   // .DdrInitDone(DdrInitDone),
     .aid(aid),
     .aaddr(aaddr),
     .alen(alen),
@@ -722,10 +665,10 @@ module rah_gati #(
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
       .select(s_s),
-     .dram_rd_datavalid(s_dram_rd_datavalid),
-     .dram_rd_data_last(s_dram_rd_data_last),
-     .dram_rd_data(s_dram_rd_data),
-	 .wready(s_wr_id_o_wready),
+      .dram_rd_datavalid(s_dram_rd_datavalid),
+      .dram_rd_data_last(s_dram_rd_data_last),
+      .dram_rd_data(s_dram_rd_data),
+	  .wready(s_wr_id_o_wready),
 	  .wr_burst_len(s_wr_burst_len),
       .dv_op_write(dv_op_write),
       .o_data_last_op_write(data_last_op_write),
@@ -733,30 +676,30 @@ module rah_gati #(
   );
   ///////////////////////////////	
 (* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;
-  (* async_reg="true" *) reg f_dram_rd_data_last,s_dram_rd_data_last;
-   (* async_reg="true" *) reg   f_dram_rd_datavalid,s_dram_rd_datavalid;
-    (* async_reg="true" *) reg  f_wr_id_o_wready,s_wr_id_o_wready ;                              
-    (* async_reg="true" *) reg  [BURST_LENGTH_WIDTH-1 : 0] f_wr_burst_len,s_wr_burst_len;
-  (* async_reg="true" *) reg [NUM_PORTS-1:0]f_s,s_s; 
+(* async_reg="true" *) reg f_dram_rd_data_last,s_dram_rd_data_last;
+(* async_reg="true" *) reg   f_dram_rd_datavalid,s_dram_rd_datavalid;
+(* async_reg="true" *) reg  f_wr_id_o_wready,s_wr_id_o_wready ;                              
+(* async_reg="true" *) reg  [BURST_LENGTH_WIDTH-1 : 0] f_wr_burst_len,s_wr_burst_len;
+(* async_reg="true" *) reg [NUM_PORTS-1:0]f_s,s_s; 
   //////////////////////////////////// MIPI controller tx
   always @ (posedge i_clk) begin 
-	  f_dram_rd_data<=dram_rd_data;
-	  s_dram_rd_data<=f_dram_rd_data;
+  	f_dram_rd_data<=dram_rd_data;
+  	s_dram_rd_data<=f_dram_rd_data;
 
-	  f_dram_rd_data_last<=dram_rd_data_last;
-	  s_dram_rd_data_last<=f_dram_rd_data_last;
+  	f_dram_rd_data_last<=dram_rd_data_last;
+  	s_dram_rd_data_last<=f_dram_rd_data_last;
 
-     f_dram_rd_datavalid<=dram_rd_datavalid;
+ 	f_dram_rd_datavalid<=dram_rd_datavalid;
 	s_dram_rd_datavalid<=f_dram_rd_datavalid;
-  
+
 	 f_wr_id_o_wready<=wr_id_o_wready;
 	s_wr_id_o_wready<=f_wr_id_o_wready;
 
 	f_wr_burst_len<=wr_burst_len;
-		s_wr_burst_len<=f_wr_burst_len;
+	s_wr_burst_len<=f_wr_burst_len;
 
-	   	f_s<=(select_rd|select_wr);
- 		s_s<=f_s;
+   	f_s<=(select_rd|select_wr);
+	s_s<=f_s;
 
 
   end 

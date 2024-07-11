@@ -60,18 +60,6 @@ assign o_valid = valid;
 		r_i_start_address<=i_start_address;
 		r_i_data_size<=i_data_size;
 	end
-
-
-
-
-
-
-
-
-
-
-
-
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         // req <= 0;
@@ -117,14 +105,14 @@ always @(posedge i_clk)begin
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 
-					r_burst_len <= r_burst_len;
+					r_burst_len<=BURST_LEN;
 				end
 			end
             2: begin
                 //send req to DDR
                 // req <= 1'b1;
                 //Add addr_valid in address counter
-                addr <= r_addr;//Add counter 1-4
+               // addr <= r_addr;//Add counter 1-4
                 burst_len <= r_burst_len;
                 offset <=((burst_len+1)<<$clog2(W_DATA));
                 if(addr_counter < 3)begin

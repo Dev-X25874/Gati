@@ -104,31 +104,27 @@ demux2 #(.DATA_IN(DATA_IN)) dut2(
   .fifo2(demux2_o2)
 );
 
-fifo_valid #(.DATA_WIDTH(DATA_IN), .ADDR_WIDTH(9)) dut3(
-  .clk(clk),
-  .rst_n(rst),
-  .we(demux2_o1[DATA_IN]),
-  .re(re),
-  .data_in(demux2_o1[DATA_IN - 1 : 0]),
-  .occupants(),
-  .full(),
-  .empty(empty1),
-  .data_out(fifo1_out),
-  .data_valid(data_valid1)
+sync_fifo#(.W_DATA(DATA_IN), .W_ADDR(9)) dut3(
+  .clk_i(clk),
+  .a_rst_i(rst),
+  .wr_en_i(demux2_o1[DATA_IN]),
+  .rd_en_i(re),
+  .wdata(demux2_o1[DATA_IN - 1 : 0]),
+  .empty_o(empty1),
+  .rdata(fifo1_out),
+  .o_valid(data_valid1)
 );
 
 
-fifo_valid #(.DATA_WIDTH(DATA_IN), .ADDR_WIDTH(9)) dut4(
-  .clk(clk),
-  .rst_n(rst),
-  .we(demux2_o2[DATA_IN]),
-  .re(re),
-  .data_in(demux2_o2[DATA_IN - 1 : 0]),
-  .occupants(),
-  .full(),
-  .empty(empty2),
-  .data_out(fifo2_out),
-  .data_valid(data_valid2)
+sync_fifo  #(.W_DATA(DATA_IN), .W_ADDR(9)) dut4(
+  .clk_i(clk),
+  .a_rst_i(rst),
+  .wr_en_i(demux2_o2[DATA_IN]),
+  .rd_en_i(re),
+  .wdata(demux2_o2[DATA_IN - 1 : 0]),
+  .empty_o(empty2),
+  .rdata(fifo2_out),
+  .o_valid(data_valid2)
 );
 
 maxpool #(.DATA_IN(DATA_IN)) dut5(

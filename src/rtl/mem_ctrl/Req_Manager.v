@@ -71,7 +71,7 @@ always @(posedge clk) begin
     end else begin
 		for(i=0;i<NUM_PORTS;i=i+1) begin
 			if(rd_valid[i])begin
-                data_sel<=in_data_div[DATA_WIDTH*(NUM_PORTS -i[$clog2(NUM_PORTS)-1:0])-1 -:DATA_WIDTH];
+                data_sel<=in_data_div[DATA_WIDTH*(i[$clog2(NUM_PORTS)-1:0]) +:DATA_WIDTH];
     	        // data_sel <= in_data_div [(DATA_WIDTH*(NUM_PORTS-i)) -1 -: DATA_WIDTH] ;
     	        // valid_req <= 1'b1;
     	    end 
@@ -94,3 +94,4 @@ end
 */
 
 endmodule
+

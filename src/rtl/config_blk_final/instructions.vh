@@ -1,4 +1,5 @@
-`ifndef instructions_vh
+`ifndef instruction_vh
+
 `define OP_CONV 'h00
 `define CONV_Opcode 3:0
 `define CONV_Opcode_WIDTH 4
@@ -31,7 +32,7 @@
 `define CONV_WeightEndAddress 206:175
 `define CONV_WeightEndAddress_WIDTH 32
 
-`define OP_FC 'h04
+`define OP_FC 'h03
 `define FC_Opcode 3:0
 `define FC_Opcode_WIDTH 4
 `define FC_WeightRows 19:4
@@ -50,10 +51,14 @@
 `define FC_ImageStartAddress_WIDTH 32
 `define FC_ImageEndAddr 144:113
 `define FC_ImageEndAddr_WIDTH 32
-`define FC_RWAddressCountFlatten 160:145
-`define FC_RWAddressCountFlatten_WIDTH 16
+`define FC_WeightStartAddress 176:145
+`define FC_WeightStartAddress_WIDTH 32
+`define FC_WeightEndAddress 208:177
+`define FC_WeightEndAddress_WIDTH 32
+`define FC_Vec2MatCols 224:209
+`define FC_Vec2MatCols_WIDTH 16
 
-`define OP_OutputBlock 'h03
+`define OP_OutputBlock 'h02
 `define OutputBlock_Opcode 3:0
 `define OutputBlock_Opcode_WIDTH 4
 `define OutputBlock_AccumulantAddr 35:4
@@ -122,4 +127,10 @@
 `define TailBlock_BiasStartAddress_WIDTH 32
 `define TailBlock_BiasEndAddress 199:168
 `define TailBlock_BiasEndAddress_WIDTH 32
-`endif 
+
+`define ACT_RELU 'h00
+`define POOL_MAX 'h00
+`define POOL_AVERAGE 'h01
+`define POOL_GLOBAL_AVG 'h02
+
+`endif

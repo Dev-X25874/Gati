@@ -464,6 +464,7 @@ module Top_CONV_FC #(
         .NO_PORT(NO_PORT_FC)    //size of mux ex:NO_PORT=8 then it is 8x1
       ) FC_op_data_mux
       (
+		  .clk(i_clk),
         .in(reorder_data_FC[(((ACC_DW*NO_PORT_FC)*(N_FC_MUX-i))-1) -: ACC_DW*NO_PORT_FC]),  //datawidth = port_size*no.of ports
         .out(op_data_mux_FC[((ACC_DW*(N_FC_MUX-i))-1) -:ACC_DW]), //datawidth = port_size
         .sel(sel_FC_op_data_mux)

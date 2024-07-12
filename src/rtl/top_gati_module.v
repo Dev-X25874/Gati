@@ -279,7 +279,7 @@ module top_gati_module #(
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
 
-	       .memory_read_r(mc_config_rdreq),
+	    .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),
@@ -340,6 +340,7 @@ module top_gati_module #(
   //Tail inst. signals
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
   wire [RELU_CLIP_WIDTH-1:0] relu_clip_value;
+  wire [ACT_TYPE_WIDTH-1:0] relu_act_type;
   wire [W_QUANT_SHIFT-1:0] tail_quantshift;
   wire [W_QUANT_SCALE-1:0] tail_quantscale;
   wire [ACTEN_WIDTH-1:0] ACT_EN;
@@ -547,7 +548,7 @@ module top_gati_module #(
     .BNStartAddress(),
     .BNEndAddress(),
     .ActEn(ACT_EN),
-    .acttype(),
+    .acttype(relu_act_type),
     .ActParam(relu_clip_value),
     .QuantEn(QUANT_EN), // goes to iteration cter
     .quantscale(tail_quantscale),
@@ -913,9 +914,9 @@ module top_gati_module #(
 
 
   reg  zero_pad_enable;
-always @ (posedge i_clk) begin 
+  always @ (posedge i_clk) begin 
    zero_pad_enable <= |(conv_zeropad);
-   end
+  end
   
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
   wire [ACC_FIFO-1:0] vector_add_wren;
@@ -1059,6 +1060,7 @@ always @ (posedge i_clk) begin
       .N_FC_MUX(N_FC_MUX),
       .NO_PORT_FC(NO_PORT_FC),
       .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
+      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .NO_PORT_VA(NO_PORT_VA),
@@ -1122,6 +1124,7 @@ always @ (posedge i_clk) begin
       .systolic_array_trigger(systolic_array_trigger),
       .rst(i_rst),
       .relu_clip_value(relu_clip_value),
+      .relu_act_type(relu_act_type),
       .bias_enable(bias_enable),
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),

@@ -4,8 +4,8 @@ module rah_gati #(
      parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
    // parameter   NUM_PORTS = 4,                                    // number of ports
    // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
-    parameter NO_PORT_WR=2,
-	parameter   ADDRESS_WIDTH = 32,                               // address width                 
+    parameter   NO_PORT_WR=2,
+	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
@@ -487,7 +487,7 @@ assign valid_data=valid_32;
     .port_ctrl_i_last(i_last),
     .axi_read_o_delay_data(dram_rd_data),
     .d_done(d_done),
-	 .rd_r_last(dram_rd_data_last),
+	  .rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),

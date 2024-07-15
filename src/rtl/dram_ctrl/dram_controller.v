@@ -504,4 +504,14 @@ begin
   end
 end
 
+reg [15:0] dbg_cnt;
+always@(posedge clkin) begin
+  if(~i_rstn) begin
+    dbg_cnt <= 0;
+  end
+  else begin
+    if(memory_request) dbg_cnt <= dbg_cnt + 1;
+    else if(image_done|image_done_2) dbg_cnt <= 0;
+  end
+end
 endmodule

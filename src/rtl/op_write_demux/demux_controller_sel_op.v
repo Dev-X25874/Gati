@@ -18,15 +18,9 @@ always @(*)
 begin
 	if(data_valid=={COL{1'b1}})
 	begin 
-		// if(sel)
-		// begin
-		// 	op_wren={{COL{1'b1}},{COL{1'b0}}};
-		// end 
-		// else begin 
-		// 	op_wren={{COL{1'b0}},{COL{1'b1}}};
-		// end
 		r_op_wren = 0;
-		r_op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
+		r_op_wren[(COL*sel) +: COL] = {COL{1'b1}};
+		// r_op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
 	end
 	else begin
 		r_op_wren <= {OP_FIFO_WRITE{1'b0}};
@@ -36,8 +30,7 @@ end
 always @(posedge clk)
 begin 
 if(!rst) begin 
-sel<=0;
-//op_wren<=0;
+	sel<=0;
 	flag<=0;
 end
 
@@ -53,14 +46,7 @@ else
 		sel<=sel;
 		flag<=0;
 	end
-
-
 end
-
-
-
-
-
 end
 
 endmodule

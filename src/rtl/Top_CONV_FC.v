@@ -692,7 +692,14 @@ module Top_CONV_FC #(
       .data_out(x_final_data)
   );
 
-    
+  // generate
+  //   if(N_DMUX_PORTS>1) begin
+
+  //   end
+  //   else begin
+  //     assign op_wren = (&(x_final_valid))? {OP_FIFO{1'b1}} : {OP_FIFO{1'b0}};
+  //   end
+  // endgenerate  
   
   wire [$clog2(N_DMUX_PORTS)-1 : 0] sel_dmx;
   wire [(N_DMUX_PORTS*COL_SA)-1 : 0] op_write_dmux_datavalid;

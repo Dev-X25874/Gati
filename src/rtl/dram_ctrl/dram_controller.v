@@ -37,6 +37,7 @@ module dram_controller#(
 
 localparam IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1);
 localparam IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1);
+localparam APPEND = $clog2(DEPTH)-BURST_LEN_WIDTH;
 
 reg [ADDR_WIDTH-1:0] op_start_add1 = 0;
 reg [W_CHANNEL_CNT-1:0] channel_itr = 0,sub_channel=0,sub2_channel=0;
@@ -66,23 +67,26 @@ reg [9:0]offset_op=0;
 reg [3:0]top_state=0;
 wire result_int;
 wire result_int_2;
-reg [BURST_LEN_WIDTH-1:0]burst_length=BURST_LENGTH+1;
-reg [BURST_LEN_WIDTH-1:0]burst_length_2=BURST_LENGTH_2+1;
+// reg [BURST_LEN_WIDTH:0]burst_length=BURST_LENGTH+1;
+// reg [BURST_LEN_WIDTH:0]burst_length_2=BURST_LENGTH_2+1;
+reg [$clog2(DEPTH) : 0] burst_length, burst_length_2;
 
-assign result_int = (occupants>=({N{burst_length}}))?1:0;
-assign result_int_2 = (occupants>=({N{burst_length_2}}))?1:0;
+// assign result_int = (occupants>=({N{{APPEND{1'b0},burst_length}}}))?1:0;
+// assign result_int_2 = (occupants>=({N{{APPEND{1'b0},burst_length_2}}}))?1:0;
+assign result_int = (occupants>=({N{burst_length}}))? 1 : 0; 
+assign result_int_2 = (occupants>=({N{burst_length_2}}))? 1 : 0;
 assign o_op_start_add = op_start_add1;
 assign o_burst_length = burst_length-1;
 assign o_burst_length_2 = burst_length_2-1;
 assign o_image_done = image_done;
 assign o_image_done_2= image_done_2;
-	always @ (posedge clkin) begin 
-		sub_channel<=channel_itr-1;
-		sub2_channel<=channel_itr-2;
-		sub_k<=kernel_itr-1;
 
+always @ (posedge clkin) begin 
+	sub_channel<=channel_itr-1;
+	sub2_channel<=channel_itr-2;
+	sub_k<=kernel_itr-1;
+end
 
-	end
 always@(posedge clkin)
 begin
   if(~i_rstn) begin
@@ -179,10 +183,12 @@ begin
               end
               5'd2: //2
               begin
-                op_start_add1<=op_start_add1+offset_op;
+                // op_start_add1<=op_start_add1+offset_op;
+                op_start_add1<=op_start_add1;
                 imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 case_1_output<=6; //6
                 memory_request<=1;
+                op_valid_1 <= 1;
               end
               5'd3: //3
               begin
@@ -203,21 +209,24 @@ begin
               begin
                 kernel_count<=kernel_count+1;
                 case_1_output<=6; //6
-                op_start_add1<=op_start_add1+offset_op;
+                op_start_add1<=op_start_add1;
+                // op_start_add1<=op_start_add1+offset_op;
                 memory_request<=1;
-
+                op_valid_1<=1;
               end
               5'd6: //6
               begin
                 memory_request<=0;
+                op_valid_1<=0;
                 if(last)
                 begin
                   case_1_output<=0; //0
-                  op_valid_1<=1;
+                  op_start_add1<=op_start_add1+offset_op;
                 end
                 else
                 begin
                   case_1_output<=6; //6
+                  op_start_add1<=op_start_add1;
                 end
 
               end

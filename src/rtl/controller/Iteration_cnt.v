@@ -127,7 +127,7 @@ always@(posedge i_clk) begin
     else begin
         case(state)
         3'd0:begin
-            if(i_start) begin
+            if(r_i_start) begin
                 state <= 3'd1;
                 c_ctr <= 0;
                 k_ctr <= 0;
@@ -138,7 +138,7 @@ always@(posedge i_clk) begin
         
         3'd1: begin
             c_done <= 0;
-            if(k_ctr==k_iter) begin
+            if(k_ctr==r_k_iter) begin
                 k_ctr <= 0;
                 c_ctr <= 0;
                 state <= 3'd0;
@@ -146,17 +146,17 @@ always@(posedge i_clk) begin
 
             end 
             else begin
-                if(CONV_FC==0)begin
-                    if(im2col_done) state <= 3'd2;
+                if(r_CONV_FC==0)begin
+                    if(r_im2col_done) state <= 3'd2;
                 end
                 else begin
-                    if(FC_done) state <= 3'd3;
+                    if(r_FC_done) state <= 3'd3;
                 end
             end
         end
         
         3'd2: begin
-            if(SA_psum_fifo_empty) begin
+            if(r_SA_psum_fifo_empty) begin
                 state <= 3'd3;
                 SA_done <= 1'b1;
             end
@@ -168,11 +168,11 @@ always@(posedge i_clk) begin
         
         3'd3: begin
             SA_done <= 1'b0;
-            if(Tail_done) state <= 3'd4; //Tail_done status
+            if(r_Tail_done) state <= 3'd4; //Tail_done status
         end
         
         3'd4: begin
-            if(op_fifo_empty) begin
+            if(r_op_fifo_empty) begin
                 iter_done <= 1;
                 state <= 3'd5; //iter_done status
             end
@@ -226,7 +226,7 @@ always@(posedge i_clk) begin
         acc_en  <=  0;
     end
     else begin
-        if(ACC_EN==0) begin
+        if(r_ACC_EN==0) begin
             acc_en <= 0;
         end
         else begin
@@ -241,7 +241,7 @@ always@(posedge i_clk)begin
         relu_en <= 0;
     end
     else begin
-        if(RELU_EN==0) begin
+        if(r_RELU_EN==0) begin
             relu_en <= 0;
         end
         else begin
@@ -256,7 +256,7 @@ always@(posedge i_clk)begin
         quant_en <= 0;
     end
     else begin
-        if(QUANT_EN==0) begin
+        if(r_QUANT_EN==0) begin
             quant_en <= 0;
         end
         else begin
@@ -272,7 +272,7 @@ always@(posedge i_clk)begin
         bias_en <= 0;
     end
     else begin
-        if(BIAS_EN==0) begin
+        if(r_BIAS_EN==0) begin
             bias_en <= 0;
         end
         else begin
@@ -287,7 +287,7 @@ always@(posedge i_clk)begin
         fc_bias_en <= 0;
     end
     else begin
-        if(FC_BIAS_EN==0) begin
+        if(r_FC_BIAS_EN==0) begin
             fc_bias_en <= 0;
         end
         else begin
@@ -302,7 +302,7 @@ always@(posedge i_clk)begin
         pool_en <= 0;
     end
     else begin
-        if(POOL_EN==0) begin
+        if(r_POOL_EN==0) begin
             pool_en <= 0;
         end
         else begin

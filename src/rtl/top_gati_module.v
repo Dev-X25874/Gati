@@ -780,7 +780,10 @@ module top_gati_module #(
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
   wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
 
-  assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
+  wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
+  assign img_fifo_th = input_img_width>>3;
+  assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
+  // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
   //fifo img
   
   dram_fifo #(
@@ -867,8 +870,8 @@ module top_gati_module #(
   wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
 
   assign weight_fifo_status = (CONV_FC==0)? 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{4*ROW}})? 1 : 0) : 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{(3/4)*(WEIGHT_FIFO_DEPTH)}})? 1 : 0);
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{4*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]}})? 1 : 0) : 
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{(3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),
@@ -908,9 +911,9 @@ module top_gati_module #(
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
-  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{ACC_FIFO}})? 1 : 0;
-  assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA}})? 1 : 0;
-  assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC}})? 1 : 0;
+  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{ACC_FIFO[$clog2(ACC_FIFO_DEPTH):0]}})? 1 : 0;
+  assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
+  assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
 
   reg  zero_pad_enable;
@@ -1196,12 +1199,12 @@ module top_gati_module #(
     .select(select[`OPWrite]), //select signal from DRAM ctrler (WR_ID mger)
     .wready(wready), // from DRAM ctrler (WR_ID mger)
     .blen(wr_burst_len), // from DRAM ctler ()
-    .data_valid(dv_op_write),
+    .o_data_valid(dv_op_write),
     .data_last(o_data_last_op_write),
     .fifo_rd_en(op_dram_rden)
   );
 
-  assign o_data_last_op_write = data_last_op_write;
+  // assign o_data_last_op_write = data_last_op_write;
  /* Iteration counter module that generates iteration 'done' signals based on the status
     of various operators. Also generates 'enable'signals to various tail blocks
     based on the instruction fields. Also generates 'acc_en' signal that specifies

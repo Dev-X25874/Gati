@@ -120,11 +120,7 @@ reg data_valid;
                     end
                     // end
                 end
-
-                2'd3: begin
-
-                end
-
+                
                 default: begin
                     state <= 0;
                     count_blen <= 0;

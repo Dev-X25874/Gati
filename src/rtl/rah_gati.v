@@ -395,7 +395,7 @@ assign valid_data=valid_32;
      mc_fc_valid,
      mc_acc_valid,
      mc_op_write_valid,
-     mc_bias_valid,
+	 mc_bias_valid,
      mc_fc_bias_valid
    };
 
@@ -407,7 +407,7 @@ assign valid_data=valid_32;
      mc_fc_addr,
      mc_acc_addr,
      mc_op_write_addr,
-     mc_bias_addr,
+	 mc_bias_addr,
      mc_fc_bias_addr
    };
 

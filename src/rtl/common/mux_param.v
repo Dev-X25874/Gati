@@ -13,12 +13,13 @@ module mux_param #(parameter PORT_SIZE=32,
                   parameter NO_PORT = 8)
  (  
     input [PORT_SIZE*NO_PORT -1:0] in,
+	input clk,
     output reg [PORT_SIZE-1:0] out,
     input  [$clog2(NO_PORT)-1:0] sel
  );
 	integer i;
     (* syn_use_dsp = "no" *) reg  signed [PORT_SIZE-1:0] out; //This synthesis attribute is used to avoid the usage of DSP block for data slicing
-	always@(*)
+	always@(posedge clk)
 	begin 
 		for(i=0;i<NO_PORT;i=i+1) begin 
 			if(sel==i) begin 

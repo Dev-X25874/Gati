@@ -36,12 +36,12 @@ localparam S_ROW = ROW[8:0];
 
 wire w_start;
 //Generates one pulse from trigger sent externally
-pulse_gen start_pulse (
-    .a(i_start),
-    .i_rstn(i_rstn),
-    .clk(i_clk),
-    .b(w_start)
-);
+// pulse_gen start_pulse (
+//     .a(i_start),
+//     .i_rstn(i_rstn),
+//     .clk(i_clk),
+//     .b(w_start)
+// );
 
 reg [2:0] state = 0;
 reg [4:0] counter = 0;
@@ -61,10 +61,16 @@ always @(posedge i_clk) begin
     end else begin
         case (state)
             0: begin
-                if(w_start)begin
-                    state <= 1;
-                    rden <= 0;
+                rden <= 0;
+                if(i_layer_done)begin
+                    state <= 0;
                     sel <= 1'b1;
+                end
+                else if(i_start)begin
+                    state <= 1;
+                end
+                else begin
+                    state <= 0;
                 end
             end 
 
@@ -95,10 +101,11 @@ always @(posedge i_clk) begin
                         sel <= ~sel;
                     else
                         sel <= sel;
-                    state <= 4;
+                    state <= 0;
                 end
             end
 
+            /*
             4: begin
                 if(i_layer_done)begin
                     state <= 0;
@@ -108,7 +115,7 @@ always @(posedge i_clk) begin
                     sel <= sel;
                 end
             end
-
+            */
             default: state <= 0;
         endcase
     end

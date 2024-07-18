@@ -424,16 +424,36 @@ module top_gati_module #(
   assign start_FC = (CONV_FC==1)? start : 1'b0;
 //   assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
  
+  wire im2col_global_start;
   reg systolic_array_trigger;
   reg Flattening_trigger;
 
+  reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
+  reg im2col_en = 0;
+
+  always@(posedge i_clk) begin
+    if(!i_rst) im2col_cnt <= 0;
+    else begin
+      if(im2col_en) im2col_cnt <= im2col_cnt + 1;
+      else im2col_cnt <= 0;
+    end 
+  end
+
+
   // Generation of systolic array and flattening module triggers
   always@(posedge i_clk) begin
-    if(!i_rst) systolic_array_trigger <= 1'b0;
+    if(!i_rst) begin
+      systolic_array_trigger <= 1'b0;
+      im2col_en <= 0;
+    end
     else begin
-        if(start_SA) systolic_array_trigger <= 1'b1;
-        else if(layer_done) systolic_array_trigger <= 1'b0;
-        else systolic_array_trigger <= systolic_array_trigger;
+      if(im2col_global_start) im2col_en <= 1;
+      
+        if(im2col_cnt==4*conv_op_width) begin
+          systolic_array_trigger <= 1'b1;
+          im2col_en <= 0;
+        end
+        else systolic_array_trigger <= 0;
     end
   end
 
@@ -689,7 +709,7 @@ module top_gati_module #(
   );
 
   
-  wire im2col_global_start;
+  // wire im2col_global_start;
   wire vector_add_enable;
 
   assign acc_stop_address = acc_start_address + (img_dim_Acc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);

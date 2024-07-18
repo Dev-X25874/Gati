@@ -1,6 +1,7 @@
 module WR_ID_Manager #(
   parameter NUM_PORTS_SEL = 4,
-  parameter ID_WIDTH = 8 
+  parameter ID_WIDTH = 8 ,
+  parameter PORT_ID_WIDTH = 4
 ) (
     input clk,
     input rst,
@@ -46,7 +47,7 @@ always @(posedge clk) begin
                      ack <= 0 ;
                     select <=0 ;
                 end
-                else begin 
+                else begin
                     select <= 0 ;
                     w_en_ack <= 0 ;
                     state <= IDLE ;
@@ -55,7 +56,7 @@ always @(posedge clk) begin
             STORE_ID: begin
               if (wready) begin
                     if ( wid == aid) begin 
-                       select [wid] <= 1'b1 ;
+                       select[wid[PORT_ID_WIDTH-1:0]] <= 1'b1 ;
                         w_en_ack <= 0 ;
                          ack <= 1'b1 ;
                         state <= WAIT_DATAEND;

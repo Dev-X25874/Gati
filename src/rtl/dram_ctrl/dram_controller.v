@@ -163,7 +163,7 @@ begin
                 burst_length_2<=BURST_LENGTH_2+1;
                 if(~image_done_2)
                 begin
-                  if(result_int)
+                  if(result_int_2)
                   begin
                     case_1_output<=1;
                   end

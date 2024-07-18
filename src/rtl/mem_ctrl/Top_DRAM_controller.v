@@ -161,9 +161,21 @@ RR_ARB_inst(
 
 localparam EXT = ID_WIDTH - PORT_ID_WIDTH ;
 reg RR_en_pin;
+
+reg [EXT-1 : 0] t = 0;
+always@(posedge clk) begin
+    if(!Axi0Rst_N) begin
+        t <= 0;
+    end
+    else begin
+        if(w_en_ack|r_en_ack) t <= ~t;
+    end
+end
+
 assign rd_blen = RR_o_blen ;
 assign wr_axi_blen = RR_o_blen ;
-assign axi_id = {{EXT{1'b0}}, RR_o_port_id} ;
+// assign axi_id = {t, {EXT1{1'b0}}, RR_o_port_id} ;
+assign axi_id = {t, RR_o_port_id} ;
 assign axi_wr_start = RR_o_rw & RR_o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
 assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
 
@@ -291,7 +303,8 @@ NATIVE_AXI_inst(
 
 WR_ID_Manager #(
     .NUM_PORTS_SEL (NUM_PORTS),
-    .ID_WIDTH (ID_WIDTH)
+    .ID_WIDTH (ID_WIDTH),
+    .PORT_ID_WIDTH (PORT_ID_WIDTH)
 ) 
 ID_MANAGER_inst(
     .clk (clk),
@@ -311,7 +324,8 @@ ID_MANAGER_inst(
 
 RD_ID_Manager #(
     .ID_WIDTH (ID_WIDTH),
-    .NUM_PORTS_SEL (NUM_PORTS)
+    .NUM_PORTS_SEL (NUM_PORTS),
+    .PORT_ID_WIDTH (PORT_ID_WIDTH)
 )
 ID_manager_rd_inst (
     .clk (clk),

@@ -1,6 +1,7 @@
 module RD_ID_Manager #(
     parameter ID_WIDTH = 8,
-    parameter NUM_PORTS_SEL = 4
+    parameter NUM_PORTS_SEL = 4,
+    parameter PORT_ID_WIDTH = 4
 ) (
     input clk,
     input rst,
@@ -91,7 +92,7 @@ always @ (posedge clk) begin
     rd_r_last  <= rlast ;
         
         for(i=0;i<NUM_PORTS_SEL;i=i+1) begin
-            if((i == rid) && rvalid) begin
+            if((i == rid[PORT_ID_WIDTH-1:0]) && rvalid) begin
                 select_rd[i] <= 1;
             end
             else select_rd[i] <= 0;

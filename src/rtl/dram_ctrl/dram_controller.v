@@ -160,6 +160,10 @@ begin
             case(case_1_output)
               5'd0:
               begin
+				  if(imag_dim_2==0) begin
+					  imag_dim_2<=imag_dim_init_2;
+				  end
+
                 burst_length_2<=BURST_LENGTH_2+1;
                 if(~image_done_2)
                 begin
@@ -185,7 +189,6 @@ begin
               begin
                 // op_start_add1<=op_start_add1+offset_op;
                 op_start_add1<=op_start_add1;
-                imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 case_1_output<=6; //6
                 memory_request<=1;
                 op_valid_1 <= 1;
@@ -221,6 +224,7 @@ begin
                 if(last)
                 begin
                   case_1_output<=0; //0
+                	imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                   op_start_add1<=op_start_add1+offset_op;
                 end
                 else

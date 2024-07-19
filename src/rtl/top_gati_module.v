@@ -443,7 +443,7 @@ reg [9:0] pre_wait_im2col;
     if(!i_rst) systolic_array_trigger <= 1'b0;
     else begin
 	//	pre_wait_im2col<=row;
-	  	if(row==5) begin
+	  	if(row==5 && col==1) begin
 		  im2col_flag<=1;
 	  	end
 

@@ -34,14 +34,14 @@ module weight_fifo_array_rden#(
 */
 localparam S_ROW = ROW[8:0];
 
-wire w_start;
+//wire w_start;
 //Generates one pulse from trigger sent externally
-// pulse_gen start_pulse (
-//     .a(i_start),
-//     .i_rstn(i_rstn),
-//     .clk(i_clk),
-//     .b(w_start)
-// );
+//pulse_gen start_pulse (
+//    .a(i_start),
+//    .i_rstn(i_rstn),
+//    .clk(i_clk),
+//    .b(w_start)
+//);
 
 reg [2:0] state = 0;
 reg [4:0] counter = 0;
@@ -61,19 +61,17 @@ always @(posedge i_clk) begin
     end else begin
         case (state)
             0: begin
-                rden <= 0;
                 if(i_layer_done)begin
-                    state <= 0;
                     sel <= 1'b1;
                 end
-                else if(i_start)begin
-                    state <= 1;
-                end
-                else begin
-                    state <= 0;
-                end
-            end 
-
+				else if (i_start) begin
+					state<=1;
+				end
+				else begin 
+					state<=0;
+				end
+				rden<=0;
+			end
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW
                 if((i_fifo_empty == 0) && (i_fifo_occupants >= {COL{S_ROW}}))begin
@@ -105,17 +103,16 @@ always @(posedge i_clk) begin
                 end
             end
 
-            /*
-            4: begin
-                if(i_layer_done)begin
-                    state <= 0;
-                    sel <= 1'b1;
-                end else begin
-                    state <= 1;
-                    sel <= sel;
-                end
-            end
-            */
+           // 4: begin
+           //     if(i_layer_done)begin
+           //         state <= 0;
+           //         sel <= 1'b1;
+           //     end else begin
+           //         state <= 1;
+           //         sel <= sel;
+           //     end
+           // end
+
             default: state <= 0;
         endcase
     end

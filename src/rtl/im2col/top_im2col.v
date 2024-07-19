@@ -43,7 +43,10 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   output                            o_valid_data,
   output                            o_valid_buff,
   input                             i_valid_data,
-  output                            im2col_done
+  output                            im2col_done,
+
+ output  [$clog2(UPPER_BOUND)-1:0]      row,    
+ output  [$clog2(UPPER_BOUND)-1:0]      col
 
 );
   wire [$clog2(UPPER_BOUND)-1:0]      w_row;    
@@ -54,6 +57,8 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   wire [$clog2(UPPER_BOUND)-1:0]      w_mat_size;
   wire                                w_valid_data;
   wire                                w_valid_data_rows;
+assign row=w_row;
+assign col=w_col;
 index_to_coordinate # (.UPPER_BOUND(UPPER_BOUND),
                        .DATA_WIDTH(DATA_WIDTH),
                        .LOWER_BOUND(LOWER_BOUND))

@@ -128,7 +128,8 @@ module Top_CONV_FC #(
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
-
+	output  [$clog2(IMAGE_DIM)-1:0]      row,    
+ 	output  [$clog2(IMAGE_DIM)-1:0]      col,
     //operator status signals
     output im2col_done,
     output SA_psum_fifo_empty,
@@ -136,6 +137,7 @@ module Top_CONV_FC #(
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
 
+	
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
@@ -237,6 +239,8 @@ module Top_CONV_FC #(
       .o_row7(),
       .o_row8(),
       .o_row9(),
+	  .row(row),
+	  .col(col),
       .i_mat_size(image_size),
       .i_zero_pad(zero_pad_enable),
       .o_valid_data(im2col_o_valid),

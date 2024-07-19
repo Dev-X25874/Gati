@@ -423,10 +423,21 @@ module top_gati_module #(
   assign start_SA = (CONV_FC==0)? start : 1'b0;
   assign start_FC = (CONV_FC==1)? start : 1'b0;
 //   assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
- 
-  wire im2col_global_start;
+ wire  [$clog2(IMAGE_DIM)-1:0]      row;    
+ wire  [$clog2(IMAGE_DIM)-1:0]      col;
+ reg [9:0] pre_wait_im2col;
+
   reg systolic_array_trigger;
-  reg Flattening_trigger;
+  reg Flattening_trigger=0;
+  reg im2col_flag=0;
+ // always @ (posedge i_clk) begin
+
+ //   	pre_wait_im2col<=row+col;
+ //     	if(pre_wait_im2col==900) begin
+ //   	  im2col_flag<=1;
+ //     	end
+
+ // end
 
   reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
   reg im2col_en = 0;
@@ -447,12 +458,15 @@ module top_gati_module #(
       im2col_en <= 0;
     end
     else begin
-      if(im2col_global_start) im2col_en <= 1;
-      
-        if(im2col_cnt==4*conv_op_width) begin
-          systolic_array_trigger <= 1'b1;
-          im2col_en <= 0;
-        end
+	//	pre_wait_im2col<=row;
+	  	if(row==5) begin
+		  im2col_flag<=1;
+	  	end
+
+      if(im2col_flag ) begin
+			  systolic_array_trigger <= 1'b1;
+			  im2col_flag<=0;
+		  end
         else systolic_array_trigger <= 0;
     end
   end
@@ -1156,7 +1170,8 @@ module top_gati_module #(
       .valid_img_size_im2col(valid_conv), //valid inst conv
       .im2col_global_start(im2col_global_start),
       .image_rden(image_rden),
-
+      .row(row),
+	    .col(col),
       .relu_enable(relu_enable),
       .bias_data_in(bias_data_in),
       .bias_wren(bias_wren),

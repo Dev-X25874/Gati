@@ -137,7 +137,7 @@ always @(posedge clk) begin
         end
     end
     KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
-        if (count_kernel < r_kernelitr) begin
+        if (count_kernel < r_kernelitr-1) begin
             nxt_addr <= r_start_addr;
             state <= FIFO_STATUS;
             count_kernel <= count_kernel + 1;

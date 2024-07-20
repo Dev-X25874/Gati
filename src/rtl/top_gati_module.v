@@ -459,7 +459,7 @@ module top_gati_module #(
     end
     else begin
 	//	pre_wait_im2col<=row;
-	  	if(row==5) begin
+	  	if(row==5 && col == 1) begin
 		  im2col_flag<=1;
 	  	end
 
@@ -753,7 +753,7 @@ module top_gati_module #(
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
 
-  top_op_write_mem_req_ctrl#(
+  op_write_req_block#(
     .N(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
     .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
@@ -779,9 +779,6 @@ module top_gati_module #(
     .i_imag_dim(img_dim_Acc),
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
-    // .mem_req(), //not required
-    // .img_done_acc(), //not required
-    // .img_done_op(), //not required
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),

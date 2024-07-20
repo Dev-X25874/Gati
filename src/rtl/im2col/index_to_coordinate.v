@@ -121,19 +121,17 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
     always @(posedge clk) begin
       if (r_i_start_im2col_index) begin
         r_start_im2col <= 1'b1;
-		flag<=1;
-		  
-	  end
-	  else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
+		    flag<=1;  
+	    end
+	    else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
 		  if(flag) begin 
 		  	im2col_done<=1;
-			flag<=0;
+			  flag<=0;
 		  end
-        	r_start_im2col <= 1'b0;
-		
-	  end
-	else begin 
-			im2col_done<=0;
+        r_start_im2col <= 1'b0;
+		  end
+	    else begin 
+			  im2col_done<=0;
       end
     end
     

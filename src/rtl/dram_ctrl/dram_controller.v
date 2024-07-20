@@ -107,7 +107,7 @@ begin
     flag <= 1;
     image_done <= 0;
     image_done_2 <= 0;
-    flag_2 <= 0;
+    flag_2 <= 1;
     flag_3 <= 0;
     flag_4 <= 1;
     kernel_count <= 0;
@@ -178,6 +178,7 @@ begin
                 end
                 else
                 begin
+                  
                   case_1_output<=3;
                 end
               end
@@ -226,11 +227,13 @@ begin
                   case_1_output<=0; //0
                 	imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                   op_start_add1<=op_start_add1+offset_op;
+                  imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 end
                 else
                 begin
                   case_1_output<=6; //6
                   op_start_add1<=op_start_add1;
+                  imag_dim_2<=imag_dim_2;
                 end
 
               end
@@ -290,7 +293,7 @@ begin
                   case_2_acc<=6;
                   memory_request<=1;
                   acc_address_valid<=1;
-                  imag_dim<=imag_dim-IMAG_DIM_ACC;
+                  // imag_dim<=imag_dim-IMAG_DIM_ACC;
                 end
                 5'd3://3
                 begin
@@ -328,6 +331,7 @@ begin
                   if(last)
                   begin
                     case_2_acc<=0;
+                    imag_dim<=imag_dim-IMAG_DIM_ACC;
                   end
                   else
                   begin
@@ -394,7 +398,7 @@ begin
                   case_2_output<=6;
                   memory_request<=1;
                   op_valid_1<=1;
-                  imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
+                  // imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 end
                 5'd3://3
                 begin
@@ -439,6 +443,7 @@ begin
                   if(last)
                   begin
                     case_2_output<=0;
+                    imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                   end
                   else
                   begin
@@ -482,7 +487,7 @@ begin
         case(imag_dim_case_2)
           5'd0:
           begin
-            if((case_1_output!=0)||(case_2_output!=0)||(channel_count==sub2_channel))
+            if((case_1_output==0)||(case_2_output==0)||(channel_count==sub2_channel))
             begin
               if(imag_dim_2<IMAG_DIM_OUTPUT)
               begin

@@ -71,7 +71,6 @@ always @(posedge i_clk) begin
 					state<=0;
 				end
 				rden<=0;
-
 			end
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW

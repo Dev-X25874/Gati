@@ -425,7 +425,8 @@ module top_gati_module #(
 //   assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
  wire  [$clog2(IMAGE_DIM)-1:0]      row;    
  wire  [$clog2(IMAGE_DIM)-1:0]      col;
-reg [9:0] pre_wait_im2col;
+ reg [9:0] pre_wait_im2col;
+
   reg systolic_array_trigger;
   reg Flattening_trigger=0;
   reg im2col_flag=0;
@@ -438,19 +439,34 @@ reg [9:0] pre_wait_im2col;
 
  // end
 
+  reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
+  reg im2col_en = 0;
+
+  always@(posedge i_clk) begin
+    if(!i_rst) im2col_cnt <= 0;
+    else begin
+      if(im2col_en) im2col_cnt <= im2col_cnt + 1;
+      else im2col_cnt <= 0;
+    end 
+  end
+
+
   // Generation of systolic array and flattening module triggers
   always@(posedge i_clk) begin
-    if(!i_rst) systolic_array_trigger <= 1'b0;
+    if(!i_rst) begin
+      systolic_array_trigger <= 1'b0;
+      im2col_en <= 0;
+    end
     else begin
 	//	pre_wait_im2col<=row;
 	  	if(row==5 && col==1) begin
 		  im2col_flag<=1;
 	  	end
 
-        if(im2col_flag ) begin
-			systolic_array_trigger <= 1'b1;
-			im2col_flag<=0;
-		end
+      if(im2col_flag ) begin
+			  systolic_array_trigger <= 1'b1;
+			  im2col_flag<=0;
+		  end
         else systolic_array_trigger <= 0;
     end
   end
@@ -707,7 +723,7 @@ reg [9:0] pre_wait_im2col;
   );
 
   
-  wire im2col_global_start;
+  // wire im2col_global_start;
   wire vector_add_enable;
 
   assign acc_stop_address = acc_start_address + (img_dim_Acc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
@@ -737,7 +753,7 @@ reg [9:0] pre_wait_im2col;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
 
-  top_op_write_mem_req_ctrl#(
+  op_write_req_block#(
     .N(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
     .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
@@ -763,9 +779,6 @@ reg [9:0] pre_wait_im2col;
     .i_imag_dim(img_dim_Acc),
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
-    // .mem_req(), //not required
-    // .img_done_acc(), //not required
-    // .img_done_op(), //not required
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
@@ -1155,7 +1168,7 @@ reg [9:0] pre_wait_im2col;
       .im2col_global_start(im2col_global_start),
       .image_rden(image_rden),
       .row(row),
-	  .col(col),
+	    .col(col),
       .relu_enable(relu_enable),
       .bias_data_in(bias_data_in),
       .bias_wren(bias_wren),

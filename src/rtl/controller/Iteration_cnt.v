@@ -129,11 +129,12 @@ always@(posedge i_clk) begin
         3'd0:begin
             if(r_i_start) begin
                 state <= 3'd1;
-                c_ctr <= 0;
+            end
+				c_ctr <= 0;
                 k_ctr <= 0;
 				r_layer_done <= 1'b0;
 
-            end
+
         end
         
         3'd1: begin

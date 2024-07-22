@@ -369,7 +369,7 @@ module top_gati_module #(
     else begin
         if(valid_inst[`OP_CONV])
             valid_conv <= 1'b1;
-        else if(layer_done)
+        else if(Conv_Ack)
             valid_conv <= 1'b0;
     end
   end
@@ -381,7 +381,7 @@ module top_gati_module #(
     else begin
         if(valid_inst[`OP_FC])
             valid_fc <= 1'b1;
-        else if(FC_layerdone)
+        else if(FC_Ack)
             valid_fc <= 1'b0;
     end
   end
@@ -899,10 +899,15 @@ module top_gati_module #(
   wire [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa;
 
   wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
+  reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
+  always @(posedge i_clk) begin 
+	  limit_c<=(4*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
+	  limit_f<=((3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0]));
+  end
 
   assign weight_fifo_status = (CONV_FC==0)? 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{4*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]}})? 1 : 0) : 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{(3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])}})? 1 : 0);
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{limit_c}})? 1 : 0) : 
+                              ((weight_fifo_occupants<={AXI_DATA_BYTES{limit_f}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),

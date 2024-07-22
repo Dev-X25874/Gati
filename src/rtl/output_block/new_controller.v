@@ -47,7 +47,7 @@ module new_controller #(
               state <= 2'd1;
             end else begin
               valid_rd_en <= 0;
-              state <= 2'd1;
+              state <= 2'd0;
             end
           end
           2'd1: begin

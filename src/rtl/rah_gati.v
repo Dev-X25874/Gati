@@ -1,7 +1,7 @@
 `include "common/portid.vh"
 `include "common/instructions.vh"
 module rah_gati #(
-     parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
+    parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
    // parameter   NUM_PORTS = 4,                                    // number of ports
    // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
     parameter   NO_PORT_WR=2,
@@ -25,15 +25,15 @@ module rah_gati #(
     parameter PSUM_FIFO_DEPTH = 1024,
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
-    parameter OP_WRITE_FIFO_DEPTH = 1024,
+    parameter OP_WRITE_FIFO_DEPTH = 2048,
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 15,
-    parameter ACC_REQ_BLEN = 15,
+    parameter ACC_REQ_BLEN = 31,
     parameter BIAS_REQ_BLEN = 15,
-    parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_ACC_BLEN = 47, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
 
     //parameters related to DRAM controller
@@ -135,8 +135,8 @@ module rah_gati #(
 
 ) (
     input i_clk,
-	input valid_32,
-	input c_81_clk,
+	  input valid_32,
+	  input c_81_clk,
     input s_clk,
     input m_clk,
 	  input i_rst,
@@ -152,8 +152,8 @@ module rah_gati #(
     output      DdrCtrl_CFG_SEQ_START ,   
   //  output      DdrInitDone           ,
 
-	output d_done,
-	output  [      7:0] aid     ,
+	  output d_done,
+	  output  [      7:0] aid     ,
     output  [     31:0] aaddr   , 
 
     output  [      7:0] alen    , 
@@ -184,7 +184,7 @@ module rah_gati #(
   wire  [31:0] o_data ;
 	assign o_data=data; 
   wire valid_data;
-assign valid_data=valid_32;
+  assign valid_data=valid_32;
  
   wire o_rden;
   assign o_rden=rden;

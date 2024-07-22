@@ -624,7 +624,7 @@ module Top_CONV_FC #(
     .DW(DATA_WIDTH),
     .COL(COL_SA),
     .I_SIZE_WIDTH(I_OP_SIZE_WIDTH), //width of image dimension
-    .MOD(MOD1)
+    .MOD(MOD2)
   )
   zp_quant (
     .clk(i_clk),
@@ -650,7 +650,7 @@ module Top_CONV_FC #(
     .DW(DATA_WIDTH_ACC),
     .COL(COL_SA),
     .I_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
-    .MOD(MOD2)
+    .MOD(MOD1)
   )
   zp_unquant(
     .clk(i_clk),

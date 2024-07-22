@@ -900,7 +900,7 @@ module top_gati_module #(
 
   wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
-  always @(posedge i_clk) begin 
+  always @(*) begin 
 	  limit_c<=(4*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
 	  limit_f<=((3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0]));
   end

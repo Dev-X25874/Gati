@@ -25,15 +25,15 @@ module rah_gati #(
     parameter PSUM_FIFO_DEPTH = 1024,
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
-    parameter OP_WRITE_FIFO_DEPTH = 1024,
+    parameter OP_WRITE_FIFO_DEPTH = 2048,
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 15,
-    parameter ACC_REQ_BLEN = 15,
+    parameter ACC_REQ_BLEN = 31,
     parameter BIAS_REQ_BLEN = 15,
-    parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_ACC_BLEN = 47, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
 
     //parameters related to DRAM controller

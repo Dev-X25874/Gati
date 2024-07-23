@@ -47,8 +47,11 @@ module mul_shift#(
       unquantized_valid     <= data_valid;
       r_data_valid          <= 0;      
     end
-    else
+	else begin 
+		unquantized_valid     <=0; 
+
       r_data_valid <= 0; 
+	end
   end
   
   assign w_dout = (enabled==1)? (rdout >> bit_shift) : 0;

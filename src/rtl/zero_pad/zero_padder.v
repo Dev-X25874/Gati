@@ -53,7 +53,7 @@ begin
     countps <= countns;
     doutps  <= doutns;
     o_dvps  <= o_dvns;
-    flag1<=(countps >=r_i_size-1 && countps<count_max)?1:0;
+    flag1<=(countps>=r_i_size-1 && countps<count_max)?1:0;
     flag2<=((countps == count_max-1)||(countps == 0))?1:0;
    end
 end

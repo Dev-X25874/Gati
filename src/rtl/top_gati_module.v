@@ -459,7 +459,7 @@ module top_gati_module #(
     end
     else begin
 	//	pre_wait_im2col<=row;
-	  	if(row==5 && col == 1) begin
+	  	if(row==5 && col==1) begin
 		  im2col_flag<=1;
 	  	end
 

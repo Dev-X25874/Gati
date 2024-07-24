@@ -60,29 +60,37 @@ assign o_last      = r_last;
 assign o_valid     = r_valid;
 
 // updation of fifo status based on fifo occupants
-// assign status = (occupants>=r_burst_len+8'd1)? 1:0;
 wire [$clog2(DEPTH) : 0] r_burst_len_1;
 assign r_burst_len_1 = r_burst_len+1;
 assign result_int = (occupants>=({N{r_burst_len_1}}))? 1 : 0; 
 
 //calculation of burst length
-assign r_acc_stop_add = r_acc_next_add + (i_imag_dim/NUMBER_ACC)<<$clog2(AXI_DATA_BYTES);
-assign r_layer_stop_add = r_layer_next_add + (i_imag_dim_2/NUMBER_OP)<<$clog2(AXI_DATA_BYTES);                    
+wire [ADDR_WIDTH-1 : 0] offset1, offset2;
+assign offset1 = (i_imag_dim/NUMBER_ACC)<<$clog2(AXI_DATA_BYTES);
+assign offset2 = (i_imag_dim_2/NUMBER_OP)<<$clog2(AXI_DATA_BYTES);  
+
+assign r_acc_stop_add = r_acc_next_add + offset1;
+assign r_layer_stop_add = r_layer_next_add + offset2;                    
 
 reg [ADDR_WIDTH-1:0] acc_add_reg1, op_add_reg1;
 
 always@(posedge clkin) begin
-    acc_add_reg1 <= (r_acc_stop_add-((r_burst_len1+1)<<$clog2(AXI_DATA_BYTES)));
-    op_add_reg1 <= (r_layer_stop_add-((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
+    // acc_add_reg1 <= (r_acc_stop_add-((r_burst_len1+1)<<$clog2(AXI_DATA_BYTES)));
+    acc_add_reg1 <= (r_acc_start_add+((r_burst_len1+1)<<$clog2(AXI_DATA_BYTES)));
+    // op_add_reg1 <= (r_layer_stop_add-((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
+    op_add_reg1 <= (r_layer_start_add+((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
 end
 
 always@(posedge clkin) begin
     if(!i_rstn)
         r_burst_len1 <= BURST_LENGTH;
     else begin
-        if(acc_add_reg1 > r_acc_start_add)        r_burst_len1 <= BURST_LENGTH;
-        else if (r_acc_start_add==r_acc_stop_add) r_burst_len1 <= BURST_LENGTH;
-        else    r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+        if(acc_add_reg1 > r_acc_stop_add) begin
+            r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+        end
+        else begin
+            r_burst_len1 <= BURST_LENGTH;
+        end
     end
 end
 
@@ -90,14 +98,11 @@ always@(posedge clkin) begin
     if(!i_rstn)
         r_burst_len2 <= BURST_LENGTH_2;
     else begin
-        if(op_add_reg1 > r_layer_start_add)
-        begin
-            r_burst_len2 <= BURST_LENGTH_2;
-        end
-        else if (r_layer_start_add==r_layer_stop_add) r_burst_len2 <= BURST_LENGTH_2;
-        else
-        begin
+        if(op_add_reg1 > r_layer_stop_add) begin
             r_burst_len2 <= ((r_layer_stop_add-r_layer_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+        end
+        else begin
+            r_burst_len2 <= BURST_LENGTH_2;
         end
     end
 end

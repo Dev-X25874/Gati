@@ -943,12 +943,12 @@ module top_gati_module #(
   assign fc_img_fifo_status = 1'b1;
 
   wire [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants;
-  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*OP_FIFO)-1:0] bias_fifo_occupants;
+  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{ACC_FIFO[$clog2(ACC_FIFO_DEPTH):0]}})? 1 : 0;
-  assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
+  assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
 

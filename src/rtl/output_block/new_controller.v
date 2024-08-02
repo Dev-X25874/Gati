@@ -46,10 +46,10 @@ module new_controller #(
               valid_rd_en <= 8'hFF;
               state <= 2'd1;
             end
-			else if(data_valid_tree & enable) begin 
-				state<=2'd1;
-			end 
-			else begin
+            else if(data_valid_tree & enable) begin 
+              state<=2'd1;
+            end 
+			      else begin
               valid_rd_en <= 0;
               state <= 2'd0;
             end

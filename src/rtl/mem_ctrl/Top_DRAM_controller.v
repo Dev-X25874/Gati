@@ -176,10 +176,120 @@ assign rd_blen = RR_o_blen ;
 assign wr_axi_blen = RR_o_blen ;
 // assign axi_id = {t, {EXT1{1'b0}}, RR_o_port_id} ;
 assign axi_id = {t, RR_o_port_id} ;
-assign axi_wr_start = RR_o_rw & RR_o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
-assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
+// assign axi_wr_start = RR_o_rw & RR_o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
+// assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
+assign axi_wr_start = wr_start ;    
+assign axi_rd_start = rd_start ;  
 
 ///////////////////////////////////////////////////////////////////////////////////
+/* Generation of wr_start and rd_start based on previous and current requests */
+reg [1:0] state;
+reg [1:0] prev_req, curr_req, req;
+reg wr_start, rd_start;
+localparam IDLE = 2'd0, READ = 2'd1, WRITE = 2'd2;
+
+reg [BURST_LENGTH_WIDTH : 0] start_counter;
+
+wire rd_req, wr_req;
+assign wr_req = RR_o_rw & RR_o_valid_req ;
+assign rd_req = !RR_o_rw & RR_o_valid_req ; 
+
+always@(posedge clk) begin
+    if(!Axi0Rst_N) begin
+        state <= 0;
+        curr_req <= 0;
+        prev_req <= 0;
+        wr_start <= 0;
+        rd_start <= 0;
+    end
+    else begin
+        curr_req <= {wr_req,rd_req};
+        case(state)
+            IDLE:begin
+                wr_start <= 0;
+                rd_start <= 0;
+                if(curr_req==2'b01) begin
+                    state <= READ;
+                    req <= curr_req;
+                end
+                else if(curr_req==2'b10) begin
+                    state <= WRITE;
+                    req <= curr_req;
+                end
+            end
+
+            READ: begin
+                prev_req <= req;
+                rd_start <= 1;
+                state <= IDLE;
+            end
+
+            WRITE: begin
+                if(prev_req==2'b01) begin
+                    if(start_counter==0) begin
+                        wr_start <= 1;
+                        state <= IDLE;
+                        prev_req <= req;
+                    end
+                end
+                else if(prev_req==2'b10) begin
+                    // if(wlast) begin
+                        wr_start <= 1;
+                        state <= IDLE;
+                        prev_req <= req;
+                    // end
+                end
+                else begin
+                    wr_start <= 1;
+                    state <= IDLE;
+                    prev_req <= req;
+                end
+            end
+
+            default: begin
+                state <= IDLE;
+            end
+        endcase
+    end
+end
+
+reg flag1;
+always@(posedge clk) begin
+    if(!Axi0Rst_N) begin
+        start_counter <= 0;
+        flag1 <= 0;
+    end
+    else begin
+        if(axi_rd_start) begin
+            if(RR_o_blen>15) begin
+                start_counter <= RR_o_blen;
+            end
+            else begin
+                start_counter <= 0;
+            end
+        end
+        else begin
+            if((axi_id==rid) && (!flag1) && (start_counter!=0)) begin
+                flag1 <= 1;
+            end
+            if(rvalid && flag1) begin
+                if(start_counter!=0) begin
+                    start_counter <= start_counter - 1;
+                end
+                else begin
+                    start_counter <= 0;
+                    flag1 <= 0;
+                end
+            end
+            else begin
+                start_counter <= start_counter;
+            end
+        end
+    end
+end
+
+///////////////////////////////////////////////////////////////////////////////////
+
   reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter
   reg [2:0] ResetShiftReg   = 3'h0  ; //Reset Shift Regist
   wire      DdrResetCtrl            ; //DDR Controller Reset Control
@@ -304,12 +414,14 @@ NATIVE_AXI_inst(
 WR_ID_Manager #(
     .NUM_PORTS_SEL (NUM_PORTS),
     .ID_WIDTH (ID_WIDTH),
-    .PORT_ID_WIDTH (PORT_ID_WIDTH)
+    .PORT_ID_WIDTH (PORT_ID_WIDTH),
+    .BURST_LEN_WIDTH(BURST_LENGTH_WIDTH)
 ) 
 ID_MANAGER_inst(
     .clk (clk),
     .rst(Axi0Rst_N),
     .aid ( aid ),     // aid (I) from DDR
+    .wr_blen(wr_axi_blen), 
     .valid (avalid),  // (I) from DDR
     .atype (atype),   // (I) from DDR 
     .wready (wready),   // (I) from DDR
@@ -340,7 +452,7 @@ ID_manager_rd_inst (
     .select_rd (select_rd), // (o) select (the size is depending on the number of ports)
     .rd_r_valid (rd_r_valid), // delayed signal of valid
     .rd_r_last(rd_r_last),   // delayed signal of last 
-    .ack_rd () 
+    .ack_rd ()
 );
 
 

@@ -14,6 +14,7 @@ module sa_engine_dsp#(
 )(
     input i_clk,
     input s_clk,
+	input stall_on,
     input i_rstn,
     input i_trigger_1,      //trigger from flattening controller, to load weights into PE blocks
     input i_done,           //indicates iteration done flag
@@ -118,7 +119,8 @@ image_fifo_array_rden#(
 ) image_fifo_array_rden_ctrl (
     .i_clk(i_clk),
     .i_rstn(i_rstn),
-    .i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
+   	.stall_on(stall_on),
+	.i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
 );

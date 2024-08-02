@@ -438,6 +438,33 @@ module top_gati_module #(
  //     	end
 
  // end
+	
+  reg stall_on=0;
+  reg stall_enable=1;
+  always@(posedge i_clk) begin 
+	if(image_fifo_empty && stall_enable) begin 
+		  stall_on<=1;
+	end
+	else begin 
+		stall_on<=0;
+	end
+	 if(start_out) begin 
+		stall_enable<=1;
+	end
+	else if(im2col_done) begin 
+		stall_enable<=0;
+	end
+	else begin 
+		stall_enable<=stall_enable;
+	end
+	 
+  end
+
+
+
+
+
+
 
   reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
   reg im2col_en = 0;
@@ -1130,7 +1157,8 @@ module top_gati_module #(
       .fifo_o(img_ip_conv),
       //fifo sharing signals
       .sel_sa_rden(sel_sa_rden),
-      .weight_read_en_fc(weight_read_en_fc),
+      .stall_on(stall_on),
+	  .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
       .weight_empty_fc(weight_empty_fc),
       .weight_dv_fc(weight_dv_fc),

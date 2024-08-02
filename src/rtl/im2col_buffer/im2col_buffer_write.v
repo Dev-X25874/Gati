@@ -30,7 +30,7 @@ module im2col_buffer_write #(
         end
         ONGOING: begin
           rd <= 8'h00;
-          if (count == POP_THRESHOLD) begin
+          if ((count == POP_THRESHOLD) && (|fifo_empty)) begin
             rd <= 8'hFF;
             state <= ONGOING;
           end

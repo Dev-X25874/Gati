@@ -29,7 +29,8 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 //    output                                  o_start_im2col_ctrl,
     input                                   i_start_im2col_index,
     input                                   i_valid_data,
-    input                                   clk,
+    input 									stall_on,
+	input                                   clk,
     input [DATA_WIDTH-1:0]                  i_data,
     input                                   rstn,
     input [$clog2(UPPER_BOUND)-1:0]         mat_size,
@@ -89,6 +90,7 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 
 
     always @(posedge clk) begin
+	if(~stall_on) begin 
       if(!rstn) begin
           curr_col <= 0;
           curr_row <= 0;
@@ -116,6 +118,7 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
         curr_col <= curr_col;
       end
     end
+	end
    
 	reg flag=0;
     always @(posedge clk) begin

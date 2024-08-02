@@ -109,7 +109,7 @@ module Top_CONV_FC #(
     input valid_img_size_im2col,
     input im2col_global_start,
     output [DRAM_BW-1:0] image_rden,
-
+	input stall_on,
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -163,7 +163,7 @@ module Top_CONV_FC #(
   im2col_buffer_write_inst (
     .clk(i_clk),
     .rst(rst),
-    .fifo_empty(image_fifo_empty),
+	 .fifo_empty(image_fifo_empty),
     .count(element_poped),
     .rden(image_rden)
   );
@@ -175,7 +175,8 @@ module Top_CONV_FC #(
       .DRAM_BW(32)
   ) buffers (
       .clk(i_clk),
-      .rst(rst&(~im2col_done)),
+	  .stall_on(stall_on),
+	  .rst(rst&(~im2col_done)),
       .data_in(fifo_o),
       .data_signal(read_buf_data),
       .data_out(buff_out),
@@ -228,7 +229,8 @@ module Top_CONV_FC #(
       .i_im2col_data(8'd0),
       .i_clk(i_clk),
       .i_rstn(rst),
-      .o_im2col_data(im2col_o_data),
+      .stall_on(stall_on), 
+	  .o_im2col_data(im2col_o_data),
       .o_valid_squares(o_valid_squares),
       .o_row1(),
       .o_row2(),
@@ -273,7 +275,8 @@ module Top_CONV_FC #(
       .i_clk(i_clk),
       .s_clk(s_clk),
       .i_rstn(rst),
-      .i_trigger_1(systolic_array_trigger), //start for CONV operation
+      .stall_on(stall_on),
+	  .i_trigger_1(systolic_array_trigger), //start for CONV operation
       .i_data_weight_ff_sharing(weight_data_sa),
       .i_dv_weight_ff_sharing(weight_dv_sa),
       .i_empty_weight_ff_sharing(weight_empty_sa),

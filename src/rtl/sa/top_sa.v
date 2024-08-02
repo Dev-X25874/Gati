@@ -16,7 +16,8 @@ module top_sa#(
 )(
     input i_clk,
     input s_clk,
-    input i_rstn,
+    input stall_on,
+	input i_rstn,
     input i_trigger_1,      //start signal coming from config block
     input i_done,           //indicates completion of an iteration
     input i_layer_done,     //indicates completion of a layer
@@ -58,7 +59,8 @@ if(NSA_DSP == 0)begin
             .i_image_fifo_array_data(),
             .i_image_fifo_array_wren(),
             .i_psum_ff_array_read_en(),
-            .o_psum_ff_array_partial_sums(),
+            .stall_on(stall_on),
+			.o_psum_ff_array_partial_sums(),
             .o_psum_ff_array_empty(),
             .o_psum_ff_array_dv(),
             .o_weight_fifo_array_rden()
@@ -81,7 +83,8 @@ end
                 .s_clk(s_clk),
                 .i_rstn(i_rstn),
                 .i_trigger_1(i_trigger_1),
-                .i_done(i_done),
+                .stall_on(stall_on),
+				.i_done(i_done),
                 .i_layer_done(i_layer_done),
                 .o_mux_sel(mux_sel[(N_SA-i)-1]),
                 .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * (N_SA - i))-1 -: (COL * W_DATA)]),
@@ -108,7 +111,8 @@ generate
                 .s_clk(),
                 .i_rstn(),
                 .i_trigger_1(),
-                .i_done(),
+     			.stall_on(stall_on),      
+				.i_done(),
                 .i_layer_done(),
                 .o_mux_sel(),
                 .i_weight_fifo_array_data(),
@@ -140,7 +144,8 @@ generate
                     .s_clk(s_clk),
                     .i_rstn(i_rstn),
                     .i_trigger_1(i_trigger_1),
-                    .i_done(i_done),
+                    .stall_on(stall_on),
+					.i_done(i_done),
                     .i_layer_done(i_layer_done),
                     .o_mux_sel(mux_sel[((N_SA-NSA_DSP) - j)-1]),
                     .i_weight_fifo_array_data(i_data_weight_ff_sharing[((COL * W_DATA) * ((N_SA-NSA_DSP) - j))-1 -: (COL * W_DATA)]),

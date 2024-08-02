@@ -22,6 +22,7 @@ module valid_square #(
   parameter UPPER_BOUND = 226, 
   parameter LOWER_BOUND = 1,
   parameter MAX_VALID_SQ = 9)(
+  input 						     	stall_on,
   input                               i_valid,
   input [$clog2(UPPER_BOUND)-1:0]     mat_size,     
   input                               clk,
@@ -98,7 +99,7 @@ always @(posedge clk) begin
     valid_sq_reg[7] <= 0;
     valid_sq_reg[8] <= 0;
     r_data_i <= 0;
-  end else if (rstn) begin
+  end else if (rstn && (~stall_on)) begin
     if (((row >= LOWER_BOUND) && (col >= LOWER_BOUND)) && (((row2) <= mat_size) && ((col2) <= mat_size))) begin
       valid_sq_reg[0] <= 1;  // 0th bit is assigned 1 if the above condition is satisfied. 
     end else begin 
@@ -155,6 +156,9 @@ always @(posedge clk) begin
     r_data_i <= valid_sq_data_i;
   //  r2_data_i <= r_data_i;
     end
+	else begin 
+		valid_sq_reg<=0;
+	end
  end
     assign o_valid = i_valid;
     assign valid_sq = valid_sq_reg; 

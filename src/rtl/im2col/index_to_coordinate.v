@@ -80,15 +80,6 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 	r_zero_pad<=zero_pad;
 	end
 
-
-
-
-
-
-
-
-
-
     always @(posedge clk) begin
 	if(~stall_on) begin 
       if(!rstn) begin
@@ -100,13 +91,10 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
           curr_col <= LOWER_BOUND;
       end
       else if (curr_col == o_mat_size) begin 
-          curr_col <= LOWER_BOUND;       /*curr_col is assigned to 0 if the 
-                                           curr_col exceeds the UPPER_BOUND */
-          curr_row <= curr_row + 1;      /* meanwhile the curr_row is 
-                                        incremented and goes to the next row*/
+          curr_col <= LOWER_BOUND;       /*curr_col is assigned to 0 if the curr_col exceeds the UPPER_BOUND */
+          curr_row <= curr_row + 1;      /* meanwhile the curr_row is incremented and goes to the next row*/
       end else if (curr_col >= 1 && curr_col <= o_mat_size) begin
-          curr_col <= curr_col + 1;       /*curr_col is incremented and goes to 
-                                            the next col */
+          curr_col <= curr_col + 1;       /*curr_col is incremented and goes to the next col */
           curr_row <= curr_row;
       end 
       else begin
@@ -122,20 +110,20 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
    
 	reg flag=0;
     always @(posedge clk) begin
-      if (r_i_start_im2col_index) begin
-        r_start_im2col <= 1'b1;
+        if (r_i_start_im2col_index) begin
+            r_start_im2col <= 1'b1;
 		    flag<=1;  
 	    end
 	    else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
 		  if(flag) begin 
 		  	im2col_done<=1;
-			  flag<=0;
+			flag<=0;
 		  end
-        r_start_im2col <= 1'b0;
+          r_start_im2col <= 1'b0;
 		  end
 	    else begin 
-			  im2col_done<=0;
-      end
+			im2col_done<=0;
+        end
     end
     
     assign o_valid_buff = r_start_im2col? (r_zero_pad ? ((((curr_row == 1)&&(curr_col == 1)) 

@@ -60,7 +60,7 @@ module Top_CONV_FC #(
     input CONV_FC,
     // input switch_enable,
 //	input CONV_FC,  
-	input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
+	  input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
 
     //weight fifo sharing signals
     output sel_sa_rden,
@@ -128,8 +128,8 @@ module Top_CONV_FC #(
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
-	output  [$clog2(IMAGE_DIM)-1:0]      row,    
- 	output  [$clog2(IMAGE_DIM)-1:0]      col,
+	  output  [$clog2(IMAGE_DIM)-1:0]      row,    
+ 	  output  [$clog2(IMAGE_DIM)-1:0]      col,
     //operator status signals
     output im2col_done,
     output SA_psum_fifo_empty,
@@ -152,6 +152,7 @@ module Top_CONV_FC #(
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
 
+  //
   // Data buffers between DRAM image FIFO and im2col FIFOs 
   wire [($clog2(DRAM_BW/N_SA))-1:0] element_poped;
   // Write buffer controller
@@ -259,6 +260,7 @@ module Top_CONV_FC #(
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
   wire [COL_SA*N_SA-1:0] valid_psum;
 
+  wire [(N_SA*COL_SA)-1:0] psum_fifo_almost_full, psum_fifo_almost_empty;
   top_sa #(
       .N_SA(N_SA),
       .W_DATA(DATA_WIDTH),

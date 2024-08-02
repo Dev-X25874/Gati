@@ -784,6 +784,7 @@ module top_gati_module #(
     .N(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
     .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
+    .BURST_LENGTH_1(ACC_REQ_BLEN),
     .BURST_LENGTH_2(OP_WRITE_REQ_QUA_BLEN),
     .NUMBER_ACC(MOD1),
     .NUMBER_OP(MOD2),
@@ -806,6 +807,7 @@ module top_gati_module #(
     .i_imag_dim(img_dim_Acc),
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
+    .acc_en(vector_add_enable),
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
@@ -838,12 +840,34 @@ module top_gati_module #(
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
   wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
 
+  // wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
   assign img_fifo_th = input_img_width>>3;
-  assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
+  // assign img_fifo_th = (1/2)*(DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0]);
+
+  /* Generation of img_fifo_status that controls the img read requests */
+  // reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
+  // wire [BURST_LENGTH_WIDTH : 0] mc_img_bl1;
+  // assign mc_img_bl1 = mc_img_bl + 1;
+  // always@(posedge i_clk) begin
+  //   if(!i_rst) req_occupants_img <= 0;
+  //   else begin
+  //     if(mc_img_last && select[`Image] && dram_rd_datavalid) req_occupants_img <= req_occupants_img + mc_img_bl;
+  //     else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
+  //     else if(select[`Image] && dram_rd_datavalid)           req_occupants_img <= req_occupants_img - 1;
+  //     else                                                   req_occupants_img <= req_occupants_img;
+  //   end
+  // end
+
+  // reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] r_img_fifo_occupants;
+  // always@(posedge i_clk) begin
+  //   r_img_fifo_occupants <= img_fifo_occupants1+req_occupants_img;
+  // end
+  // assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
+  assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
   // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
-  //fifo img
   
+  //fifo img
   dram_fifo #(
       .DIMENSION(AXI_DATA_BYTES),
       .W_DATA(DATA_WIDTH),
@@ -928,7 +952,7 @@ module top_gati_module #(
   wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
   always @(*) begin 
-	  limit_c<=(4*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
+	  limit_c<=(2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
 	  limit_f<=((3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0]));
   end
 
@@ -974,7 +998,10 @@ module top_gati_module #(
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
-  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{ACC_FIFO[$clog2(ACC_FIFO_DEPTH):0]}})? 1 : 0;
+  wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
+  assign acc_fifo_th = (3/4)*(ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]);
+
+  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
   assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
@@ -1355,5 +1382,23 @@ module top_gati_module #(
         .start_im2col(im2col_global_start)
     );
 
+  reg [31:0] debug_counter;
+  reg start_en;
+  always@(posedge i_clk) begin
+    if(!i_rst) debug_counter <= 0;
+    else begin
+      if(OpBlock_Ack) debug_counter <= 0;
+      else if(start_en) debug_counter <= debug_counter + 1;
+      else debug_counter <= debug_counter;
+    end
+  end
 
+  always@(posedge i_clk) begin
+    if(!i_rst) start_en <= 0;
+    else begin
+      if(start) start_en <= 1;
+      else if(OpBlock_Ack) start_en <= 0;
+      else start_en <= start_en;
+    end
+  end
 endmodule

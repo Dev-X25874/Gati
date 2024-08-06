@@ -440,18 +440,18 @@ module top_gati_module #(
  // end
 	
   reg stall_on=0;
-  reg stall_enable=1;
+  reg stall_enable=0;
   always@(posedge i_clk) begin 
-	if(image_fifo_empty && stall_enable) begin 
+	if((image_fifo_empty|psum_full) && stall_enable) begin 
 		  stall_on<=1;
 	end
 	else begin 
 		stall_on<=0;
 	end
-	 if(start_out) begin 
+	 if(im2col_global_start) begin 
 		stall_enable<=1;
 	end
-	else if(im2col_done) begin 
+	else if((row==input_img_width) && (col==input_img_width)) begin 
 		stall_enable<=0;
 	end
 	else begin 
@@ -476,6 +476,7 @@ module top_gati_module #(
       else im2col_cnt <= 0;
     end 
   end
+
 
 
   // Generation of systolic array and flattening module triggers
@@ -999,9 +1000,20 @@ module top_gati_module #(
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  assign acc_fifo_th = (3/4)*(ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]);
+  assign acc_fifo_th = (1/4)*(ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]);
+	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ=0;
+  always @ (posedge i_clk) begin 
+	  if(mc_acc_last) begin 
+		  virtual_occ<=(virtual_occ+mc_acc_bl+1);
+	  end
+	  if(select[`Acc]) begin 
+		  virtual_occ<=virtual_occ-1;
+	  end
+  end
 
-  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
+  assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
+
+ // assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
   assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
@@ -1121,7 +1133,7 @@ module top_gati_module #(
   wire FC_done;
 
   assign fc_kernel_iter = kernel_iteration;
-
+	wire psum_full;
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),
@@ -1195,8 +1207,8 @@ module top_gati_module #(
       .weight_occupants_sa(weight_occupants_sa),
       .weight_empty_sa(weight_empty_sa),
       .weight_data_sa(weight_data_sa),
-
-      //Flattening and FC signals
+      .p_full_output(psum_full),
+	  //Flattening and FC signals
       .flatten_enable(flatten_enable), //comes from FC instruction
       .start_FC(Flattening_trigger),
       .i_rw_addr_cnt_flatten(fc_rw_address_counter), //r/w address cnt from FC inst.
@@ -1206,7 +1218,7 @@ module top_gati_module #(
       .i_data_FC(fc_image_in_data), //data from DDR
       .i_img_dim_fc(fc_image_rows), // image dim of FC i/p (input rows-FC inst.) goes to FC engine
       .i_sel_fc_fifosharing(fc_mux_Sel), //o-wire: select to signal to FC for reading weights from fifo sharing ctrl
-      
+     .op_full(op_full), 
       //vector addition and tail block signals    
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
@@ -1279,7 +1291,15 @@ module top_gati_module #(
       .o_fifo_dv(),
       .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
   );
+ 	always @ (posedge i_clk) begin 
+		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
+			op_full<=0;
+		end else begin 
+			op_full<=1;
+		end
+	end
 
+  reg  op_full=0;
 
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),

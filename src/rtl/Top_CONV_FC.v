@@ -60,8 +60,8 @@ module Top_CONV_FC #(
     input CONV_FC,
     // input switch_enable,
 //	input CONV_FC,  
-	  input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
-
+	input op_full,
+	input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
     //weight fifo sharing signals
     output sel_sa_rden,
     output [COL_FC-1 : 0] weight_read_en_fc,
@@ -136,7 +136,7 @@ module Top_CONV_FC #(
     output Tail_done,
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
-
+	output p_full_output,
 	
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
@@ -286,9 +286,10 @@ module Top_CONV_FC #(
       .i_image_ff_array_data(mux_out), //i-wire : from im2col
       .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
       .i_psum_ff_array_read_en(opsum_rden),
-      .o_psum_ff_array_partial_sums(o_psum_ff_array),
+      .p_full_output(p_full_output),
+	  .o_psum_ff_array_partial_sums(o_psum_ff_array),
       .o_psum_ff_array_empty(empty_sa),
-      .o_psum_ff_array_dv(valid_psum),
+	  .o_psum_ff_array_dv(valid_psum),
       .i_done(iteration_Done),
       .i_layer_done(layer_done),
       .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
@@ -306,6 +307,7 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .empty_vector(empty_vector),
       .empty_sa(empty_sa),
+	  .op_full(op_full),
       .vector_enable(vector_add_enable),
       .opsum_rden(opsum_rden)
   );

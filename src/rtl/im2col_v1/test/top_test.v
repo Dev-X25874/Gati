@@ -3,6 +3,8 @@ parameter KERNEL_SIZE = 4,
 parameter LOWER_BOUND = 1,
 parameter UPPER_BOUND = 224,
 parameter STRIDE = 3,
+parameter W_ADDR = 8,
+parameter W_DATA = 8,
 parameter DATA_WIDTH = 8)
 //parameter CLKS_PER_BIT = 868)
 
@@ -42,7 +44,7 @@ test_data_ctrl data_dut(
 );
 
 
-test_fifo fifo_dut(
+sync_fifo #(.W_ADDR(W_ADDR), .W_DATA(W_DATA)) fifo_dut(
 .clk_i(clk_in),
 .a_rst_i(~rstn),
 .wr_en_i(dv),

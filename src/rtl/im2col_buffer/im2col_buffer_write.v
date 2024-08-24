@@ -4,8 +4,9 @@ module im2col_buffer_write #(
     parameter POP_THRESHOLD = 5
 ) (
     input clk,
-	input rst,
-	input [DRAM_BW-1:0] fifo_empty,
+	  input rst,
+    input stall_on,
+	  input [DRAM_BW-1:0] fifo_empty,
     input [2:0]count,
     output [DRAM_BW -1:0] rden 
 );
@@ -24,13 +25,14 @@ module im2col_buffer_write #(
     end else begin
       case (state)
         INITIAL:
-        if ((|fifo_empty) == 0) begin
+        if (((|fifo_empty) == 0) && ~stall_on) begin
           rd <= 8'hFF;
           state <= ONGOING;
         end
+        else rd <= 0;
         ONGOING: begin
           rd <= 8'h00;
-          if ((count == POP_THRESHOLD) && (~|fifo_empty)) begin
+          if ((count == POP_THRESHOLD) && (~|fifo_empty) && ~stall_on) begin
             rd <= 8'hFF;
             state <= ONGOING;
           end

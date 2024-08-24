@@ -29,7 +29,7 @@ module rah_gati #(
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN = 7,
-    parameter IMG_REQ_BLEN = 11,
+    parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 7,
     parameter ACC_REQ_BLEN = 31,
     parameter BIAS_REQ_BLEN = 15,

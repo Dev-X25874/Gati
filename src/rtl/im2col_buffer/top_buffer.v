@@ -42,7 +42,7 @@ module buffers #(
 ) (
     input clk,
     input rst,
-	input stall_on,
+	  input stall_on,
     input [((DRAM_BW/N_SA)*BUFFER_SIZE) - 1:0] data_in,
     input data_signal,
     output reg [2:0] element_poped = 0,
@@ -76,7 +76,7 @@ module buffers #(
 		end 
       j <= j + 1;
       element_poped <= element_poped + 1;
-	end
+	  end
   end
 
 endmodule

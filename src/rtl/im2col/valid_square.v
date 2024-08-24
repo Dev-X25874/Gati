@@ -155,7 +155,7 @@ always @(posedge clk) begin
     end 
     r_data_i <= valid_sq_data_i;
   //  r2_data_i <= r_data_i;
-    end
+  end
 	else begin 
 		valid_sq_reg<=0;
 	end

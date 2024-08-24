@@ -77,7 +77,7 @@ always @(posedge clk) begin
         START_ADDR: begin
             if(nxt_burst > stop_addr) begin
                 r_burst_length <= ((stop_addr - nxt_addr) >> $clog2(AXI_DATA_BYTES)) - 1;
-                end
+            end
             else begin
                 r_burst_length <= r_burst_length;
             end
@@ -115,7 +115,7 @@ always @(posedge clk) begin
                 r_burst_length <= r_burst_length;
                 wr_enable <= 0;
             end
-            else if(nxt_addr >= stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
+            else if(nxt_burst >= stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
                 state <= IDLE;
                 wr_enable <= 0;
                 valid <= 0;

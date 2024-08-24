@@ -90,7 +90,7 @@ assign w_empty_flag=empty_flag;
       .sel(sel)
   );
 
- 
+ /*
   bias_controller #(
     .DRAM_BW(DRAM_BW),
     .FIFO_NO(FIFO_NO),
@@ -104,24 +104,24 @@ assign w_empty_flag=empty_flag;
     .sel(sel),
     .valid_rd_en(w_rd_en)
   );
-
-  /*
+*/
+  
   new_controller #(
       .FIFO_NO(FIFO_NO),
-      .BIAS(BIAS),
+      .BIAS(0),
       .TOGGLE(1))
    controller 
   (
       .clk(top_clk),
       .rst(rst),
-	  .empty_fifo(empty_flag),
+	    .empty_fifo(empty_flag),
       .channel_done(channel_done),
       .enable(vector_add_enable),
       .mux_toggle(sel),
-      .data_valid_tree(top_in_data_valid[0]),
+      .data_valid_tree(&(top_in_data_valid)),
       .valid_rd_en(w_rd_en)
   );
-  */
+  
 
   localparam APPEND = OUT_DATA_WIDTH - DATA_WIDTH_ACC;
   wire [(DATA_WIDTH*N)-1:0] data_in_accumulant;

@@ -442,28 +442,23 @@ module top_gati_module #(
   reg stall_on=0;
   reg stall_enable=0;
   always@(posedge i_clk) begin 
-	if((image_fifo_empty|psum_full) && stall_enable) begin 
-		  stall_on<=1;
-	end
-	else begin 
-		stall_on<=0;
-	end
-	 if(im2col_global_start) begin 
-		stall_enable<=1;
-	end
-	else if((row==input_img_width) && (col==input_img_width)) begin 
-		stall_enable<=0;
-	end
-	else begin 
-		stall_enable<=stall_enable;
-	end
-	 
+    // if((image_fifo_empty|psum_full) && stall_enable) begin
+    if((image_fifo_empty && stall_enable) | psum_full) begin
+      stall_on<=1;
+    end
+    else begin 
+      stall_on<=0;
+    end
+    if(im2col_global_start) begin
+      stall_enable<=1;
+    end
+    else if((row==input_img_width+1) && (col>=input_img_width-9)) begin 
+      stall_enable<=0;
+    end
+    else begin 
+      stall_enable<=stall_enable;
+    end
   end
-
-
-
-
-
 
 
   reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
@@ -476,8 +471,6 @@ module top_gati_module #(
       else im2col_cnt <= 0;
     end 
   end
-
-
 
   // Generation of systolic array and flattening module triggers
   always@(posedge i_clk) begin
@@ -841,31 +834,31 @@ module top_gati_module #(
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
   wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
 
-  // wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
+  wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
-  assign img_fifo_th = input_img_width>>3;
-  // assign img_fifo_th = (1/2)*(DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0]);
+  // assign img_fifo_th = input_img_width>>3;
+  assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>2;
 
   /* Generation of img_fifo_status that controls the img read requests */
-  // reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
-  // wire [BURST_LENGTH_WIDTH : 0] mc_img_bl1;
-  // assign mc_img_bl1 = mc_img_bl + 1;
-  // always@(posedge i_clk) begin
-  //   if(!i_rst) req_occupants_img <= 0;
-  //   else begin
-  //     if(mc_img_last && select[`Image] && dram_rd_datavalid) req_occupants_img <= req_occupants_img + mc_img_bl;
-  //     else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
-  //     else if(select[`Image] && dram_rd_datavalid)           req_occupants_img <= req_occupants_img - 1;
-  //     else                                                   req_occupants_img <= req_occupants_img;
-  //   end
-  // end
+  reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
+  wire [BURST_LENGTH_WIDTH : 0] mc_img_bl1;
+  assign mc_img_bl1 = mc_img_bl + 1;
+  always@(posedge i_clk) begin
+    if(!i_rst) req_occupants_img <= 0;
+    else begin
+      if(mc_img_last && select[`Image] && dram_rd_datavalid) req_occupants_img <= req_occupants_img + mc_img_bl;
+      else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
+      else if(select[`Image] && dram_rd_datavalid)           req_occupants_img <= req_occupants_img - 1;
+      else                                                   req_occupants_img <= req_occupants_img;
+    end
+  end
 
-  // reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] r_img_fifo_occupants;
-  // always@(posedge i_clk) begin
-  //   r_img_fifo_occupants <= img_fifo_occupants1+req_occupants_img;
-  // end
-  // assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
-  assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
+  reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] r_img_fifo_occupants;
+  always@(*) begin
+    r_img_fifo_occupants = img_fifo_occupants1+req_occupants_img;
+  end
+  assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
+  // assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
   // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
   
   //fifo img
@@ -954,7 +947,7 @@ module top_gati_module #(
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
   always @(*) begin 
 	  limit_c<=(2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
-	  limit_f<=((3/4)*(WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0]));
+	  limit_f<=(((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
   end
 
   assign weight_fifo_status = (CONV_FC==0)? 
@@ -1000,15 +993,16 @@ module top_gati_module #(
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  assign acc_fifo_th = (1/4)*(ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]);
-	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ=0;
-  always @ (posedge i_clk) begin 
-	  if(mc_acc_last) begin 
-		  virtual_occ<=(virtual_occ+mc_acc_bl+1);
-	  end
-	  if(select[`Acc]) begin 
-		  virtual_occ<=virtual_occ-1;
-	  end
+  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0])/2;
+	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
+  always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ <= 0;
+    else begin
+      if(mc_acc_last && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
+      else if(mc_acc_last)                        virtual_occ <= virtual_occ+mc_acc_bl+1;
+      else if(select[`Acc] && dram_rd_datavalid)  virtual_occ <= virtual_occ-1;
+      else                                        virtual_occ <= virtual_occ;
+    end
   end
 
   assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
@@ -1134,6 +1128,7 @@ module top_gati_module #(
 
   assign fc_kernel_iter = kernel_iteration;
 	wire psum_full;
+  reg  op_full=0;
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),
@@ -1197,7 +1192,7 @@ module top_gati_module #(
       //fifo sharing signals
       .sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),
-	  .weight_read_en_fc(weight_read_en_fc),
+	    .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
       .weight_empty_fc(weight_empty_fc),
       .weight_dv_fc(weight_dv_fc),
@@ -1218,7 +1213,7 @@ module top_gati_module #(
       .i_data_FC(fc_image_in_data), //data from DDR
       .i_img_dim_fc(fc_image_rows), // image dim of FC i/p (input rows-FC inst.) goes to FC engine
       .i_sel_fc_fifosharing(fc_mux_Sel), //o-wire: select to signal to FC for reading weights from fifo sharing ctrl
-     .op_full(op_full), 
+      .op_full(op_full), 
       //vector addition and tail block signals    
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
@@ -1291,7 +1286,8 @@ module top_gati_module #(
       .o_fifo_dv(),
       .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
   );
- 	always @ (posedge i_clk) begin 
+
+ 	always @ (*) begin 
 		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
 			op_full<=0;
 		end else begin 
@@ -1299,8 +1295,7 @@ module top_gati_module #(
 		end
 	end
 
-  reg  op_full=0;
-
+  
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),

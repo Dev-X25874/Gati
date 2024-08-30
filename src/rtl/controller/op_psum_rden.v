@@ -20,14 +20,6 @@ module op_psum_rden#(parameter N_SA=4,
 		r_op_full<=op_full;
 	end
 
-
-
-
-
-
-
-
-
 	always@(posedge clk)
 	begin 
 		if(r_vector_enable && (~|r_empty_vector  & ~|r_empty_sa) && (~r_op_full))

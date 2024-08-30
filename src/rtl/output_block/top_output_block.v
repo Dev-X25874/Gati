@@ -8,6 +8,7 @@ module top_output_block #(
     parameter DATA_WIDTH     = 32,
     parameter DATA_WIDTH_ACC = 32,
     parameter N              = 4,
+    parameter COL_SA         = 4,
     parameter FIFO_NO        = 8,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
@@ -19,11 +20,13 @@ module top_output_block #(
     input  [             FIFO_NO-1:0]     top_wr_en,
     input  [(DATA_WIDTH_ACC*FIFO_NO)-1:0] top_data_in, //previous accumulnats from ddr
     input                                 vector_add_enable,
+    input   [         (N*COL_SA)-1:0]     empty_sa,
+    input                                 op_full,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
     input  [      (DATA_WIDTH*N)-1:0] top_data_in_adder_tree,
     input                             rst,
-    input channel_done,
+    //input channel_done,
     output [             FIFO_NO-1:0] w_empty_flag,
     input  [                   N-1:0] top_in_data_valid,
     output [                   N-1:0] top_out_data_valid,
@@ -45,8 +48,7 @@ module top_output_block #(
 
 assign w_empty_flag=empty_flag;
 
-
-  dram_fifo #(
+dram_fifo #(
       .DIMENSION(FIFO_NO),
       .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR(W_ADDR),
@@ -106,19 +108,22 @@ assign w_empty_flag=empty_flag;
   );
 */
   
-  new_controller #(
+  acc_fifo_rden #(
       .FIFO_NO(FIFO_NO),
-      .BIAS(0),
-      .TOGGLE(1))
+      .TOGGLE(1),
+      .N(N),
+      .COL_SA(COL_SA),
+      .NO_PORT(NO_PORT))
    controller 
   (
       .clk(top_clk),
       .rst(rst),
 	    .empty_fifo(empty_flag),
-      .channel_done(channel_done),
+      .empty_sa(empty_sa),
       .enable(vector_add_enable),
-      .mux_toggle(sel),
       .data_valid_tree(&(top_in_data_valid)),
+      .select(sel),
+      .op_full(op_full),
       .valid_rd_en(w_rd_en)
   );
   
@@ -133,16 +138,42 @@ assign w_empty_flag=empty_flag;
     end
   endgenerate
 
+  // Pipeline stage for acc_fifo data to synchronize with adder tree output.
+  reg [(DATA_WIDTH*N)-1:0] data_in_accumulant1;
+  genvar j;
+  generate
+    for(j=0;j<=$clog2(COL_SA);j=j+1) begin:REG
+      reg [(DATA_WIDTH*N)-1:0] data_reg;
+      if(j==0) begin
+        always@(posedge top_clk) begin
+          data_reg <= (!rst)? 0 : data_in_accumulant;
+        end
+      end
+
+      else if(j==($clog2(COL_SA))) begin
+        always@(posedge top_clk) begin
+          data_in_accumulant1 <= (!rst)? 0 : REG[j-1].data_reg;
+        end
+      end
+
+      else begin
+        always@(posedge top_clk) begin
+          data_reg <= (!rst)? 0 : REG[j-1].data_reg;
+        end
+      end
+    end
+  endgenerate
+
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),
       .OUT_DATA_WIDTH(OUT_DATA_WIDTH),
       .N(N)
   ) adder_gen_mod (
       .gen_data_in_adder_tree(top_data_in_adder_tree),
-      .gen_data_in_fifo(data_in_accumulant),
+      .gen_data_in_fifo(data_in_accumulant1),
       .gen_clk(top_clk),
       .vector_add_enable(vector_add_enable),
-      .gen_data_valid_fifo(valid_mux),
+      .gen_data_valid_fifo(top_in_data_valid),
       .gen_data_in_valid(top_in_data_valid),
       .gen_data_out_valid(top_out_data_valid),
       .gen_data_out_adder(top_data_out)

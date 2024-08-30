@@ -493,6 +493,7 @@ module Top_CONV_FC #(
       .DATA_WIDTH(DATA_WIDTH_OB),
       .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
       .N(N_SA),
+      .COL_SA(COL_SA),
       .FIFO_NO(ACC_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA)

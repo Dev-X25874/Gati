@@ -503,6 +503,8 @@ module Top_CONV_FC #(
       .rst(rst&(~iteration_Done)),
       .top_data_in(vector_add_values), // input: comes from ddr
       .w_empty_flag(empty_vector),
+      .empty_sa(empty_sa),
+      .op_full(op_full),
       .top_data_out(output_block_out),
       .top_data_in_adder_tree(data_SA_FC), //interconnect data o/p
       .vector_add_enable(vector_add_enable),

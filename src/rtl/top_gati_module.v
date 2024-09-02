@@ -993,7 +993,7 @@ module top_gati_module #(
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]);
+  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(2*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
 	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ <= 0;

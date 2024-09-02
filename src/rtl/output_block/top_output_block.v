@@ -77,7 +77,7 @@ dram_fifo #(
     .PORT_SIZE(N*DATA_WIDTH_ACC),
     .NO_PORT(NO_PORT)
   ) mux_data (
-      .in(w_data_out),
+      .in(data_in_mux),
       .out(mux_out),
       .sel(sel)
 
@@ -139,20 +139,20 @@ dram_fifo #(
   endgenerate
 
   // Pipeline stage for acc_fifo data to synchronize with adder tree output.
-  reg [(DATA_WIDTH*N)-1:0] data_in_accumulant1;
+  reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_in_mux;
   genvar j;
   generate
-    for(j=0;j<=$clog2(COL_SA);j=j+1) begin:REG
-      reg [(DATA_WIDTH*N)-1:0] data_reg;
+    for(j=0;j<$clog2(COL_SA);j=j+1) begin:REG
+      reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_reg;
       if(j==0) begin
         always@(posedge top_clk) begin
-          data_reg <= (!rst)? 0 : data_in_accumulant;
+          data_reg <= (!rst)? 0 : w_data_out;
         end
       end
 
-      else if(j==($clog2(COL_SA))) begin
+      else if(j==($clog2(COL_SA)-1)) begin
         always@(posedge top_clk) begin
-          data_in_accumulant1 <= (!rst)? 0 : REG[j-1].data_reg;
+          data_in_mux <= (!rst)? 0 : REG[j-1].data_reg;
         end
       end
 
@@ -164,17 +164,24 @@ dram_fifo #(
     end
   endgenerate
 
+  reg [(DATA_WIDTH*N)-1:0] data_in_adder_tree;
+  reg [N-1:0] adder_in_data_valid;
+  always@(posedge top_clk) begin
+    data_in_adder_tree <= top_data_in_adder_tree;
+    adder_in_data_valid <= top_in_data_valid;
+  end
+
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),
       .OUT_DATA_WIDTH(OUT_DATA_WIDTH),
       .N(N)
   ) adder_gen_mod (
-      .gen_data_in_adder_tree(top_data_in_adder_tree),
-      .gen_data_in_fifo(data_in_accumulant1),
+      .gen_data_in_adder_tree(data_in_adder_tree),
+      .gen_data_in_fifo(data_in_accumulant),
       .gen_clk(top_clk),
       .vector_add_enable(vector_add_enable),
-      .gen_data_valid_fifo(top_in_data_valid),
-      .gen_data_in_valid(top_in_data_valid),
+      .gen_data_valid_fifo(adder_in_data_valid),
+      .gen_data_in_valid(adder_in_data_valid),
       .gen_data_out_valid(top_out_data_valid),
       .gen_data_out_adder(top_data_out)
   );

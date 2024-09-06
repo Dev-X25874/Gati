@@ -48,7 +48,7 @@ always @(posedge clk) begin
       rden_toggle <= 0;
       valid_rd_en <= 0;
     end else begin
-        if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
+        if ((~|r_empty_sa) & (r_enable & (~|r_empty_fifo)) && (~r_op_full)) begin
           //valid_rd_en <= ~valid_rd_en;
           for(i=0;i<NO_PORT;i=i+1) begin
             if(sel_rden[i]==1) begin
@@ -63,7 +63,7 @@ always @(posedge clk) begin
           end
         end else begin
           valid_rd_en <= 0;
-          rden_toggle <= 0;
+          rden_toggle <= rden_toggle;
         end
     end
 end

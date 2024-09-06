@@ -48,7 +48,7 @@ module demux1 #(parameter DATA_IN = 8) (
   end 
 
  // always @(posedge rx_valid)
-  always @(posedge datavalid)
+  always @(*)
   begin
     c <= a;
   end

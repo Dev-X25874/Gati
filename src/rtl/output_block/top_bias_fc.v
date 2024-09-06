@@ -107,18 +107,32 @@ assign w_empty_flag=empty_flag;
       .sel(sel)
   );
  
+/* Delay for data_valid_input and the input data to synchronize with bias fifo read data */
+
+reg [N-1:0] r_dtr_valid,t_dtr_valid,i_dtr_valid;
+reg [(DATA_WIDTH*N)-1:0] r_dtr_data,t_dtr_data,i_dtr_data;
+always@(posedge top_clk) begin
+    t_dtr_valid<=top_in_data_valid;
+    t_dtr_data<=top_data_in_adder_tree;
+    
+    i_dtr_valid<=t_dtr_valid;	
+    i_dtr_data<=t_dtr_data; 
+
+    r_dtr_data<=i_dtr_data;
+    r_dtr_valid<=i_dtr_valid;
+end
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),
       .OUT_DATA_WIDTH(OUT_DATA_WIDTH),
       .N(N)
   ) adder_gen_mod (
-      .gen_data_in_adder_tree(top_data_in_adder_tree),
+      .gen_data_in_adder_tree(r_dtr_data),
       .gen_data_in_fifo(mux_out),
       .gen_clk(top_clk),
       .vector_add_enable(vector_add_enable),
       .gen_data_valid_fifo(valid_mux),
-      .gen_data_in_valid(top_in_data_valid),
+      .gen_data_in_valid(r_dtr_valid),
       .gen_data_out_valid(top_out_data_valid),
       .gen_data_out_adder(top_data_out)
   );

@@ -29,29 +29,29 @@ module adder_v #( parameter DATA_WIDTH = 20,
 
     reg [OUT_DATA_WIDTH-1:0]        r_data_out_adder;
     reg                             r_data_out_valid;
-    reg r_dtr_valid,t_dtr_valid,i_dtr_valid;
-    reg [DATA_WIDTH-1:0] r_dtr_data,t_dtr_data,i_dtr_data;
+    // reg r_dtr_valid,t_dtr_valid,i_dtr_valid;
+    // reg [DATA_WIDTH-1:0] r_dtr_data,t_dtr_data,i_dtr_data;
     assign data_out_adder = r_data_out_adder;
     assign data_out_valid = r_data_out_valid;
    
 
 always @(posedge clk) begin
-	t_dtr_valid<=data_in_valid;
-	t_dtr_data<=data_in_adder_tree;
+	// t_dtr_valid<=data_in_valid;
+	// t_dtr_data<=data_in_adder_tree;
     
-      	i_dtr_valid<=t_dtr_valid;	
-      i_dtr_data<=t_dtr_data; 
+    // i_dtr_valid<=t_dtr_valid;	
+    // i_dtr_data<=t_dtr_data; 
 
-	r_dtr_data<=i_dtr_data;
-	r_dtr_valid<=i_dtr_valid;
+	// r_dtr_data<=i_dtr_data;
+	// r_dtr_valid<=i_dtr_valid;
 
 
-    if (r_dtr_valid  && enable) begin
-        r_data_out_adder <=r_dtr_data + data_in_fifo;
+    if (data_in_valid  && enable) begin
+        r_data_out_adder <=data_in_adder_tree + data_in_fifo;
         r_data_out_valid <= 1'b1;
     end
-    else if (r_dtr_valid && ~enable) begin
-        r_data_out_adder <= r_dtr_data;
+    else if (data_in_valid && ~enable) begin
+        r_data_out_adder <= data_in_adder_tree;
         r_data_out_valid <= 1'b1;
     end
   
@@ -68,7 +68,7 @@ endmodule
 module adder_gen #(
     parameter               DATA_WIDTH = 20,
     parameter               OUT_DATA_WIDTH = 21,	
-    	parameter               N = 8
+    parameter               N = 8
 )(
 
     input [DATA_WIDTH*N-1:0]            gen_data_in_adder_tree,

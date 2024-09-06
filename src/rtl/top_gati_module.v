@@ -846,7 +846,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) req_occupants_img <= 0;
     else begin
-      if(mc_img_last && select[`Image] && dram_rd_datavalid) req_occupants_img <= req_occupants_img + mc_img_bl;
+      if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
       else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
       else if(select[`Image] && dram_rd_datavalid)           req_occupants_img <= req_occupants_img - 1;
       else                                                   req_occupants_img <= req_occupants_img;

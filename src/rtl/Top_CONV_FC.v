@@ -616,7 +616,7 @@ module Top_CONV_FC #(
   ) maxpool (
       .clk(i_clk),
       .data_in(relu_output),
-      .rst(rst),
+      .rst(rst&(~iteration_Done)),
       .maxpool_enable(maxpool_enable), //from iteration cnter
       .datavalid(relu_valid),
       .IW(maxpool_threshold), //from conv inst.

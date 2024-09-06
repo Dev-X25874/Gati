@@ -23,7 +23,7 @@ begin
 		// r_op_wren[(COL*(NUM_PORTS-sel)-1) -: COL] = {COL{1'b1}};
 	end
 	else begin
-		r_op_wren <= {OP_FIFO_WRITE{1'b0}};
+		r_op_wren = {OP_FIFO_WRITE{1'b0}};
 	end
 end
 

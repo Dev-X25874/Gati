@@ -80,7 +80,7 @@ demux1 #(.DATA_IN(DATA_IN)) dut0(
 
 maxpool #(.DATA_IN(DATA_IN)) dut1(
   .clk(clk),
-  .datavalid(demux1_o2[DATA_IN]), 
+  .datavalid(demux1_o1[DATA_IN]), 
   .dina(demux1_o1[DATA_IN - 1 : 0]),
   .dinb(demux1_o2[DATA_IN - 1 : 0]),
   .temp(maxpool_o)
@@ -106,7 +106,7 @@ demux2 #(.DATA_IN(DATA_IN)) dut2(
 
 sync_fifo#(.W_DATA(DATA_IN), .W_ADDR(9)) dut3(
   .clk_i(clk),
-  .a_rst_i(rst),
+  .a_rst_i(~rst),
   .wr_en_i(demux2_o1[DATA_IN]),
   .rd_en_i(re),
   .wdata(demux2_o1[DATA_IN - 1 : 0]),
@@ -118,7 +118,7 @@ sync_fifo#(.W_DATA(DATA_IN), .W_ADDR(9)) dut3(
 
 sync_fifo  #(.W_DATA(DATA_IN), .W_ADDR(9)) dut4(
   .clk_i(clk),
-  .a_rst_i(rst),
+  .a_rst_i(~rst),
   .wr_en_i(demux2_o2[DATA_IN]),
   .rd_en_i(re),
   .wdata(demux2_o2[DATA_IN - 1 : 0]),

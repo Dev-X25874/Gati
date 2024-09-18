@@ -10,6 +10,7 @@ module controller_inst_q #(
 )(
     input clkin,
     input valid,
+    input rst,
     input data_last,
     input sel,
     input user_start,
@@ -25,6 +26,13 @@ module controller_inst_q #(
   reg [ADDR_W-1:0]internal_stop;
   always@(posedge clkin)
   begin
+  if(!rst) begin
+    state <= 0;
+    o_instruction <= 0;
+    o_instruction_valid <= 0;
+    o_address_valid <= 0;
+  end
+  else begin
     case(state)
       4'd0:
       begin
@@ -65,7 +73,7 @@ module controller_inst_q #(
         end
       end
     endcase
-
+  end  
   end
   assign o_global_start=internal_start;
   assign o_global_stop=internal_stop;

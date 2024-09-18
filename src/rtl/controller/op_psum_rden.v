@@ -22,10 +22,10 @@ module op_psum_rden#(parameter N_SA=4,
 
 	always@(posedge clk)
 	begin 
-		if(r_vector_enable && (~|r_empty_vector  & ~|r_empty_sa) && (~r_op_full))
+		if(vector_enable && (~|empty_vector  & ~|empty_sa) && (~op_full))
 			opsum_rden<={(N_SA*COL){1'b1}};
 
-		else if(~r_vector_enable && (~|r_empty_sa) && (~r_op_full))
+		else if(~vector_enable && (~|empty_sa) && (~op_full))
 			opsum_rden<={(N_SA*COL){1'b1}};
 
 		else

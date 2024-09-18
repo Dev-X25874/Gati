@@ -133,7 +133,7 @@ generate
                 .i_layer_done(),
                 .o_mux_sel(),
                 .i_weight_fifo_array_data(),
-                        .p_occupants(),
+                .p_occupants(),
 				.i_weight_fifo_array_dv(),
                 .i_weight_fifo_array_empty(),
                 .i_weight_fifo_array_occ(),

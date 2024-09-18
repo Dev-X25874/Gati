@@ -202,7 +202,9 @@ module top_gati_module #(
     input wready,
     output dv_op_write,
     output o_data_last_op_write,
-    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
+    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo,
+
+    output layer_debug_pin
 
 );
 
@@ -647,6 +649,7 @@ module top_gati_module #(
       .config_start(start_SA),
       .fifo_status(img_fifo_status),
       .clk(i_clk),
+      .rst(i_rst),
       .c_done(channel_done),
       
       //signals goes to memory controller
@@ -844,12 +847,19 @@ module top_gati_module #(
   wire [BURST_LENGTH_WIDTH : 0] mc_img_bl1;
   assign mc_img_bl1 = mc_img_bl + 1;
   always@(posedge i_clk) begin
-    if(!i_rst) req_occupants_img <= 0;
+    if(!i_rst) begin
+      req_occupants_img <= 0;
+    end
     else begin
-      if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
-      else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
-      else if(select[`Image] && dram_rd_datavalid)           req_occupants_img <= req_occupants_img - 1;
-      else                                                   req_occupants_img <= req_occupants_img;
+      if(start_en) begin
+        if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
+        else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
+        else if(select[`Image])            req_occupants_img <= req_occupants_img - 1;
+        else                                                   req_occupants_img <= req_occupants_img;
+      end
+      else begin
+        req_occupants_img <= 0;
+      end
     end
   end
 
@@ -857,7 +867,8 @@ module top_gati_module #(
   always@(*) begin
     r_img_fifo_occupants = img_fifo_occupants1+req_occupants_img;
   end
-  assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
+  assign img_fifo_status = ((img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0]+req_occupants_img)<=img_fifo_th)? 1 : 0;
+  // assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
   // assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
   // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
   
@@ -993,21 +1004,27 @@ module top_gati_module #(
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(2*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
+  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
+  // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]/8);
 	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ <= 0;
     else begin
-      if(mc_acc_last && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
-      else if(mc_acc_last)                        virtual_occ <= virtual_occ+mc_acc_bl+1;
-      else if(select[`Acc] && dram_rd_datavalid)  virtual_occ <= virtual_occ-1;
-      else                                        virtual_occ <= virtual_occ;
+      if(start_en) begin
+        if(mc_acc_last && mc_acc_valid && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
+        else if(mc_acc_last && mc_acc_valid)                        virtual_occ <= virtual_occ + (mc_acc_bl+1);
+        else if(select[`Acc])                  virtual_occ <= virtual_occ-1;
+        else                                        virtual_occ <= virtual_occ;
+      end
+      else begin
+        virtual_occ <= 0;
+      end
     end
   end
 
   assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
 
- // assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
+//  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
   assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
@@ -1416,4 +1433,17 @@ module top_gati_module #(
       else start_en <= start_en;
     end
   end
+
+  reg [LAYERCNT_WIDTH-1:0] layer_cntr;
+  always@(posedge i_clk) begin
+    if(!i_rst) layer_cntr <= 0;
+    else begin
+      if(layer_cntr==2) layer_cntr <= layer_cntr;
+      else begin
+        if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
+      end
+    end
+  end
+
+  assign layer_debug_pin = (layer_cntr==2)? 1 : 0;
 endmodule

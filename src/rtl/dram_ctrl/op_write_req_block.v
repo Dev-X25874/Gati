@@ -119,11 +119,16 @@ always@(posedge clkin) begin
     end
 end
 
+reg [W_CHANNEL_CNT-1:0] r_channel_itr;
 reg [IMAGE_DIM_WIDTH_OP-1:0] count2;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] count1;
 reg [W_CHANNEL_CNT-1:0] c_ctr=0;
 reg [W_KERNEL_CNT-1:0] k_ctr=0;
 integer i;
+
+always@(posedge clkin) begin
+    r_channel_itr <= i_channel_itr;
+end
 
 always@(posedge clkin) begin
     if(!i_rstn) begin
@@ -169,7 +174,7 @@ always@(posedge clkin) begin
             end
             else begin
                 layer_done <= 0;
-                if(c_ctr==i_channel_itr-1) r_burst_len<= r_burst_len2;
+                if(c_ctr==r_channel_itr-1) r_burst_len<= r_burst_len2;
                 else r_burst_len <= r_burst_len1;
                 if(result_int)
                 begin
@@ -188,7 +193,7 @@ always@(posedge clkin) begin
             3'd2:
             begin
             layer_done<=0;
-            if(c_ctr==i_channel_itr-1) begin
+            if(c_ctr==r_channel_itr-1) begin
                 r_valid     <= 1'b1;
                 wr_req_reg  <= 1'b1;
                 r_burst_len<= r_burst_len;                
@@ -243,7 +248,7 @@ always@(posedge clkin) begin
                 r_last <= 0;
                 r_valid   <= 0;
                 wr_req_reg <= 0;
-                if(c_ctr < i_channel_itr-1) begin
+                if(c_ctr < r_channel_itr-1) begin
                     if(count1==i_imag_dim) begin
                         //count1 <= 0;
                         //r_acc_start_add<=r_acc_start_add+((r_burst_len1+1)<<5);
@@ -272,7 +277,7 @@ always@(posedge clkin) begin
                         end
                     end
                 end
-                else if(c_ctr==i_channel_itr-1) begin
+                else if(c_ctr==r_channel_itr-1) begin
                     if(count2==i_imag_dim_2) begin
                         //state <= 4;
                         if(data_last) begin 
@@ -306,7 +311,7 @@ always@(posedge clkin) begin
                 r_layer_start_add<=r_layer_start_add;
                 r_layer_next_add <= r_layer_start_add;
                 layer_done <= 0;
-                if(c_ctr == i_channel_itr-1) begin
+                if(c_ctr == r_channel_itr-1) begin
                     r_acc_start_add <= i_acc_address;
                     r_acc_next_add <= i_acc_address;
                     c_ctr <= 0;

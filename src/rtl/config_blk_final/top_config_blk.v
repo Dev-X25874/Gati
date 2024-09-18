@@ -75,6 +75,7 @@ module config_blk #(
   controller_inst_q #(.INSTRUCT_W(INST_W),.ADDR_W(ADDR_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
+                      .rst(rst),
                       .data_last(data_last),
                       .sel(sel),
                       .user_start(user_start),
@@ -127,6 +128,7 @@ module config_blk #(
 //Instantiation of Acknowledgment Controller
   ctrl_ack #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))ack_block_6(
              .clkin(clkin),
+             .rst(rst),
              .inst_signals(ack_signals),
              .status_ack(ack_6_4),
              .status_prev(prev_6_4),

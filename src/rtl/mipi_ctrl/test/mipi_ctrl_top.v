@@ -30,6 +30,9 @@ wire [W_DATA-1 : 0] data_size;
 wire [N_FIFO-1 : 0] ff_write_enable;
 wire [W_DATA-1 : 0] data_ff_wr_ctrl;
 wire dv_ff_wr_ctrl;
+
+wire o_data_last;
+
 	assign final_o_data_last=o_data_last;
 	assign final_last_wr_req_ctrl=last_wr_req_ctrl;
 	assign final_burst_len_wr_req_ctrl=burst_len_wr_req_ctrl;
@@ -58,6 +61,13 @@ wire last_wr_req_ctrl;
 // wire valid_wr_req_ctrl;
 // wire data_last_wr_req_ctrl;
 // assign data_last_wr_req_ctrl = o_data_last;
+
+(* async_reg="true" *) reg f_o_data_last,s_o_data_last;
+always @(posedge i_clk) begin
+    f_o_data_last <= o_data_last;
+    s_o_data_last <= f_o_data_last;
+end
+
 wr_req_ctrl#(
     .W_DATA(W_DATA),
     .W_BURST_LEN(W_BURST_LEN),
@@ -67,7 +77,7 @@ wr_req_ctrl#(
 )write_request_controller(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
-    .i_data_last(o_data_last),   //burst last, comes from DDR write controller
+    .i_data_last(s_o_data_last),   //burst last, comes from DDR write controller
     .i_data_valid(dv_ff_wr_ctrl),
     .i_fifo_occupants(ff_array_occ), //comes from fifo array
     .i_start_address(start_address),   //comes from fifo_wr_ctrl
@@ -103,7 +113,7 @@ image_fifo_array_async#(
 
 
 wire [N_FIFO-1 : 0] ff_read_enable;
-wire o_data_last;
+//wire o_data_last;
 dram_wr_ctrl#(
     .W_ADDR(W_ADDR),
     .N_FIFO(N_FIFO),

@@ -144,7 +144,7 @@ end
               if(r_opcode!=ALL_ONES) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)
-                  4'b0:
+                  4'd0:
                   begin
                     if(prev_reg[((r_opcode<<1)+1)-:2]==2'b00)
                     begin

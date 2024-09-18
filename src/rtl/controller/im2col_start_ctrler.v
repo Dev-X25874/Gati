@@ -22,11 +22,8 @@ reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
     reg [KITER_CNT_WIDTH-1:0] r_k_iter;
 
 always @ (posedge clk) begin 
-
 	r_c_iter<=c_iter-1;
 	r_k_iter<=k_iter;
-
-
 end 
 
 
@@ -90,7 +87,7 @@ always@(posedge clk) begin
                     else begin
                         k_ctr <= k_ctr;
                         c_ctr <= c_ctr + 1;
-                        state <= 3;
+                        state <= 1;
                         start_im2col <= 0;
                     end
                 //end

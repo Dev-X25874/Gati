@@ -104,8 +104,8 @@ reg r_layer_done;
         r_Tail_done<=Tail_done;
         r_op_fifo_empty<=op_fifo_empty;
         r_FC_done<=FC_done;
-		r_c_iter<=c_iter-1;
-		r_k_iter<=k_iter;
+		// r_c_iter<=c_iter-1;
+		// r_k_iter<=k_iter;
 		r_BIAS_EN<=BIAS_EN;
 		r_RELU_EN<=RELU_EN;
 		r_QUANT_EN<=QUANT_EN;
@@ -129,29 +129,31 @@ always@(posedge i_clk) begin
         3'd0:begin
             if(r_i_start) begin
                 state <= 3'd1;
+                r_c_iter<=c_iter-1;
+		        r_k_iter<=k_iter;
             end
-				c_ctr <= 0;
-                k_ctr <= 0;
-				r_layer_done <= 1'b0;
-
-
+			c_ctr <= 0;
+            k_ctr <= 0;
+			r_layer_done <= 1'b0;
         end
         
         3'd1: begin
             c_done <= 0;
-            if(k_ctr==r_k_iter) begin
-                k_ctr <= 0;
-                c_ctr <= 0;
-                state <= 3'd0;
-				r_layer_done <= 1'b1;
-
-            end 
+            if(r_k_iter==0) state <= 0;
             else begin
-                if(r_CONV_FC==0)begin
-                    if(r_im2col_done) state <= 3'd2;
-                end
+                if(k_ctr==r_k_iter) begin
+                    k_ctr <= 0;
+                    c_ctr <= 0;
+                    state <= 3'd0;
+                    r_layer_done <= 1'b1;
+                end 
                 else begin
-                    if(r_FC_done) state <= 3'd3;
+                    if(r_CONV_FC==0)begin
+                        if(r_im2col_done) state <= 3'd2;
+                    end
+                    else begin
+                        if(r_FC_done) state <= 3'd3;
+                    end
                 end
             end
         end

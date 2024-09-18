@@ -32,7 +32,7 @@ module weight_fifo_array_rden#(
     So, just 9 bits of the ROW parameter are taken to match the size of the occupants signal 
     in order to concatinate and check that the occupants are at least equal to ROW.
 */
-localparam S_ROW = ROW[8:0];
+localparam S_ROW = ROW[W_ADDR:0];
 
 //wire w_start;
 //Generates one pulse from trigger sent externally

@@ -10,6 +10,7 @@ module ctrl_ack #(
   parameter  NUM_INSTRUCTIONS=4
 )(
   input clkin,
+  input rst,
   input [NUM_INSTRUCTIONS-1:0] inst_signals,
   output reg [NUM_INSTRUCTIONS-1:0]status_ack, // Based on the valid signal this status ack is loaded into ack reg in inst controller, so we reset 01 with 11
   output reg [(2*NUM_INSTRUCTIONS)-1:0]status_prev, //same as above
@@ -22,6 +23,10 @@ generate
   begin
     always @(posedge clkin)
     begin
+    if(!rst) begin
+      o_valid_sig[i] <= 0;
+    end
+    else begin
       if(inst_signals[i])
       begin
         status_ack[i]<=0; //set status ack register as 0
@@ -30,6 +35,7 @@ generate
       end
       else
         o_valid_sig[i]<=1'b0; //valid signal 0
+    end
     end
   end
 endgenerate

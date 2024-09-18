@@ -81,31 +81,35 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
 	end
 
     always @(posedge clk) begin
-	if(~stall_on) begin 
-      if(!rstn) begin
-          curr_col <= 0;
-          curr_row <= 0;
-      end else if (r_start_im2col | r_i_valid_data) begin
-      if (curr_row == o_mat_size && curr_col == o_mat_size) begin
-          curr_row <= LOWER_BOUND;
-          curr_col <= LOWER_BOUND;
-      end
-      else if (curr_col == o_mat_size) begin 
-          curr_col <= LOWER_BOUND;       /*curr_col is assigned to 0 if the curr_col exceeds the UPPER_BOUND */
-          curr_row <= curr_row + 1;      /* meanwhile the curr_row is incremented and goes to the next row*/
-      end else if (curr_col >= 1 && curr_col <= o_mat_size) begin
-          curr_col <= curr_col + 1;       /*curr_col is incremented and goes to the next col */
-          curr_row <= curr_row;
-      end 
-      else begin
-          curr_row <= LOWER_BOUND;
-          curr_col <= LOWER_BOUND;
-      end     
-      end else begin
-        curr_row <= curr_row;
-        curr_col <= curr_col;
-      end
-    end
+        if(!rstn) begin
+            curr_col <= 0;
+            curr_row <= 0;
+        end 
+        else begin
+            if(~stall_on) begin
+                if (r_start_im2col | r_i_valid_data) begin
+                    if (curr_row == o_mat_size && curr_col == o_mat_size) begin
+                        curr_row <= LOWER_BOUND;
+                        curr_col <= LOWER_BOUND;
+                    end
+                    else if (curr_col == o_mat_size) begin 
+                        curr_col <= LOWER_BOUND;       /*curr_col is assigned to 0 if the curr_col exceeds the UPPER_BOUND */
+                        curr_row <= curr_row + 1;      /* meanwhile the curr_row is incremented and goes to the next row*/
+                    end else if (curr_col >= 1 && curr_col <= o_mat_size) begin
+                        curr_col <= curr_col + 1;       /*curr_col is incremented and goes to the next col */
+                        curr_row <= curr_row;
+                    end 
+                    else begin
+                        curr_row <= LOWER_BOUND;
+                        curr_col <= LOWER_BOUND;
+                    end     
+                end 
+                else begin
+                    curr_row <= curr_row;
+                    curr_col <= curr_col;
+                end
+            end
+        end
 	end
    
 	reg flag=0;

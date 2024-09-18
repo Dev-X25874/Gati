@@ -8,7 +8,7 @@ module rah_gati #(
 	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
-    parameter   POINTER_COUNT = 9,                               // fifo depth
+    parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
     parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
@@ -143,6 +143,7 @@ module rah_gati #(
     input empty,
     input [31:0] data,
     output  reg rden=0,
+    output  layer_debug_pin,
 	//input start_gpio,	
 
 
@@ -672,7 +673,8 @@ module rah_gati #(
 	    .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),
       .o_data_last_op_write(data_last_op_write),
-      .op_dram_fifo(op_dram_fifo)
+      .op_dram_fifo(op_dram_fifo),
+      .layer_debug_pin(layer_debug_pin)
   );
   ///////////////////////////////	
 // (* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;

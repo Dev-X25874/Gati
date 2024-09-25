@@ -118,7 +118,10 @@ module index_to_coordinate # (parameter UPPER_BOUND = 28,
             r_start_im2col <= 1'b1;
 		    flag<=1;  
 	    end
-	    else if (curr_row == o_mat_size && curr_col == o_mat_size) begin
+        //stall_on condition is added-if row and col reaches max and stall_on=1 in same clk 
+        //then r_start_im2col becomes zero which inturn doesn't update the row, col ctrs to (1,1) 
+        //and these values held at max continuously
+	    else if (curr_row == o_mat_size && curr_col == o_mat_size && ~stall_on) begin
 		  if(flag) begin 
 		  	im2col_done<=1;
 			flag<=0;

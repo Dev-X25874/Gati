@@ -23,7 +23,7 @@ module top_buffer #(
       ) b1 (
           .clk(clk),
           .rst(rst),
-		  .stall_on(stall_on),
+		      .stall_on(stall_on),
           .data_in(data_in[(DRAM_BW/N_SA)*(N_SA-i)*BUFFER_SIZE-1-:BUFFER_SIZE*(DRAM_BW/N_SA)]),
           .data_signal(data_signal),
           .element_poped(element_poped[((N_SA-i)*3) -1 -:3]),

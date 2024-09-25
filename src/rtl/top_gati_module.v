@@ -839,8 +839,8 @@ module top_gati_module #(
 
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
-  // assign img_fifo_th = input_img_width>>3;
-  assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>2;
+  // assign img_fifo_th = input_img_width>>1;
+  assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>3;
 
   /* Generation of img_fifo_status that controls the img read requests */
   reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
@@ -854,7 +854,7 @@ module top_gati_module #(
       if(start_en) begin
         if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
         else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
-        else if(select[`Image])            req_occupants_img <= req_occupants_img - 1;
+        else if(select[`Image])                                req_occupants_img <= req_occupants_img - 1;
         else                                                   req_occupants_img <= req_occupants_img;
       end
       else begin
@@ -1004,16 +1004,17 @@ module top_gati_module #(
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
-  // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]/8);
+  // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
+  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]/4);
+  // assign acc_fifo_th = input_img_width*2;
 	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ <= 0;
     else begin
       if(start_en) begin
-        if(mc_acc_last && mc_acc_valid && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
-        else if(mc_acc_last && mc_acc_valid)                        virtual_occ <= virtual_occ + (mc_acc_bl+1);
-        else if(select[`Acc])                  virtual_occ <= virtual_occ-1;
+        if(mc_acc_last && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
+        else if(mc_acc_last)                        virtual_occ <= virtual_occ + (mc_acc_bl+1);
+        else if(select[`Acc])                       virtual_occ <= virtual_occ-1;
         else                                        virtual_occ <= virtual_occ;
       end
       else begin
@@ -1438,12 +1439,12 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==2) layer_cntr <= layer_cntr;
+      if(layer_cntr==4) layer_cntr <= layer_cntr;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end
     end
   end
 
-  assign layer_debug_pin = (layer_cntr==2)? 1 : 0;
+  assign layer_debug_pin = (layer_cntr==4)? 1 : 0;
 endmodule

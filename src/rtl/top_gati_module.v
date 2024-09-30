@@ -1439,12 +1439,12 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==4) layer_cntr <= layer_cntr;
+      if(layer_cntr==10) layer_cntr <= layer_cntr;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end
     end
   end
 
-  assign layer_debug_pin = (layer_cntr==4)? 1 : 0;
+  assign layer_debug_pin = (layer_cntr==10)? 1 : 0;
 endmodule

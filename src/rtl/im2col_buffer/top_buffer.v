@@ -5,7 +5,7 @@ module top_buffer #(
 ) (
     input clk,
     input rst,
-	input stall_on,
+	  input stall_on,
     input [(DRAM_BW*BUFFER_SIZE) -1:0] data_in,
     input data_signal,
     output [BUFFER_SIZE*N_SA -1 : 0] data_out,

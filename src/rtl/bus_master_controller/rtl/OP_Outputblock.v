@@ -9,7 +9,9 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
             parameter KERNELITR_WIDTH = 12,
             parameter IMAGEDIMOUTPUT_WIDTH = 16,
             parameter IMAGEDIMACC_WIDTH = 16,
-            parameter ACCEN_WIDTH = 1)
+            parameter ACCEN_WIDTH = 1,
+            parameter DISPATCH_ID_WIDTH = 32,
+            parameter DISPATCHEN_WIDTH = 1)
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
@@ -25,7 +27,9 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
                 output reg [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput = 0,
                 output reg [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc = 0,
-                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0
+                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0,
+                output reg [DISPATCHEN_WIDTH-1 : 0] DispatchEn = 0,
+                output reg [DISPATCH_ID_WIDTH-1 :0] DispatchId = 0
             );
 
             `include "instructions.vh"
@@ -83,6 +87,8 @@ always @(posedge clk) begin
             ImageDimOutput <= data_instruction[`OutputBlock_ImageDimOutput];
             ImageDimAcc <= data_instruction[`OutputBlock_ImageDimAcc];
             AccEn <= data_instruction[`OutputBlock_AccEn];
+            DispatchId <= data_instruction[`OutputBlock_DispatchID];
+            DispatchEn <= data_instruction[`OutputBlock_DispatchEn];
             valid <= 1'b1;
             state <= IDLE;
         // end

@@ -7,7 +7,7 @@ module rah_gati #(
     parameter   NO_PORT_WR=2,
 	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000},   // only use for port controller 
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000,4'b1001},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
@@ -26,6 +26,8 @@ module rah_gati #(
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
     parameter OP_WRITE_FIFO_DEPTH = 2048,
+    parameter FPGA2CPU_FIFO_DEPTH = 512, //FIFO Depth of data FIFO in CPU dispatch module 
+    parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN = 7,
@@ -35,15 +37,21 @@ module rah_gati #(
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 47, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
+    parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 9, //Number of read and write requestors
+    parameter NUM_PORTS = 10, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
     parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
     parameter AXI_ADDR_W = `CONV_ImageStartAddress_WIDTH,   // Axi Address width
     parameter BURST_LENGTH_WIDTH =8,
+
+    //MIPI related params
+    parameter MIPI_DATA_WIDTH = 32,
+    parameter MIPI_FIFO_DEPTH = 512,
+
    
     //Config blk param
     parameter NUM_INSTRUCTIONS = 4,
@@ -100,6 +108,8 @@ module rah_gati #(
     parameter I_ACC_SIZE_WIDTH  = `OutputBlock_ImageDimAcc_WIDTH, // bit width of input image dimension
     parameter I_OP_SIZE_WIDTH   = `OutputBlock_ImageDimOutput_WIDTH,
     parameter ACCEN_WIDTH       = `OutputBlock_AccEn_WIDTH,
+    parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
+    parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter N_DMUX_PORTS = 2,
@@ -128,6 +138,7 @@ module rah_gati #(
     parameter BIAS_FIFO     = 8, // Number of bias FIFOs
     parameter OP_FIFO       = 8,  // Number of output write FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
+    parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
     parameter NO_PORT_VA    = 2,
     parameter NO_PORT_BAC   = 2,
     parameter NO_PORT_BAFC  = 8
@@ -144,8 +155,14 @@ module rah_gati #(
     input [31:0] data,
     output  reg rden=0,
     output  layer_debug_pin,
-	//input start_gpio,	
 
+    //DRAM read and mipi write related signals
+    input mipi_fifo_rd_en,
+    output mipi_fifo_empty,
+    output mipi_fifo_almost_empty,
+    output [MIPI_DATA_WIDTH-1:0] mipi_fifo_data_out,
+
+	//input start_gpio,	
 
     input [1:0] PllLocked,
     output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
@@ -227,8 +244,8 @@ module rah_gati #(
 
 	////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
-      .N_FIFO(OP_FIFO ),
-      .W_DATA(ACC_DW),
+      .N_FIFO(OP_FIFO),
+      .W_DATA(MIPI_DATA_WIDTH),
       .BURST_LEN(IMG_REQ_BLEN),
       .W_BURST_LEN(BURST_LENGTH_WIDTH) ,
       .W_ADDR(IN_ADDR),
@@ -318,6 +335,13 @@ module rah_gati #(
   wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl;
   wire mc_op_write_last;
 
+  ///////////fpga2cpu dispatch req ctrl
+  wire [7:0] mc_fpga2cpu_addr;
+  wire mc_fpga2cpu_readreq;
+  wire mc_fpga2cpu_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fpga2cpu_bl;
+  wire mc_fpga2cpu_last;
+
   ///////////////////////operators data
 
   //Signals from DRAM ctrl to internal operator blocks
@@ -358,7 +382,7 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
-	  .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
+	    .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
 
@@ -397,7 +421,8 @@ module rah_gati #(
     mc_acc_valid,
     mc_op_write_valid,
 	  mc_bias_valid,
-    mc_fc_bias_valid
+    mc_fc_bias_valid,
+    mc_fpga2cpu_valid
    };
 
    assign in_address = {
@@ -409,7 +434,8 @@ module rah_gati #(
     mc_acc_addr,
     mc_op_write_addr,
 	  mc_bias_addr,
-    mc_fc_bias_addr
+    mc_fc_bias_addr,
+    mc_fpga2cpu_addr
    };
 
    assign in_BLEN = {
@@ -421,7 +447,8 @@ module rah_gati #(
     mc_acc_bl,
     mc_op_write_bl,
     mc_bias_bl,
-    mc_fc_bias_bl
+    mc_fc_bias_bl,
+    mc_fpga2cpu_bl
    };
 
    assign i_enable = {
@@ -433,7 +460,8 @@ module rah_gati #(
     mc_acc_rdreq,
     mc_op_writereq,
     mc_bias_rdreq,
-    mc_fc_bias_rdreq
+    mc_fc_bias_rdreq,
+    mc_fpga2cpu_readreq
    };
 
    assign i_last = {
@@ -445,13 +473,14 @@ module rah_gati #(
     mc_acc_last,
     mc_op_write_last,
     mc_bias_last,
-    mc_fc_bias_last
+    mc_fc_bias_last,
+    mc_fpga2cpu_last
    };
    
 
 
   wire DdrInitDone;
-
+  wire dispatcher_busy;
   //////////////////////////////
 
 
@@ -524,6 +553,10 @@ module rah_gati #(
     .bready(bready)
   );
 
+  wire [AXI_ADDR_W-1:0] fpga2cpu_start_address;
+  wire [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu;
+  wire [DISPATCH_ID_WIDTH-1:0] dispatch_id;
+  wire [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en;
 
   top_gati_module #(
       .INST_QUEUE_DEPTH(INST_QUEUE_DEPTH),
@@ -592,6 +625,8 @@ module rah_gati #(
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
       .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
       .ACCEN_WIDTH(ACCEN_WIDTH),
+      .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
+      .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
       .MOD1(MOD1),
       .MOD2(MOD2),
       .N_DMUX_PORTS(N_DMUX_PORTS),
@@ -624,6 +659,7 @@ module rah_gati #(
 	    .s_clk(s_clk),
       .i_rst(i_rst),
       // .i_rst(DdrInitDone),
+      .dispatcher_busy(dispatcher_busy),
       .user_start(user_start),
       .mc_config_addr(mc_config_addr),
       .mc_config_rdreq(mc_config_rdreq),
@@ -674,7 +710,13 @@ module rah_gati #(
       .dv_op_write(dv_op_write),
       .o_data_last_op_write(data_last_op_write),
       .op_dram_fifo(op_dram_fifo),
-      .layer_debug_pin(layer_debug_pin)
+      .layer_debug_pin(layer_debug_pin),
+      .start(start),
+      .layer_done(layer_done),
+      .dispatch_id(dispatch_id),
+      .dispatch_cpu_en(dispatch_cpu_en),
+      .datasize_fpga2cpu(datasize_fpga2cpu),
+      .fpga2cpu_start_address(fpga2cpu_start_address)
   );
   ///////////////////////////////	
 // (* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;
@@ -706,6 +748,50 @@ module rah_gati #(
 
   // end 
 	  ///////////////////////////////////
+  
+  //FPGA2CPU (CPU Dispatch) Module to transfer the layer output to CPU for debugging
+  
+  top_fpga2cpu # (
+    .ADDR_W(AXI_ADDR_W),
+    .DATA_SIZE(I_OP_SIZE_WIDTH),
+    .ID(DISPATCH_ID_WIDTH),
+    // .W_DATA(W_DATA),
+    .W_ADDR($clog2(FPGA2CPU_FIFO_DEPTH)),
+    .BURST_LEN(CPU_DISPATCH_REQ_BLEN),
+    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .CPU_DATA_WIDTH(MIPI_DATA_WIDTH),
+    .N_FIFO(CPU_DISPATCH_FIFO),
+    .MIPI_FIFO_DEPTH(MIPI_FIFO_DEPTH),
+    .REQ_FIFO_DEPTH(CPU_DISPATCH_REQ_FIFO_DEPTH)
+  )
+  top_fpga2cpu_inst (
+    .clk(i_clk),
+    .clk_81mhz(c_81_clk),
+    .rst(i_rst),
+    .i_addr(fpga2cpu_start_address), // comes from OP_Block instruction
+    .i_data_size(datasize_fpga2cpu), //i_img_dim_op*no.of kernels - for conv, i_img_dim_op*
+    .i_id(dispatch_id), //comes from OP_Block instruction
+    .dispatch_cpu(dispatch_cpu_en), // DispatchEn signal comes from OP_Block instruction
+    .layer_done(layer_done), // from Iteration cnter module
+    .i_start(start), // start signal from config block
+    .dispatcher_busy(dispatcher_busy), //goes to config blk to hold the schedule of next instruction
+    .read_write(mc_fpga2cpu_readreq), // next 5 signals are DRAM read request signals
+    .o_valid(mc_fpga2cpu_valid),
+    .o_last(mc_fpga2cpu_last),
+    .o_addr(mc_fpga2cpu_addr),
+    .o_blen(mc_fpga2cpu_bl),
+    .sel(select_rd[`MIPI_Rd]), //from DRAM controller
+    .i_data_in(dram_rd_data), 
+    .i_data_last(dram_rd_data_last),
+    .i_data_valid(dram_rd_datavalid),
+    // .config_done(config_done), // unused
+    .mipi_rd_en(mipi_fifo_rd_en), 
+    .o_mipi_ready(),
+    .mipi_fifo_empty(mipi_fifo_empty),
+    .mipi_fifo_almost_empty(mipi_fifo_almost_empty),
+    .mipi_fifo_data_out(mipi_fifo_data_out)
+  );
 
 endmodule
 

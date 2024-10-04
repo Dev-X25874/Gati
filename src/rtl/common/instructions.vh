@@ -75,6 +75,10 @@
 `define OutputBlock_ImageDimAcc_WIDTH 16
 `define OutputBlock_AccEn 124:124
 `define OutputBlock_AccEn_WIDTH 1
+`define OutputBlock_DispatchEn 125:125
+`define OutputBlock_DispatchEn_WIDTH 1
+`define OutputBlock_DispatchID 157:126
+`define OutputBlock_DispatchID_WIDTH 32
 
 `define OP_START 'hff
 `define START_Opcode 3:0

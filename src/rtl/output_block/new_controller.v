@@ -11,6 +11,7 @@ module new_controller #(
 ) (
     output reg [FIFO_NO-1:0] valid_rd_en = 0,
     input rst,
+    input CONV_FC,
     input [FIFO_NO-1:0] empty_fifo,
     input channel_done,
     input data_valid_tree,
@@ -28,8 +29,9 @@ module new_controller #(
       now <= 0;
       state <= 0;
       mux_toggle <= 1;
+      valid_rd_en <= 0;
     end else begin
-      if (~bias) begin
+      if (CONV_FC) begin
         if (data_valid_tree & (enable && (~|empty_fifo))) begin
           valid_rd_en <= ~valid_rd_en;
           if (toggle) begin
@@ -37,9 +39,8 @@ module new_controller #(
           end
         end else begin
           valid_rd_en <= 0;
-
         end
-      end else if (bias) begin
+      end else if (~CONV_FC) begin
         case (state)
           2'd0: begin
             if (data_valid_tree & (enable & (~now))) begin

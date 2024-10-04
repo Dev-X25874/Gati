@@ -163,7 +163,8 @@ module Top_CONV_FC #(
   )
   im2col_buffer_write_inst (
     .clk(i_clk),
-    .rst(rst),
+    .rst(rst&(~channel_done)),
+    .im2col_done(im2col_done),
     .stall_on(stall_on),
 	  .fifo_empty(image_fifo_empty),
     .count(element_poped),
@@ -530,6 +531,7 @@ module Top_CONV_FC #(
       .top_clk(i_clk),
       .top_wr_en(bias_wren), //from ddr
       .rst(rst),
+      .CONV_FC(CONV_FC),
       .channel_done(channel_done),
       .top_data_in(bias_data_in), //from ddr
       .top_data_out(bias_output),

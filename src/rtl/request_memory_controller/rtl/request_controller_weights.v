@@ -26,7 +26,7 @@ parameter START_ADDR = 3'b010;
 parameter ADDR_ITR = 3'b011;
 assign burst_length = r_burst_length;
 	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
-    reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
+    reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr1, r_stop_addr;
     reg r_config_start;
     reg r_fifo_status; //occupancy check
     reg r_data_last;
@@ -36,7 +36,7 @@ always @ (posedge clk) begin
     nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
 
     r_start_addr<=start_addr;
-    r_stop_addr<=stop_addr;
+    r_stop_addr1<=stop_addr;
     r_config_start<=config_start;
     r_fifo_status<=fifo_status;
     r_data_last<=data_last;
@@ -52,6 +52,7 @@ always @(posedge clk) begin
         if(r_config_start) begin
             state <= FIFO_STATUS;
             nxt_addr <= r_start_addr;
+            r_stop_addr <= r_stop_addr1;
             r_burst_length <= BURST_LENGTH;
         end
         else begin

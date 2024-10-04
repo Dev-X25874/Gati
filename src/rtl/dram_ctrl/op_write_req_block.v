@@ -83,6 +83,7 @@ always@(posedge clkin) begin
     op_add_reg1 <= (r_layer_start_add+((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
 end
 */
+/*
 always@(posedge clkin) begin
     if(!i_rstn)
         r_burst_len1 <= BURST_LENGTH;
@@ -118,7 +119,7 @@ always@(posedge clkin) begin
         end
     end
 end
-
+*/
 reg [W_CHANNEL_CNT-1:0] r_channel_itr;
 reg [IMAGE_DIM_WIDTH_OP-1:0] count2;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] count1;
@@ -138,6 +139,8 @@ always@(posedge clkin) begin
         r_layer_next_add <= 32'd0;
         r_layer_start_add<=  32'd0;
         r_burst_len <=  0;
+        r_burst_len1 <= BURST_LENGTH;
+        r_burst_len2 <= BURST_LENGTH_2;
         wr_req_reg  <=  0;
         r_last      <=  0;
         r_valid     <=  0;
@@ -162,10 +165,11 @@ always@(posedge clkin) begin
                     r_layer_next_add<= i_op_start;
                     r_acc_start_add <= i_acc_address;
                     r_layer_start_add <= i_op_start;
+                    r_burst_len1 <= BURST_LENGTH;
+                    r_burst_len2 <= BURST_LENGTH_2;
                 end
             end
             
-
             3'd1:
             begin
                 if(k_ctr==i_kernel_itr) begin
@@ -210,6 +214,32 @@ always@(posedge clkin) begin
            
             3'd2: begin
                 state <= 3;
+                if(c_ctr==r_channel_itr-1) begin
+                    if(op_add_reg1 > r_layer_stop_add) begin
+                        r_burst_len2 <= ((r_layer_stop_add-r_layer_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                    end
+                    else begin
+                        r_burst_len2 <= BURST_LENGTH_2;
+                    end
+                end
+                else begin
+                    if(acc_en==0) begin
+                        if(acc_add_reg1 > r_acc_stop_add) begin
+                            r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                        end
+                        else begin
+                            r_burst_len1 <= BURST_LENGTH;
+                        end
+                    end
+                    else begin
+                        if(acc_add_reg1 > r_acc_stop_add) begin
+                            r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                        end
+                        else begin
+                            r_burst_len1 <= BURST_LENGTH_1;
+                        end
+                    end
+                end
             end
 
             3'd3: begin
@@ -356,6 +386,7 @@ always@(posedge clkin) begin
                 if(c_ctr == r_channel_itr-1) begin
                     r_acc_start_add <= i_acc_address;
                     r_acc_next_add <= i_acc_address;
+                    r_burst_len2 = BURST_LENGTH_2;
                     c_ctr <= 0;
                     k_ctr <= k_ctr + 1;
                 end
@@ -364,10 +395,11 @@ always@(posedge clkin) begin
                     r_acc_start_add <= i_acc_address;
                     c_ctr <= c_ctr + 1;
                     k_ctr <= k_ctr;
+                    if(acc_en==0) r_burst_len1 <= BURST_LENGTH;
+                    else r_burst_len1 <= BURST_LENGTH_1;
                 end
                 state <= 1;
             end
-            
                         
             default: begin
                 layer_done<=layer_done;

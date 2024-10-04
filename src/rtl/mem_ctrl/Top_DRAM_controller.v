@@ -69,7 +69,7 @@ module Top_DRAM_controller #(
     output              bready  
 ); 
 localparam DATA_WIDTH = ADDRESS_WIDTH + BURST_LENGTH_WIDTH + PORT_ID_WIDTH + 1;
-localparam BIN_WIDTH = $clog2(NUM_PORTS-1);
+localparam BIN_WIDTH = $clog2(NUM_PORTS);
 
 //reg  [AXI_DATA_WIDTH-1 :0 ] axi_read_o_delay_data = 0 ;
 wire [(NUM_PORTS * DATA_WIDTH)-1:0] port_ctrl_req_out ;       // request out is combine the output of meta data 

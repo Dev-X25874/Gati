@@ -18,7 +18,7 @@ module top_zero #(parameter DW=32,
 			zero_padder #(.DW(DW),
 				.I_SIZE_WIDTH(I_SIZE_WIDTH),
 				.MOD(MOD))
-				 z1
+			z1
 			(.clk(clk),
 			.rst(rst),
 			.i_size(i_size),

@@ -1,7 +1,8 @@
 module mem_req_ctrl #(
     parameter ADDR_W = 32,
     parameter DATA_SIZE = 20,
-    parameter BURST_LEN = 16)
+    parameter BURST_LEN = 16,
+    parameter BURST_LENGTH_WIDTH = 8)
 (
     input  clk,
     input  rst,
@@ -14,14 +15,15 @@ module mem_req_ctrl #(
     output reg read_write,
     output reg valid,
     output reg last,
+    output reg done, //recieved all data from DRAM
     output [7:0] o_addr,
-    output [$clog2(BURST_LEN)-1:0] o_blen
+    output [BURST_LENGTH_WIDTH-1:0] o_blen
 );
 
 reg [ADDR_W-1:0] r_addr = 0; //reg for updating the addr
 reg [7:0] addr = 0; //reg for holding the updated addr before sending it to DDR
 reg [DATA_SIZE-1:0] r_data_size = 0;
-reg [$clog2(BURST_LEN)-1:0] r_blen = 0, blen = 0; //one reg for updating burst length and one for storing the updated one before sending to DDR
+reg [BURST_LENGTH_WIDTH-1:0] r_blen = 0, blen = 0; //one reg for updating burst length and one for storing the updated one before sending to DDR
 reg [3:0] state = 0;
 reg [ADDR_W-1:0] offset = 0; //reg for holding the offset value to update addr
 reg [2:0] addr_counter = 0;
@@ -43,11 +45,13 @@ always @ (posedge clk) begin
         valid <= 0;
         read_write <= 0;
         o_ready <= 0;
+        done <= 0;
     end
 
     else begin
         case(state)
         0:begin
+            done <= 0;
             if(i_valid_req) begin
                 o_ready <= 0;
                 if(!fifo_status) begin
@@ -68,12 +72,12 @@ always @ (posedge clk) begin
         end
 
         1:begin //checking for data size to calculate burst length
-            if(r_data_size < 512) begin 
+            if(r_data_size < 512) begin //Instaed of 512, AXI_BYTES*BURSTLENGTH
                 r_blen <= (r_data_size >> $clog2(ADDR_W)) - 1;
                 state <= 2;
             end
             else begin
-                r_blen <= BURST_LEN-1;
+                r_blen <= BURST_LEN;
                 state <= 2;
             end
         end
@@ -111,10 +115,12 @@ always @ (posedge clk) begin
                 else if (r_data_size[DATA_SIZE-1] == 1) begin
                     state <= 0;
                     o_ready <= 1;
+                    done <= 1;
                 end
                 else if (r_data_size == 0) begin
                     state <= 0;
                     o_ready <= 1;
+                    done <= 1;
                 end 
                 else begin
                     r_addr <= r_addr + offset;
@@ -131,14 +137,3 @@ always @ (posedge clk) begin
     end
 end
 endmodule
-
-
-
-
-
-
-
-
-
-            
-    

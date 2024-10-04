@@ -21,9 +21,9 @@ module top_gati_module #(
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
-
+    
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 8, //Number of read and write requestors
+    parameter NUM_PORTS = 9, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -87,6 +87,8 @@ module top_gati_module #(
     parameter I_ACC_SIZE_WIDTH  = `OutputBlock_ImageDimAcc_WIDTH, // bit width of input image dimension
     parameter I_OP_SIZE_WIDTH   = `OutputBlock_ImageDimOutput_WIDTH,
     parameter ACCEN_WIDTH       = `OutputBlock_AccEn_WIDTH,
+    parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
+    parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter N_DMUX_PORTS = 2,
@@ -128,7 +130,7 @@ module top_gati_module #(
   // 	input n_clk, 
     ///////config block input
     input user_start,
-
+    input dispatcher_busy,
     //signals to DRAM ctrler
     ////config
    output [7:0] mc_config_addr,
@@ -185,7 +187,7 @@ module top_gati_module #(
     output mc_op_write_valid,
     output [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl,
     output mc_op_write_last,
-    
+
     ///////////////////////operators data
     
     //Signals from DRAM ctrl to internal operator blocks
@@ -204,8 +206,15 @@ module top_gati_module #(
     output o_data_last_op_write,
     output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo,
 
-    output layer_debug_pin
-
+    output layer_debug_pin,
+    
+    //fpga2cpu dispatch signals
+    output start,
+    output layer_done,
+    output [DISPATCH_ID_WIDTH-1:0] dispatch_id,
+    output [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en,
+    output [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu,
+    output [AXI_ADDR_W-1:0] fpga2cpu_start_address
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
@@ -247,8 +256,12 @@ module top_gati_module #(
 
     wire [NUM_INSTRUCTIONS-1:0] start_command;
 
-    wire start_out,start;
-    assign start = start_out;
+    wire start_out;
+    reg start;
+    // assign start = start_out;
+    always@(posedge i_clk) begin //To sync. with start_SA and start_FC
+      start <= start_out;
+    end
 
     wire [NUM_INSTRUCTIONS-1 : 0] valid_inst;
 
@@ -280,6 +293,7 @@ module top_gati_module #(
       .data_last(dram_rd_data_last),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
+      .dispatch_busy(dispatcher_busy),
 
 	    .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
@@ -391,7 +405,7 @@ module top_gati_module #(
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  
+  reg start_SA,start_FC;
 //   assign valid_conv = valid_inst[`OP_CONV];
 //   assign valid_fc   = valid_inst[`OP_FC];
 
@@ -400,34 +414,41 @@ module top_gati_module #(
     if(!i_rst) begin
         valid_inst_CONV_FC <= 0;
         CONV_FC <= 0;
+        start_SA <= 0;
+        start_FC <= 0;
     end
     else begin
-        if(valid_conv) begin
-            opcode <= conv_opcode;
-            valid_inst_CONV_FC <= 1;
-            CONV_FC <= 0;
+        if(valid_conv & start_out) begin
+          opcode <= conv_opcode;
+          valid_inst_CONV_FC <= 1;
+          CONV_FC <= 0;
+          start_SA <= 1;
         end
-        else if(valid_fc) begin
-            opcode <= fc_opcode;
-            valid_inst_CONV_FC <= 1;
-            CONV_FC <= 1;
+        else if(valid_fc & start_out) begin
+          opcode <= fc_opcode;
+          valid_inst_CONV_FC <= 1;
+          CONV_FC <= 1;
+          start_FC <= 1;
         end
         else begin
-            opcode <= opcode;
-            valid_inst_CONV_FC <= 0;
-            CONV_FC <= CONV_FC;
+          opcode <= opcode;
+          valid_inst_CONV_FC <= valid_inst_CONV_FC;
+          CONV_FC <= CONV_FC;
+          start_SA <= 0;
+          start_FC <= 0;
         end
     end
   end
 
   //Generation of start_SA and start_FC
-  wire start_SA,start_FC;
-  assign start_SA = (CONV_FC==0)? start : 1'b0;
-  assign start_FC = (CONV_FC==1)? start : 1'b0;
-//   assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
+  // wire start_SA,start_FC;
+  // assign start_SA = (CONV_FC==0)? start : 1'b0;
+  // assign start_FC = (CONV_FC==1)? start : 1'b0;
+  /*This is modified since, CONV_FC gets updated one cycle after recieving 'start' signal
+  which causes one cycle delay in generation of 'start_SA' and 'start_FC' signals*/
+
  wire  [$clog2(IMAGE_DIM)-1:0]      row;    
  wire  [$clog2(IMAGE_DIM)-1:0]      col;
- reg [9:0] pre_wait_im2col;
 
   reg systolic_array_trigger;
   reg Flattening_trigger=0;
@@ -462,7 +483,7 @@ module top_gati_module #(
     end
   end
 
-
+  /*
   reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
   reg im2col_en = 0;
 
@@ -473,15 +494,14 @@ module top_gati_module #(
       else im2col_cnt <= 0;
     end 
   end
-
+  */
   // Generation of systolic array and flattening module triggers
   always@(posedge i_clk) begin
     if(!i_rst) begin
       systolic_array_trigger <= 1'b0;
-      im2col_en <= 0;
+      // im2col_en <= 0;
     end
     else begin
-	//	pre_wait_im2col<=row;
 	  	if(row==5 && col==1) begin
 		  im2col_flag<=1;
 	  	end
@@ -533,6 +553,8 @@ module top_gati_module #(
     .IMAGEDIMOUTPUT_WIDTH(I_OP_SIZE_WIDTH),
     .IMAGEDIMACC_WIDTH(I_ACC_SIZE_WIDTH),
     .ACCEN_WIDTH(ACCEN_WIDTH),
+    .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
+    .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
     .BNEN_WIDTH(BNEN_WIDTH),
     .ACTEN_WIDTH(ACTEN_WIDTH),
     .ACTTYPE_WIDTH(ACT_TYPE_WIDTH),
@@ -597,6 +619,8 @@ module top_gati_module #(
     .ImageDimOutput(img_dim_Op),
     .ImageDimAcc(img_dim_Acc),
     .AccEn(ACC_EN),
+    .DispatchId(dispatch_id),
+    .DispatchEn(dispatch_cpu_en),
 
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
@@ -715,7 +739,7 @@ module top_gati_module #(
   ) bias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start_SA),
+      .config_start(start),
       .fifo_status(bias_fifo_status),
       .Biasen(BIAS_EN), 
       .clk(i_clk),
@@ -735,7 +759,7 @@ module top_gati_module #(
   ) FCbias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start_FC),
+      .config_start(start),
       .fifo_status(fc_bias_fifo_status),
       .FCbiasen(FC_BIAS_EN), 
       .clk(i_clk),
@@ -1439,12 +1463,16 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==10) layer_cntr <= layer_cntr;
+      if(layer_cntr==16) layer_cntr <= layer_cntr;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end
     end
   end
 
-  assign layer_debug_pin = (layer_cntr==10)? 1 : 0;
+  assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
+
+  (*syn_use_dsp = "no"*) wire [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
+  assign datasize_fpga2cpu = img_dim_Op*n_kernels;
+  assign fpga2cpu_start_address = op_start_address;
 endmodule

@@ -30,21 +30,20 @@ reg [I_SIZE_WIDTH:0] countps,countns;
 
 wire [I_SIZE_WIDTH:0] count_max;
 wire [I_SIZE_WIDTH:0] extra_cycles;
-wire [I_SIZE_WIDTH-1:0] temp_MOD = MOD[I_SIZE_WIDTH-1:0]-((r_i_size)%(MOD[I_SIZE_WIDTH-1:0]));
+
 reg [I_SIZE_WIDTH-1:0]    r_i_size;
 reg [DW-1:0]              r_data_in;
 reg                       r_i_dv;
 reg [1:0]                 ns,ps;
 
 assign count_max = r_i_size + extra_cycles;
-// assign extra_cycles = (r_i_size%(MOD[I_SIZE_WIDTH-1:0]) == 0)? 0 : (MOD[I_SIZE_WIDTH-1:0]-((r_i_size)%(MOD[I_SIZE_WIDTH-1:0])));
 assign extra_cycles = (r_i_size%MOD == 0)? 0 : (MOD-(r_i_size%MOD));
 
 localparam S0 = 2'b00, S1 = 2'b01, S2 = 2'b10;
-always @(posedge clk) begin 
-r_i_size<=i_size;
-r_data_in<=data_in;
-r_i_dv<=i_dv;
+always @(posedge clk) begin
+    r_i_size<=i_size;
+    r_data_in<=data_in;
+    r_i_dv<=i_dv;
 end
 always@(posedge clk)
 begin

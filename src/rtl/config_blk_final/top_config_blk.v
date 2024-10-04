@@ -25,6 +25,7 @@ module config_blk #(
     input sel,
     input [INST_W-1:0]instruction_data,
     input done,//from bus master
+    input dispatch_busy, //from fpga2cpu module
     output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,
@@ -113,6 +114,7 @@ module config_blk #(
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
                    .ack_in(ack_6_4),
+                   .dispatch_busy(dispatch_busy),
                    .layer_number(o_instruction_3_5[`START_LayerNumber]),
                    .total_layers(o_instruction_3_5[`START_TotalLayers]),
                    .status_inst_q(status_3_4),

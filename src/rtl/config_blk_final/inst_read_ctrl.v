@@ -24,6 +24,7 @@ module inst_read_ctrl#(
     input user_start,
     input done_status,
     input [OPCODE_W-1:0]opcode, //opcode received from instruction data
+    input dispatch_busy,
     output reg bus_master_valid, //valid signal for bus master(start)
     output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
     output reg start_out,//pulses start for one cycle every time we get a start instruction
@@ -206,7 +207,7 @@ end
                   begin
                     read_signal_reg<=1'b0;
                     bus_master_valid<=1'b0;
-                    if(ack_reg==0)
+                    if((ack_reg==0)&&(~dispatch_busy)) //when dispacter is busy i.e signal one we do not send start signal to slave blocks
                     begin
                       ack_reg<=psedo_ack_reg;
                       prev_reg<=next_reg;
@@ -260,7 +261,7 @@ end
           begin
             read_signal_reg<=1'b0;
             bus_master_valid<=1'b0;
-            if(ack_reg==0)
+            if((ack_reg==0)&&(~dispatch_busy))//when dispacter is busy i.e signal one we do not send start signal to slave blocks
             begin
               ack_reg<=psedo_ack_reg;
               prev_reg<=next_reg;

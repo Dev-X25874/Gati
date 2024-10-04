@@ -10,11 +10,13 @@ module dispatch_flag_check #(
         input  [ID-1:0] i_id,
         input  dispatch_cpu,//comes from instruction
         input  layer_done, //comes from config block
-        input  i_start,     
+        input  i_start, 
+        input done, //recieved all data from DRAM -from mem_req_ctrl    
         /*output [ADDR_W-1:0] o_addr,
         output [DATA_SIZE-1:0] o_data_size,
         output [ID-1:0] o_id*/
         output [(ADDR_W+DATA_SIZE+ID)-1:0] o_combined,
+        output reg dispatcher_busy,
         output reg r_valid
     );
 
@@ -78,6 +80,24 @@ module dispatch_flag_check #(
                 r_valid <= 1;
             end
             endcase
+        end
+    end
+
+    reg flag;
+    always@(posedge clk) begin
+        if(!rst) begin 
+            dispatcher_busy <= 0;
+            flag <= 1;
+        end
+        else begin
+            if(dispatch_cpu & flag) begin
+                dispatcher_busy <= 1;
+                flag <= 0;
+            end
+            else if(done) begin
+                dispatcher_busy <= 0;
+                flag <= 1;
+            end
         end
     end
 endmodule

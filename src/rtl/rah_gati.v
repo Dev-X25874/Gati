@@ -161,6 +161,9 @@ module rah_gati #(
     output mipi_fifo_empty,
     output mipi_fifo_almost_empty,
     output [MIPI_DATA_WIDTH-1:0] mipi_fifo_data_out,
+    output [I_OP_SIZE_WIDTH-1:0] data_size_rah, // These two signals are for rah module
+    output valid_data_size_rah,
+    output [$clog2(MIPI_FIFO_DEPTH):0] mipi_rd_fifo_occupants,
 
 	//input start_gpio,	
 
@@ -247,7 +250,7 @@ module rah_gati #(
       .N_FIFO(OP_FIFO),
       .W_DATA(MIPI_DATA_WIDTH),
       .BURST_LEN(IMG_REQ_BLEN),
-      .W_BURST_LEN(BURST_LENGTH_WIDTH) ,
+      .W_BURST_LEN(BURST_LENGTH_WIDTH),
       .W_ADDR(IN_ADDR),
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
@@ -790,7 +793,11 @@ module rah_gati #(
     .o_mipi_ready(),
     .mipi_fifo_empty(mipi_fifo_empty),
     .mipi_fifo_almost_empty(mipi_fifo_almost_empty),
-    .mipi_fifo_data_out(mipi_fifo_data_out)
+    .mipi_rd_fifo_occupants(mipi_rd_fifo_occupants),
+    .mipi_fifo_data_out(mipi_fifo_data_out),
+
+    .o_data_size_rah(data_size_rah),
+    .o_valid_data_size_rah(valid_data_size_rah)
   );
 
 endmodule

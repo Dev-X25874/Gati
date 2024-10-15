@@ -67,6 +67,7 @@ module Top_CONV_FC #(
     output [COL_FC-1 : 0] weight_read_en_fc,
     input [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc,
     input [COL_FC-1 : 0] weight_empty_fc,
+    input [COL_FC-1 : 0] weight_almost_empty_fc,
     input [COL_FC-1 : 0] weight_dv_fc,
     input [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc,
     
@@ -351,7 +352,10 @@ module Top_CONV_FC #(
     .W_KERNAL_CNT(W_KERNEL_CNT),
     .W_IMG_DIM(W_FC_IMAG_DIM),
     .W_IMG_BRAM_ADDR(W_FC_RW_COUNTER),
-    .IMG_FF_DEPTH(FC_BRAM_DEPTH) //Depth of BRAM
+    .IMG_FF_DEPTH(FC_BRAM_DEPTH), //Depth of BRAM
+    .SHFT_REG_X(SHFT_REG_X),
+    .N_SA(N_SA),
+    .DRAM_BW(DRAM_BW)
   )
   top_flattening_inst(
     .clk(i_clk),
@@ -363,6 +367,7 @@ module Top_CONV_FC #(
     .i_kernal_counter(i_kernel_cnt_FC),//input: kernel counter (from FC inst.)
     .i_data_valid(i_data_valid_flatten), //input: datavalid signal for the data coming from DDR
     .i_weight_ff_array_empty(weight_empty_fc),//input: weight empty signal from fifo sharing
+    .i_weight_ff_array_almost_empty(weight_almost_empty_fc), //input: weight almost empty signal from fifo sharing
     .i_image_dimension(i_img_dim_flatten), //input: image dimension from FC instruction
     .i_data(i_data_FC),          //input: data coming from DDR
     .o_data_mux(data_flatten_FC),  //o-wire: goes to the data input of FC module
@@ -380,6 +385,8 @@ module Top_CONV_FC #(
   // FC Computing Engine
   reg [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
   reg [COL_SA-1:0] dv_SA_FC;
+  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
+  wire valid_out_FC;
   //interconnect of SA and FC
   always @ (*) begin
 	if(CONV_FC) begin 
@@ -397,8 +404,7 @@ module Top_CONV_FC #(
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
   wire [NO_PORT_FC-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
-  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
-  wire valid_out_FC;
+  
   top_fc#(
     .W_DATA(DATA_WIDTH),
     .COL(COL_FC),
@@ -407,6 +413,7 @@ module Top_CONV_FC #(
     .N_SA(1),
     .W_ACC(ACC_DW),
     .W_IMG_DIM(FC_IMAGE_ROWS_WIDTH), // FC_IMAGEROW_WIDTH
+    .W_KERNAL_CNT(W_KERNEL_CNT),
     .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
     .IMAGE_FF_DEPTH(FC_BRAM_DEPTH)
   ) fully_connected_computing_engine(
@@ -421,9 +428,11 @@ module Top_CONV_FC #(
     .i_weight_ff_array_data(weight_data_fc), //
     .i_weight_ff_array_dv(weight_dv_fc),
     .i_weight_ff_array_empty(weight_empty_fc),
+    .i_weight_ff_array_almost_empty(weight_almost_empty_fc),
     .o_weight_ff_array_rden(weight_read_en_fc), //output: weight fifo rden, goes to fifo sharing
     .i_weight_ff_array_occ(weight_occupants_fc), //input: weight fifo occupants from fifo sharing
     // .o_image_ff_array_rden(), //Todo: check it
+    .i_kernal_count(i_kernel_cnt_FC),
     .accumulator_dv(dv_FC_accumulator_data),
     .accumulator_data(FC_accumulator_op_data)
   );
@@ -696,6 +705,7 @@ module Top_CONV_FC #(
   ) tail_done_inst(
       .i_clk(i_clk),
       .rst(rst),
+      .CONV_FC(CONV_FC),
       .datavalid_acc(zp_unquant_dv),
       .datavalid_pool(zp_valid),
       .pool_en(maxpool_enable),

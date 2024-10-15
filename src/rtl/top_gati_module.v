@@ -968,6 +968,7 @@ module top_gati_module #(
   wire [COL_FC-1 : 0] weight_read_en_fc;
   wire [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc;
   wire [COL_FC-1 : 0] weight_empty_fc;
+  wire [COL_FC-1 : 0] weight_almost_empty_fc;
   wire [COL_FC-1 : 0] weight_dv_fc;
   wire [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc;
 
@@ -1011,6 +1012,7 @@ module top_gati_module #(
     .o_demux_select(fc_mux_Sel), // o-wire: goes to FC block for selecting the fifo array weights to FC block
     .o_occupants_mux_fc(weight_occupants_fc), //o-wire: fifo occupants applied to FC
     .o_empty_mux_fc(weight_empty_fc), //o-wire: fifo empty status to FC
+    .o_almost_empty_mux_fc(weight_almost_empty_fc), //o-wire: fifo almost empty status to FC
     .o_dv_mux_fc(weight_dv_fc), //o-wire: wt datavalid to FC
     .o_data_mux_fc(weight_data_fc), //o-wire: weight inputs to FC
     .o_occupants_mux_sa(weight_occupants_sa), //o-wire: fifo occupants applied to SA
@@ -1237,6 +1239,7 @@ module top_gati_module #(
 	    .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
       .weight_empty_fc(weight_empty_fc),
+      .weight_almost_empty_fc(weight_almost_empty_fc),
       .weight_dv_fc(weight_dv_fc),
       .weight_data_fc(weight_data_fc),
       .weight_read_en_sa(weight_read_en_sa),
@@ -1473,6 +1476,6 @@ module top_gati_module #(
   assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
 
   (*syn_use_dsp = "no"*) wire [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
-  assign datasize_fpga2cpu = img_dim_Op*n_kernels;
+  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA*fc_kernel_iter : img_dim_Op*n_kernels;
   assign fpga2cpu_start_address = op_start_address;
 endmodule

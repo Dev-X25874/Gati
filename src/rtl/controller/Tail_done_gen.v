@@ -6,6 +6,7 @@ module Tail_done_gen#(
 (
     input i_clk,
     input rst,
+    input CONV_FC,
     input [N -1:0] datavalid_acc,
     input [N -1:0] datavalid_pool,
     input pool_en,
@@ -25,17 +26,18 @@ reg state;
 reg r_tail_done;
 
 always @ (posedge i_clk) begin 
-		
+	if(~CONV_FC) begin	
 		if (~pool_en) begin
-		data_count<=img_dim_Acc;
+		    data_count<=img_dim_Acc;
 		end
 		else begin 
-		data_count<=img_dim_Op;
+		    data_count<=img_dim_Op;
 		end
+    end
+    else begin
+        data_count<=img_dim_Op;
+    end
 end
-
-
-
 
 always@(posedge i_clk) begin
     if(!rst) begin

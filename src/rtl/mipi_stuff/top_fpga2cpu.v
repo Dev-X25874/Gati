@@ -39,7 +39,11 @@ input  mipi_rd_en,
 output o_mipi_ready,
 output [CPU_DATA_WIDTH-1:0] mipi_fifo_data_out,
 output mipi_fifo_empty,
-output mipi_fifo_almost_empty
+output mipi_fifo_almost_empty,
+output [$clog2(MIPI_FIFO_DEPTH):0] mipi_rd_fifo_occupants,
+
+output [DATA_SIZE-1:0] o_data_size_rah, // These two signals are for rah module
+output o_valid_data_size_rah
 );
 
 localparam REQ_WIDTH = ADDR_W+DATA_SIZE+ID;
@@ -71,6 +75,10 @@ wire [CPU_DATA_WIDTH-1:0] mipi_fifo_data;
 wire done;
 
 assign o_mipi_ready = mipi_ready;
+// Data size and valid for cvt32248 module to send data to rah
+// Here, data size to rah = data size read from DRAM + SOP + EOP (24 bytes extra)
+assign o_data_size_rah = w_data_size + 24;
+assign o_valid_data_size_rah = request;
 
 always @ (posedge clk) begin
 if(!rst) begin
@@ -132,6 +140,7 @@ request_generator #(.ADDR_W(ADDR_W), .DATA_SIZE(DATA_SIZE), .ID(ID)) dut3(
 mem_req_ctrl #(.ADDR_W(ADDR_W), 
                .DATA_SIZE(DATA_SIZE), 
                .BURST_LEN(BURST_LEN),
+               .AXI_BYTES(AXI_DATA_WIDTH/8),
                .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH)
                ) 
 dut4(
@@ -206,6 +215,7 @@ async_81#(
     .rd_en_i(mipi_rd_en),
     .wdata(mipi_fifo_data),
     .wr_datacount_o(mipi_fifo_occupants),
+    .rd_datacount_o(mipi_rd_fifo_occupants),
     .rst_busy(),
     .rdata(mipi_fifo_data_out),
     .a_rst_i(~rst),

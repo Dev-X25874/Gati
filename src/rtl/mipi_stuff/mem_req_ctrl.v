@@ -2,6 +2,7 @@ module mem_req_ctrl #(
     parameter ADDR_W = 32,
     parameter DATA_SIZE = 20,
     parameter BURST_LEN = 16,
+    parameter AXI_BYTES = 32,
     parameter BURST_LENGTH_WIDTH = 8)
 (
     input  clk,
@@ -72,8 +73,8 @@ always @ (posedge clk) begin
         end
 
         1:begin //checking for data size to calculate burst length
-            if(r_data_size < 512) begin //Instaed of 512, AXI_BYTES*BURSTLENGTH
-                r_blen <= (r_data_size >> $clog2(ADDR_W)) - 1;
+            if(r_data_size < (BURST_LEN<<$clog2(AXI_BYTES))) begin //Instaed of 512, AXI_BYTES*BURSTLENGTH
+                r_blen <= (r_data_size >> $clog2(AXI_BYTES)) - 1;
                 state <= 2;
             end
             else begin
@@ -83,7 +84,7 @@ always @ (posedge clk) begin
         end
         2:begin
             blen <= r_blen;
-            offset <= (r_blen + 1) << $clog2(ADDR_W);
+            offset <= (r_blen + 1) << $clog2(AXI_BYTES);
             if(addr_counter < 3) begin
                 addr_counter <= addr_counter + 1;
                 addr <= r_addr[(ADDR_W - (addr_counter*8)) - 1 -:8];

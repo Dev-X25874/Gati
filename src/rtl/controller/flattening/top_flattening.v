@@ -10,7 +10,10 @@ module top_flattening#(
     parameter W_KERNAL_CNT = 16,
     parameter W_IMG_DIM = 20,
     parameter W_IMG_BRAM_ADDR = 10,
-    parameter IMG_FF_DEPTH = 1024
+    parameter IMG_FF_DEPTH = 1024,
+    parameter SHFT_REG_X = 4,
+    parameter N_SA = 4,
+    parameter DRAM_BW = 32
 )(
     input clk,
     input rstn,
@@ -20,7 +23,8 @@ module top_flattening#(
     input [W_IMG_BRAM_ADDR-1 : 0] i_addr_counter,               //comes from instructions indicating total addresses to be written in each BRAM
     input [W_KERNAL_CNT-1 : 0] i_kernal_counter,                //comes from instructions, indicates total counts for loading same image, but for different set of kernals
     input [(N_BANK * N_BRAM)-1 : 0] i_data_valid,               //data valid signal of data coming from DDR
-    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,    
+    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
+    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_almost_empty,    
     input [W_IMG_DIM-1 : 0] i_image_dimension,                  //comes from indtruction, as of now, it is 7x7
     input [((N_BANK * N_BRAM) * W_DATA)-1 : 0]  i_data,         //data from DDR
     output [W_DATA-1 : 0] o_data_mux,                           //output data byte
@@ -39,7 +43,10 @@ wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] flattened_data;
 conv_output_reorder#(
     .N_BRAM(N_BRAM),
     .N_BANK(N_BANK),
-    .W_DATA(W_DATA)
+    .W_DATA(W_DATA),
+    .SHFT_REG_X(SHFT_REG_X),
+    .N_SA(N_SA),
+    .DRAM_BW(DRAM_BW)
 )data_flattening(
     .clk(clk),
     .rstn(rstn),
@@ -113,7 +120,7 @@ always @(posedge clk) begin
     mux_bank_en <= bank_enable_rden_ctrl_bram_bank;
 end
 
-
+wire rd_flag;
 /*
     Controls read enable signal of BRAMs
 */
@@ -133,14 +140,18 @@ bram_rden_controller#(
     .i_addr_counter(i_addr_counter),
     .kernal_count(i_kernal_counter),
     .weight_ff_array_empty(i_weight_ff_array_empty),
+    .weight_ff_array_almost_empty(i_weight_ff_array_almost_empty),
     .image_dimension(i_image_dimension),
     .o_read_enable(rden_ctrl_bram_bank),
+    .rd_flag(),
     .o_done(o_done_rden_ctrl),
     .o_bank_address(r_addr_rd_ctrl_bram_array),
     .o_bank_enable(bank_enable_rden_ctrl_bram_bank),
     .r_kernal_counter(kernal_cnt_rden_ctrl_wren_ctrl),
-    .weight_ff_trigger(weight_fifo_array_trigger)
+    .weight_ff_trigger()
 );
+
+assign weight_fifo_array_trigger = wren_done_bram_we_ctrl_bram_re_ctrl;
 
 /*
     Mux to determine which of the two incoming read enable signals, 
@@ -153,6 +164,7 @@ output_mux#(
 ) output_data_mux (
     .clk(clk),
     .rstn(rstn),
+    .rd_flag(),
     .i_weight_ff_array_empty(i_weight_ff_array_empty),
     .i_rden(mux_rden),
     .i_bank_en(mux_bank_en),

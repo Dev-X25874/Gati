@@ -91,6 +91,7 @@ always @ (posedge clk) begin
         
         4:begin
             rd_en <= 0;
+            valid <= 0;
             if(fifo_valid) begin
                 r_data_in <= data_in;
                 state <= 5;
@@ -102,23 +103,30 @@ always @ (posedge clk) begin
         end        
 
         5:begin //slicing the data and sending it in 8 cycles of 32 bits
-            if(packet_count < 7) begin
-                r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
-                valid <= 1;
-                state <= 5;
-                packet_count <= packet_count + 1;
-            end
-            else if (packet_count == 7) begin
-                r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
-                valid <= 1;
-                packet_count <= packet_count + 1;
-                data_size_count <= data_size_count - 32;
-                state <= 5;
+            if(~full) begin
+                if(packet_count < 7) begin
+                    r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
+                    valid <= 1;
+                    state <= 5;
+                    packet_count <= packet_count + 1;
+                end
+                else if (packet_count == 7) begin
+                    r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
+                    valid <= 1;
+                    packet_count <= packet_count + 1;
+                    data_size_count <= data_size_count - 32;
+                    state <= 5;
+                end
+                else begin
+                    packet_count <= 0;
+                    valid <= 0;
+                    state <= 6;
+                end
             end
             else begin
-                packet_count <= 0;
                 valid <= 0;
-                state <= 6;
+                r_data_out <= r_data_out;
+                state <= 5;
             end
         end
 
@@ -160,15 +168,27 @@ always @ (posedge clk) begin
         end
 
         8:begin
+            if(~full) begin
             r_data_out <= data_size_count;
             valid <= 1;
             state <= 9;
+            end
+            else begin
+                valid <= 0;
+                state <= 8;
+            end
         end
 
         9:begin
+            if(~full) begin
             r_data_out <= r_id;
             valid <= 1;
             state <= 0;
+            end
+            else begin
+                valid <= 0;
+                state <= 9;
+            end
         end
         endcase
     end

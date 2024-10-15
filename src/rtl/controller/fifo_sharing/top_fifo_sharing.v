@@ -25,6 +25,7 @@ module top_fifo_sharing#(
     output o_demux_select,                               
     output [(COL_FC * (WEIGHT_FF_ADDR + 1))-1 : 0] o_occupants_mux_fc,
     output [COL_FC-1 : 0] o_empty_mux_fc,
+    output [COL_FC-1 : 0] o_almost_empty_mux_fc,
     output [COL_FC-1 : 0] o_dv_mux_fc,
     output [(N_SA * COL_SA)-1 : 0] o_dv_mux_sa,
     output [(N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))-1 : 0] o_occupants_mux_sa,
@@ -39,6 +40,7 @@ localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
 
 wire [COL-1 : 0] weight_ff_array_read_en;
 wire [COL-1 : 0] weight_ff_array_empty;
+wire [COL-1 : 0] weight_ff_array_almost_empty;
 wire [COL-1 : 0] weight_ff_array_dv;
 wire [(COL * W_DATA)-1 : 0] weight_ff_array_data;
 wire [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] weight_ff_array_occupants;
@@ -58,6 +60,7 @@ weight_ff_array#(
     .i_write_enable(i_write_en_weight_ff_array),
     .o_data(weight_ff_array_data),
     .o_fifo_empty(weight_ff_array_empty),
+    .o_fifo_almost_empty(weight_ff_array_almost_empty),
     .o_fifo_full(),
     .o_fifo_dv(weight_ff_array_dv),
     .o_occupants(weight_ff_array_occupants)
@@ -85,9 +88,11 @@ demux#(
     .i_weight_ff_array_dv(weight_ff_array_dv),
     .i_weight_ff_array_data(weight_ff_array_data),
     .i_weight_ff_array_empty(weight_ff_array_empty),
+    .i_weight_ff_array_almost_empty(weight_ff_array_almost_empty),
     .i_weight_ff_array_occupants(weight_ff_array_occupants),
     .o_fc_occupants(o_occupants_mux_fc),
     .o_fc_empty(o_empty_mux_fc),
+    .o_fc_almost_empty(o_almost_empty_mux_fc),
     .o_sa_empty(o_empty_mux_sa),
     .o_sa_occupants(o_occupants_mux_sa),
     .demux_sel(o_demux_select),

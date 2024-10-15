@@ -43,9 +43,9 @@ assign o_waddr = {N_BANK{waddr}};
 	always @ (posedge clk) begin 
 		r_start<=start;
 		r_data_valid<=data_valid;
-		r_i_kernal_counter<=i_kernal_counter;
+		// r_i_kernal_counter<=i_kernal_counter;
 		r_kernal_counter<=kernal_counter;
-		r_i_addr_counter<=i_addr_counter;
+		// r_i_addr_counter<=i_addr_counter;
 		r_i_data<=i_data;
 	end
 wire w_start;
@@ -66,8 +66,11 @@ always @(posedge clk) begin
         case (state)
 
             0: begin
+                w_done <= 1'b0;
                 if(w_start)begin
                     state <= 1;
+                    r_i_addr_counter<=i_addr_counter;
+                    r_i_kernal_counter<=i_kernal_counter;
                 end
             end
 
@@ -82,33 +85,38 @@ always @(posedge clk) begin
             end
 
             2: begin
-                if(r_data_valid)begin
-                    if(counter == r_i_addr_counter)begin
-                         counter <= 0;
-                         waddr <= 0;
-                         wren <= {(N_BANK * N_BRAM){1'b0}};
-                         w_done <= 1'b1;
-                         data <= 0;
-                         state <= 3;
-                    end else begin
-                         data <= r_i_data;
-                         counter <= counter + 1;
-                         wren <= {(N_BANK * N_BRAM){1'b1}};
-                         waddr <= waddr + 1;
-                         w_done <= 1'b0;
-                    end
-                end else begin
-                    counter <= counter;
-                    waddr <= waddr;
-                    w_done <= 1'b0;
-                    wren <= 0;
-                    data <= data;
+                if(counter == r_i_addr_counter)begin
+                    counter <= 0;
+                    waddr <= 0;
+                    wren <= {(N_BANK * N_BRAM){1'b0}};
+                    w_done <= 1'b1;
+                    data <= 0;
+                    state <= 3;
                 end
+                else begin
+                    if(r_data_valid)begin
+                        data <= r_i_data;
+                        counter <= counter + 1;
+                        wren <= {(N_BANK * N_BRAM){1'b1}};
+                        waddr <= waddr + 1;
+                        w_done <= 1'b0;
+                    end
+                    else begin
+                        counter <= counter;
+                        waddr <= waddr;
+                        w_done <= 1'b0;
+                        wren <= 0;
+                        data <= data;
+                    end
+                end                
             end
 
             3: begin
-                if(r_kernal_counter == r_i_kernal_counter)  //32 weight are loaded at once into FC, so 4096/32 = 128
+                w_done <= 1'b0;
+                if(r_kernal_counter == r_i_kernal_counter) begin //32 weight are loaded at once into FC, so 4096/32 = 128
                     state <= 0;
+                    // w_done <= 1'b0;
+                end
             end
         endcase
     end

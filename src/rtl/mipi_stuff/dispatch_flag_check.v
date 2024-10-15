@@ -90,7 +90,7 @@ module dispatch_flag_check #(
             flag <= 1;
         end
         else begin
-            if(dispatch_cpu & flag) begin
+            if(dispatch_cpu & i_start & flag) begin
                 dispatcher_busy <= 1;
                 flag <= 0;
             end

@@ -15,6 +15,7 @@ module weight_ff_array#(
     input [COL-1:0] i_write_enable,
     output [(COL * W_DATA) -1 : 0] o_data,
     output [COL-1:0] o_fifo_empty,
+    output [COL-1:0] o_fifo_almost_empty,
     output [COL-1:0] o_fifo_full,
     output [COL-1:0] o_fifo_dv,
     output [(((WEIGHT_FF_ADDR + 1) * COL) -1): 0] o_occupants
@@ -31,6 +32,7 @@ generate
         ) fifo_array (
             .full_o(o_fifo_full[COL-1-i]),
             .empty_o(o_fifo_empty[COL-1-i]),
+            .almost_empty_o(o_fifo_almost_empty[COL-1-i]),
             .clk_i(i_clk),
             .wr_en_i(i_write_enable[COL-1-i]),
             .rd_en_i(i_read_enable[COL-1-i]),

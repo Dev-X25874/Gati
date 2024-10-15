@@ -50,8 +50,14 @@ module sync_fifo #(
     parameter W_DATA = 8,
     parameter W_ADDR = 8
 )(
+output almost_full_o,
+output prog_full_o,
 output full_o,
+output overflow_o,
+output wr_ack_o,
 output empty_o,
+output almost_empty_o,
+output underflow_o,
 input clk_i,
 input wr_en_i,
 input rd_en_i,
@@ -74,7 +80,7 @@ output o_valid
 .PROGRAMMABLE_EMPTY ("NONE"),
 .PROG_EMPTY_ASSERT (0),
 .PROG_EMPTY_NEGATE (2),
-.OPTIONAL_FLAGS (0),
+.OPTIONAL_FLAGS (1),
 .PIPELINE_REG (1),
 .DEPTH (1 << W_ADDR),
 .FAMILY ("TRION"),
@@ -82,8 +88,14 @@ output o_valid
 .BYPASS_RESET_SYNC (1),
 .ENDIANESS (0)
 ) u_efx_fifo_top(
+.almost_full_o ( almost_full_o ),
+.prog_full_o ( prog_full_o ),
 .full_o ( full_o ),
+.overflow_o ( overflow_o ),
+.wr_ack_o ( wr_ack_o ),
 .empty_o ( empty_o ),
+.almost_empty_o ( almost_empty_o ),
+.underflow_o ( underflow_o ),
 .clk_i ( clk_i ),
 .wr_en_i ( wr_en_i ),
 .rd_en_i ( rd_en_i ),

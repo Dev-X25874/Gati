@@ -3,6 +3,7 @@ module top_fc#(
     parameter W_DATA = 8,
     parameter COL = 32,
     parameter ROW = 1,
+    parameter W_KERNAL_CNT = 10,
     parameter W_PSUM = 19,
     parameter N_SA = 1,
     parameter W_ACC = 32,
@@ -20,8 +21,10 @@ module top_fc#(
     input  [(COL * W_DATA)-1 : 0]               i_weight_ff_array_data,
     input  [COL-1 : 0]                          i_weight_ff_array_dv,
     input  [COL-1 : 0]                          i_weight_ff_array_empty,
+    input  [COL-1 : 0]                          i_weight_ff_array_almost_empty,
     input  [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] i_weight_ff_array_occ,
     input  [W_DATA-1 : 0]                       i_image_data,
+    input  [W_KERNAL_CNT-1 : 0]                 i_kernal_count,
     output [COL-1 : 0]                          o_weight_ff_array_rden,
     // output [ROW-1 : 0]                          o_image_ff_array_rden,
     output [(COL * N_SA)-1 : 0]                 accumulator_dv,
@@ -48,13 +51,17 @@ weight_ff_rden#(
     .COL(COL),
     .ROW(ROW),
     .W_IMG_DIM(W_IMG_DIM),
+    .W_KERNAL_CNT(W_KERNAL_CNT),
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH)
 )weight_fifo_array_read_en_controller(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
     .i_trigger(i_weight_rden_trigger),                            
     .i_sel_mux(i_sel_fifo_sharing_mux),
+    .i_kernal_count(i_kernal_count),
+    .i_accumulator_valid(&(r_accumulator_dv)),
     .i_north_empty(i_weight_ff_array_empty),
+    .i_north_almost_empty(i_weight_ff_array_almost_empty),
     .i_north_occ(i_weight_ff_array_occ),
     .i_img_dim(i_img_dim),
     .o_north_rden(o_weight_ff_array_rden)
@@ -95,7 +102,7 @@ dsp_pe_grid#(
     .W_PSUM(W_PSUM)
 )pe_blocks(
     .i_clk(s_clk),
-    .i_rstn(i_rstn),
+    .i_rstn(i_rstn&(~r_accumulator_dv)),
     .i_weight(pe_weights),
     .in_data(pe_image),
     .o_partial_sum(out_south_data),

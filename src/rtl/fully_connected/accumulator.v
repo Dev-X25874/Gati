@@ -88,10 +88,10 @@ always @(posedge i_clk)begin
             end
 
             1: begin
-                if(counter == i_img_dim)begin
+                if(counter == i_img_dim-1)begin
                     data <= acc_reg;
                     dv <= 1'b1;
-                    counter <= 0;
+                    // counter <= 0;
                     acc_reg <= 0;
                     state <= 0;
                 end else begin

@@ -204,7 +204,8 @@ mipi_formatter #(.AXI_DATA_WIDTH(AXI_DATA_WIDTH), .CPU_DATA_WIDTH(CPU_DATA_WIDTH
 
 async_81#(
     .W_DATA(CPU_DATA_WIDTH),
-    .W_ADDR($clog2(MIPI_FIFO_DEPTH))
+    .W_ADDR($clog2(MIPI_FIFO_DEPTH)),
+    .OUTPUT_REG(0)
 ) fifo_inst (
     .full_o(mipi_fifo_full),
     .empty_o(mipi_fifo_empty),

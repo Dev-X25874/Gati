@@ -213,7 +213,7 @@ module top_gati_module #(
     output layer_done,
     output [DISPATCH_ID_WIDTH-1:0] dispatch_id,
     output [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en,
-    output [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu,
+    output [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu,
     output [AXI_ADDR_W-1:0] fpga2cpu_start_address
 );
 
@@ -1475,7 +1475,7 @@ module top_gati_module #(
 
   assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
 
-  (*syn_use_dsp = "no"*) wire [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
-  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA*fc_kernel_iter : img_dim_Op*n_kernels;
+  (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
+  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*n_kernels;
   assign fpga2cpu_start_address = op_start_address;
 endmodule

@@ -161,7 +161,7 @@ module rah_gati #(
     output mipi_fifo_empty,
     output mipi_fifo_almost_empty,
     output [MIPI_DATA_WIDTH-1:0] mipi_fifo_data_out,
-    output [I_OP_SIZE_WIDTH-1:0] data_size_rah, // These two signals are for rah module
+    output [2*I_OP_SIZE_WIDTH-1:0] data_size_rah, // These two signals are for rah module
     output valid_data_size_rah,
     output [$clog2(MIPI_FIFO_DEPTH):0] mipi_rd_fifo_occupants,
 
@@ -557,7 +557,7 @@ module rah_gati #(
   );
 
   wire [AXI_ADDR_W-1:0] fpga2cpu_start_address;
-  wire [I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu;
+  wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu;
   wire [DISPATCH_ID_WIDTH-1:0] dispatch_id;
   wire [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en;
 
@@ -756,7 +756,7 @@ module rah_gati #(
   
   top_fpga2cpu # (
     .ADDR_W(AXI_ADDR_W),
-    .DATA_SIZE(I_OP_SIZE_WIDTH),
+    .DATA_SIZE(2*I_OP_SIZE_WIDTH),
     .ID(DISPATCH_ID_WIDTH),
     // .W_DATA(W_DATA),
     .W_ADDR($clog2(FPGA2CPU_FIFO_DEPTH)),

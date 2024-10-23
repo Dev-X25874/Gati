@@ -207,7 +207,7 @@ async_81#(
     .W_ADDR($clog2(MIPI_FIFO_DEPTH)),
     .OUTPUT_REG(0)
 ) fifo_inst (
-    .full_o(mipi_fifo_full),
+    .almost_full_o(mipi_fifo_full),
     .empty_o(mipi_fifo_empty),
     .almost_empty_o(mipi_fifo_almost_empty),
     .wr_clk_i(clk),

@@ -39,14 +39,14 @@ module mux_image #(
     input clk,
     input sel,
     input [INPUT_SIZE -1:0] data_a,
-    output  [INPUT_SIZE-1:0] out_mux
+    output reg [INPUT_SIZE-1:0] out_mux
 );
- assign out_mux=(sel)?8'd0:data_a;
-  //always @(posedge clk) begin
-  //  case (sel)
-  //    1'b0: out_mux <= data_a;
-  //    1'b1: out_mux <= 8'd0;
-  //    default:out_mux<=data_a;
-  //  endcase
-  //end
+//  assign out_mux=(sel)?8'd0:data_a;
+  always @(posedge clk) begin
+   case (sel)
+     1'b0: out_mux <= data_a;
+     1'b1: out_mux <= 8'd0;
+     default:out_mux<=data_a;
+   endcase
+  end
 endmodule

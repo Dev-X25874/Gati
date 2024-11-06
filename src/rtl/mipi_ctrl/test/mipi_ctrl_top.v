@@ -113,6 +113,11 @@ image_fifo_array_async#(
 
 
 wire [N_FIFO-1 : 0] ff_read_enable;
+(* async_reg="true" *) reg f_w_start,s_w_start;
+always @(posedge dr_clk) begin
+    f_w_start <= w_start;
+    s_w_start <= f_w_start;
+end
 //wire o_data_last;
 dram_wr_ctrl#(
     .W_ADDR(W_ADDR),

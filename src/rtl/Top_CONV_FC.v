@@ -195,8 +195,8 @@ module Top_CONV_FC #(
   wire im2col_o_valid;
   wire [DATA_WIDTH -1:0] im2col_o_data;
   
-  always @(posedge i_clk) begin
-	   sel_mux <=(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
+  always @(*) begin
+	   sel_mux =(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;

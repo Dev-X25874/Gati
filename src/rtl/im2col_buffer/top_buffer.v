@@ -55,18 +55,25 @@ module buffers #(
 	integer i;
   //	reg [2:0] element_count=3'd7;	 
 
-
+  always@(*) begin
+    if(~rst) begin
+      buffer = 0;
+    end
+    else begin
+      buffer = data_in;
+    end
+  end
 
   always @(posedge clk) begin
 
     if (~rst) begin
-      buffer <= 64'd0;
+      // buffer <= 64'd0;
       j <= 0;
       // element_poped <= 0;
-    end else begin
-      buffer <= data_in;
-
     end
+    // else begin
+    //   buffer <= data_in;
+    // end
     //	if(read_state) stat<=read_fifo;
 
     if (data_signal && (~stall_on)) begin

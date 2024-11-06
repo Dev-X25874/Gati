@@ -66,28 +66,26 @@ assign w_empty_flag=empty_flag;
 //   wire [(W_ADDR+1)*FIFO_NO -1:0] occ;
 
   wire [(DATA_WIDTH*N)-1:0] mux_out;
-
+  wire [$clog2(NO_PORT)-1:0] sel;
   wire [N-1:0] valid_mux;
-  vector_mux #(
+  wire [NO_PORT-1:0] sel_mux;
+  assign sel_mux = 1 << sel;
+  vector_mux_param #(
       .PORT_SIZE(N * DATA_WIDTH),
-
       .NO_PORT(NO_PORT)
   ) mux_data (
-      .clk(top_clk),
       .in (w_data_out),
       .out(mux_out),
-      .sel(sel)
+      .sel(sel_mux)
   );
 
-  vector_mux #(
+  vector_mux_param #(
       .PORT_SIZE(N),
-
       .NO_PORT(NO_PORT)
   ) mux_valid (
-      .clk(top_clk),
       .in (w_valid_fifo),
       .out(valid_mux),
-      .sel(sel)
+      .sel(sel_mux)
   );
 
 
@@ -107,7 +105,7 @@ assign w_empty_flag=empty_flag;
       .data_valid_tree(top_in_data_valid[0]),
       .valid_rd_en(w_rd_en)
   );
- wire sel;
+ 
 
  /* Delay for data_valid_input and the input data to synchronize with bias fifo read data */
 

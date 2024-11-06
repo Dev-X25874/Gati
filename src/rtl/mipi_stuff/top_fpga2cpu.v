@@ -3,7 +3,7 @@ parameter ADDR_W = 32, //AXI Address width
 parameter DATA_SIZE = 20, //Input data_size width
 parameter ID = 10, //Dispatch ID Width
 parameter W_DATA = 8, //
-parameter W_ADDR = 8,
+parameter W_ADDR = 8, // Depth of DRAM FIFO(1<<W_ADDR)
 parameter BURST_LEN = 16, //Default burst length
 parameter BURST_LENGTH_WIDTH = 8,
 parameter AXI_DATA_WIDTH = 256,
@@ -41,6 +41,7 @@ output [CPU_DATA_WIDTH-1:0] mipi_fifo_data_out,
 output mipi_fifo_empty,
 output mipi_fifo_almost_empty,
 output [$clog2(MIPI_FIFO_DEPTH):0] mipi_rd_fifo_occupants,
+output mipi_fifo_data_valid,
 
 output [DATA_SIZE-1:0] o_data_size_rah, // These two signals are for rah module
 output o_valid_data_size_rah
@@ -70,7 +71,7 @@ wire dram_emptyflag;
 wire dram_fifo_valid;
 wire mipi_wr_en;
 wire mipi_fifo_full;
-wire [$clog2(MIPI_FIFO_DEPTH):0] mipi_fifo_occupants;
+wire [W_ADDR:0] dram_fifo_occupants;
 wire [CPU_DATA_WIDTH-1:0] mipi_fifo_data;
 wire done;
 
@@ -85,7 +86,7 @@ if(!rst) begin
     mipi_fifo_status <= 0;
 end
 else begin
-    if(mipi_fifo_occupants == 100) begin
+    if(dram_fifo_occupants >= (1<<W_ADDR)/2) begin
         mipi_fifo_status <= 1;
     end
     else begin
@@ -93,6 +94,9 @@ else begin
     end
 end
 end
+
+wire dram_fifo_status;
+assign dram_fifo_status = (dram_fifo_occupants >= (1<<W_ADDR)/2)? 1 : 0;
 
 dispatch_flag_check #(.ADDR_W(ADDR_W), .DATA_SIZE(DATA_SIZE), .ID(ID)) dut1(
 .clk(clk),
@@ -150,7 +154,7 @@ dut4(
 .i_data_size(w_data_size),
 .i_data_last(w_data_last),
 .i_valid_req(request),
-.fifo_status(mipi_fifo_status),
+.fifo_status(dram_fifo_status),
 .o_ready(w_ready),
 .done(done),
 .read_write(read_write),
@@ -182,7 +186,7 @@ sync_fifo #(.W_DATA(AXI_DATA_WIDTH), .W_ADDR(W_ADDR)) dram_fifo(
 .rd_en_i(dram_rd_en),
 .empty_o(dram_emptyflag),
 .full_o(),
-.datacount_o()
+.datacount_o(dram_fifo_occupants)
 );
 
 mipi_formatter #(.AXI_DATA_WIDTH(AXI_DATA_WIDTH), .CPU_DATA_WIDTH(CPU_DATA_WIDTH), .DATA_SIZE(DATA_SIZE), .ID(ID)) dut6(
@@ -220,7 +224,7 @@ async_81#(
     .rst_busy(),
     .rdata(mipi_fifo_data_out),
     .a_rst_i(~rst),
-    .o_valid()
+    .o_valid(mipi_fifo_data_valid)
 );
 
 endmodule

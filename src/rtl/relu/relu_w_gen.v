@@ -99,7 +99,7 @@ generate
         .DATA_WIDTH(DATA_WIDTH),
         .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
         .CLIP_WIDTH(CLIP_WIDTH)	
-)
+        )
         top_relu_inst (
         .clk     (top_clk),
         .i_data  (top_i_data[i*DATA_WIDTH+:DATA_WIDTH]),
@@ -109,7 +109,7 @@ generate
         .o_valid (top_o_valid[i]),
         .i_clip  (top_i_clip[i*CLIP_WIDTH+:CLIP_WIDTH]),
         .i_act_type(top_i_acttype[i*ACT_TYPE_WIDTH+ :ACT_TYPE_WIDTH])
-);
+        );
     end
 endgenerate
 endmodule

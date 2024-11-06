@@ -161,6 +161,7 @@ module rah_gati #(
     output mipi_fifo_empty,
     output mipi_fifo_almost_empty,
     output [MIPI_DATA_WIDTH-1:0] mipi_fifo_data_out,
+    output mipi_fifo_data_valid,
     output [2*I_OP_SIZE_WIDTH-1:0] data_size_rah, // These two signals are for rah module
     output valid_data_size_rah,
     output [$clog2(MIPI_FIFO_DEPTH):0] mipi_rd_fifo_occupants,
@@ -244,14 +245,14 @@ module rah_gati #(
   wire final_last_wr_req_ctrl;
   wire valid_wr_req_ctrl;
   wire user_start;
-
+  parameter MIPI_REQ_BLEN = 11;
 	////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
       .N_FIFO(OP_FIFO),
       .W_DATA(MIPI_DATA_WIDTH),
-      .BURST_LEN(IMG_REQ_BLEN),
+      .BURST_LEN(MIPI_REQ_BLEN),
       .W_BURST_LEN(BURST_LENGTH_WIDTH),
-      .W_ADDR(IN_ADDR),
+      .W_ADDR($clog2(MIPI_FIFO_DEPTH)),
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
       .i_clk(c_81_clk),
@@ -271,7 +272,7 @@ module rah_gati #(
       .final_burst_len_wr_req_ctrl(final_burst_len_wr_req_ctrl),
       .final_last_wr_req_ctrl(final_last_wr_req_ctrl),
       .valid_wr_req_ctrl(valid_wr_req_ctrl),
-	  .soft_start(user_start)
+	    .soft_start(user_start)
   );
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
@@ -795,6 +796,7 @@ module rah_gati #(
     .mipi_fifo_almost_empty(mipi_fifo_almost_empty),
     .mipi_rd_fifo_occupants(mipi_rd_fifo_occupants),
     .mipi_fifo_data_out(mipi_fifo_data_out),
+    .mipi_fifo_data_valid(mipi_fifo_data_valid),
 
     .o_data_size_rah(data_size_rah),
     .o_valid_data_size_rah(valid_data_size_rah)

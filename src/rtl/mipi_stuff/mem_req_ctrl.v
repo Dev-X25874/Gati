@@ -73,13 +73,19 @@ always @ (posedge clk) begin
         end
 
         1:begin //checking for data size to calculate burst length
-            if(r_data_size < (BURST_LEN<<$clog2(AXI_BYTES))) begin //Instaed of 512, AXI_BYTES*BURSTLENGTH
-                r_blen <= (r_data_size >> $clog2(AXI_BYTES)) - 1;
-                state <= 2;
+            if(!fifo_status) begin
+                if(r_data_size < (BURST_LEN<<$clog2(AXI_BYTES))) begin //Instaed of 512, AXI_BYTES*BURSTLENGTH
+                    r_blen <= (r_data_size >> $clog2(AXI_BYTES)) - 1;
+                    state <= 2;
+                end
+                else begin
+                    r_blen <= BURST_LEN;
+                    state <= 2;
+                end
             end
             else begin
-                r_blen <= BURST_LEN;
-                state <= 2;
+                r_blen <= r_blen;
+                state <= 1;
             end
         end
         2:begin
@@ -96,7 +102,7 @@ always @ (posedge clk) begin
                 addr <= r_addr[(ADDR_W - (addr_counter*8)) - 1 -:8];
                 last <= 1;
                 valid <= 1;
-                r_data_size <= r_data_size - (ADDR_W * (r_blen + 1)); //updating data size according to burst length
+                r_data_size <= r_data_size - (AXI_BYTES * (r_blen + 1)); //updating data size according to burst length
                 state <= 2;
             end
             else begin

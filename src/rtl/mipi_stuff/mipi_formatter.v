@@ -114,7 +114,7 @@ always @ (posedge clk) begin
                     r_data_out <= r_data_in[(AXI_DATA_WIDTH - (32*packet_count))-1 -:32];
                     valid <= 1;
                     packet_count <= packet_count + 1;
-                    data_size_count <= data_size_count - 32;
+                    data_size_count <= data_size_count - ((AXI_DATA_WIDTH)/8);
                     state <= 5;
                 end
                 else begin

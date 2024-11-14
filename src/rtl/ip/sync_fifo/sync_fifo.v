@@ -48,6 +48,7 @@
 `define IP_MODULE_NAME(name) `IP_NAME_CONCAT(name,`IP_UUID)
 module sync_fifo #(
     parameter W_DATA = 8,
+    parameter OUTPUT_REG = 1,
     parameter W_ADDR = 8
 )(
 output almost_full_o,
@@ -73,7 +74,7 @@ output o_valid
 .SYNC_STAGE (2),
 .DATA_WIDTH (W_DATA),
 .MODE ("STANDARD"),
-.OUTPUT_REG (1),
+.OUTPUT_REG (OUTPUT_REG),
 .PROG_FULL_ASSERT (128),
 .PROGRAMMABLE_FULL ("NONE"),
 .PROG_FULL_NEGATE (128),

@@ -977,7 +977,7 @@ module top_gati_module #(
   wire [COL_FC-1 : 0] weight_dv_fc;
   wire [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc;
 
-  wire sel_sa_rden;
+  //wire sel_sa_rden;
   wire [(N_SA * COL_SA)-1 : 0] weight_read_en_sa;
   wire [(N_SA * COL_SA)-1 : 0] weight_dv_sa;
   wire [(N_SA * (COL_SA * ($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa;
@@ -999,6 +999,7 @@ module top_gati_module #(
     .W_DATA(DATA_WIDTH),
     .N_SA(N_SA),
     .COL_SA(COL_SA),
+    .ROW(ROW),
     .COL_FC(COL_FC),
     .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
     .N_DRAM_BYTES(AXI_DATA_BYTES),
@@ -1008,7 +1009,8 @@ module top_gati_module #(
   ) fifo_Sharing_controller(
     .clk(i_clk),
     .i_rstn(i_rst),
-    .i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
+    .i_done(iter_done),
+    //.i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
     .i_opcode(opcode), // i-wire - check it how to get this opcode from slave blocks
     .i_data_weight_ff_array(weight_dram_fifosharing),         //i-wire - from fifo sharing wren ctrler
     .i_write_en_weight_ff_array(weight_write_en_fifosharing), //i-wire - from fifo sharing wren ctrler
@@ -1239,7 +1241,7 @@ module top_gati_module #(
     //   .switch_enable(switch_enable),
       .fifo_o(img_ip_conv),
       //fifo sharing signals
-      .sel_sa_rden(sel_sa_rden),
+      //.sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),
 	    .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
@@ -1323,6 +1325,7 @@ module top_gati_module #(
       .DIMENSION(OP_FIFO),
       .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
+      .OUTPUT_REG(0),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
   ) op_write_dram_fifo (
       .i_clk(i_clk),
@@ -1346,7 +1349,7 @@ module top_gati_module #(
 	end
 
   
-  Mem_write_ctrl#(
+  Mem_write_ctrl_1#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
     .N_FIFO(OP_FIFO)

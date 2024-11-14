@@ -47,6 +47,7 @@ reg [(COL_FC * W_DATA)-1 : 0] r_fc_data = 0;
 reg [(N_SA * COL_SA * W_DATA)-1 : 0] r_sa_data = 0;
 reg [COL_FC-1 : 0] r_fc_dv = 0;
 reg [(N_SA * COL_SA)-1 : 0] r_sa_dv = 0;
+reg sd,sd1,sd2 = 0;
 
 assign o_sa_occupants = r_sa_occ;
 assign o_sa_empty = r_sa_empty;
@@ -130,6 +131,12 @@ always @(posedge i_clk)begin
     end
 end
 */
+always @(posedge i_clk) begin
+    sd1 <= i_sel_sa_rden_ctrl;
+    //sd2 <= sd1;
+    sd <= sd1;
+end
+
 always @(*)begin
     if(~i_rstn)begin
         r_sa_occ = 0;
@@ -170,7 +177,7 @@ always @(*)begin
                 r_fc_data = 0;
                 r_fc_dv = 0;
                 if((N_SA * COL_SA) < N_DRAM_BYTES)begin
-                    case (i_sel_sa_rden_ctrl)
+                    case (sd)
                     1'b1: begin     //First half of weight fifo array (starting from MSB)
                         r_sa_empty = i_weight_ff_array_empty[(COL-1) -: (N_SA * COL_SA)];
                         r_sa_occ = i_weight_ff_array_occupants[(COL * (WEIGHT_FF_ADDR + 1))-1 -: (N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))];

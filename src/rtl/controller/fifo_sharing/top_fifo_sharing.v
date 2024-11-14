@@ -12,11 +12,13 @@ module top_fifo_sharing#(
     parameter SA_OPCODE = 0,            
     parameter FC_OPCODE = 4,
     parameter WEIGHT_FF_DEPTH = 512,
+    parameter ROW = 9,
     parameter W_OPCODE = 4
 )(
     input clk,
     input i_rstn,
-    input i_sel_sa_rden_ctrl,                       //select signal coming from weight fifo array read enable ctrl in SA
+    input i_done,
+    //input i_sel_sa_rden_ctrl,                       //select signal coming from weight fifo array read enable ctrl in SA
     input [3:0] i_opcode,                           //comes from config block
     input [(COL * W_DATA)-1 : 0] i_data_weight_ff_array,
     input [COL-1 : 0] i_write_en_weight_ff_array,
@@ -44,6 +46,7 @@ wire [COL-1 : 0] weight_ff_array_almost_empty;
 wire [COL-1 : 0] weight_ff_array_dv;
 wire [(COL * W_DATA)-1 : 0] weight_ff_array_data;
 wire [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] weight_ff_array_occupants;
+wire i_sel_sa_rden_ctrl;
 
 assign o_weight_ff_array_occupants = weight_ff_array_occupants;
 
@@ -107,16 +110,18 @@ demux#(
 rden_mux#(
     .COL(COL),
     .COL_FC(COL_FC),
+    .ROW(ROW),
     .N_SA(N_SA),
     .COL_SA(COL_SA),
     .N_DRAM_BYTES(N_DRAM_BYTES)
 )sa_fc_read_mux(
     .i_clk(clk),
     .i_rstn(i_rstn),
+    .i_done(i_done),
+    .o_sel(i_sel_sa_rden_ctrl),
     .i_fc_rden(i_read_en_fc),
     .i_sa_rden(i_read_en_sa),
     .i_sel_1(o_demux_select),
-    .i_sel_2(i_sel_sa_rden_ctrl),
     .o_north_rden(weight_ff_array_read_en)
 );
 

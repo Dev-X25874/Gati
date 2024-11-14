@@ -15,6 +15,7 @@ module mipi_formatter #(
     input  fifo_valid,
     input  [AXI_DATA_WIDTH-1:0] data_in,
     output [CPU_DATA_WIDTH-1:0] data_out,
+    output reg transfer_done,
     output reg ready,
     output reg valid,
     output reg rd_en
@@ -41,6 +42,7 @@ always @ (posedge clk) begin
         r_id <= 0;
         packet_count <= 0;
         r_data_in <= 0;
+        transfer_done <= 0;
     end
 
     else begin
@@ -49,6 +51,7 @@ always @ (posedge clk) begin
             ready <= 1;
             r_data_out <= 0;
             valid <= 0;
+            transfer_done <= 0;
             if(valid_req) begin
                 data_size_count <= i_data_size;
                 r_id <= i_id;
@@ -77,16 +80,29 @@ always @ (posedge clk) begin
 
         2:begin
             rd_en <= 0;
-            r_data_out <= data_size_count;
-            valid <= 1;
-            state <= 3;
+            if(~full) begin
+                r_data_out <= data_size_count;
+                valid <= 1;
+                state <= 3;
+            end
+            else begin
+                valid <= 0;
+                state <= 2;
+            end
         end
 
         3:begin
-            rd_en <= 1;
-            r_data_out <= r_id;
-            valid <= 1;
-            state <= 4;
+            if(~full) begin
+                rd_en <= 1;
+                r_data_out <= r_id;
+                valid <= 1;
+                state <= 4;
+            end
+            else begin
+                rd_en <= 0;
+                valid <= 0;
+                state <= 3;
+            end
         end
         
         4:begin
@@ -157,21 +173,21 @@ always @ (posedge clk) begin
 
         7:begin
             if(full) begin
-            valid <= 0;
-            state <= 7;
+                valid <= 0;
+                state <= 7;
             end
             else begin
-            r_data_out <= sof;
-            valid <= 1;
-            state <= 8;
+                r_data_out <= sof;
+                valid <= 1;
+                state <= 8;
             end
         end
 
         8:begin
             if(~full) begin
-            r_data_out <= data_size_count;
-            valid <= 1;
-            state <= 9;
+                r_data_out <= data_size_count;
+                valid <= 1;
+                state <= 9;
             end
             else begin
                 valid <= 0;
@@ -181,9 +197,10 @@ always @ (posedge clk) begin
 
         9:begin
             if(~full) begin
-            r_data_out <= r_id;
-            valid <= 1;
-            state <= 0;
+                r_data_out <= r_id;
+                valid <= 1;
+                state <= 0;
+                transfer_done <= 1;
             end
             else begin
                 valid <= 0;

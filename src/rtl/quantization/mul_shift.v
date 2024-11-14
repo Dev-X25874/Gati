@@ -55,6 +55,7 @@ module mul_shift#(
   end
   
   assign w_dout = (enabled==1)? ((rdout+(1<<(bit_shift-1))) >> bit_shift) : 0;
+  // assign w_dout = (enabled==1)? ((rdout+((1<<bit_shift)>>(1))) >> bit_shift) : 0;
   assign dout = w_dout[OUT_DATA_WIDTH-1:0];
   assign o_data_valid = r_data_valid;
   

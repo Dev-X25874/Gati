@@ -33,10 +33,10 @@ module rah_gati #(
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 7,
-    parameter ACC_REQ_BLEN = 31,
+    parameter ACC_REQ_BLEN = 11,
     parameter BIAS_REQ_BLEN = 15,
-    parameter OP_WRITE_REQ_ACC_BLEN = 47, //burst length for writng accumulants (32-bit) into the DRAM
-    parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
+    parameter OP_WRITE_REQ_ACC_BLEN = 11, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_QUA_BLEN = 11, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
@@ -277,7 +277,6 @@ module rah_gati #(
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
-  assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
 
   //////////////////////////////// gati module instatiation
@@ -364,7 +363,7 @@ module rah_gati #(
   wire data_last_op_write;
   wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
 
-
+  assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
 
   vector_mux_param #(
       .PORT_SIZE(AXI_DATA_WIDTH),

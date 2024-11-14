@@ -74,6 +74,7 @@ wire mipi_fifo_full;
 wire [W_ADDR:0] dram_fifo_occupants;
 wire [CPU_DATA_WIDTH-1:0] mipi_fifo_data;
 wire done;
+wire transfer_done;
 
 assign o_mipi_ready = mipi_ready;
 // Data size and valid for cvt32248 module to send data to rah
@@ -106,7 +107,7 @@ dispatch_flag_check #(.ADDR_W(ADDR_W), .DATA_SIZE(DATA_SIZE), .ID(ID)) dut1(
 .i_id(i_id),
 .dispatch_cpu(dispatch_cpu),
 .layer_done(layer_done),
-.done(done),
+.done(transfer_done),
 .dispatcher_busy(dispatcher_busy),
 .i_start(i_start),
 .o_combined(w_combined),
@@ -200,6 +201,7 @@ mipi_formatter #(.AXI_DATA_WIDTH(AXI_DATA_WIDTH), .CPU_DATA_WIDTH(CPU_DATA_WIDTH
 .fifo_valid(dram_fifo_valid),
 .data_in(fifo_out),
 .data_out(mipi_fifo_data),
+.transfer_done(transfer_done),
 .ready(mipi_ready),
 .full(mipi_fifo_full),
 .valid(mipi_wr_en),

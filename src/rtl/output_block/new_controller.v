@@ -17,7 +17,8 @@ module new_controller #(
     input data_valid_tree,
     input clk,
     input enable,
-    output reg mux_toggle = 1
+    output reg mux_toggle_fc = 0,
+    output reg mux_toggle_conv = 1
 
 );
   reg [1:0] state = 0;
@@ -28,14 +29,15 @@ module new_controller #(
     if (!rst) begin
       now <= 0;
       state <= 0;
-      mux_toggle <= 1;
+      mux_toggle_conv <= 1;
+      mux_toggle_fc <= 0;
       valid_rd_en <= 0;
     end else begin
       if (CONV_FC) begin
         if (data_valid_tree & (enable && (~|empty_fifo))) begin
           valid_rd_en <= ~valid_rd_en;
           if (toggle) begin
-            mux_toggle <= ~mux_toggle;
+            mux_toggle_fc <= ~mux_toggle_fc;
           end
         end else begin
           valid_rd_en <= 0;
@@ -59,7 +61,7 @@ module new_controller #(
             valid_rd_en <= 8'h00;
             if (channel_done) begin
               if (toggle) begin
-                mux_toggle <= ~mux_toggle;
+                mux_toggle_conv <= ~mux_toggle_conv;
               end
               now   <= ~now;
               state <= 2'd0;

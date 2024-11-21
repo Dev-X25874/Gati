@@ -66,10 +66,18 @@ assign w_empty_flag=empty_flag;
 //   wire [(W_ADDR+1)*FIFO_NO -1:0] occ;
 
   wire [(DATA_WIDTH*N)-1:0] mux_out;
-  wire [$clog2(NO_PORT)-1:0] sel;
+  wire [$clog2(NO_PORT)-1:0] sel_conv,sel_fc;
   wire [N-1:0] valid_mux;
   wire [NO_PORT-1:0] sel_mux;
-  assign sel_mux = 1 << sel;
+//   assign sel_mux = 1 << sel_conv;
+  
+  //delay sel_mux to sync with i/p data and bias fifo data - for FC only
+  reg [NO_PORT-1:0] f_sel,s_sel,t_sel;
+  always@(posedge top_clk) begin
+    f_sel <= 1 << sel_fc;
+    s_sel <= f_sel;
+  end
+  assign sel_mux = (CONV_FC)? s_sel : 1 << sel_conv;
   vector_mux_param #(
       .PORT_SIZE(N * DATA_WIDTH),
       .NO_PORT(NO_PORT)
@@ -101,7 +109,8 @@ assign w_empty_flag=empty_flag;
 	  .empty_fifo(empty_flag),
       .channel_done(channel_done),
       .enable(vector_add_enable),
-      .mux_toggle(sel),
+      .mux_toggle_fc(sel_fc),
+      .mux_toggle_conv(sel_conv),
       .data_valid_tree(top_in_data_valid[0]),
       .valid_rd_en(w_rd_en)
   );

@@ -69,7 +69,7 @@ module buffers #(
     if (~rst) begin
       // buffer <= 64'd0;
       j <= 0;
-      // element_poped <= 0;
+      element_poped <= 0;
     end
     // else begin
     //   buffer <= data_in;

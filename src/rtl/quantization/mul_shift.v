@@ -25,8 +25,8 @@ module mul_shift#(
   output                                o_data_valid,
   input [SHIFT_WIDTH-1:0]               bit_shift
 );
-  wire [DATA_WIDTH*2-1:0]             w_dout;
-  reg [DATA_WIDTH*2-1:0]              rdout=0;
+  wire [DATA_WIDTH*2-1:0]         w_dout;
+  reg  [DATA_WIDTH*2-1:0]         rdout=0;
   reg                                   r_data_valid=0;
   reg [DATA_WIDTH-1:0]                  r_dina;
 

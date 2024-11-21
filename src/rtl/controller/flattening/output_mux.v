@@ -46,8 +46,10 @@ onehot_to_bin#(
 
 wire [BIN_WIDTH-1 : 0] select;
 assign select = {bank_en_bin, read_en_bin};
+reg [BIN_WIDTH-1 : 0] select1;
 always @ (posedge clk) begin 
 	if_cond<=((i_rden!=0) && (i_bank_en!=0))?1:0;
+    select1 <= select;
 end
 
 always @(posedge clk) begin
@@ -58,7 +60,7 @@ always @(posedge clk) begin
         // if(rd_flag)begin
             if((|(i_rden)) & (|(i_bank_en)))begin
                 for(i=0;i<2**BIN_WIDTH;i=i+1) begin
-				if(select==i) begin
+				if(select1==i) begin
 				r_data <= i_data[((W_DATA) * ((N_BRAM * N_BANK) -i ))-1 -: W_DATA];
                 r_dv <= 1;
 				end
@@ -72,7 +74,7 @@ always @(posedge clk) begin
     end
 end
 
-always@(*) begin
+always@(posedge clk) begin
     o_data <= r_data;
     data_valid <= r_dv;
 end

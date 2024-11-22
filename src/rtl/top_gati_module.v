@@ -1325,7 +1325,7 @@ module top_gati_module #(
       .DIMENSION(OP_FIFO),
       .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
-      .OUTPUT_REG(0),
+      .OUTPUT_REG(1),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
   ) op_write_dram_fifo (
       .i_clk(i_clk),
@@ -1349,7 +1349,7 @@ module top_gati_module #(
 	end
 
   
-  Mem_write_ctrl_1#(
+  Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
     .N_FIFO(OP_FIFO)

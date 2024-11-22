@@ -23,7 +23,7 @@ module rden_mux#(
 reg [COL-1 : 0] north_rden = 0;
 wire [COL-1 : 0] conv_north_rden;
 assign o_sel = sel_count;
-assign o_north_rden = (i_sel_1)? conv_north_rden:north_rden;
+assign o_north_rden = (i_sel_1)? conv_north_rden:i_fc_rden;
 localparam SHIFTS = N_DRAM_BYTES/(N_SA*COL_SA);
 reg [$clog2(SHIFTS)-1:0] sel_count = 0;
 reg [$clog2(ROW)-1:0] row_counter = 0;

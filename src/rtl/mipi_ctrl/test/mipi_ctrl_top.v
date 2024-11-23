@@ -22,7 +22,8 @@ module mipi_ctrl_top#(
     output [W_BURST_LEN-1 : 0] final_burst_len_wr_req_ctrl,
     output final_last_wr_req_ctrl,
     output valid_wr_req_ctrl,
-	output soft_start
+	output soft_start,
+	output eop
 );
 
 wire [W_DATA-1 : 0] start_address;
@@ -51,7 +52,8 @@ fifo_wr_ctrl#(
     .o_write_enable(ff_write_enable),   //sends write enable signal to fifo array
     .o_data(data_ff_wr_ctrl),            //sends data to store into fifo array
     .o_valid(dv_ff_wr_ctrl),
-	.soft_start(w_start)
+	.soft_start(w_start),
+	.eop(eop)
 );
 wire w_start;
 // wire req_wr_req_ctrl;

@@ -42,7 +42,11 @@ module iteration_cnt #(
     //'ack' signals for config blk
     output Conv_Ack,
     output OpBlock_Ack,
-    output Tail_Ack
+    output Tail_Ack,
+    
+    //io signals
+    output [6:0] kernal_count, // represents the current kernal iteration number 
+    output [6:0] channel_count // represents the current channel iteration number 
 );
 
 reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
@@ -58,6 +62,8 @@ assign o_iter_done = iter_done;
 assign o_layer_done = r_layer_done;
 assign o_c_done = c_done;
 
+assign kernal_count =  k_ctr [6:0]; // represents the current kernal iteration number
+assign channel_count =  c_ctr [6:0]; // represents the current channel iteration number
 // assign layer_done = (k_ctr == k_iter);
 
 //assign c_done = (c_iter==1)? r_iter_done: ((c_ctr==c_iter-1)?1:0);

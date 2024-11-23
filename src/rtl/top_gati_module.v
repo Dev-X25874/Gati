@@ -214,13 +214,18 @@ module top_gati_module #(
     output [DISPATCH_ID_WIDTH-1:0] dispatch_id,
     output [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en,
     output [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu,
-    output [AXI_ADDR_W-1:0] fpga2cpu_start_address
+    output [AXI_ADDR_W-1:0] fpga2cpu_start_address,
+       
+    //io signals
+    output [6:0] kernal_count, // represents the current kernal iteration number 
+    output [6:0] channel_count, // represents the current channel iteration number
+    output [3:0] layer_count 
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
     localparam BUS_DATA_OUT = 8;
     localparam CNT = INST_W/BUS_DATA_OUT;
-
+  assign layer_count = layer_cntr;
     /*
     Mem_read_ctrl#(
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -1411,8 +1416,12 @@ module top_gati_module #(
         //Ack signals to config blk.
         .Conv_Ack(Conv_Ack),
         .OpBlock_Ack(OpBlock_Ack),
-        .Tail_Ack(Tail_Ack)
+        .Tail_Ack(Tail_Ack),
         //.FC_Ack(FC_Ack)
+        
+        //for io signals
+        .kernal_count(kernal_count), // represents the current kernal iteration number 
+        .channel_count(channel_count) // represents the current channel iteration number 
     );
 
     // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;

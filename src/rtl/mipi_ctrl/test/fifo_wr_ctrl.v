@@ -18,7 +18,8 @@ module fifo_wr_ctrl#(
     output [N_FIFO-1 : 0] o_write_enable,   //sends write enable signal to fifo array
     output [W_DATA-1 : 0] o_data,           //sends data to store into fifo array
     output o_valid,
-	output reg soft_start
+	output reg soft_start,
+	output reg eop
 );
 	localparam IDLE=2'd0;
 	localparam DATA_SIZE=2'd1;
@@ -80,6 +81,7 @@ always @(posedge i_clk)begin
 
 			end
 			DATA_SIZE: begin 
+			eop <= 0;
 				if(i_data_valid) begin 
 					data_size <= i_data;
 					counter <= i_data;
@@ -160,6 +162,7 @@ always @(posedge i_clk)begin
 				else if((i_data_valid==1) && (i_data==sof) && (counter==0)) begin 
 						state<=DATA_SIZE;
 						wren<=0;
+						eop <= 1;
 				end
 				else begin 
 					wren<=0;

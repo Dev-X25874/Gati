@@ -199,7 +199,15 @@ module rah_gati #(
     input   [ADW_C-1:0] rdata   , 
     input   [      7:0] bid     , 
     input               bvalid  , 
-    output              bready  
+    output              bready  ,
+     
+    //io signals
+    output [6:0] kernal_count, // represents the current kernal iteration number 
+    output [6:0] channel_count, // represents the current channel iteration number
+    output soft_start, //user_start from top_gati_module
+    output [3:0] layer_count,
+    output layer_done,
+    output eop
 
 );
 
@@ -246,6 +254,8 @@ module rah_gati #(
   wire valid_wr_req_ctrl;
   wire user_start;
   parameter MIPI_REQ_BLEN = 11;
+  
+  assign soft_start = user_start;
 	////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
       .N_FIFO(OP_FIFO),
@@ -272,7 +282,8 @@ module rah_gati #(
       .final_burst_len_wr_req_ctrl(final_burst_len_wr_req_ctrl),
       .final_last_wr_req_ctrl(final_last_wr_req_ctrl),
       .valid_wr_req_ctrl(valid_wr_req_ctrl),
-	    .soft_start(user_start)
+      .soft_start(user_start),
+      .eop(eop)
   );
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
@@ -719,7 +730,12 @@ module rah_gati #(
       .dispatch_id(dispatch_id),
       .dispatch_cpu_en(dispatch_cpu_en),
       .datasize_fpga2cpu(datasize_fpga2cpu),
-      .fpga2cpu_start_address(fpga2cpu_start_address)
+      .fpga2cpu_start_address(fpga2cpu_start_address),
+       
+       //for io signals
+      .kernal_count(kernal_count), // represents the current kernal iteration number 
+      .channel_count(channel_count), // represents the current channel iteration number
+      .layer_count(layer_count) 
   );
   ///////////////////////////////	
 // (* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;

@@ -32,7 +32,7 @@ assign burst_length = r_burst_length;
     reg r_config_start;
     reg r_fifo_status; //occupancy check
     reg r_data_last;
-
+    reg r_CONV_FC;
 always @ (posedge clk) begin 
     // rbl_add1<=r_burst_length+1;
     nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));

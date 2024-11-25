@@ -33,6 +33,7 @@ module rah_gati #(
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 7,
+    parameter FC_WEIGHT_REQ_BLEN = 64,
     parameter ACC_REQ_BLEN = 11,
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 11, //burst length for writng accumulants (32-bit) into the DRAM
@@ -573,6 +574,7 @@ module rah_gati #(
       .CONFIG_REQ_BLEN(CONFIG_REQ_BLEN),
       .IMG_REQ_BLEN(IMG_REQ_BLEN),
       .WEIGHT_REQ_BLEN(WEIGHT_REQ_BLEN),
+      .FC_WEIGHT_REQ_BLEN(FC_WEIGHT_REQ_BLEN),
       .ACC_REQ_BLEN(ACC_REQ_BLEN),
       .BIAS_REQ_BLEN(BIAS_REQ_BLEN),
       .OP_WRITE_REQ_ACC_BLEN(OP_WRITE_REQ_ACC_BLEN),

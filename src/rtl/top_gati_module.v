@@ -17,6 +17,7 @@ module top_gati_module #(
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 15,
+    parameter FC_WEIGHT_REQ_BLEN = 64,
     parameter ACC_REQ_BLEN = 15,
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
@@ -690,7 +691,8 @@ module top_gati_module #(
   assign stop_address_weights   = CONV_FC ? weight_stop_addr_fc  : weight_stop_addr_conv;
   wire weight_data_last; 
   request_controller_weights #(
-      .BURST_LENGTH(WEIGHT_REQ_BLEN),
+      .BURST_LENGTH1(WEIGHT_REQ_BLEN), //burst length in CONV mode
+      .BURST_LENGTH2(FC_WEIGHT_REQ_BLEN), //burst length in FC mode
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
       .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -699,8 +701,9 @@ module top_gati_module #(
       .start_addr(start_address_weights),
       .stop_addr(stop_address_weights),
       .config_start(start),
+      .CONV_FC(CONV_FC),
       .fifo_status(weight_fifo_status),
-      .data_last(weight_data_last),
+      //.data_last(weight_data_last),
       .clk(i_clk),
       .addr_out(mc_wghts_addr),
       .wr_enable(mc_wghts_rdreq),
@@ -986,9 +989,25 @@ module top_gati_module #(
 	  limit_f<=(((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
   end
 
+  //Virtual occupant logic for weights
+  reg [$clog2(WEIGHT_FIFO_DEPTH):0] virtual_occ_weight;
+  always@(posedge i_clk) begin
+    if(!i_rst) virtual_occ_weight <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_wghts_last && select[`Weight])  virtual_occ_weight <= virtual_occ_weight + mc_wghts_bl;
+        else if(mc_wghts_last)                virtual_occ_weight <= virtual_occ_weight + (mc_wghts_bl+1);
+        else if(select[`Weight])              virtual_occ_weight <= virtual_occ_weight - 1;
+        else                                  virtual_occ_weight <= virtual_occ_weight;
+      end
+      else begin
+        virtual_occ_weight <= 0;
+      end
+    end
+  end
   assign weight_fifo_status = (CONV_FC==0)? 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{limit_c}})? 1 : 0) : 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{limit_f}})? 1 : 0);
+                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_c}})? 1 : 0) : 
+                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),

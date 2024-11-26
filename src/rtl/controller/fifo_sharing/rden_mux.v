@@ -57,10 +57,10 @@ end
 */
 always @(posedge i_clk)begin
     if(~i_rstn)begin
-        north_rden = 0;
-        sel_count = 0;
-        row_counter = 0;
-        state = 0;
+        north_rden <= 0;
+        sel_count <= 0;
+        row_counter <= 0;
+        state <= 0;
     end else begin
         case (i_sel_1)
             1'b0:begin  //Fully connected layer

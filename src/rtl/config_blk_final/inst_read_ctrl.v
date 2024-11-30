@@ -14,6 +14,7 @@ module inst_read_ctrl#(
     parameter TOTAL_LAY_N=12
   )(
     input clkin,
+    input valid_inst,
     input [NUM_INSTRUCTIONS-1:0]valid_ack,
     input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
     input [NUM_INSTRUCTIONS-1:0]ack_in,
@@ -23,6 +24,7 @@ module inst_read_ctrl#(
     input user_start,
     input done_status,
     input [OPCODE_W-1:0]opcode, //opcode received from instruction data
+    input dispatch_busy,
     output reg bus_master_valid, //valid signal for bus master(start)
     output reg [NUM_INSTRUCTIONS-1:0] start_command, //sends start signal to respective slave blocks
     output reg start_out,//pulses start for one cycle every time we get a start instruction
@@ -49,13 +51,31 @@ module inst_read_ctrl#(
   reg [NUM_INSTRUCTIONS-1:0]psedo_ack_reg=0; //interim register
   reg [NUM_INSTRUCTIONS-1:0]valid_ack_reg=0;
 
+
+reg f1,f2;
+always @(*) begin 
+
+	f1<=((layer_number==total_layers)&&(opcode==ALL_ONES))?1:0;
+	f2<=((status_inst_q && done_status)| (flag&&status_inst_q))?1:0;
+
+end
+
+
+
+
+
+
+
+
+
+
   always @(posedge clkin)
   begin
     case(super_state)
       4'd0:
       begin
         //layer_done<=0;
-        if((layer_number==total_layers)&&(opcode==ALL_ONES)) //if conditions match make config block wait for user start again
+        if(f1) //if conditions match make config block wait for user start again
         begin
           if(flag_2)
           begin
@@ -96,7 +116,7 @@ module inst_read_ctrl#(
             4'd1:
             begin
 
-              if((status_inst_q && done_status)| (flag&&status_inst_q)) //send read signal
+              if(f2) //send read signal
               begin
                 read_signal_reg<=1'b1;
                 flag<=0;
@@ -115,15 +135,17 @@ module inst_read_ctrl#(
             end
             4'd3:
             begin
-              r_opcode<=opcode; //store opcode
-              top_state<=4'd4;
+              if(valid_inst) begin
+                r_opcode<=opcode; //store opcode
+                top_state<=4'd4;
+              end
             end
             4'd4:
             begin
               if(r_opcode!=ALL_ONES) //based on opcode and prev_reg  set next reg
               begin
                 case(state0)
-                  4'b0:
+                  4'd0:
                   begin
                     if(prev_reg[((r_opcode<<1)+1)-:2]==2'b00)
                     begin
@@ -185,7 +207,7 @@ module inst_read_ctrl#(
                   begin
                     read_signal_reg<=1'b0;
                     bus_master_valid<=1'b0;
-                    if(ack_reg==0)
+                    if((ack_reg==0)&&(~dispatch_busy)) //when dispacter is busy i.e signal one we do not send start signal to slave blocks
                     begin
                       ack_reg<=psedo_ack_reg;
                       prev_reg<=next_reg;
@@ -199,7 +221,7 @@ module inst_read_ctrl#(
                     start_out<=1;
                     read_signal_reg<=1'b1;
                     state_start<=4'd2;
-                    bus_master_valid<=1'b1;
+                    bus_master_valid<=1'b0;
 
                   end
                   4'd2:
@@ -239,7 +261,7 @@ module inst_read_ctrl#(
           begin
             read_signal_reg<=1'b0;
             bus_master_valid<=1'b0;
-            if(ack_reg==0)
+            if((ack_reg==0)&&(~dispatch_busy))//when dispacter is busy i.e signal one we do not send start signal to slave blocks
             begin
               ack_reg<=psedo_ack_reg;
               prev_reg<=next_reg;
@@ -252,7 +274,7 @@ module inst_read_ctrl#(
             start_command<=psedo_ack_reg;
             start_out<=1;
             state_start_2<=4'd2;
-            bus_master_valid<=1'b1;
+            bus_master_valid<=1'b0;
 
           end
           4'd2:

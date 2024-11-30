@@ -1,7 +1,7 @@
-module top_zero #(parameter DW=32,
+module top_zero #(parameter DW=32, 
 	parameter COL=4,
-	parameter I_SIZE_WIDTH=20,
-	parameter MOD=2)
+	parameter I_SIZE_WIDTH=16,
+	parameter MOD=8)
 
 	(input clk,
 		input rst,
@@ -18,7 +18,7 @@ module top_zero #(parameter DW=32,
 			zero_padder #(.DW(DW),
 				.I_SIZE_WIDTH(I_SIZE_WIDTH),
 				.MOD(MOD))
-				 z1
+			z1
 			(.clk(clk),
 			.rst(rst),
 			.i_size(i_size),

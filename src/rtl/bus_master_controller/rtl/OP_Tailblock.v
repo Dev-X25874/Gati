@@ -28,7 +28,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 input done,
                 input clk,
                 output reg ready = 0,
-                output valid,
+                output reg valid,
                 output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
                 output reg [BNEN_WIDTH - 1 : 0] BNEn = 0,
                 output reg [BNCHANNELS_WIDTH -1 : 0] BNchannels = 0,
@@ -60,33 +60,34 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011; 
-assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
+// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals           
 
 always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
         ready <= 0;
-        opcode <= 0;
-        BNchannels <= 0;
-        BNStartAddress <= 0;
-        BNEndAddress <= 0;
-        ActEn <= 0;
-        ActParam <= 0;
-        acttype <= 0;
-        QuantEn <= 0;
-        quantscale <= 0;
-        quantshift <= 0;
-        PoolEn <= 0;
-        pooltype <= 0;
-        poolwidth <= 0;
-        poolheight <= 0;
-        poolstride <= 0;
-        poolpadding <= 0;
-        BiasEn <= 0;
-        FCBiasEn <= 0;
-        BiasStartAddress <= 0;
-        BiasEndAddress <= 0;
+        valid <= 0;
+        // opcode <= 0;
+        // BNchannels <= 0;
+        // BNStartAddress <= 0;
+        // BNEndAddress <= 0;
+        // ActEn <= 0;
+        // ActParam <= 0;
+        // acttype <= 0;
+        // QuantEn <= 0;
+        // quantscale <= 0;
+        // quantshift <= 0;
+        // PoolEn <= 0;
+        // pooltype <= 0;
+        // poolwidth <= 0;
+        // poolheight <= 0;
+        // poolstride <= 0;
+        // poolpadding <= 0;
+        // BiasEn <= 0;
+        // FCBiasEn <= 0;
+        // BiasStartAddress <= 0;
+        // BiasEndAddress <= 0;
         count <= 0;
         state <= REGISTER;
     end
@@ -108,7 +109,7 @@ always @(posedge clk) begin
         end
     end
     CONCAT: begin
-        if(done) begin
+        // if(done) begin
             opcode <= data_instruction[`TailBlock_Opcode];
             BNchannels <= data_instruction[`TailBlock_BNChannels];
             BNEn <= data_instruction[`TailBlock_BNEn];
@@ -130,8 +131,9 @@ always @(posedge clk) begin
             FCBiasEn <= data_instruction[`TailBlock_FCBiasEn];
             BiasStartAddress <= data_instruction[`TailBlock_BiasStartAddress];
             BiasEndAddress <= data_instruction[`TailBlock_BiasEndAddress];
+            valid <= 1'b1;
             state <= IDLE;
-        end
+        // end
     end
     endcase
 end

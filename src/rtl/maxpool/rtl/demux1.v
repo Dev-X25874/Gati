@@ -39,18 +39,18 @@ module demux1 #(parameter DATA_IN = 8) (
   always @ (posedge clk) begin
     if(sel) begin
       a <= {datavalid, din};
-      b <= {0, b[7:0]};
+      b <= {1'b0, b[7:0]};
     end
     else begin
-      a <= {0, a[7:0]};
+      a <= {1'b0, a[7:0]};
       b <= {datavalid, din};
     end
   end 
 
  // always @(posedge rx_valid)
-  always @(posedge datavalid)
+  always @(*)
   begin
-    c <= a;
+    c = a;
   end
 
 endmodule

@@ -32,16 +32,16 @@ module weight_fifo_array_rden#(
     So, just 9 bits of the ROW parameter are taken to match the size of the occupants signal 
     in order to concatinate and check that the occupants are at least equal to ROW.
 */
-localparam S_ROW = ROW[8:0];
+localparam S_ROW = ROW[W_ADDR:0];
 
-wire w_start;
+//wire w_start;
 //Generates one pulse from trigger sent externally
-pulse_gen start_pulse (
-    .a(i_start),
-    .i_rstn(i_rstn),
-    .clk(i_clk),
-    .b(w_start)
-);
+//pulse_gen start_pulse (
+//    .a(i_start),
+//    .i_rstn(i_rstn),
+//    .clk(i_clk),
+//    .b(w_start)
+//);
 
 reg [2:0] state = 0;
 reg [4:0] counter = 0;
@@ -61,16 +61,20 @@ always @(posedge i_clk) begin
     end else begin
         case (state)
             0: begin
-                if(w_start)begin
-                    state <= 1;
-                    rden <= 0;
+                if(i_layer_done)begin
                     sel <= 1'b1;
                 end
-            end 
-
+				else if (i_start) begin
+					state<=1;
+				end
+				else begin 
+					state<=0;
+				end
+				rden<=0;
+			end
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW
-                if((i_fifo_empty == 0) && (i_fifo_occupants >= {COL{S_ROW}}))begin
+                if((i_fifo_empty == 0))begin            //(i_fifo_occupants >= {COL{S_ROW}})
                     rden <= {COL{1'b1}};
                     state <= 2;
                 end
@@ -95,19 +99,19 @@ always @(posedge i_clk) begin
                         sel <= ~sel;
                     else
                         sel <= sel;
-                    state <= 4;
+                    state <= 0;
                 end
             end
 
-            4: begin
-                if(i_layer_done)begin
-                    state <= 0;
-                    sel <= 1'b1;
-                end else begin
-                    state <= 1;
-                    sel <= sel;
-                end
-            end
+           // 4: begin
+           //     if(i_layer_done)begin
+           //         state <= 0;
+           //         sel <= 1'b1;
+           //     end else begin
+           //         state <= 1;
+           //         sel <= sel;
+           //     end
+           // end
 
             default: state <= 0;
         endcase

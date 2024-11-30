@@ -6,6 +6,7 @@ module Tail_done_gen#(
 (
     input i_clk,
     input rst,
+    input CONV_FC,
     input [N -1:0] datavalid_acc,
     input [N -1:0] datavalid_pool,
     input pool_en,
@@ -17,12 +18,26 @@ module Tail_done_gen#(
 
 localparam I_SIZE_WIDTH = (I_ACC_SIZE_WIDTH > I_OP_SIZE_WIDTH) ? I_ACC_SIZE_WIDTH : I_OP_SIZE_WIDTH;
 
-wire [I_SIZE_WIDTH-1:0] data_count;
-assign data_count = (pool_en==0)? img_dim_Acc : img_dim_Op;
+reg [I_SIZE_WIDTH-1:0] data_count;
+//assign data_count = (pool_en==0)? img_dim_Acc : img_dim_Op;
 
 reg [I_SIZE_WIDTH : 0] counter;
 reg state;
 reg r_tail_done;
+
+always @ (posedge i_clk) begin 
+	if(~CONV_FC) begin	
+		if (~pool_en) begin
+		    data_count<=img_dim_Acc;
+		end
+		else begin 
+		    data_count<=img_dim_Op;
+		end
+    end
+    else begin
+        data_count<=img_dim_Op;
+    end
+end
 
 always@(posedge i_clk) begin
     if(!rst) begin
@@ -34,7 +49,7 @@ always@(posedge i_clk) begin
         case(state)
             0:begin
                 r_tail_done <= 1'b0;
-                if(datavalid_acc=={N{1'b1}}||(datavalid_pool=={N{1'b1}})) begin
+                if((datavalid_acc=={N{1'b1}})  || (datavalid_pool=={N{1'b1}})) begin
                     state <= 1;
                     counter <= counter;
                 end
@@ -44,12 +59,12 @@ always@(posedge i_clk) begin
                 end
             end
             1: begin
-                if(counter == data_count-1) begin
+                if(counter == (data_count-1)) begin
                     counter     <= 0;
                     state       <= 0;
                     r_tail_done <= 1'b1;
                 end
-                else if(datavalid_acc=={N{1'b1}}||(datavalid_pool=={N{1'b1}})) begin
+                else if((datavalid_acc=={N{1'b1}}) || (datavalid_pool=={N{1'b1}})) begin
                     counter     <= counter + 1;
                     state       <= 1;
                     r_tail_done <= 1'b0;

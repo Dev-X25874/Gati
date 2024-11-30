@@ -18,11 +18,14 @@ module config_blk #(
     parameter STATUS_DRAM_LIM=10)
   (
     input clkin,
+    input rst,
     input user_start,
     input valid,
+    input data_last,
     input sel,
     input [INST_W-1:0]instruction_data,
     input done,//from bus master
+    input dispatch_busy, //from fpga2cpu module
     output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,
@@ -61,7 +64,7 @@ module config_blk #(
                  .status(status_3_1),
                  .global_reg_address_start(global_start),
                  .global_reg_address_stop(global_stop),
-                 .address_valid(instruction_v_2_3),
+                 .address_valid(address_valid),
                  .read_req(memory_read_r),
                  .valid(memory_valid),
                  .o_address(mem_address),
@@ -73,11 +76,14 @@ module config_blk #(
   controller_inst_q #(.INSTRUCT_W(INST_W),.ADDR_W(ADDR_W)) inst_q_controller_2(
                       .clkin(clkin),
                       .valid(valid),
+                      .rst(rst),
+                      .data_last(data_last),
                       .sel(sel),
                       .user_start(user_start),
                       .i_instruction_data(instruction_data),
                       .o_instruction(instruction_2_3),
                       .o_instruction_valid(instruction_v_2_3),
+                      .o_address_valid(address_valid),
                       .o_global_start(global_start),
                       .o_global_stop(global_stop)
                     );
@@ -88,7 +94,8 @@ module config_blk #(
                .STATUS_DRAM_LIM(STATUS_DRAM_LIM))
              inst_q_3(
                .clkin(clkin),
-               .instruct_mem(instruction_2_3),
+               .rst(rst),
+				       .instruct_mem(instruction_2_3),
                .read_req_inst(read_req_3_4),
                .instruct_valid(instruction_v_2_3),
                .o_instruction(o_instruction_3_5),
@@ -103,9 +110,11 @@ module config_blk #(
                    .LAY_N(LAY_N),
                    .TOTAL_LAY_N(TOTAL_LAY_N))inst_read_ctrl_4(
                    .clkin(clkin),
+                   .valid_inst(o_instruction_3_5_v),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),
                    .ack_in(ack_6_4),
+                   .dispatch_busy(dispatch_busy),
                    .layer_number(o_instruction_3_5[`START_LayerNumber]),
                    .total_layers(o_instruction_3_5[`START_TotalLayers]),
                    .status_inst_q(status_3_4),
@@ -121,6 +130,7 @@ module config_blk #(
 //Instantiation of Acknowledgment Controller
   ctrl_ack #(.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))ack_block_6(
              .clkin(clkin),
+             .rst(rst),
              .inst_signals(ack_signals),
              .status_ack(ack_6_4),
              .status_prev(prev_6_4),

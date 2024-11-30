@@ -9,9 +9,9 @@ module Accumulator_sel_ctrler#(
     output reg [$clog2(NO_PORT)-1:0] sel,
     output reg valid_out
 );
-    reg [$clog2(NO_PORT):0] count;
+    reg [$clog2(NO_PORT)-1:0] count;
     reg cnt_en;
-    wire [$clog2(NO_PORT)-1:0] count_max;
+    wire [$clog2(NO_PORT):0] count_max;
     assign count_max = NO_PORT[$clog2(NO_PORT):0];
 
     always@(posedge clk) begin

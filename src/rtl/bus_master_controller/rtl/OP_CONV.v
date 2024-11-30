@@ -37,7 +37,7 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
-                output valid,
+                output reg valid,
                 output reg ready = 0
             );
 
@@ -49,29 +49,29 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011;
-assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals
+// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals
 
 always @(posedge clk) begin
     case(state)
     IDLE: begin
         data_instruction <= 0;
-       // valid <= 0;
+        valid <= 0;
         ready <= 0;
-        opcode = 0;
-        IW <= 0;
-        IH <= 0;
-        OW <= 0;
-        OH <= 0;
-        IC <= 0;
-        KN <= 0;
-        KW <= 0;
-        KH <= 0;
-        Stride <= 0;
-        Pad <= 0;
-        ImageStartAddress <= 0;
-        ImageEndAddress <= 0;
-        WeightStartAddress <= 0;
-        WeightEndAddress <= 0;
+        // opcode <= 0;
+        // IW <= 0;
+        // IH <= 0;
+        // OW <= 0;
+        // OH <= 0;
+        // IC <= 0;
+        // KN <= 0;
+        // KW <= 0;
+        // KH <= 0;
+        // Stride <= 0;
+        // Pad <= 0;
+        // ImageStartAddress <= 0;
+        // ImageEndAddress <= 0;
+        // WeightStartAddress <= 0;
+        // WeightEndAddress <= 0;
         state <= REGISTER;
     end
     REGISTER: begin
@@ -92,7 +92,7 @@ always @(posedge clk) begin
         end
     end
     CONCAT: begin
-        if(done) begin
+        // if(done) begin
             opcode <= data_instruction[`CONV_Opcode];
             IW <= data_instruction[`CONV_IW];
             IH <= data_instruction[`CONV_IH];
@@ -108,9 +108,9 @@ always @(posedge clk) begin
             ImageEndAddress <= data_instruction[`CONV_ImageEndAddress];
             WeightStartAddress <= data_instruction[`CONV_WeightStartAddress];
             WeightEndAddress <= data_instruction[`CONV_WeightEndAddress];
-           //valid <= 1'b1;
+            valid <= 1'b1;
             state <= IDLE;
-        end
+        // end
     end
     endcase
 end

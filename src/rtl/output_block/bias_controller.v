@@ -34,7 +34,7 @@ reg[$clog2(NO_PORT)-1:0] i=0;
     end
 	else
 		begin 
-		if(count==1 & data_valid_tree)
+		if((count==1) & data_valid_tree)
 		begin 
 			sel<=1<<i;
 			i<=i+1;
@@ -57,13 +57,13 @@ reg[$clog2(NO_PORT)-1:0] i=0;
 	case(state)
 	IDLE:begin
 	
-	if(((~empty_fifo)&data_valid_tree) & enable)
+	if(((~|empty_fifo)&data_valid_tree) & enable)
 	begin 
 	  valid_rd_en<={FIFO_NO{1'b1}};
 	  state<=NEXT;	
 	 
 	end
-	else if(empty_fifo) begin
+	else if(|empty_fifo) begin
 		count <= 0;
 		valid_rd_en<=0;
 	end
@@ -72,18 +72,10 @@ reg[$clog2(NO_PORT)-1:0] i=0;
 	
 	NEXT:begin
 	valid_rd_en<={FIFO_NO{1'b0}};	
-	if(count==1)
-	begin 
-		count<=count;
-		// if(data_valid_tree)
-		// begin 
-		// sel<=1<<i;
-		// i<=i+1;
-		// end
-	end
+	if(count==1) count<=count;
 	else count<=count+1;
     if(NO_PORT==2) begin
-        if(sel[1]==1'b1)
+        if(sel[0]==1'b1)
         begin
             state<=IDLE;	
         end

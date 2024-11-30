@@ -39,7 +39,7 @@ module maxpool #(parameter DATA_IN = 8) (
       end
     end
     else begin
-      temp <= {0, temp[7:0]};
+      temp <= {1'b0, temp[7:0]};
     end
   end
 endmodule

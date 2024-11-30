@@ -5,6 +5,7 @@ module top_buffer #(
 ) (
     input clk,
     input rst,
+	  input stall_on,
     input [(DRAM_BW*BUFFER_SIZE) -1:0] data_in,
     input data_signal,
     output [BUFFER_SIZE*N_SA -1 : 0] data_out,
@@ -22,6 +23,7 @@ module top_buffer #(
       ) b1 (
           .clk(clk),
           .rst(rst),
+		      .stall_on(stall_on),
           .data_in(data_in[(DRAM_BW/N_SA)*(N_SA-i)*BUFFER_SIZE-1-:BUFFER_SIZE*(DRAM_BW/N_SA)]),
           .data_signal(data_signal),
           .element_poped(element_poped[((N_SA-i)*3) -1 -:3]),
@@ -40,7 +42,7 @@ module buffers #(
 ) (
     input clk,
     input rst,
-
+	  input stall_on,
     input [((DRAM_BW/N_SA)*BUFFER_SIZE) - 1:0] data_in,
     input data_signal,
     output reg [2:0] element_poped = 0,
@@ -49,35 +51,40 @@ module buffers #(
 
   reg [(BUFFER_SIZE*(DRAM_BW/N_SA))-1:0] buffer = 0;
 
-  reg [$clog2((DRAM_BW/N_SA))-1:0] j = 0;
-
+  reg  [$clog2((DRAM_BW/N_SA))-1:0] j = 0;
+	integer i;
   //	reg [2:0] element_count=3'd7;	 
 
-
+  always@(*) begin
+    if(~rst) begin
+      buffer = 0;
+    end
+    else begin
+      buffer = data_in;
+    end
+  end
 
   always @(posedge clk) begin
 
     if (~rst) begin
-      buffer <= 64'd0;
-
-    end else begin
-      buffer <= data_in;
-
+      // buffer <= 64'd0;
+      j <= 0;
+      element_poped <= 0;
     end
+    // else begin
+    //   buffer <= data_in;
+    // end
     //	if(read_state) stat<=read_fifo;
 
-
-    if (data_signal) begin
-      data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-j)-1-:BUFFER_SIZE];
+    if (data_signal && (~stall_on)) begin
+		for( i=0;i<(DRAM_BW/N_SA);i=i+1) begin 
+			if(j==i) begin 
+				data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-i)-1-:BUFFER_SIZE];
+			end
+		end 
       j <= j + 1;
       element_poped <= element_poped + 1;
-
-
-
-
-
-    end
-
+	  end
   end
 
 endmodule

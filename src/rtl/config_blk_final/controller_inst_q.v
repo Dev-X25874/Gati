@@ -10,11 +10,14 @@ module controller_inst_q #(
 )(
     input clkin,
     input valid,
+    input rst,
+    input data_last,
     input sel,
     input user_start,
     input [INSTRUCT_W-1:0]i_instruction_data,
     output reg [INSTRUCT_W-1:0]o_instruction,
-    output reg o_instruction_valid, //also used as address valid
+    output reg o_instruction_valid, 
+    output reg o_address_valid,
     output [ADDR_W-1:0]o_global_start,
     output [ADDR_W-1:0]o_global_stop
   );
@@ -23,6 +26,13 @@ module controller_inst_q #(
   reg [ADDR_W-1:0]internal_stop;
   always@(posedge clkin)
   begin
+  if(!rst) begin
+    state <= 0;
+    o_instruction <= 0;
+    o_instruction_valid <= 0;
+    o_address_valid <= 0;
+  end
+  else begin
     case(state)
       4'd0:
       begin
@@ -36,30 +46,34 @@ module controller_inst_q #(
           begin
             o_instruction<=i_instruction_data;
             o_instruction_valid<=1; //set valid to 1
+            o_address_valid <= 0;
           end
           else
           begin
             o_instruction_valid<=0; //set valid to 0
+            o_address_valid <= 0;
           end
 
         end
       end
       4'd1:
       begin
-        if(sel && valid) 
+        if(sel && valid && data_last) 
         begin
             internal_start<=i_instruction_data[ADDR_W-1:0];
             internal_stop<=i_instruction_data[2*ADDR_W-1:ADDR_W];
-            o_instruction_valid<=1;
+            o_instruction_valid<=0;
+            o_address_valid <= 1;
             state<=0;
         end
         else
         begin
           o_instruction_valid<=0; //set valid to 0
+          o_address_valid <= 0;
         end
       end
     endcase
-
+  end  
   end
   assign o_global_start=internal_start;
   assign o_global_stop=internal_stop;

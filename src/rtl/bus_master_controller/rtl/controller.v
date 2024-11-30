@@ -28,11 +28,12 @@ always @(posedge clk) begin
         sel <= 0;
         write <= 0;
         done <= 0;
-        state <= SPLIT;
         count <= 0;
+        if(start)  state <= SPLIT;
+        else state <= IDLE;        
     end
     SPLIT: begin
-        if(start) begin
+        // if(start) begin
             sel[op_code] <= 1'b1;
             if(ready) begin
                 if(count < (CNT-1)) begin
@@ -53,7 +54,7 @@ always @(posedge clk) begin
                 end
             end
         end
-    end
+    // end
     endcase
 end
 

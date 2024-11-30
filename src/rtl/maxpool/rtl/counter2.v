@@ -48,7 +48,7 @@ always @ (posedge clk) begin
   end
   else if(counter == (dynamic_threshold)) begin
     if (datavalid) begin
-      counter <= 14'd1                          ;
+      counter <= 14'd1;
       toggle <= 0;
     end
     else begin

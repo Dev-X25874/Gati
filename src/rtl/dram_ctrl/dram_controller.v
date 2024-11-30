@@ -11,7 +11,7 @@ module dram_controller#(
   parameter W_KERNEL_CNT = 16,
   parameter W_CHANNEL_CNT =16,
   parameter IMAGE_DIM_WIDTH_ACC = 16,
-  parameter IMAGE_DIM_WIDTH_OP=16
+  parameter IMAGE_DIM_WIDTH_OP=16 
 )(
   input clkin,
   input i_rstn,
@@ -37,10 +37,11 @@ module dram_controller#(
 
 localparam IMAG_DIM_OUTPUT = NUMBER_OP*(BURST_LENGTH_2+1);
 localparam IMAG_DIM_ACC = NUMBER_ACC*(BURST_LENGTH+1);
+localparam APPEND = $clog2(DEPTH)-BURST_LEN_WIDTH;
 
 reg [ADDR_WIDTH-1:0] op_start_add1 = 0;
-reg [W_CHANNEL_CNT-1:0] channel_itr = 0;
-reg [W_KERNEL_CNT-1:0] kernel_itr = 0;
+reg [W_CHANNEL_CNT-1:0] channel_itr = 0,sub_channel=0,sub2_channel=0;
+reg [W_KERNEL_CNT-1:0] kernel_itr = 0,sub_k=0;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim = 0;
 reg [IMAGE_DIM_WIDTH_OP-1:0] imag_dim_2 = 0;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] imag_dim_init = 0;
@@ -66,16 +67,25 @@ reg [9:0]offset_op=0;
 reg [3:0]top_state=0;
 wire result_int;
 wire result_int_2;
-reg [BURST_LEN_WIDTH-1:0]burst_length=BURST_LENGTH+1;
-reg [BURST_LEN_WIDTH-1:0]burst_length_2=BURST_LENGTH_2+1;
+// reg [BURST_LEN_WIDTH:0]burst_length=BURST_LENGTH+1;
+// reg [BURST_LEN_WIDTH:0]burst_length_2=BURST_LENGTH_2+1;
+reg [$clog2(DEPTH) : 0] burst_length, burst_length_2;
 
-assign result_int = (occupants>=({N{burst_length}}))?1:0;
-assign result_int_2 = (occupants>=({N{burst_length_2}}))?1:0;
+// assign result_int = (occupants>=({N{{APPEND{1'b0},burst_length}}}))?1:0;
+// assign result_int_2 = (occupants>=({N{{APPEND{1'b0},burst_length_2}}}))?1:0;
+assign result_int = (occupants>=({N{burst_length}}))? 1 : 0; 
+assign result_int_2 = (occupants>=({N{burst_length_2}}))? 1 : 0;
 assign o_op_start_add = op_start_add1;
 assign o_burst_length = burst_length-1;
 assign o_burst_length_2 = burst_length_2-1;
 assign o_image_done = image_done;
 assign o_image_done_2= image_done_2;
+
+always @ (posedge clkin) begin 
+	sub_channel<=channel_itr-1;
+	sub2_channel<=channel_itr-2;
+	sub_k<=kernel_itr-1;
+end
 
 always@(posedge clkin)
 begin
@@ -97,7 +107,7 @@ begin
     flag <= 1;
     image_done <= 0;
     image_done_2 <= 0;
-    flag_2 <= 0;
+    flag_2 <= 1;
     flag_3 <= 0;
     flag_4 <= 1;
     kernel_count <= 0;
@@ -145,15 +155,19 @@ begin
       begin
         if(channel_itr<2)
         begin
-          if(kernel_count<=(kernel_itr-1))
+          if(kernel_count<=sub_k)
           begin
             case(case_1_output)
               5'd0:
               begin
+				  if(imag_dim_2==0) begin
+					  imag_dim_2<=imag_dim_init_2;
+				  end
+
                 burst_length_2<=BURST_LENGTH_2+1;
                 if(~image_done_2)
                 begin
-                  if(result_int)
+                  if(result_int_2)
                   begin
                     case_1_output<=1;
                   end
@@ -164,6 +178,7 @@ begin
                 end
                 else
                 begin
+                  
                   case_1_output<=3;
                 end
               end
@@ -173,10 +188,11 @@ begin
               end
               5'd2: //2
               begin
-                op_start_add1<=op_start_add1+offset_op;
-                imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
+                // op_start_add1<=op_start_add1+offset_op;
+                op_start_add1<=op_start_add1;
                 case_1_output<=6; //6
                 memory_request<=1;
+                op_valid_1 <= 1;
               end
               5'd3: //3
               begin
@@ -197,36 +213,42 @@ begin
               begin
                 kernel_count<=kernel_count+1;
                 case_1_output<=6; //6
-                op_start_add1<=op_start_add1+offset_op;
+                op_start_add1<=op_start_add1;
+                // op_start_add1<=op_start_add1+offset_op;
                 memory_request<=1;
-
+                op_valid_1<=1;
               end
               5'd6: //6
               begin
                 memory_request<=0;
+                op_valid_1<=0;
                 if(last)
                 begin
                   case_1_output<=0; //0
-                  op_valid_1<=1;
+                	imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
+                  op_start_add1<=op_start_add1+offset_op;
+                  imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 end
                 else
                 begin
                   case_1_output<=6; //6
+                  op_start_add1<=op_start_add1;
+                  imag_dim_2<=imag_dim_2;
                 end
 
               end
             endcase
           end
-          else if(kernel_count>(kernel_itr-1))
+          else if(kernel_count>sub_k)
           begin
             top_state<=4'd0;
           end
         end
         else
         begin
-          if(kernel_count<=(kernel_itr-1))
+          if(kernel_count<=sub_k)
           begin
-            if(channel_count<(channel_itr-1))
+            if(channel_count<sub_channel)
             begin
               op_valid_1<=0;
               case_2_output<=0;
@@ -271,7 +293,7 @@ begin
                   case_2_acc<=6;
                   memory_request<=1;
                   acc_address_valid<=1;
-                  imag_dim<=imag_dim-IMAG_DIM_ACC;
+                  // imag_dim<=imag_dim-IMAG_DIM_ACC;
                 end
                 5'd3://3
                 begin
@@ -309,6 +331,7 @@ begin
                   if(last)
                   begin
                     case_2_acc<=0;
+                    imag_dim<=imag_dim-IMAG_DIM_ACC;
                   end
                   else
                   begin
@@ -317,7 +340,7 @@ begin
                 end
               endcase
             end
-            else if(channel_count==(channel_itr-1))
+            else if(channel_count== sub_channel)
             begin
               case_2_acc<=0;
               acc_address_valid<=0;
@@ -375,7 +398,7 @@ begin
                   case_2_output<=6;
                   memory_request<=1;
                   op_valid_1<=1;
-                  imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
+                  // imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                 end
                 5'd3://3
                 begin
@@ -420,6 +443,7 @@ begin
                   if(last)
                   begin
                     case_2_output<=0;
+                    imag_dim_2<=imag_dim_2-IMAG_DIM_OUTPUT;
                   end
                   else
                   begin
@@ -463,7 +487,7 @@ begin
         case(imag_dim_case_2)
           5'd0:
           begin
-            if((case_1_output!=0)||(case_2_output!=0)||(channel_count==channel_itr-2))
+            if((case_1_output==0)||(case_2_output==0)||(channel_count==sub2_channel))
             begin
               if(imag_dim_2<IMAG_DIM_OUTPUT)
               begin
@@ -489,4 +513,14 @@ begin
   end
 end
 
+reg [15:0] dbg_cnt;
+always@(posedge clkin) begin
+  if(~i_rstn) begin
+    dbg_cnt <= 0;
+  end
+  else begin
+    if(memory_request) dbg_cnt <= dbg_cnt + 1;
+    else if(image_done|image_done_2) dbg_cnt <= 0;
+  end
+end
 endmodule

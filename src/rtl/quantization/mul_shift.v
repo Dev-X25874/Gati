@@ -25,8 +25,8 @@ module mul_shift#(
   output                                o_data_valid,
   input [SHIFT_WIDTH-1:0]               bit_shift
 );
-  wire [DATA_WIDTH*2-1:0]             w_dout;
-  reg [DATA_WIDTH*2-1:0]              rdout=0;
+  wire [DATA_WIDTH*2-1:0]         w_dout;
+  reg  [DATA_WIDTH*2-1:0]         rdout=0;
   reg                                   r_data_valid=0;
   reg [DATA_WIDTH-1:0]                  r_dina;
 
@@ -47,11 +47,15 @@ module mul_shift#(
       unquantized_valid     <= data_valid;
       r_data_valid          <= 0;      
     end
-    else
+
+    else begin
       r_data_valid <= 0; 
+      unquantized_valid <= 0;
+    end
   end
   
   assign w_dout = (enabled==1)? ((rdout+(1<<(bit_shift-1))) >> bit_shift) : 0;
+  // assign w_dout = (enabled==1)? ((rdout+((1<<bit_shift)>>(1))) >> bit_shift) : 0;
   assign dout = w_dout[OUT_DATA_WIDTH-1:0];
   assign o_data_valid = r_data_valid;
   

@@ -1,6 +1,6 @@
 `include "common/instructions.vh"
 `include "common/portid.vh"
-
+//`include "instruction.mem"
 module top_gati_module #(
     
     // FIFO Depth varies between operators to avoid overflow and underflow 
@@ -17,13 +17,14 @@ module top_gati_module #(
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 15,
+    parameter FC_WEIGHT_REQ_BLEN = 64,
     parameter ACC_REQ_BLEN = 15,
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
-
+    
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 10, //Number of read and write requestors
+    parameter NUM_PORTS = 9, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -61,6 +62,7 @@ module top_gati_module #(
     parameter ROW           = 9,
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
+    parameter DATA_WIDTH_ACC = 32,
     parameter IMAGE_DIM     = 224,
 
     // FC inst. related params
@@ -86,6 +88,8 @@ module top_gati_module #(
     parameter I_ACC_SIZE_WIDTH  = `OutputBlock_ImageDimAcc_WIDTH, // bit width of input image dimension
     parameter I_OP_SIZE_WIDTH   = `OutputBlock_ImageDimOutput_WIDTH,
     parameter ACCEN_WIDTH       = `OutputBlock_AccEn_WIDTH,
+    parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
+    parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter N_DMUX_PORTS = 2,
@@ -113,6 +117,7 @@ module top_gati_module #(
     parameter SHFT_REG_X    = 4, // Number of shift register blocks
     parameter BIAS_FIFO     = 8, // Number of bias FIFOs
     parameter OP_FIFO       = 8,  // Number of output write FIFOs
+    parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter NO_PORT_VA    = 2,
     parameter NO_PORT_BAC   = 2,
@@ -123,17 +128,17 @@ module top_gati_module #(
     input i_clk,
     input s_clk,
     input i_rst,
-    
+  // 	input n_clk, 
     ///////config block input
     input user_start,
-
+    input dispatcher_busy,
     //signals to DRAM ctrler
     ////config
-    output [7:0] mc_config_addr,
-    output mc_config_rdreq,
-    output mc_config_valid,
-    output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
-    output mc_config_last,
+   output [7:0] mc_config_addr,
+   output mc_config_rdreq,
+   output mc_config_valid,
+   output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
+   output mc_config_last,
 
     ////img
     output [7:0] mc_img_addr,
@@ -183,7 +188,7 @@ module top_gati_module #(
     output mc_op_write_valid,
     output [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl,
     output mc_op_write_last,
-    
+
     ///////////////////////operators data
     
     //Signals from DRAM ctrl to internal operator blocks
@@ -199,15 +204,29 @@ module top_gati_module #(
     input [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len,
     input wready,
     output dv_op_write,
-    output data_last_op_write,
-    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo
+    output o_data_last_op_write,
+    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo,
 
+    output layer_debug_pin,
+    
+    //fpga2cpu dispatch signals
+    output start,
+    output layer_done,
+    output [DISPATCH_ID_WIDTH-1:0] dispatch_id,
+    output [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en,
+    output [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu,
+    output [AXI_ADDR_W-1:0] fpga2cpu_start_address,
+       
+    //io signals
+    output [6:0] kernal_count, // represents the current kernal iteration number 
+    output [6:0] channel_count, // represents the current channel iteration number
+    output [3:0] layer_count 
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
     localparam BUS_DATA_OUT = 8;
     localparam CNT = INST_W/BUS_DATA_OUT;
-
+  assign layer_count = layer_cntr;
     /*
     Mem_read_ctrl#(
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -243,11 +262,22 @@ module top_gati_module #(
 
     wire [NUM_INSTRUCTIONS-1:0] start_command;
 
-    wire start_out,start;
-    assign start = start_out;
+    wire start_out;
+    reg start;
+    // assign start = start_out;
+    always@(posedge i_clk) begin //To sync. with start_SA and start_FC
+      start <= start_out;
+    end
 
     wire [NUM_INSTRUCTIONS-1 : 0] valid_inst;
 
+	// wire  [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
+// wire mc_config_rdreq;
+//    wire mc_config_valid;
+
+
+
+		
   config_blk#(
       .ADDR_W(AXI_ADDR_W),
       .INST_W(INST_W),
@@ -260,12 +290,18 @@ module top_gati_module #(
       .LAY_N(LAYERCNT_WIDTH),
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
   ) config_blk_inst (
+	  //.temp_data(temp_data),
+	  //.temp_wren(temp_wren),
       .clkin(i_clk),
-      .user_start(user_start),
+      .rst(i_rst),
+	    .user_start(user_start),
       .valid(dram_rd_datavalid),
+      .data_last(dram_rd_data_last),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
-      .memory_read_r(mc_config_rdreq),
+      .dispatch_busy(dispatcher_busy),
+
+	    .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),
@@ -322,10 +358,12 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] acc_start_address;
   wire [AXI_ADDR_W-1:0] acc_stop_address;
   wire [AXI_ADDR_W-1:0] op_start_address;
+  wire  Acc_onchip;
 
   //Tail inst. signals
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
   wire [RELU_CLIP_WIDTH-1:0] relu_clip_value;
+  wire [ACT_TYPE_WIDTH-1:0] relu_act_type;
   wire [W_QUANT_SHIFT-1:0] tail_quantshift;
   wire [W_QUANT_SCALE-1:0] tail_quantscale;
   wire [ACTEN_WIDTH-1:0] ACT_EN;
@@ -354,7 +392,7 @@ module top_gati_module #(
     else begin
         if(valid_inst[`OP_CONV])
             valid_conv <= 1'b1;
-        else if(layer_done)
+        else if(Conv_Ack)
             valid_conv <= 1'b0;
     end
   end
@@ -366,7 +404,7 @@ module top_gati_module #(
     else begin
         if(valid_inst[`OP_FC])
             valid_fc <= 1'b1;
-        else if(FC_layerdone)
+        else if(FC_Ack)
             valid_fc <= 1'b0;
     end
   end
@@ -374,7 +412,7 @@ module top_gati_module #(
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  
+  reg start_SA,start_FC;
 //   assign valid_conv = valid_inst[`OP_CONV];
 //   assign valid_fc   = valid_inst[`OP_FC];
 
@@ -383,42 +421,103 @@ module top_gati_module #(
     if(!i_rst) begin
         valid_inst_CONV_FC <= 0;
         CONV_FC <= 0;
+        start_SA <= 0;
+        start_FC <= 0;
     end
     else begin
-        if(valid_conv) begin
-            opcode <= conv_opcode;
-            valid_inst_CONV_FC <= 1;
-            CONV_FC <= 0;
+        if(valid_conv & start_out) begin
+          opcode <= conv_opcode;
+          valid_inst_CONV_FC <= 1;
+          CONV_FC <= 0;
+          start_SA <= 1;
         end
-        else if(valid_fc) begin
-            opcode <= fc_opcode;
-            valid_inst_CONV_FC <= 1;
-            CONV_FC <= 1;
+        else if(valid_fc & start_out) begin
+          opcode <= fc_opcode;
+          valid_inst_CONV_FC <= 1;
+          CONV_FC <= 1;
+          start_FC <= 1;
         end
         else begin
-            opcode <= opcode;
-            valid_inst_CONV_FC <= 0;
-            CONV_FC <= CONV_FC;
+          opcode <= opcode;
+          valid_inst_CONV_FC <= valid_inst_CONV_FC;
+          CONV_FC <= CONV_FC;
+          start_SA <= 0;
+          start_FC <= 0;
         end
     end
   end
 
   //Generation of start_SA and start_FC
-  wire start_SA,start_FC;
-  assign start_SA = (CONV_FC==0)? start : 1'b0;
-  assign start_FC = (CONV_FC==1)? start : 1'b0;
-//   assign {start_SA,start_FC} = (CONV_FC==0)? {start,1'b0} : {1'b0,start};
- 
-  reg systolic_array_trigger;
-  reg Flattening_trigger;
+  // wire start_SA,start_FC;
+  // assign start_SA = (CONV_FC==0)? start : 1'b0;
+  // assign start_FC = (CONV_FC==1)? start : 1'b0;
+  /*This is modified since, CONV_FC gets updated one cycle after recieving 'start' signal
+  which causes one cycle delay in generation of 'start_SA' and 'start_FC' signals*/
 
+ wire  [$clog2(IMAGE_DIM)-1:0]      row;    
+ wire  [$clog2(IMAGE_DIM)-1:0]      col;
+
+  reg systolic_array_trigger;
+  reg Flattening_trigger=0;
+  reg im2col_flag=0;
+ // always @ (posedge i_clk) begin
+
+ //   	pre_wait_im2col<=row+col;
+ //     	if(pre_wait_im2col==900) begin
+ //   	  im2col_flag<=1;
+ //     	end
+
+ // end
+	
+  reg stall_on=0;
+  reg stall_enable=0;
+  always@(posedge i_clk) begin 
+    // if((image_fifo_empty|psum_full) && stall_enable) begin
+    if((image_fifo_empty && stall_enable) | psum_full) begin
+      stall_on<=1;
+    end
+    else begin 
+      stall_on<=0;
+    end
+    if(im2col_global_start) begin
+      stall_enable<=1;
+    end
+    else if((row==input_img_width+1) && (col>=input_img_width-9)) begin 
+      stall_enable<=0;
+    end
+    else begin 
+      stall_enable<=stall_enable;
+    end
+  end
+
+  /*
+  reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
+  reg im2col_en = 0;
+
+  always@(posedge i_clk) begin
+    if(!i_rst) im2col_cnt <= 0;
+    else begin
+      if(im2col_en) im2col_cnt <= im2col_cnt + 1;
+      else im2col_cnt <= 0;
+    end 
+  end
+  */
   // Generation of systolic array and flattening module triggers
   always@(posedge i_clk) begin
-    if(!i_rst) systolic_array_trigger <= 1'b0;
+    if(!i_rst) begin
+      systolic_array_trigger <= 1'b0;
+      // im2col_en <= 0;
+    end
     else begin
-        if(start_SA) systolic_array_trigger <= 1'b1;
-        else if(layer_done) systolic_array_trigger <= 1'b0;
-        else systolic_array_trigger <= systolic_array_trigger;
+	  	if(row==5 && col==1) begin
+		  im2col_flag<=1;
+	  	end
+
+      if(im2col_flag ) begin
+			  systolic_array_trigger <= 1'b1;
+			  im2col_flag<=0;
+		  end
+        else systolic_array_trigger <= 0;
     end
   end
 
@@ -461,6 +560,8 @@ module top_gati_module #(
     .IMAGEDIMOUTPUT_WIDTH(I_OP_SIZE_WIDTH),
     .IMAGEDIMACC_WIDTH(I_ACC_SIZE_WIDTH),
     .ACCEN_WIDTH(ACCEN_WIDTH),
+    .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
+    .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
     .BNEN_WIDTH(BNEN_WIDTH),
     .ACTEN_WIDTH(ACTEN_WIDTH),
     .ACTTYPE_WIDTH(ACT_TYPE_WIDTH),
@@ -525,6 +626,8 @@ module top_gati_module #(
     .ImageDimOutput(img_dim_Op),
     .ImageDimAcc(img_dim_Acc),
     .AccEn(ACC_EN),
+    .DispatchId(dispatch_id),
+    .DispatchEn(dispatch_cpu_en),
 
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
@@ -533,7 +636,7 @@ module top_gati_module #(
     .BNStartAddress(),
     .BNEndAddress(),
     .ActEn(ACT_EN),
-    .acttype(),
+    .acttype(relu_act_type),
     .ActParam(relu_clip_value),
     .QuantEn(QUANT_EN), // goes to iteration cter
     .quantscale(tail_quantscale),
@@ -577,6 +680,7 @@ module top_gati_module #(
       .config_start(start_SA),
       .fifo_status(img_fifo_status),
       .clk(i_clk),
+      .rst(i_rst),
       .c_done(channel_done),
       
       //signals goes to memory controller
@@ -593,7 +697,8 @@ module top_gati_module #(
   assign stop_address_weights   = CONV_FC ? weight_stop_addr_fc  : weight_stop_addr_conv;
   wire weight_data_last; 
   request_controller_weights #(
-      .BURST_LENGTH(WEIGHT_REQ_BLEN),
+      .BURST_LENGTH1(WEIGHT_REQ_BLEN), //burst length in CONV mode
+      .BURST_LENGTH2(FC_WEIGHT_REQ_BLEN), //burst length in FC mode
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
       .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -602,8 +707,9 @@ module top_gati_module #(
       .start_addr(start_address_weights),
       .stop_addr(stop_address_weights),
       .config_start(start),
+      .CONV_FC(CONV_FC),
       .fifo_status(weight_fifo_status),
-      .data_last(weight_data_last),
+      //.data_last(weight_data_last),
       .clk(i_clk),
       .addr_out(mc_wghts_addr),
       .wr_enable(mc_wghts_rdreq),
@@ -642,7 +748,7 @@ module top_gati_module #(
   ) bias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start_SA),
+      .config_start(start),
       .fifo_status(bias_fifo_status),
       .Biasen(BIAS_EN), 
       .clk(i_clk),
@@ -662,7 +768,7 @@ module top_gati_module #(
   ) FCbias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start_FC),
+      .config_start(start),
       .fifo_status(fc_bias_fifo_status),
       .FCbiasen(FC_BIAS_EN), 
       .clk(i_clk),
@@ -674,7 +780,7 @@ module top_gati_module #(
   );
 
   
-  wire im2col_global_start;
+  // wire im2col_global_start;
   wire vector_add_enable;
 
   assign acc_stop_address = acc_start_address + (img_dim_Acc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
@@ -691,7 +797,7 @@ module top_gati_module #(
       .config_start(im2col_global_start), //start from im2col start ctrler
       .fifo_status(acc_fifo_status),
       .clk(i_clk),
-      .enable(ACC_EN), // ACC_EN comes from inst. whether is enabled in this layer or not
+      .enable(ACC_EN & ~Acc_onchip), // ACC_EN comes from inst. whether is enabled in this layer or not
       .ENABLE(vector_add_enable), // acc_en comes from iteration cter to enable it in current iteration based on the instruction field
       .addr_out(mc_acc_addr),
       .wr_enable(mc_acc_rdreq),
@@ -702,10 +808,13 @@ module top_gati_module #(
 
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
-  top_op_write_mem_req_ctrl#(
+  wire data_last_op_write;
+
+  op_write_req_block#(
     .N(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
     .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
+    .BURST_LENGTH_1(ACC_REQ_BLEN),
     .BURST_LENGTH_2(OP_WRITE_REQ_QUA_BLEN),
     .NUMBER_ACC(MOD1),
     .NUMBER_OP(MOD2),
@@ -720,7 +829,7 @@ module top_gati_module #(
     .clkin(i_clk),
     .i_rstn(i_rst),
     .i_start(start),
-    .i_data_last(data_last_op_write), //i-wire: data last signal from dram write controller
+    .i_data_last(o_data_last_op_write), //i-wire: data last signal from dram write controller
     .i_acc_address(acc_start_address), //i-wire: accumulant start address from inst.
     .i_op_start(op_start_address), //i-wire: start address of quantized o/p from inst.
     .i_channel_itr(channel_iteration),
@@ -728,9 +837,9 @@ module top_gati_module #(
     .i_imag_dim(img_dim_Acc),
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
-    // .mem_req(), //not required
-    // .img_done_acc(), //not required
-    // .img_done_op(), //not required
+    .acc_en(vector_add_enable),
+    .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
+    .Acc_onchip(Acc_onchip), //i-wire: Enables Accumulant storage locally, comes from instruction
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
@@ -763,9 +872,42 @@ module top_gati_module #(
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
   wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
 
-  assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
-  //fifo img
+  wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
+  wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
+  // assign img_fifo_th = input_img_width>>1;
+  assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>3;
+
+  /* Generation of img_fifo_status that controls the img read requests */
+  reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
+  wire [BURST_LENGTH_WIDTH : 0] mc_img_bl1;
+  assign mc_img_bl1 = mc_img_bl + 1;
+  always@(posedge i_clk) begin
+    if(!i_rst) begin
+      req_occupants_img <= 0;
+    end
+    else begin
+      if(start_en) begin
+        if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
+        else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
+        else if(select[`Image])                                req_occupants_img <= req_occupants_img - 1;
+        else                                                   req_occupants_img <= req_occupants_img;
+      end
+      else begin
+        req_occupants_img <= 0;
+      end
+    end
+  end
+
+  reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] r_img_fifo_occupants;
+  always@(*) begin
+    r_img_fifo_occupants = img_fifo_occupants1+req_occupants_img;
+  end
+  assign img_fifo_status = ((img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0]+req_occupants_img)<=img_fifo_th)? 1 : 0;
+  // assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
+  // assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
+  // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
   
+  //fifo img
   dram_fifo #(
       .DIMENSION(AXI_DATA_BYTES),
       .W_DATA(DATA_WIDTH),
@@ -837,10 +979,11 @@ module top_gati_module #(
   wire [COL_FC-1 : 0] weight_read_en_fc;
   wire [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc;
   wire [COL_FC-1 : 0] weight_empty_fc;
+  wire [COL_FC-1 : 0] weight_almost_empty_fc;
   wire [COL_FC-1 : 0] weight_dv_fc;
   wire [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc;
 
-  wire sel_sa_rden;
+  //wire sel_sa_rden;
   wire [(N_SA * COL_SA)-1 : 0] weight_read_en_sa;
   wire [(N_SA * COL_SA)-1 : 0] weight_dv_sa;
   wire [(N_SA * (COL_SA * ($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa;
@@ -848,15 +991,37 @@ module top_gati_module #(
   wire [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa;
 
   wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
+  reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
+  always @(*) begin 
+	  limit_c<=(2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
+	  limit_f<=(((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
+  end
 
+  //Virtual occupant logic for weights
+  reg [$clog2(WEIGHT_FIFO_DEPTH):0] virtual_occ_weight;
+  always@(posedge i_clk) begin
+    if(!i_rst) virtual_occ_weight <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_wghts_last && select[`Weight])  virtual_occ_weight <= virtual_occ_weight + mc_wghts_bl;
+        else if(mc_wghts_last)                virtual_occ_weight <= virtual_occ_weight + (mc_wghts_bl+1);
+        else if(select[`Weight])              virtual_occ_weight <= virtual_occ_weight - 1;
+        else                                  virtual_occ_weight <= virtual_occ_weight;
+      end
+      else begin
+        virtual_occ_weight <= 0;
+      end
+    end
+  end
   assign weight_fifo_status = (CONV_FC==0)? 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{4*ROW}})? 1 : 0) : 
-                              ((weight_fifo_occupants<={AXI_DATA_BYTES{(3/4)*(WEIGHT_FIFO_DEPTH)}})? 1 : 0);
+                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_c}})? 1 : 0) : 
+                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),
     .N_SA(N_SA),
     .COL_SA(COL_SA),
+    .ROW(ROW),
     .COL_FC(COL_FC),
     .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
     .N_DRAM_BYTES(AXI_DATA_BYTES),
@@ -866,7 +1031,8 @@ module top_gati_module #(
   ) fifo_Sharing_controller(
     .clk(i_clk),
     .i_rstn(i_rst),
-    .i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
+    .i_done(iter_done),
+    //.i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
     .i_opcode(opcode), // i-wire - check it how to get this opcode from slave blocks
     .i_data_weight_ff_array(weight_dram_fifosharing),         //i-wire - from fifo sharing wren ctrler
     .i_write_en_weight_ff_array(weight_write_en_fifosharing), //i-wire - from fifo sharing wren ctrler
@@ -875,6 +1041,7 @@ module top_gati_module #(
     .o_demux_select(fc_mux_Sel), // o-wire: goes to FC block for selecting the fifo array weights to FC block
     .o_occupants_mux_fc(weight_occupants_fc), //o-wire: fifo occupants applied to FC
     .o_empty_mux_fc(weight_empty_fc), //o-wire: fifo empty status to FC
+    .o_almost_empty_mux_fc(weight_almost_empty_fc), //o-wire: fifo almost empty status to FC
     .o_dv_mux_fc(weight_dv_fc), //o-wire: wt datavalid to FC
     .o_data_mux_fc(weight_data_fc), //o-wire: weight inputs to FC
     .o_occupants_mux_sa(weight_occupants_sa), //o-wire: fifo occupants applied to SA
@@ -886,26 +1053,56 @@ module top_gati_module #(
 
   assign fc_img_fifo_status = 1'b1;
 
-  wire [(($clog2(ACC_FIFO_DEPTH)+1)*OP_FIFO)-1:0] acc_fifo_occupants;
-  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*OP_FIFO)-1:0] bias_fifo_occupants;
+  wire [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants;
+  wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
 
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
-  assign acc_fifo_status = (acc_fifo_occupants<={OP_FIFO{OP_FIFO}})? 1 : 0;
-  assign bias_fifo_status = (bias_fifo_occupants<={OP_FIFO{COL_SA}})? 1 : 0;
-  assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC}})? 1 : 0;
+  wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
+  // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
+  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]/4);
+  // assign acc_fifo_th = input_img_width*2;
+	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
+  always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_acc_last && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
+        else if(mc_acc_last)                        virtual_occ <= virtual_occ + (mc_acc_bl+1);
+        else if(select[`Acc])                       virtual_occ <= virtual_occ-1;
+        else                                        virtual_occ <= virtual_occ;
+      end
+      else begin
+        virtual_occ <= 0;
+      end
+    end
+  end
+
+  assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
+
+//  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
+  assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
+  assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
 
-  wire zero_pad_enable;
-
-  assign zero_pad_enable = |(conv_zeropad);
+  reg  zero_pad_enable;
+  always @ (posedge i_clk) begin 
+   zero_pad_enable <= |(conv_zeropad);
+  end
   
+  // Data from DRAM
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_dram;
+  wire [ACC_FIFO-1:0] vector_add_wren_dram;
+  // Data from Opwrite_FIFO
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_opfifo;
+  wire [ACC_FIFO-1:0] vector_add_wren_opfifo;
+
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
-  wire [OP_FIFO-1:0] vector_add_wren;
+  wire [ACC_FIFO-1:0] vector_add_wren;
   // DRAM Data write ctlers for accumulants, bias, fcbias
   Mem_read_ctrl#(
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .N_FIFO(OP_FIFO) //Accumulant FIFOs = 8, each 32-bit 
+        .N_FIFO(ACC_FIFO) //Accumulant FIFOs
   )Accumulant_blk_data_write_ctrl(
         .clk(i_clk),
         .rst(i_rst),
@@ -913,11 +1110,29 @@ module top_gati_module #(
         .i_data_valid(dram_rd_datavalid),
         .i_data_last(dram_rd_data_last),
         .i_dram_data(dram_rd_data),
-        .o_dram_data(vector_add_values), //o-wire: to vector add fifo blk
-        .o_dram_fifo_wren(vector_add_wren), //o-wire: to vector add fifo blk
+        .o_dram_data(vector_add_values_dram), //o-wire: to vector add fifo blk
+        .o_dram_fifo_wren(vector_add_wren_dram), //o-wire: to vector add fifo blk
         .o_data_last()
   ); 
 
+  // Mux to select between dram read output and op_write fifo dataout
+  vector_mux_param#(
+    .PORT_SIZE(AXI_DATA_WIDTH),
+    .NO_PORT(2)
+  ) Acc_FIFO_mux_data(
+    .in({vector_add_values_opfifo,vector_add_values_dram}),
+    .sel(1<<Acc_onchip),
+    .out(vector_add_values)
+  );
+
+  vector_mux_param#(
+    .PORT_SIZE(ACC_FIFO),
+    .NO_PORT(2)
+  ) Acc_FIFO_mux_dv(
+    .in({vector_add_wren_opfifo,vector_add_wren_dram}),
+    .sel(1<<Acc_onchip),
+    .out(vector_add_wren)
+  );
   
   wire [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in;
   wire [BIAS_FIFO -1:0] bias_wren;
@@ -994,7 +1209,7 @@ module top_gati_module #(
   endgenerate
 
   wire [OP_FIFO-1:0] op_wren;
-  wire [(DATA_WIDTH_OB*OP_FIFO)-1:0] data_op_write_dram_fifo;
+  wire [(DATA_WIDTH_ACC*OP_FIFO)-1:0] data_op_write_dram_fifo;
   wire shift_reg_en;
   wire [SHFT_REG_X-1:0] shift_reg_sel;
   assign shift_reg_sel = {SHFT_REG_X{shift_reg_en}};
@@ -1010,7 +1225,8 @@ module top_gati_module #(
   wire FC_done;
 
   assign fc_kernel_iter = kernel_iteration;
-
+	wire psum_full;
+  reg  op_full=0;
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),
@@ -1026,11 +1242,13 @@ module top_gati_module #(
       .MOD1(MOD1),
       .MOD2(MOD2),
       .DATA_WIDTH_OB(DATA_WIDTH_OB),
+      .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_CONV_IMAGE_DIM(CONV_IW_WIDTH),
       .W_CONV_OP_IMAGE_DIM(CONV_OW_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .OP_FIFO(OP_FIFO),
+      .ACC_FIFO(ACC_FIFO),
       .WEIGHT_FIFO_DEPTH(WEIGHT_FIFO_DEPTH),
       .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
       .PSUM_FIFO_DEPTH(PSUM_FIFO_DEPTH),
@@ -1040,6 +1258,7 @@ module top_gati_module #(
       .N_FC_MUX(N_FC_MUX),
       .NO_PORT_FC(NO_PORT_FC),
       .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
+      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .NO_PORT_VA(NO_PORT_VA),
@@ -1067,12 +1286,14 @@ module top_gati_module #(
       .image_fifo_empty(image_fifo_empty),
       .CONV_FC(CONV_FC),
     //   .switch_enable(switch_enable),
-      .fifo_o(fifo_imgo_data),
+      .fifo_o(img_ip_conv),
       //fifo sharing signals
-      .sel_sa_rden(sel_sa_rden),
-      .weight_read_en_fc(weight_read_en_fc),
+      //.sel_sa_rden(sel_sa_rden),
+      .stall_on(stall_on),
+	    .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
       .weight_empty_fc(weight_empty_fc),
+      .weight_almost_empty_fc(weight_almost_empty_fc),
       .weight_dv_fc(weight_dv_fc),
       .weight_data_fc(weight_data_fc),
       .weight_read_en_sa(weight_read_en_sa),
@@ -1080,8 +1301,8 @@ module top_gati_module #(
       .weight_occupants_sa(weight_occupants_sa),
       .weight_empty_sa(weight_empty_sa),
       .weight_data_sa(weight_data_sa),
-
-      //Flattening and FC signals
+      .p_full_output(psum_full),
+	  //Flattening and FC signals
       .flatten_enable(flatten_enable), //comes from FC instruction
       .start_FC(Flattening_trigger),
       .i_rw_addr_cnt_flatten(fc_rw_address_counter), //r/w address cnt from FC inst.
@@ -1091,7 +1312,7 @@ module top_gati_module #(
       .i_data_FC(fc_image_in_data), //data from DDR
       .i_img_dim_fc(fc_image_rows), // image dim of FC i/p (input rows-FC inst.) goes to FC engine
       .i_sel_fc_fifosharing(fc_mux_Sel), //o-wire: select to signal to FC for reading weights from fifo sharing ctrl
-      
+      .op_full(op_full), 
       //vector addition and tail block signals    
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
@@ -1103,6 +1324,7 @@ module top_gati_module #(
       .systolic_array_trigger(systolic_array_trigger),
       .rst(i_rst),
       .relu_clip_value(relu_clip_value),
+      .relu_act_type(relu_act_type),
       .bias_enable(bias_enable),
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),
@@ -1111,7 +1333,8 @@ module top_gati_module #(
       .valid_img_size_im2col(valid_conv), //valid inst conv
       .im2col_global_start(im2col_global_start),
       .image_rden(image_rden),
-
+      .row(row),
+	    .col(col),
       .relu_enable(relu_enable),
       .bias_data_in(bias_data_in),
       .bias_wren(bias_wren),
@@ -1142,28 +1365,67 @@ module top_gati_module #(
 //   wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c;
 //   assign data_op_write_dram_fifo = switch_enable? {data_b, data_c} : data_b;
 
-  
-  //o/p write FIFO to DDR
+  //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
+  wire [OP_FIFO-1:0] op_write_fifo_rden;
   wire [OP_FIFO-1:0] op_dram_rden;
+  assign op_write_fifo_rden = (~Acc_onchip)? op_dram_rden : (quant_enable ? op_dram_rden : ((~|(op_dram_fifo_empty)? {OP_FIFO{1'b1}} : 0)));
+  
+  // Demux for separting the op_write fifo out path to DRAM and local ACC_FIFOs
+  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo1;
+  wire [OP_FIFO-1:0] op_dram_dv,op_write_fifo_dv;
+  Dmux_param #(
+    .NUM_PORTS(2),
+    .DATA_WIDTH(OP_FIFO*DATA_WIDTH_OB),
+    .COL_SA(1)
+  ) Dmux_param_op_fifo_data_inst (
+    .i_din(op_dram_fifo1),
+    .i_datavalid(),
+    .i_sel(Acc_onchip & ~quant_enable),
+    .o_dout({op_dram_fifo,vector_add_values_opfifo}),
+    .o_datavalid()
+  );
+
+  Dmux_param #(
+    .NUM_PORTS(2),
+    .DATA_WIDTH(OP_FIFO),
+    .COL_SA(1)
+  ) Dmux_param_op_fifo_dv_inst (
+    .i_din(op_write_fifo_dv),
+    .i_datavalid(),
+    .i_sel(Acc_onchip & ~quant_enable),
+    .o_dout({op_dram_dv,vector_add_wren_opfifo}),
+    .o_datavalid()
+  );
+
+  //o/p write FIFO to DDR
   dram_fifo #(
       .DIMENSION(OP_FIFO),
-      .W_DATA(DATA_WIDTH_OB),
+      .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
+      .OUTPUT_REG(1),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
   ) op_write_dram_fifo (
       .i_clk(i_clk),
       .i_rst(i_rst),
       .i_data(data_op_write_dram_fifo),
-      .i_read_enable(op_dram_rden),
+      .i_read_enable(op_write_fifo_rden),
       .i_write_enable(op_wren),
-      .o_data(op_dram_fifo),
+      .o_data(op_dram_fifo1),
       .o_fifo_empty(op_dram_fifo_empty),
       .o_fifo_full(),
-      .o_fifo_dv(),
+      .o_fifo_dv(op_write_fifo_dv),
       .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
   );
 
+ 	always @ (*) begin 
+		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
+			op_full<=0;
+		end else begin 
+			op_full<=1;
+		end
+	end
 
+  
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -1174,12 +1436,12 @@ module top_gati_module #(
     .select(select[`OPWrite]), //select signal from DRAM ctrler (WR_ID mger)
     .wready(wready), // from DRAM ctrler (WR_ID mger)
     .blen(wr_burst_len), // from DRAM ctler ()
-    .data_valid(dv_op_write),
-    .data_last(data_last_op_write),
+    .o_data_valid(dv_op_write),
+    .data_last(o_data_last_op_write),
     .fifo_rd_en(op_dram_rden)
   );
 
-
+  // assign o_data_last_op_write = data_last_op_write;
  /* Iteration counter module that generates iteration 'done' signals based on the status
     of various operators. Also generates 'enable'signals to various tail blocks
     based on the instruction fields. Also generates 'acc_en' signal that specifies
@@ -1234,8 +1496,12 @@ module top_gati_module #(
         //Ack signals to config blk.
         .Conv_Ack(Conv_Ack),
         .OpBlock_Ack(OpBlock_Ack),
-        .Tail_Ack(Tail_Ack)
+        .Tail_Ack(Tail_Ack),
         //.FC_Ack(FC_Ack)
+        
+        //for io signals
+        .kernal_count(kernal_count), // represents the current kernal iteration number 
+        .channel_count(channel_count) // represents the current channel iteration number 
     );
 
     // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;
@@ -1257,7 +1523,7 @@ module top_gati_module #(
         .clk(i_clk),
         .rst(i_rst),
         .start(start_SA), //start_SA
-
+        .image_fifo_empty(&(image_fifo_empty)),
         .iter_done(iter_done),
         .c_iter(channel_iteration),
         .k_iter(kernel_iteration),
@@ -1265,5 +1531,57 @@ module top_gati_module #(
         .start_im2col(im2col_global_start)
     );
 
+  reg [31:0] debug_counter;
+  reg start_en;
+  always@(posedge i_clk) begin
+    if(!i_rst) debug_counter <= 0;
+    else begin
+      if(OpBlock_Ack) debug_counter <= 0;
+      else if(start_en) debug_counter <= debug_counter + 1;
+      else debug_counter <= debug_counter;
+    end
+  end
 
+  reg [31:0] stall_cntr;
+  always@(posedge i_clk) begin
+    if(!i_rst) stall_cntr <= 0;
+    else begin
+      if(OpBlock_Ack) stall_cntr <= 0;
+      else if(start_en) begin
+        if(stall_on) stall_cntr <= stall_cntr + 1;
+      end
+      else stall_cntr <= stall_cntr;
+    end
+  end
+
+  always@(posedge i_clk) begin
+    if(!i_rst) start_en <= 0;
+    else begin
+      if(start) start_en <= 1;
+      else if(OpBlock_Ack) start_en <= 0;
+      else start_en <= start_en;
+    end
+  end
+
+  reg [LAYERCNT_WIDTH-1:0] layer_cntr;
+  always@(posedge i_clk) begin
+    if(!i_rst) layer_cntr <= 0;
+    else begin
+      if(layer_cntr==16) layer_cntr <= layer_cntr;
+      else begin
+        if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
+      end
+    end
+  end
+
+  assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
+
+  (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
+  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*n_kernels;
+  assign fpga2cpu_start_address = op_start_address;
+
+  //Hard-coded logic to for Acc_onchip flag: Should be deprecated after inclusion of support from sysim
+  assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
+  // assign Acc_onchip = (layer_cntr>=7)? 1 : 0;
+  // assign Acc_onchip = 0;
 endmodule

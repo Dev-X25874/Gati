@@ -8,6 +8,7 @@ module top_output_block #(
     parameter DATA_WIDTH     = 32,
     parameter DATA_WIDTH_ACC = 32,
     parameter N              = 4,
+    parameter COL_SA         = 4,
     parameter FIFO_NO        = 8,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
@@ -19,12 +20,16 @@ module top_output_block #(
     input  [             FIFO_NO-1:0]     top_wr_en,
     input  [(DATA_WIDTH_ACC*FIFO_NO)-1:0] top_data_in, //previous accumulnats from ddr
     input                                 vector_add_enable,
+    input   [         (N*COL_SA)-1:0]     empty_sa,
+    input   [         (N*COL_SA)-1:0]     almost_empty_sa,
+    input                                 op_full,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
     input  [      (DATA_WIDTH*N)-1:0] top_data_in_adder_tree,
     input                             rst,
-    input channel_done,
+    input                             Iteration_Done,
     output [             FIFO_NO-1:0] w_empty_flag,
+    output [             FIFO_NO-1:0] w_almost_empty_flag,
     input  [                   N-1:0] top_in_data_valid,
     output [                   N-1:0] top_out_data_valid,
     output [((W_ADDR+1)*FIFO_NO)-1:0] fifo_occupants
@@ -41,12 +46,14 @@ module top_output_block #(
   wire [                 FIFO_NO-1:0] w_valid_fifo;
 
  wire [FIFO_NO-1:0] empty_flag;
+ wire [FIFO_NO-1:0] almost_empty_flag;
 
+assign w_empty_flag = empty_flag;
+assign w_almost_empty_flag = almost_empty_flag;
 
-assign w_empty_flag=empty_flag;
-
-
-  dram_fifo #(
+wire [FIFO_NO-1:0] acc_fifo_rd_en;
+assign acc_fifo_rd_en = (&empty_sa)? 0 : w_rd_en;
+dram_fifo #(
       .DIMENSION(FIFO_NO),
       .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR(W_ADDR),
@@ -56,10 +63,11 @@ assign w_empty_flag=empty_flag;
       .i_clk(top_clk),
       .i_rst(rst),
       .i_data(top_data_in),
-      .i_read_enable(w_rd_en),
+      .i_read_enable(acc_fifo_rd_en),
       .i_write_enable(top_wr_en),
       .o_data(w_data_out),
       .o_fifo_empty(empty_flag),
+      .o_fifo_almost_empty(almost_empty_flag),
       .o_fifo_full(full),
       .o_fifo_dv(w_valid_fifo),
       .o_occupants(fifo_occupants)
@@ -75,7 +83,7 @@ assign w_empty_flag=empty_flag;
     .PORT_SIZE(N*DATA_WIDTH_ACC),
     .NO_PORT(NO_PORT)
   ) mux_data (
-      .in(w_data_out),
+      .in(data_in_mux),
       .out(mux_out),
       .sel(sel)
 
@@ -90,7 +98,7 @@ assign w_empty_flag=empty_flag;
       .sel(sel)
   );
 
- 
+ /*
   bias_controller #(
     .DRAM_BW(DRAM_BW),
     .FIFO_NO(FIFO_NO),
@@ -104,24 +112,29 @@ assign w_empty_flag=empty_flag;
     .sel(sel),
     .valid_rd_en(w_rd_en)
   );
-
-  /*
-  new_controller #(
+*/
+  
+  acc_fifo_rden #(
       .FIFO_NO(FIFO_NO),
-      .BIAS(BIAS),
-      .TOGGLE(1))
+      .TOGGLE(1),
+      .N(N),
+      .COL_SA(COL_SA),
+      .NO_PORT(NO_PORT))
    controller 
   (
       .clk(top_clk),
-      .rst(rst),
-	  .empty_fifo(empty_flag),
-      .channel_done(channel_done),
+      .rst(rst&(~Iteration_Done)),
+	    .empty_fifo(empty_flag),
+      .almost_empty_fifo(almost_empty_flag),
+      .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
       .enable(vector_add_enable),
-      .mux_toggle(sel),
-      .data_valid_tree(top_in_data_valid[0]),
+      .data_valid_tree(&(top_in_data_valid)),
+      .select(sel),
+      .op_full(op_full),
       .valid_rd_en(w_rd_en)
   );
-  */
+  
 
   localparam APPEND = OUT_DATA_WIDTH - DATA_WIDTH_ACC;
   wire [(DATA_WIDTH*N)-1:0] data_in_accumulant;
@@ -133,17 +146,50 @@ assign w_empty_flag=empty_flag;
     end
   endgenerate
 
+  // Pipeline stage for acc_fifo data to synchronize with adder tree output.
+  reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_in_mux;
+  genvar j;
+  generate
+    for(j=0;j<$clog2(COL_SA);j=j+1) begin:REG
+      reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_reg;
+      if(j==0) begin
+        always@(posedge top_clk) begin
+          data_reg <= (!rst)? 0 : w_data_out;
+        end
+      end
+
+      else if(j==($clog2(COL_SA)-1)) begin
+        always@(posedge top_clk) begin
+          data_in_mux <= (!rst)? 0 : REG[j-1].data_reg;
+        end
+      end
+
+      else begin
+        always@(posedge top_clk) begin
+          data_reg <= (!rst)? 0 : REG[j-1].data_reg;
+        end
+      end
+    end
+  endgenerate
+
+  reg [(DATA_WIDTH*N)-1:0] data_in_adder_tree;
+  reg [N-1:0] adder_in_data_valid;
+  always@(posedge top_clk) begin
+    data_in_adder_tree <= top_data_in_adder_tree;
+    adder_in_data_valid <= top_in_data_valid;
+  end
+
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),
       .OUT_DATA_WIDTH(OUT_DATA_WIDTH),
       .N(N)
   ) adder_gen_mod (
-      .gen_data_in_adder_tree(top_data_in_adder_tree),
+      .gen_data_in_adder_tree(data_in_adder_tree),
       .gen_data_in_fifo(data_in_accumulant),
       .gen_clk(top_clk),
       .vector_add_enable(vector_add_enable),
-      .gen_data_valid_fifo(valid_mux),
-      .gen_data_in_valid(top_in_data_valid),
+      .gen_data_valid_fifo(adder_in_data_valid),
+      .gen_data_in_valid(adder_in_data_valid),
       .gen_data_out_valid(top_out_data_valid),
       .gen_data_out_adder(top_data_out)
   );

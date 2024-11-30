@@ -42,7 +42,7 @@ always @(posedge clk ) begin
                 valid <= 1'b1;
             end
         end else begin
-            data <= 0;
+            data <= data;
             valid <= 0;
         end
     end

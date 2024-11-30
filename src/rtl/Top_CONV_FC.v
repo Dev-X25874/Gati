@@ -1,7 +1,7 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH = 8,
+	  parameter DATA_WIDTH = 8,
     parameter COL_SA = 4,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
@@ -11,13 +11,15 @@ module Top_CONV_FC #(
     parameter W_PSUM = 20,
     parameter MOD1=2,
     parameter MOD2 = 8,
-    parameter DATA_WIDTH_OB = 32,
+    parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
+    parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
     // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
     parameter SHFT_REG_X = 4,
     parameter BIAS_FIFO = 8, // Number of bias fifos
     parameter OP_FIFO = 8, // Number of o/p fifos
+    parameter ACC_FIFO = 8, // Number of accumulant fifos
     parameter WEIGHT_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH = 1024,
     parameter PSUM_FIFO_DEPTH = 8192,
@@ -27,6 +29,7 @@ module Top_CONV_FC #(
     parameter N_FC_MUX = 4,
     parameter NO_PORT_FC = 8,
     parameter RELU_CLIP_WIDTH = 8,
+    parameter ACT_TYPE_WIDTH = 4,
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter NO_PORT_VA=2,
@@ -48,19 +51,23 @@ module Top_CONV_FC #(
     parameter W_FC_IMAG_DIM = 20,
     parameter ACC_DATA_REORDER = 1 //parameter to specify FC o/p data reordering is required or not
 ) (
+
+   
     input i_clk,
     input s_clk,
     input rst,
     input [DRAM_BW-1:0] image_fifo_empty,
     input CONV_FC,
     // input switch_enable,
- 	  input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
-
+    //	input CONV_FC,
+    input op_full,
+    input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
     //weight fifo sharing signals
     output sel_sa_rden,
     output [COL_FC-1 : 0] weight_read_en_fc,
     input [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc,
     input [COL_FC-1 : 0] weight_empty_fc,
+    input [COL_FC-1 : 0] weight_almost_empty_fc,
     input [COL_FC-1 : 0] weight_dv_fc,
     input [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc,
     
@@ -82,8 +89,8 @@ module Top_CONV_FC #(
     input i_sel_fc_fifosharing,
 
     //vector addition signals
-    input [(OP_FIFO*DATA_WIDTH_OB)-1:0] vector_add_values,
-    input [OP_FIFO-1:0] vector_add_wren,
+    input [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values,
+    input [ACC_FIFO-1:0] vector_add_wren,
     
     input [W_CONV_OP_IMAGE_DIM-1:0] maxpool_threshold, //CONV output (OW) width
     input layer_done,
@@ -91,7 +98,8 @@ module Top_CONV_FC #(
     input channel_done,
     input [SHFT_REG_X-1:0] shift_reg_sel,
     input systolic_array_trigger,
-    input [(COL_SA*RELU_CLIP_WIDTH)-1:0] relu_clip_value,
+    input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
+    input [ACT_TYPE_WIDTH-1:0] relu_act_type,
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
@@ -102,45 +110,50 @@ module Top_CONV_FC #(
     input valid_img_size_im2col,
     input im2col_global_start,
     output [DRAM_BW-1:0] image_rden,
-
+	  input stall_on,
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
     input [BIAS_FIFO -1:0] bias_wren,
     input [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc,
     input [BIAS_FIFO_FC -1:0] bias_wren_fc,
-    input [(COL_SA*QUANT_SHIFT) -1:0] shift_value,
-    input [(COL_SA*QUANT_SCALE)-1:0] quant_scale,
+    input [(QUANT_SHIFT) -1:0] shift_value,
+    input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
     input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     
     // output write signals
-    output [(DATA_WIDTH_OB*(OP_FIFO)) -1:0] op_write_dmux_data,
+    output [(DATA_WIDTH_ACC*(OP_FIFO)) -1:0] op_write_dmux_data,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
-
+	  output  [$clog2(IMAGE_DIM)-1:0]      row,    
+ 	  output  [$clog2(IMAGE_DIM)-1:0]      col,
     //operator status signals
     output im2col_done,
     output SA_psum_fifo_empty,
     output Tail_done,
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
-
+	  output p_full_output,
+	
     //FIFO status signals for memory request controllers
-    output [(($clog2(ACC_FIFO_DEPTH)+1)*OP_FIFO)-1:0] acc_fifo_occupants,
+    output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants
 
 );
 
   localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
+ 	wire [COL_SA -1:0] relu_valid;
+	wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
 
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
 
+  //
   // Data buffers between DRAM image FIFO and im2col FIFOs 
   wire [($clog2(DRAM_BW/N_SA))-1:0] element_poped;
   // Write buffer controller
@@ -151,8 +164,10 @@ module Top_CONV_FC #(
   )
   im2col_buffer_write_inst (
     .clk(i_clk),
-    .rst(rst),
-    .fifo_empty(image_fifo_empty),
+    .rst(rst&(~channel_done)),
+    .im2col_done(im2col_done),
+    .stall_on(stall_on),
+	  .fifo_empty(image_fifo_empty),
     .count(element_poped),
     .rden(image_rden)
   );
@@ -161,10 +176,11 @@ module Top_CONV_FC #(
   top_buffer #(
       .BUFFER_SIZE(8),
       .N_SA(N_SA),
-      .DRAM_BW(32)
+      .DRAM_BW(DRAM_BW)
   ) buffers (
       .clk(i_clk),
-      .rst(rst),
+      .stall_on(stall_on),
+      .rst(rst&(~im2col_done)),
       .data_in(fifo_o),
       .data_signal(read_buf_data),
       .data_out(buff_out),
@@ -175,11 +191,20 @@ module Top_CONV_FC #(
   wire [ROW-1:0] o_valid_squares;
 
 
-  wire sel_mux;
+  reg  sel_mux;
   wire im2col_o_valid;
-  assign sel_mux = ((im2col_o_valid == 1'b1) && (im2col_o_data == 8'd0)) ? 1'b1 : 1'b0;
-
   wire [DATA_WIDTH -1:0] im2col_o_data;
+  
+  always @(*) begin
+	   sel_mux =(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
+  end
+  wire [COL_SA-1:0] maxpool_valid;
+  wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
+  wire  [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
+
+  wire [COL_SA-1:0] x_final_valid;
+
+
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}};
@@ -194,7 +219,7 @@ module Top_CONV_FC #(
       .out_mux(mux_out)
   );
   
-  localparam IMAGE_DIM = 2**W_CONV_IMAGE_DIM;
+  localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
 
   //im2col block
   top_im2col #(
@@ -205,10 +230,11 @@ module Top_CONV_FC #(
   ) im2col (
       .i_valid_mat_size(valid_img_size_im2col),
       .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'b0),
+      .i_im2col_data(8'd0),
       .i_clk(i_clk),
       .i_rstn(rst),
-      .o_im2col_data(im2col_o_data),
+      .stall_on(stall_on), 
+	    .o_im2col_data(im2col_o_data),
       .o_valid_squares(o_valid_squares),
       .o_row1(),
       .o_row2(),
@@ -219,6 +245,8 @@ module Top_CONV_FC #(
       .o_row7(),
       .o_row8(),
       .o_row9(),
+      .row(row),
+      .col(col),
       .i_mat_size(image_size),
       .i_zero_pad(zero_pad_enable),
       .o_valid_data(im2col_o_valid),
@@ -228,13 +256,14 @@ module Top_CONV_FC #(
   );
 
   //parameters will change for top_SA (for CONV opeartion)
-  wire [OP_FIFO-1:0] empty_vector;
-  wire [(N_SA*COL_SA)-1:0] empty_sa;
+  wire [OP_FIFO-1:0] empty_vector, almost_empty_vector;
+  wire [(N_SA*COL_SA)-1:0] empty_sa, almost_empty_sa;
   wire [(N_SA*COL_SA)-1:0] opsum_rden;
 
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
   wire [COL_SA*N_SA-1:0] valid_psum;
 
+  wire [(N_SA*COL_SA)-1:0] psum_fifo_almost_full, psum_fifo_almost_empty;
   top_sa #(
       .N_SA(N_SA),
       .W_DATA(DATA_WIDTH),
@@ -251,7 +280,8 @@ module Top_CONV_FC #(
       .i_clk(i_clk),
       .s_clk(s_clk),
       .i_rstn(rst),
-      .i_trigger_1(systolic_array_trigger), //start for CONV operation
+      .stall_on(stall_on),
+	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
       .i_data_weight_ff_sharing(weight_data_sa),
       .i_dv_weight_ff_sharing(weight_dv_sa),
       .i_empty_weight_ff_sharing(weight_empty_sa),
@@ -259,9 +289,11 @@ module Top_CONV_FC #(
       .i_image_ff_array_data(mux_out), //i-wire : from im2col
       .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
       .i_psum_ff_array_read_en(opsum_rden),
-      .o_psum_ff_array_partial_sums(o_psum_ff_array),
+      .p_full_output(p_full_output),
+	    .o_psum_ff_array_partial_sums(o_psum_ff_array),
       .o_psum_ff_array_empty(empty_sa),
-      .o_psum_ff_array_dv(valid_psum),
+      .o_psum_ff_array_almost_empty(almost_empty_sa),
+	    .o_psum_ff_array_dv(valid_psum),
       .i_done(iteration_Done),
       .i_layer_done(layer_done),
       .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
@@ -279,7 +311,10 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .rst(rst),
       .empty_vector(empty_vector),
+      .almost_empty_vector(almost_empty_vector),
       .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
+	    .op_full(op_full),
       .vector_enable(vector_add_enable),
       .opsum_rden(opsum_rden)
   );
@@ -321,7 +356,7 @@ module Top_CONV_FC #(
     .W_KERNAL_CNT(W_KERNEL_CNT),
     .W_IMG_DIM(W_FC_IMAG_DIM),
     .W_IMG_BRAM_ADDR(W_FC_RW_COUNTER),
-    .IMG_FF_DEPTH(FC_BRAM_DEPTH) //Depth of BRAM
+    .IMG_FF_DEPTH(FC_BRAM_DEPTH), //Depth of BRAM
     .SHFT_REG_X(SHFT_REG_X),
     .N_SA(N_SA),
     .DRAM_BW(DRAM_BW)
@@ -336,6 +371,7 @@ module Top_CONV_FC #(
     .i_kernal_counter(i_kernel_cnt_FC),//input: kernel counter (from FC inst.)
     .i_data_valid(i_data_valid_flatten), //input: datavalid signal for the data coming from DDR
     .i_weight_ff_array_empty(weight_empty_fc),//input: weight empty signal from fifo sharing
+    .i_weight_ff_array_almost_empty(weight_almost_empty_fc), //input: weight almost empty signal from fifo sharing
     .i_image_dimension(i_img_dim_flatten), //input: image dimension from FC instruction
     .i_data(i_data_FC),          //input: data coming from DDR
     .o_data_mux(data_flatten_FC),  //o-wire: goes to the data input of FC module
@@ -349,7 +385,30 @@ module Top_CONV_FC #(
   wire [ACC_DW*COL_FC-1:0] FC_accumulator_op_data; // fully connected layer o/p
   wire [COL_FC-1:0] dv_FC_accumulator_data; //datavalid of FC o/p
 
+ 
   // FC Computing Engine
+  reg [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
+  reg [COL_SA-1:0] dv_SA_FC;
+  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
+  wire valid_out_FC;
+  //interconnect of SA and FC
+  always @ (*) begin
+	if(CONV_FC) begin 
+		data_SA_FC<=op_data_mux_FC;
+		dv_SA_FC<={COL_SA{valid_out_FC}};
+	end 
+	else begin 
+		data_SA_FC<=result_tree;
+		dv_SA_FC<=valid_tree;
+	end
+  end
+// assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
+ //assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
+
+  wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
+  wire o_dv_reorder;
+  wire [NO_PORT_FC-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
+  
   top_fc#(
     .W_DATA(DATA_WIDTH),
     .COL(COL_FC),
@@ -358,6 +417,7 @@ module Top_CONV_FC #(
     .N_SA(1),
     .W_ACC(ACC_DW),
     .W_IMG_DIM(FC_IMAGE_ROWS_WIDTH), // FC_IMAGEROW_WIDTH
+    .W_KERNAL_CNT(W_KERNEL_CNT),
     .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
     .IMAGE_FF_DEPTH(FC_BRAM_DEPTH)
   ) fully_connected_computing_engine(
@@ -372,9 +432,11 @@ module Top_CONV_FC #(
     .i_weight_ff_array_data(weight_data_fc), //
     .i_weight_ff_array_dv(weight_dv_fc),
     .i_weight_ff_array_empty(weight_empty_fc),
+    .i_weight_ff_array_almost_empty(weight_almost_empty_fc),
     .o_weight_ff_array_rden(weight_read_en_fc), //output: weight fifo rden, goes to fifo sharing
     .i_weight_ff_array_occ(weight_occupants_fc), //input: weight fifo occupants from fifo sharing
     // .o_image_ff_array_rden(), //Todo: check it
+    .i_kernal_count(i_kernel_cnt_FC),
     .accumulator_dv(dv_FC_accumulator_data),
     .accumulator_data(FC_accumulator_op_data)
   );
@@ -382,23 +444,17 @@ module Top_CONV_FC #(
   assign FC_done = &(dv_FC_accumulator_data);
   
   
-  wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
-  wire o_dv_reorder;
-  wire [$clog2(NO_PORT_FC)-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
-  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
-  wire valid_out_FC;
-  wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  wire [COL_SA-1:0] dv_SA_FC;
  
   //interconnect of SA and FC
-  assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
-  assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
+ // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
+  //assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
   
   //Interconnect to pass SA output or FC ouput
+
   FC_OP_Data_reorder#(
     .ACC_DW(ACC_DW), //data width of accumulator output
     .COL_FC(COL_FC), //number of cols in FC engine
-    .ACC_DATA_REORDER(ACC_DATA_REORDER) //param-If '0' pass the data as is and if '1' reorders the data to make it convenient for shift register
+    .ACC_DATA_REORDER(ACC_DATA_REORDER), //param-If '0' pass the data as is and if '1' reorders the data to make it convenient for shift register
     .DRAM_BW(DRAM_BW),
     .N_SA(N_SA),
     .SHFT_REG_X(SHFT_REG_X)
@@ -407,7 +463,7 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .rst(rst),
       .data_FC(FC_accumulator_op_data), //o-wire: o/p of FC engine - o_data_FC
-      .dv_FC(&(dv_FC_accumulator_data)), //o-wire: datavalid of the o/p data of FC engine
+      .dv_FC(&dv_FC_accumulator_data), //o-wire: datavalid of the o/p data of FC engine
       .reorder_data_FC(reorder_data_FC), //o-wire: reordered data of FC o/p goes to mux and then to interconnect
       .o_dv_reorder(o_dv_reorder) //o-wire: datavalid goes to ctrler that reads the data from mux.
   );
@@ -434,6 +490,7 @@ module Top_CONV_FC #(
         .NO_PORT(NO_PORT_FC)    //size of mux ex:NO_PORT=8 then it is 8x1
       ) FC_op_data_mux
       (
+        .clk(i_clk),
         .in(reorder_data_FC[(((ACC_DW*NO_PORT_FC)*(N_FC_MUX-i))-1) -: ACC_DW*NO_PORT_FC]),  //datawidth = port_size*no.of ports
         .out(op_data_mux_FC[((ACC_DW*(N_FC_MUX-i))-1) -:ACC_DW]), //datawidth = port_size
         .sel(sel_FC_op_data_mux)
@@ -450,15 +507,21 @@ module Top_CONV_FC #(
       .DATA_WIDTH(DATA_WIDTH_OB),
       .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
       .N(N_SA),
-      .FIFO_NO(OP_FIFO),
+      .COL_SA(COL_SA),
+      .FIFO_NO(ACC_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA)
   ) vector_addition (
       .top_clk(i_clk),
       .top_wr_en(vector_add_wren), //input: comes from ddr
-      .rst(rst&(~iteration_Done)),
+      .rst(rst),
+      .Iteration_Done(iteration_Done), //input: for resetting the acc_fifo_rden_ctrl
       .top_data_in(vector_add_values), // input: comes from ddr
       .w_empty_flag(empty_vector),
+      .w_almost_empty_flag(almost_empty_vector),
+      .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
+      .op_full(op_full),
       .top_data_out(output_block_out),
       .top_data_in_adder_tree(data_SA_FC), //interconnect data o/p
       .vector_add_enable(vector_add_enable),
@@ -484,6 +547,7 @@ module Top_CONV_FC #(
       .top_clk(i_clk),
       .top_wr_en(bias_wren), //from ddr
       .rst(rst),
+      .CONV_FC(CONV_FC),
       .channel_done(channel_done),
       .top_data_in(bias_data_in), //from ddr
       .top_data_out(bias_output),
@@ -509,14 +573,14 @@ module Top_CONV_FC #(
   ) quant (
       .top_i_clk(i_clk),
       .top_i_data_quant(bias_output),
-      .top_i_data_scale(quant_scale), //from tail inst.
+      .top_i_data_scale({COL_SA{quant_scale}}), //from tail inst.
       .enable_quant(quant_enable),  //from iteration cnter
       .top_o_data(quantized_output),
       .quantized_passthrough(unquantized_output),
       .top_i_data_valid(bias_valid),
       .unquantized_valid(unquantized_valid),
       .top_o_data_valid(tail_valid),
-      .top_i_bit_shift(shift_value) //from tail inst.
+      .top_i_bit_shift({COL_SA{shift_value}}) //from tail inst.
   );
   
   
@@ -545,13 +609,11 @@ module Top_CONV_FC #(
     .fifo_occupants(fc_bias_fifo_occupants)
 );
 
-
-wire [COL_SA -1:0] relu_valid;
-wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
-
+  
   top_relu_gen #(
       .N(COL_SA),
       .DATA_WIDTH(DATA_WIDTH),
+      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .CLIP_WIDTH(RELU_CLIP_WIDTH)
   ) relu (
       .top_clk(i_clk),
@@ -560,20 +622,18 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),
-      .top_i_clip(relu_clip_value) //from tail inst.
+      .top_i_clip({COL_SA{relu_clip_value}}), //from tail inst.
+      .top_i_acttype({COL_SA{relu_act_type}})
   );
   
-  wire [COL_SA-1:0] maxpool_valid;
-  wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
-
-  maxpool_gen #(
+   maxpool_gen #(
       .N_SA(N_SA),
       .DATA_IN(DATA_WIDTH),
       .IMG_WIDTH(W_CONV_OP_IMAGE_DIM)
   ) maxpool (
       .clk(i_clk),
       .data_in(relu_output),
-      .rst(rst),
+      .rst(rst&(~iteration_Done)),
       .maxpool_enable(maxpool_enable), //from iteration cnter
       .datavalid(relu_valid),
       .IW(maxpool_threshold), //from conv inst.
@@ -581,41 +641,61 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
       .datavalid_o(maxpool_valid)
   );
   
-
+  wire [(DATA_WIDTH_ACC*COL_SA)-1 : 0] zp_unquantized_din;
   wire [COL_SA-1:0] zp_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] zp_data;
-  wire [(DATA_WIDTH_OB*COL_SA) -1:0] zp_unquant_data;
+  wire [(DATA_WIDTH_ACC*COL_SA) -1:0] zp_unquant_data;
   wire [COL_SA -1:0] zp_unquant_dv;
+
+  //Total data_size of CONV output. This is calculated to determine number of zeros to be generated by zero padder
+  (* syn_use_dsp = "no" *) wire [I_ACC_SIZE_WIDTH-1:0] conv_op_img_size;
+  assign conv_op_img_size = maxpool_threshold * maxpool_threshold;
+
+  // For CONV opeartion, consider the conv_op_size for zero padder. For FC operation, consider the size from instruction
+  wire [I_ACC_SIZE_WIDTH-1:0] i_img_dim1; // Accumulant data_size
+  wire [I_OP_SIZE_WIDTH-1:0] i_img_dim2; // Quantized op data_size
+
+  assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : conv_op_img_size;
+  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? conv_op_img_size/4 : conv_op_img_size);
 
   //zero padding circuit
   top_zero # (
     .DW(DATA_WIDTH),
     .COL(COL_SA),
     .I_SIZE_WIDTH(I_OP_SIZE_WIDTH), //width of image dimension
-    .MOD(MOD1)
+    .MOD(MOD2)
   )
   zp_quant (
     .clk(i_clk),
     .rst(rst),
-    .i_size(i_img_dim_Op), // image dimension of quantized o/p (from op block inst.)
+    .i_size(i_img_dim2), // image dimension of quantized o/p (from op block inst.)
     .data_in(maxpool_output),
     .i_dv(maxpool_valid),
     .data_out(zp_data),
     .o_dv(zp_valid)
   );
   
+  localparam REMOVE = DATA_WIDTH_OB - DATA_WIDTH_ACC;
+  
+  genvar j;
+  generate
+    for(j=0;j<COL_SA;j=j+1) begin
+      assign zp_unquantized_din[((DATA_WIDTH_ACC*(COL_SA-j))-1) -: DATA_WIDTH_ACC] = 
+      unquantized_output[((DATA_WIDTH_OB*(COL_SA-j)-REMOVE)-1) -: DATA_WIDTH_ACC];
+    end
+  endgenerate
 
   top_zero # (
-    .DW(DATA_WIDTH_OB),
+    .DW(DATA_WIDTH_ACC),
     .COL(COL_SA),
     .I_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
-    .MOD(MOD2)
+    .MOD(MOD1)
   )
   zp_unquant(
     .clk(i_clk),
     .rst(rst),
-    .i_size(i_img_dim_Acc), // image dimension of accumlant o/p (from op block inst.)
-    .data_in(unquantized_output),
+    .i_size(i_img_dim1), // image dimension of accumlant o/p (from op block inst.)
+    .data_in(zp_unquantized_din),
     .i_dv(unquantized_valid),
     .data_out(zp_unquant_data),
     .o_dv(zp_unquant_dv)
@@ -631,6 +711,7 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
   ) tail_done_inst(
       .i_clk(i_clk),
       .rst(rst),
+      .CONV_FC(CONV_FC),
       .datavalid_acc(zp_unquant_dv),
       .datavalid_pool(zp_valid),
       .pool_en(maxpool_enable),
@@ -639,13 +720,10 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
       .Tail_done(Tail_done)
   );
   
-  wire [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
-
-  wire  [COL_SA-1:0] x_final_valid;
   generate_shift_register #(
       .N(COL_SA),
       .NUM_SHIFT(SHFT_REG_X),
-      .ACC_DATA_WIDTH(DATA_WIDTH_OB),
+      .ACC_DATA_WIDTH(DATA_WIDTH_ACC),
       .QUANT_DATA_WIDTH(DATA_WIDTH),
       .DATA_WIDTH(DATA_WIDTH)
   ) shift_register_x (
@@ -659,14 +737,21 @@ wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
       .data_out(x_final_data)
   );
 
-    
+  // generate
+  //   if(N_DMUX_PORTS>1) begin
+
+  //   end
+  //   else begin
+  //     assign op_wren = (&(x_final_valid))? {OP_FIFO{1'b1}} : {OP_FIFO{1'b0}};
+  //   end
+  // endgenerate  
   
   wire [$clog2(N_DMUX_PORTS)-1 : 0] sel_dmx;
   wire [(N_DMUX_PORTS*COL_SA)-1 : 0] op_write_dmux_datavalid;
 
-  Demux_param #(
+  Dmux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
-    .DATA_WIDTH(DATA_WIDTH_OB),
+    .DATA_WIDTH(DATA_WIDTH_ACC),
     .COL_SA(COL_SA)
   )
   dmux_param_inst(

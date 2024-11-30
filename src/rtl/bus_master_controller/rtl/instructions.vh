@@ -1,5 +1,4 @@
-`ifndef INSTRUCTIONS_VH
-`define INSTRUCTIONS_VH
+`ifndef instruction_vh
 
 `define OP_CONV 'h00
 `define CONV_Opcode 3:0
@@ -76,6 +75,10 @@
 `define OutputBlock_ImageDimAcc_WIDTH 16
 `define OutputBlock_AccEn 124:124
 `define OutputBlock_AccEn_WIDTH 1
+`define OutputBlock_DispatchEn 125:125
+`define OutputBlock_DispatchEn_WIDTH 1
+`define OutputBlock_DispatchID 157:126
+`define OutputBlock_DispatchID_WIDTH 32
 
 `define OP_START 'hff
 `define START_Opcode 3:0
@@ -128,5 +131,10 @@
 `define TailBlock_BiasStartAddress_WIDTH 32
 `define TailBlock_BiasEndAddress 199:168
 `define TailBlock_BiasEndAddress_WIDTH 32
+
+`define ACT_RELU 'h00
+`define POOL_MAX 'h00
+`define POOL_AVERAGE 'h01
+`define POOL_GLOBAL_AVG 'h02
 
 `endif

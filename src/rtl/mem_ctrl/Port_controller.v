@@ -1,0 +1,95 @@
+module Port_controller #(
+  parameter ADDR_SEGMENTS = 4,
+  parameter PORT_ID_VALUE = 0,
+  parameter ADDRESS_WIDTH = 32,
+  parameter IN_ADDR = 8 ,
+  parameter COMBINED_DATA_WIDTH = 41,
+  parameter BURST_LENGTH_WIDTH = 4,
+  parameter PORT_ID_WIDTH = 4
+)(
+  input                                clk,          // Clock signal  
+  input                                rst,          // Reset signal  
+  input                                valid,        // Valid signal
+  input                                last,         // Last signal  
+  input  [IN_ADDR-1:0]                 in_address,   // 8-bit input address
+  input  [BURST_LENGTH_WIDTH-1:0]      in_burst_len, // 4-bit input burst length
+  input                                in_enable_rw, // Read/Write enable input
+  
+  output   reg                          o_valid = 0,
+  output reg [COMBINED_DATA_WIDTH-1:0]  combined_out = 0
+);
+
+  localparam IDLE = 2'b00;
+  localparam TRANSMIT_ADDRESS = 2'b01;
+  localparam WAIT_DATA = 2'b10 ;
+  
+  // Define state register
+  reg [1:0] state = 0;
+  wire [PORT_ID_WIDTH-1:0] port_id_temp;
+  
+  assign port_id_temp = PORT_ID_VALUE ;
+  // Registers for storing data
+  wire [PORT_ID_WIDTH-1:0]  port_id;
+  reg [ADDRESS_WIDTH-1:0] address_reg = 0;
+  reg [BURST_LENGTH_WIDTH-1:0]  burst_len_reg = 0;
+  reg        enable_rw_reg = 0;
+  
+////////////////////////////////////////////////////////////////////////
+  // Separate always block for handling address and valid signal
+  always @(posedge clk) begin
+    if (!rst) begin
+      address_reg <= 0;
+      //o_valid <= 0;
+    end 
+    else begin
+      if (valid)begin
+        address_reg <= {address_reg[23:0],in_address};
+      end
+      
+    end
+  end
+  
+  // FSM
+  always @(posedge clk) begin
+    if (!rst) begin
+      state <= IDLE;
+      burst_len_reg <= 0;
+      enable_rw_reg <= 0;
+      combined_out <= 0;
+    end 
+    else begin 
+      case (state)
+        IDLE: begin 
+          if (valid) begin
+            state <= TRANSMIT_ADDRESS;
+            burst_len_reg <= in_burst_len;
+            enable_rw_reg <= in_enable_rw;
+            o_valid <= 0 ;
+          end
+          
+          else 
+            o_valid <= 0 ;
+        end
+        TRANSMIT_ADDRESS: begin 
+          if (last) begin
+             o_valid <= 1'b0;
+            state <= WAIT_DATA ;
+          end
+        end 
+        
+        WAIT_DATA : begin 
+            o_valid <= 1'b1 ;
+            combined_out <= {address_reg, burst_len_reg, port_id_temp, enable_rw_reg};
+            state <= IDLE ;
+        end
+      endcase
+    end
+  end
+  
+  // Output assignments
+  assign out_address = address_reg;
+  assign out_burst_len = burst_len_reg;
+  assign out_enable_rw = enable_rw_reg;
+  assign port_id = port_id_temp ;
+
+endmodule

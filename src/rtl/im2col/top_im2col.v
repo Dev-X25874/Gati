@@ -24,7 +24,8 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   input                             i_valid_mat_size,
  // output                            o_start_im2col,
   input                             i_start_im2col_top,
-  input [DATA_WIDTH-1:0]            i_im2col_data,
+  input 							stall_on,
+	input [DATA_WIDTH-1:0]            i_im2col_data,
   input                             i_clk,
   input                             i_rstn,
   output [DATA_WIDTH-1:0]           o_im2col_data,
@@ -43,7 +44,10 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   output                            o_valid_data,
   output                            o_valid_buff,
   input                             i_valid_data,
-  output                            im2col_done
+  output                            im2col_done,
+
+ output  [$clog2(UPPER_BOUND)-1:0]      row,    
+ output  [$clog2(UPPER_BOUND)-1:0]      col
 
 );
   wire [$clog2(UPPER_BOUND)-1:0]      w_row;    
@@ -54,13 +58,16 @@ module top_im2col#(parameter UPPER_BOUND = 28,
   wire [$clog2(UPPER_BOUND)-1:0]      w_mat_size;
   wire                                w_valid_data;
   wire                                w_valid_data_rows;
+assign row=w_row;
+assign col=w_col;
 index_to_coordinate # (.UPPER_BOUND(UPPER_BOUND),
                        .DATA_WIDTH(DATA_WIDTH),
                        .LOWER_BOUND(LOWER_BOUND))
 index_to_coordinate_module (
   .valid_mat_size(i_valid_mat_size),
 //  .o_start_im2col_ctrl (o_start_im2col),
-  .i_start_im2col_index (i_start_im2col_top),
+ 	.stall_on(stall_on), 
+	.i_start_im2col_index (i_start_im2col_top),
   .i_valid_data (i_valid_data),
   .clk(i_clk),
   .rstn(i_rstn),
@@ -85,6 +92,7 @@ valid_square_module(
   .mat_size (w_mat_size),
   .clk(i_clk),
   .rstn(i_rstn),
+  .stall_on(stall_on),
   .curr_row(w_row),
   .curr_col(w_col),
   .valid_sq(w_valid_squares),

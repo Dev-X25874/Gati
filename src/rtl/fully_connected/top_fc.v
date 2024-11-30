@@ -3,6 +3,7 @@ module top_fc#(
     parameter W_DATA = 8,
     parameter COL = 32,
     parameter ROW = 1,
+    parameter W_KERNAL_CNT = 10,
     parameter W_PSUM = 19,
     parameter N_SA = 1,
     parameter W_ACC = 32,
@@ -20,8 +21,10 @@ module top_fc#(
     input  [(COL * W_DATA)-1 : 0]               i_weight_ff_array_data,
     input  [COL-1 : 0]                          i_weight_ff_array_dv,
     input  [COL-1 : 0]                          i_weight_ff_array_empty,
+    input  [COL-1 : 0]                          i_weight_ff_array_almost_empty,
     input  [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] i_weight_ff_array_occ,
     input  [W_DATA-1 : 0]                       i_image_data,
+    input  [W_KERNAL_CNT-1 : 0]                 i_kernal_count,
     output [COL-1 : 0]                          o_weight_ff_array_rden,
     // output [ROW-1 : 0]                          o_image_ff_array_rden,
     output [(COL * N_SA)-1 : 0]                 accumulator_dv,
@@ -29,7 +32,8 @@ module top_fc#(
 );
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
-
+	assign accumulator_data=r_accumulator_data;
+	assign accumulator_dv=r_accumulator_dv;
 wire [(COL * (W_DATA + 1))-1 : 0] weights_ff_array_synch;   //weights going into synchronizers
 
 //along with the data coming from weight fifo array, append it's data valid signal
@@ -47,13 +51,17 @@ weight_ff_rden#(
     .COL(COL),
     .ROW(ROW),
     .W_IMG_DIM(W_IMG_DIM),
+    .W_KERNAL_CNT(W_KERNAL_CNT),
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH)
 )weight_fifo_array_read_en_controller(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
     .i_trigger(i_weight_rden_trigger),                            
     .i_sel_mux(i_sel_fifo_sharing_mux),
+    .i_kernal_count(i_kernal_count),
+    .i_accumulator_valid(&(r_accumulator_dv)),
     .i_north_empty(i_weight_ff_array_empty),
+    .i_north_almost_empty(i_weight_ff_array_almost_empty),
     .i_north_occ(i_weight_ff_array_occ),
     .i_img_dim(i_img_dim),
     .o_north_rden(o_weight_ff_array_rden)
@@ -121,15 +129,15 @@ accumulator#(
 
 //synchronizers for CDC
 (*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] r_acc_dv = 0;
-(*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] accumulator_dv = 0;
+(*async_reg = "true" *) reg [(COL * N_SA)-1 : 0] r_accumulator_dv = 0;
 (*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] r_acc_data = 0;
-(*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] accumulator_data = 0;
+(*async_reg = "true" *) reg [((COL * W_ACC) * N_SA)-1 : 0] r_accumulator_data = 0;
 
 always @(posedge i_clk)begin
     r_acc_dv         <= o_acc_dv;
-    accumulator_dv   <= r_acc_dv;
+    r_accumulator_dv   <= r_acc_dv;
     r_acc_data       <= o_acc_data;
-    accumulator_data <= r_acc_data;
+    r_accumulator_data <= r_acc_data;
 end
 
 endmodule

@@ -1,0 +1,72 @@
+{
+    "args": [
+        "-o",
+        "data_fifo",
+        "--base_path",
+        "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip",
+        "--vlnv",
+        {
+            "vendor": "efinixinc.com",
+            "library": "memory",
+            "name": "efx_fifo_top",
+            "version": "5.1"
+        }
+    ],
+    "conf": {
+        "SYNC_CLK": "1",
+        "SYNC_STAGE": "2",
+        "DEPTH_2": "9",
+        "DATA_WIDTH": "256",
+        "MODE": "\"STANDARD\"",
+        "OUTPUT_REG": "1",
+        "PROG_FULL_ASSERT": "128",
+        "PROGRAMMABLE_FULL": "\"STATIC_SINGLE\"",
+        "PFN_INTERNAL": "127",
+        "PEA_INTERNAL": "2",
+        "PEN_INTERNAL": "3",
+        "PROGRAMMABLE_EMPTY": "\"NONE\"",
+        "OPTIONAL_FLAGS": "0",
+        "PIPELINE_REG": "1",
+        "FAMILY": "\"TRION\"",
+        "ASYM_WIDTH_RATIO": "4",
+        "BYPASS_RESET_SYNC": "0",
+        "ENDIANESS": "0"
+    },
+    "output": {
+        "external_source_source": [
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/data_fifo_tmpl.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/data_fifo_define.vh",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/data_fifo_tmpl.vhd",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/data_fifo.v"
+        ],
+        "external_example_example": [
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/fifo_demo.peri.xml",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/fifo_demo.xml",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/fifo_demo_top.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/fifo_demo_T20.sdc",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/efx_symmetric_width_fifo_top.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/data_fifo.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/T20F256_devkit/data_fifo_define.vh"
+        ],
+        "external_example_2": [
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/fifo_demo.peri.xml",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/fifo_demo.xml",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/fifo_demo_top.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/fifo_demo_Ti60.sdc",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/efx_symmetric_width_fifo_top.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/data_fifo.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Ti60F225_devkit/data_fifo_define.vh"
+        ],
+        "external_testbench_testbench": [
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/fifo_tb.sv",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/xrun.sh",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/msim.sh",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/flist",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/modelsim.do",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/data_fifo.v",
+            "/home/roshni/Documents/vicharak-github/round_robin_ARB/ip/data_fifo/Testbench/data_fifo_define.vh"
+        ]
+    },
+    "sw_version": "2023.2.307",
+    "generated_date": "2024-05-17T07:24:42.553918"
+}

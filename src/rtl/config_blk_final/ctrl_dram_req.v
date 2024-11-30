@@ -21,17 +21,25 @@ module ctrl_dram_req #(
   output valid, //valid signal
   output [7:0]o_address, //8 bit chunks of address
   output last, //last chunk of 8 bits
-  output [$clog2(BURST_LEN_AXI):0]burst_len //burst length for dram
+  output [BURST_LEN_WIDTH-1:0]burst_len //burst length for dram (15-6-24: changed burst lenght width param)
 );
 reg[5:0] counter1=0;
 reg [7:0] o_address_reg=0;
 reg dv;
 reg read_req_reg;
-reg last_reg=0;
-reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+	integer i;
+	reg last_reg=0;
+	reg [BURST_LEN_WIDTH-1:0]burst_len_reg=0;
+	reg [ADDR_W-1:0] shifted_burst_len_reg=0;
 reg [3:0]state=0;
 reg [ADDR_W-1:0]internal_reg_start=0;
 reg [ADDR_W-1:0]internal_reg_stop=0;
+	reg [ADDR_W-1:0] r_o_burst_shifted;
+// reg temp; //added for debugging
+	always @ (posedge clkin) begin 
+		r_o_burst_shifted<=(burst_len+1)<<$clog2(ADDR_W);
+		shifted_burst_len_reg<=(burst_len_reg+1)<<$clog2(ADDR_W);
+	end 
 
 always @(posedge clkin)begin
   case(state)
@@ -48,10 +56,14 @@ always @(posedge clkin)begin
     end
     4'd1:
     begin
-      o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
+     // o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
       dv<=1'b1;
       counter1<=counter1+8;
-
+			for(i=0;i<25;i=i+8) begin
+			if(counter1==i) begin 
+				o_address_reg<=internal_reg_start[(ADDR_W-i)-1-:8];
+			end
+		  end
       burst_len_reg<=0;
       if(counter1==24)
       begin
@@ -82,6 +94,7 @@ always @(posedge clkin)begin
           internal_reg_start<=global_reg_address_start;
           internal_reg_stop<=global_reg_address_stop;
           state<=4'd3;
+          burst_len_reg <= BURST_LEN_AXI; 
       end
     end
 
@@ -94,20 +107,38 @@ always @(posedge clkin)begin
         dv<=1'b0;
         o_address_reg<=0;
         last_reg<=0;
-        burst_len_reg<=0;
+        burst_len_reg<= burst_len_reg;
         state<=4'd3;
       end
-      else
+      else begin
         state<=4'd4;
+        burst_len_reg <= burst_len_reg; // Modified - Load the default burst len and in next state check whether blen condition matches with stop address or not
+      end
     end
     4'd4:
     begin
       //send address to mem controller in 8bits with required signals
-      o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
+      //o_address_reg<=internal_reg_start[ADDR_W-counter1-1-:8];
       counter1<=counter1+8;
       dv<=1'b1;
+		for(i=0;i<25;i=i+8) begin
+			if(counter1==i) begin 
+				o_address_reg<=internal_reg_start[(ADDR_W-i)-1-:8];
+			end
+		end
 
-      burst_len_reg<=BURST_LEN_AXI;
+      // temp is added for debugging
+      // temp <= (internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W)))>internal_reg_stop;
+      // temp <= ((internal_reg_stop-((burst_len_reg+1)<<$clog2(ADDR_W)))>internal_reg_start);
+      
+      // Added to adjust blen if stop address is lesser than the blen condition
+      if((internal_reg_start+shifted_burst_len_reg)>internal_reg_stop) begin
+        burst_len_reg<=((internal_reg_stop-internal_reg_start)>>$clog2(ADDR_W))-1;
+      end
+      else begin
+        burst_len_reg<=burst_len_reg;
+      end
+
       if(counter1==24)
       begin
         last_reg<=1'b1;
@@ -133,18 +164,18 @@ always @(posedge clkin)begin
     end
     4'd5:
     begin
-      if(((internal_reg_stop-((burst_len+1)<<$clog2(ADDR_W)))>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
+      if(((internal_reg_stop-r_o_burst_shifted)>internal_reg_start)) //changed burst_len =>burst_len+1//32'h200)>internal_reg_start))//
       begin
-        if(status)
-        begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
-          state<=4'd4;
-        end
-        else
-        begin
-          internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
+        // if(status)
+        // begin
+        //   internal_reg_start<=internal_reg_start+((burst_len_reg+1)<<$clog2(ADDR_W));//for testing 32'h200;   //+//32'h10000; // update internal reg
+        //   state<=4'd4;
+        // end
+        // else
+        // begin
+          internal_reg_start<=internal_reg_start+shifted_burst_len_reg;//for testing 32'h200;   //+//32'h10000; // update internal reg
           state<=4'd3; //Back to check status of instruction queue
-        end
+        // end
       end
       else
       begin

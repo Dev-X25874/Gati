@@ -15,6 +15,7 @@ module weight_ff_array#(
     input [COL-1:0] i_write_enable,
     output [(COL * W_DATA) -1 : 0] o_data,
     output [COL-1:0] o_fifo_empty,
+    output [COL-1:0] o_fifo_almost_empty,
     output [COL-1:0] o_fifo_full,
     output [COL-1:0] o_fifo_dv,
     output [(((WEIGHT_FF_ADDR + 1) * COL) -1): 0] o_occupants
@@ -29,17 +30,18 @@ generate
             .W_DATA(W_DATA),
             .W_ADDR(WEIGHT_FF_ADDR)
         ) fifo_array (
-            .full_o(o_fifo_full[i]),
-            .empty_o(o_fifo_empty[i]),
+            .full_o(o_fifo_full[COL-1-i]),
+            .empty_o(o_fifo_empty[COL-1-i]),
+            .almost_empty_o(o_fifo_almost_empty[COL-1-i]),
             .clk_i(i_clk),
-            .wr_en_i(i_write_enable[i]),
-            .rd_en_i(i_read_enable[i]),
+            .wr_en_i(i_write_enable[COL-1-i]),
+            .rd_en_i(i_read_enable[COL-1-i]),
             .wdata(i_data[((W_DATA * (COL - i)) -1) -: W_DATA]),
-            .datacount_o(o_occupants[((WEIGHT_FF_ADDR + 1) * (i + 1)) - 1 -: (WEIGHT_FF_ADDR + 1)]),
+            .datacount_o(o_occupants[((WEIGHT_FF_ADDR + 1) * (COL-i)) - 1 -: (WEIGHT_FF_ADDR + 1)]),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (COL - i)) -1) -: W_DATA]),
             .a_rst_i(~i_rstn),
-            .o_valid(o_fifo_dv[i])
+            .o_valid(o_fifo_dv[COL-1-i])
         );
 
     end

@@ -28,6 +28,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter ACCEN_WIDTH = 1,
             parameter BNEN_WIDTH = 1,
             parameter ACTEN_WIDTH = 1,
+            parameter DISPATCH_ID_WIDTH = 32,
+            parameter DISPATCHEN_WIDTH = 1,
             parameter ACTTYPE_WIDTH = 4,
             parameter ACTPARAM_WIDTH = 8,
             parameter QUANTEN_WIDTH = 1,
@@ -84,6 +86,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput,
                 output [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc,
                 output [ACCEN_WIDTH -1 : 0] AccEn,
+                output [DISPATCH_ID_WIDTH-1 : 0] DispatchId,
+                output [DISPATCHEN_WIDTH-1 : 0] DispatchEn,
                 output [OP_CODE_WIDTH - 1 : 0] opcode_TB,
                 output [BNEN_WIDTH - 1 : 0] BNEn,
                 output [BNCHANNELS_WIDTH -1 : 0] BNchannels,
@@ -214,7 +218,9 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .KERNELITR_WIDTH(KERNELITR_WIDTH),
 .IMAGEDIMOUTPUT_WIDTH(IMAGEDIMOUTPUT_WIDTH),
 .IMAGEDIMACC_WIDTH(IMAGEDIMACC_WIDTH),
-.ACCEN_WIDTH(ACCEN_WIDTH))
+.ACCEN_WIDTH(ACCEN_WIDTH),
+.DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
+.DISPATCHEN_WIDTH(DISPATCHEN_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
     .sel(select_line[`OP_OutputBlock]),
@@ -230,7 +236,9 @@ OP_Outputblock(
     .kernelItr(kernelItr),
     .ImageDimOutput(ImageDimOutput),
     .ImageDimAcc(ImageDimAcc),
-    .AccEn(AccEn)
+    .AccEn(AccEn),
+    .DispatchId(DispatchId),
+    .DispatchEn(DispatchEn)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 

@@ -11,21 +11,23 @@ module output_mux#(
 )(
     input clk,
     input rstn,
+    input rd_flag,
     input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
     input [N_BRAM-1 : 0] i_rden,
     input [N_BANK-1 : 0] i_bank_en,
     input [(N_BANK * (N_BRAM * W_DATA))-1 : 0] i_data,
-    output [W_DATA-1 : 0] o_data,
-    output data_valid
+    output reg [W_DATA-1 : 0] o_data,
+    output reg data_valid
 );
 reg r_dv = 0;
 reg [W_DATA-1 : 0] r_data = 0;
-assign o_data = r_data;
-assign data_valid = r_dv;
+// assign o_data = r_data;
+// assign data_valid = r_dv;
 localparam BIN_WIDTH_RDEN = $clog2(N_BRAM);
 localparam BIN_WIDTH_BANK_EN = $clog2(N_BANK);
 localparam BIN_WIDTH = BIN_WIDTH_RDEN + BIN_WIDTH_BANK_EN;
-
+	reg if_cond=0;
+	integer i;
 wire [BIN_WIDTH_RDEN-1 : 0] read_en_bin;
 onehot_to_bin#(
     .ONEHOT_WIDTH(N_BRAM)
@@ -44,21 +46,40 @@ onehot_to_bin#(
 
 wire [BIN_WIDTH-1 : 0] select;
 assign select = {bank_en_bin, read_en_bin};
+reg [BIN_WIDTH-1 : 0] select1;
+reg [N_BRAM-1 : 0] rden_delayed;
+reg [N_BANK-1 : 0] bank_en_delayed;
+always @ (posedge clk) begin 
+	if_cond<=((i_rden!=0) && (i_bank_en!=0))?1:0;
+    select1 <= select;
+    rden_delayed <= i_rden;
+    bank_en_delayed <= i_bank_en;
+end
 
 always @(posedge clk) begin
     if(~rstn)begin
         r_data <= 0;
+        r_dv <= 0;
     end else begin
-        if(i_weight_ff_array_empty === 0)begin
-            if((i_rden!=0) && (i_bank_en!=0))begin
-                r_data <= i_data[((W_DATA) * ((N_BRAM * N_BANK) - select))-1 -: W_DATA];
+        // if(rd_flag)begin
+            if((|(rden_delayed)) & (|(bank_en_delayed)))begin
+                for(i=0;i<2**BIN_WIDTH;i=i+1) begin
+				if(select1==i) begin
+				r_data <= i_data[((W_DATA) * ((N_BRAM * N_BANK) -i ))-1 -: W_DATA];
                 r_dv <= 1;
+				end
+				end
             end
-        end else begin
+        // end
+            else begin
                 r_data <= r_data;
                 r_dv <= 0;
             end
-        end
+    end
 end
-    
+
+always@(*) begin
+    o_data <= r_data;
+    data_valid <= r_dv;
+end
 endmodule

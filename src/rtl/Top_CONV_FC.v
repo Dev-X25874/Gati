@@ -1,8 +1,8 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH = 8,
-    parameter COL_SA = 1,
+	  parameter DATA_WIDTH = 8,
+    parameter COL_SA = 8,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
     parameter QUANT_SCALE = 16,
@@ -63,6 +63,7 @@ module Top_CONV_FC #(
     parameter CONV_PAD_WIDTH = 3
 
 
+    parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not
 ) (
 
    
@@ -672,7 +673,7 @@ endgenerate
   wire [(DATA_WIDTH*N_SA)-1:0] bias_fc_out ;
   wire [N_SA-1:0] bias_fc_valid;
 
-  top_bias_fc #(
+  /*top_bias_fc #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH($clog2(BIAS_FIFO_DEPTH)),
     .DRAM_BW(DRAM_BW),
@@ -692,7 +693,7 @@ endgenerate
     .w_empty_flag(),
     .top_out_data_valid(bias_fc_valid),
     .fifo_occupants(fc_bias_fifo_occupants)
-);
+);*/
 
   
   top_relu_gen #(
@@ -702,8 +703,8 @@ endgenerate
       .CLIP_WIDTH(RELU_CLIP_WIDTH)
   ) relu (
       .top_clk(i_clk),
-      .top_i_data(bias_fc_out),
-      .top_i_valid(bias_fc_valid),
+      .top_i_data(quantized_output),
+      .top_i_valid(tail_valid),
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),

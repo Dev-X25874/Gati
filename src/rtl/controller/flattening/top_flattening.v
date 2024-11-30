@@ -33,7 +33,7 @@ module top_flattening#(
     output o_done_rden_ctrl                                     //indicates done reading all the channels for all different set of kernals
 );
 
-localparam IMG_FF_ADDR = $clog2(IMG_FF_DEPTH);
+localparam IMG_FF_ADDR = $clog2(IMG_FF_DEPTH) - 1;
 
 wire flattened_data_valid;
 wire [((N_BANK * N_BRAM) * W_DATA)-1 : 0] flattened_data;

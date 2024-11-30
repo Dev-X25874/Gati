@@ -289,6 +289,7 @@ module rah_gati #(
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
+  
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
 
   //////////////////////////////// gati module instatiation

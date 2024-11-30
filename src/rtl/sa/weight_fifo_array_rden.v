@@ -74,7 +74,7 @@ always @(posedge i_clk) begin
 			end
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW
-                if((i_fifo_empty == 0) && (i_fifo_occupants >= {COL{S_ROW}}))begin
+                if((i_fifo_empty == 0))begin            //(i_fifo_occupants >= {COL{S_ROW}})
                     rden <= {COL{1'b1}};
                     state <= 2;
                 end

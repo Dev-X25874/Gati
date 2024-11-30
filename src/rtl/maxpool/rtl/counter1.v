@@ -47,6 +47,16 @@ module counter1 #(parameter IMG_WIDTH = 10) (
             toggle <= toggle;
           end
         end
+        else if(counter == dynamic_threshold) begin
+          if(datavalid) begin
+            toggle <= 1'b0;
+            counter <= 14'd1;
+          end
+          else begin
+            counter <= counter;
+            toggle <= toggle;
+          end
+        end
         else begin
           toggle <= 1'b0;
           counter <= 14'd1;

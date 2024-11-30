@@ -30,6 +30,7 @@ module top_sa#(
     input [(COL * N_SA)-1 : 0] i_psum_ff_array_read_en,
     output [((COL * W_PSUM) * N_SA)-1 : 0] o_psum_ff_array_partial_sums,
     output [(COL * N_SA)-1 : 0] o_psum_ff_array_empty,
+    output [(COL * N_SA)-1 : 0] o_psum_ff_array_almost_empty,
     output [(COL * N_SA)-1 : 0] o_psum_ff_array_dv,
     output [(N_SA * COL)-1 : 0] o_read_en_weight_ff_sharing,
 	output reg p_full_output,
@@ -79,6 +80,7 @@ if(NSA_DSP == 0)begin
 			.i_psum_ff_array_read_en(),
 			.o_psum_ff_array_partial_sums(),
             .o_psum_ff_array_empty(),
+            .o_psum_ff_array_almost_empty(),
             .o_psum_ff_array_dv(),
             .o_weight_fifo_array_rden()
         );
@@ -113,6 +115,7 @@ end
                 .i_psum_ff_array_read_en(i_psum_ff_array_read_en[(COL * (N_SA-i))-1 -: (COL)]),
                 .o_psum_ff_array_partial_sums(o_psum_ff_array_partial_sums[((COL * W_PSUM) * (N_SA - i))-1 -: (COL * W_PSUM)]),
                 .o_psum_ff_array_empty(o_psum_ff_array_empty[(COL * (N_SA - i))-1 -: COL]),
+                .o_psum_ff_array_almost_empty(o_psum_ff_array_almost_empty[(COL * (N_SA - i))-1 -: COL]),
                 .p_occupants(p_occ_out[(COL*(PSUM_FF_ADDR+1))*(N_SA-i)-1 -:COL*(PSUM_FF_ADDR+1)]),
 				.o_psum_ff_array_dv(o_psum_ff_array_dv[(COL * (N_SA - i))-1 -: COL]),           
                 .o_weight_fifo_array_rden(o_read_en_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL])
@@ -142,6 +145,7 @@ generate
                 .i_psum_ff_array_read_en(),
                 .o_psum_ff_array_partial_sums(),
                 .o_psum_ff_array_empty(),
+                .o_psum_ff_array_almost_empty(),
                 .o_psum_ff_array_dv(),
                 .o_weight_fifo_array_rden()
             );
@@ -176,6 +180,7 @@ generate
                     .p_occupants(p_occ_out[(COL*(PSUM_FF_ADDR+1))*((N_SA-NSA_DSP)-j)-1 -:COL*(PSUM_FF_ADDR+1)]),
 					.o_psum_ff_array_partial_sums(o_psum_ff_array_partial_sums[((COL * W_PSUM) * ((N_SA-NSA_DSP) - j))-1 -: (COL * W_PSUM)]),
                     .o_psum_ff_array_empty(o_psum_ff_array_empty[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL]),
+                    .o_psum_ff_array_almost_empty(o_psum_ff_array_almost_empty[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL]),
                     .o_psum_ff_array_dv(o_psum_ff_array_dv[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL]),
                     .o_weight_fifo_array_rden(o_read_en_weight_ff_sharing[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL])
                 );

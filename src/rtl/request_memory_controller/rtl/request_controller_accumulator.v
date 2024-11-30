@@ -40,9 +40,9 @@ assign burst_length = r_burst_length;
 //		r_fifo_status<=fifo_status;
 //		r_enable<=enable;
 //	end
-always @(posedge clk ) begin
-    nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
-end
+// always @(posedge clk ) begin
+//     nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
+// end
 
 always @(posedge clk) begin
     if(enable) begin
@@ -63,6 +63,7 @@ always @(posedge clk) begin
         end
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
             if(ENABLE) begin
+                nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
                 if(fifo_status) begin
                     state <= START_ADDR;
                 end
@@ -91,16 +92,16 @@ always @(posedge clk) begin
                 
                 wr_enable <= 0;
                 valid <= 1;
-                r_burst_length <= r_burst_length;
+                //r_burst_length <= r_burst_length;
                 state <= START_ADDR;
                 count <= count + 1;
             end
             else begin
-                addr_out <= nxt_addr[32-(count*8)-1 -:8];
+                addr_out <= nxt_addr[7:0];
                 wr_enable <= 0;
                 last <= 1;
                 valid <= 1;
-                r_burst_length <= r_burst_length;
+                //r_burst_length <= r_burst_length;
                 state <= ADDR_ITR;
                 count <= 0;
             end
@@ -120,7 +121,7 @@ always @(posedge clk) begin
                 wr_enable <= 0;
                 valid <= 0;
                 r_burst_length <= r_burst_length;
-                nxt_addr <= nxt_addr;
+                nxt_addr <= stop_addr;
             end
             else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
                 state <= FIFO_STATUS;

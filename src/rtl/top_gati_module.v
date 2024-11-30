@@ -358,6 +358,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] acc_start_address;
   wire [AXI_ADDR_W-1:0] acc_stop_address;
   wire [AXI_ADDR_W-1:0] op_start_address;
+  wire  Acc_onchip;
 
   //Tail inst. signals
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
@@ -796,7 +797,7 @@ module top_gati_module #(
       .config_start(im2col_global_start), //start from im2col start ctrler
       .fifo_status(acc_fifo_status),
       .clk(i_clk),
-      .enable(ACC_EN), // ACC_EN comes from inst. whether is enabled in this layer or not
+      .enable(ACC_EN & ~Acc_onchip), // ACC_EN comes from inst. whether is enabled in this layer or not
       .ENABLE(vector_add_enable), // acc_en comes from iteration cter to enable it in current iteration based on the instruction field
       .addr_out(mc_acc_addr),
       .wr_enable(mc_acc_rdreq),
@@ -837,6 +838,8 @@ module top_gati_module #(
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
     .acc_en(vector_add_enable),
+    .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
+    .Acc_onchip(Acc_onchip), //i-wire: Enables Accumulant storage locally, comes from instruction
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
@@ -1085,6 +1088,13 @@ module top_gati_module #(
    zero_pad_enable <= |(conv_zeropad);
   end
   
+  // Data from DRAM
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_dram;
+  wire [ACC_FIFO-1:0] vector_add_wren_dram;
+  // Data from Opwrite_FIFO
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_opfifo;
+  wire [ACC_FIFO-1:0] vector_add_wren_opfifo;
+
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
   wire [ACC_FIFO-1:0] vector_add_wren;
   // DRAM Data write ctlers for accumulants, bias, fcbias
@@ -1098,11 +1108,29 @@ module top_gati_module #(
         .i_data_valid(dram_rd_datavalid),
         .i_data_last(dram_rd_data_last),
         .i_dram_data(dram_rd_data),
-        .o_dram_data(vector_add_values), //o-wire: to vector add fifo blk
-        .o_dram_fifo_wren(vector_add_wren), //o-wire: to vector add fifo blk
+        .o_dram_data(vector_add_values_dram), //o-wire: to vector add fifo blk
+        .o_dram_fifo_wren(vector_add_wren_dram), //o-wire: to vector add fifo blk
         .o_data_last()
   ); 
 
+  // Mux to select between dram read output and op_write fifo dataout
+  vector_mux_param#(
+    .PORT_SIZE(AXI_DATA_WIDTH),
+    .NO_PORT(2)
+  ) Acc_FIFO_mux_data(
+    .in({vector_add_values_opfifo,vector_add_values_dram}),
+    .sel(1<<Acc_onchip),
+    .out(vector_add_values)
+  );
+
+  vector_mux_param#(
+    .PORT_SIZE(ACC_FIFO),
+    .NO_PORT(2)
+  ) Acc_FIFO_mux_dv(
+    .in({vector_add_wren_opfifo,vector_add_wren_dram}),
+    .sel(1<<Acc_onchip),
+    .out(vector_add_wren)
+  );
   
   wire [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in;
   wire [BIAS_FIFO -1:0] bias_wren;
@@ -1335,9 +1363,39 @@ module top_gati_module #(
 //   wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c;
 //   assign data_op_write_dram_fifo = switch_enable? {data_b, data_c} : data_b;
 
-  
-  //o/p write FIFO to DDR
+  //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
+  wire [OP_FIFO-1:0] op_write_fifo_rden;
   wire [OP_FIFO-1:0] op_dram_rden;
+  assign op_write_fifo_rden = (~Acc_onchip)? op_dram_rden : (quant_enable ? op_dram_rden : ((~|(op_dram_fifo_empty)? {OP_FIFO{1'b1}} : 0)));
+  
+  // Demux for separting the op_write fifo out path to DRAM and local ACC_FIFOs
+  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo1;
+  wire [OP_FIFO-1:0] op_dram_dv,op_write_fifo_dv;
+  Dmux_param #(
+    .NUM_PORTS(2),
+    .DATA_WIDTH(OP_FIFO*DATA_WIDTH_OB),
+    .COL_SA(1)
+  ) Dmux_param_op_fifo_data_inst (
+    .i_din(op_dram_fifo1),
+    .i_datavalid(),
+    .i_sel(Acc_onchip & ~quant_enable),
+    .o_dout({op_dram_fifo,vector_add_values_opfifo}),
+    .o_datavalid()
+  );
+
+  Dmux_param #(
+    .NUM_PORTS(2),
+    .DATA_WIDTH(OP_FIFO),
+    .COL_SA(1)
+  ) Dmux_param_op_fifo_dv_inst (
+    .i_din(op_write_fifo_dv),
+    .i_datavalid(),
+    .i_sel(Acc_onchip & ~quant_enable),
+    .o_dout({op_dram_dv,vector_add_wren_opfifo}),
+    .o_datavalid()
+  );
+
+  //o/p write FIFO to DDR
   dram_fifo #(
       .DIMENSION(OP_FIFO),
       .W_DATA(DATA_WIDTH_ACC),
@@ -1347,12 +1405,12 @@ module top_gati_module #(
       .i_clk(i_clk),
       .i_rst(i_rst),
       .i_data(data_op_write_dram_fifo),
-      .i_read_enable(op_dram_rden),
+      .i_read_enable(op_write_fifo_rden),
       .i_write_enable(op_wren),
-      .o_data(op_dram_fifo),
+      .o_data(op_dram_fifo1),
       .o_fifo_empty(op_dram_fifo_empty),
       .o_fifo_full(),
-      .o_fifo_dv(),
+      .o_fifo_dv(op_write_fifo_dv),
       .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
   );
 
@@ -1481,6 +1539,18 @@ module top_gati_module #(
     end
   end
 
+  reg [31:0] stall_cntr;
+  always@(posedge i_clk) begin
+    if(!i_rst) stall_cntr <= 0;
+    else begin
+      if(OpBlock_Ack) stall_cntr <= 0;
+      else if(start_en) begin
+        if(stall_on) stall_cntr <= stall_cntr + 1;
+      end
+      else stall_cntr <= stall_cntr;
+    end
+  end
+
   always@(posedge i_clk) begin
     if(!i_rst) start_en <= 0;
     else begin
@@ -1506,4 +1576,9 @@ module top_gati_module #(
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
   assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*n_kernels;
   assign fpga2cpu_start_address = op_start_address;
+
+  //Hard-coded logic to for Acc_onchip flag: Should be deprecated after inclusion of support from sysim
+  assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
+  // assign Acc_onchip = (layer_cntr>=7)? 1 : 0;
+  // assign Acc_onchip = 0;
 endmodule

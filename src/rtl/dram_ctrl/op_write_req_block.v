@@ -27,6 +27,8 @@ input [IMAGE_DIM_WIDTH_OP-1:0]i_imag_dim_2, // image width-output
 input [N*($clog2(DEPTH)+1)-1:0] occupants,
 
 input acc_en,               //from iteration counter
+input Tail_done,            //from TOP_CONV_FC
+input Acc_onchip,           //from instructions
 //signals to mem_controller
 output o_last,
 output [7:0] o_address,
@@ -213,8 +215,9 @@ always@(posedge clkin) begin
            */ 
            
             3'd2: begin
-                state <= 3;
+                
                 if(c_ctr==r_channel_itr-1) begin
+                    state <= 3;
                     if(op_add_reg1 > r_layer_stop_add) begin
                         r_burst_len2 <= ((r_layer_stop_add-r_layer_start_add)>>$clog2(AXI_DATA_BYTES))-1;
                     end
@@ -223,20 +226,27 @@ always@(posedge clkin) begin
                     end
                 end
                 else begin
-                    if(acc_en==0) begin
-                        if(acc_add_reg1 > r_acc_stop_add) begin
-                            r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
-                        end
-                        else begin
-                            r_burst_len1 <= BURST_LENGTH;
-                        end
+                    if(Acc_onchip) begin            //Added to skip the DRAM requests if Acc_onchip is enabled.
+                        if(Tail_done) state <= 7;   //Wait for Tail_done and go to state 7 to update th c_ctr.
+                        else          state <= 2;   //If c_ctr reaches c_iter-1 then proceed in usual way of DRAM requests.
                     end
                     else begin
-                        if(acc_add_reg1 > r_acc_stop_add) begin
-                            r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                        state <= 3;
+                        if(acc_en==0) begin
+                            if(acc_add_reg1 > r_acc_stop_add) begin
+                                r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                            end
+                            else begin
+                                r_burst_len1 <= BURST_LENGTH;
+                            end
                         end
                         else begin
-                            r_burst_len1 <= BURST_LENGTH_1;
+                            if(acc_add_reg1 > r_acc_stop_add) begin
+                                r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
+                            end
+                            else begin
+                                r_burst_len1 <= BURST_LENGTH_1;
+                            end
                         end
                     end
                 end

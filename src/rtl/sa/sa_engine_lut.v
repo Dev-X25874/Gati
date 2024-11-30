@@ -28,6 +28,7 @@ module sa_engine_lut#(
     input [COL-1 : 0] i_psum_ff_array_read_en,
     output [(W_PSUM * COL)-1 : 0] o_psum_ff_array_partial_sums,
     output [COL-1 : 0] o_psum_ff_array_empty,
+    output [COL-1 : 0] o_psum_ff_array_almost_empty,
     output [COL-1 : 0] o_psum_ff_array_dv,
     output [COL-1 : 0] o_weight_fifo_array_rden,
     output [(COL*(PSUM_FF_ADDR +1))-1 :0 ] p_occupants,
@@ -209,6 +210,7 @@ fifo_array#(
     .i_read_enable(i_psum_ff_array_read_en),
     .o_data(o_psum_ff_array_partial_sums),
     .o_fifo_empty(o_psum_ff_array_empty),
+    .o_fifo_almost_empty(o_psum_ff_array_almost_empty),
     .o_data_valid(o_psum_ff_array_dv),
     .o_fifo_full(),
     .o_occupants(p_occupants)

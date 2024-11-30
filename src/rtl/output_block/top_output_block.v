@@ -21,13 +21,15 @@ module top_output_block #(
     input  [(DATA_WIDTH_ACC*FIFO_NO)-1:0] top_data_in, //previous accumulnats from ddr
     input                                 vector_add_enable,
     input   [         (N*COL_SA)-1:0]     empty_sa,
+    input   [         (N*COL_SA)-1:0]     almost_empty_sa,
     input                                 op_full,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
     input  [      (DATA_WIDTH*N)-1:0] top_data_in_adder_tree,
     input                             rst,
-    //input channel_done,
+    input                             Iteration_Done,
     output [             FIFO_NO-1:0] w_empty_flag,
+    output [             FIFO_NO-1:0] w_almost_empty_flag,
     input  [                   N-1:0] top_in_data_valid,
     output [                   N-1:0] top_out_data_valid,
     output [((W_ADDR+1)*FIFO_NO)-1:0] fifo_occupants
@@ -44,10 +46,13 @@ module top_output_block #(
   wire [                 FIFO_NO-1:0] w_valid_fifo;
 
  wire [FIFO_NO-1:0] empty_flag;
+ wire [FIFO_NO-1:0] almost_empty_flag;
 
+assign w_empty_flag = empty_flag;
+assign w_almost_empty_flag = almost_empty_flag;
 
-assign w_empty_flag=empty_flag;
-
+wire [FIFO_NO-1:0] acc_fifo_rd_en;
+assign acc_fifo_rd_en = (&empty_sa)? 0 : w_rd_en;
 dram_fifo #(
       .DIMENSION(FIFO_NO),
       .W_DATA(DATA_WIDTH_ACC),
@@ -58,10 +63,11 @@ dram_fifo #(
       .i_clk(top_clk),
       .i_rst(rst),
       .i_data(top_data_in),
-      .i_read_enable(w_rd_en),
+      .i_read_enable(acc_fifo_rd_en),
       .i_write_enable(top_wr_en),
       .o_data(w_data_out),
       .o_fifo_empty(empty_flag),
+      .o_fifo_almost_empty(almost_empty_flag),
       .o_fifo_full(full),
       .o_fifo_dv(w_valid_fifo),
       .o_occupants(fifo_occupants)
@@ -117,9 +123,11 @@ dram_fifo #(
    controller 
   (
       .clk(top_clk),
-      .rst(rst),
+      .rst(rst&(~Iteration_Done)),
 	    .empty_fifo(empty_flag),
+      .almost_empty_fifo(almost_empty_flag),
       .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
       .enable(vector_add_enable),
       .data_valid_tree(&(top_in_data_valid)),
       .select(sel),

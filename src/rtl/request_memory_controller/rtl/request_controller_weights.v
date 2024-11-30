@@ -35,7 +35,7 @@ assign burst_length = r_burst_length;
     reg r_CONV_FC;
 always @ (posedge clk) begin 
     // rbl_add1<=r_burst_length+1;
-    nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
+    // nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
     r_CONV_FC   <= CONV_FC; 
     r_start_addr<=start_addr;
     r_stop_addr1<=stop_addr;
@@ -62,6 +62,7 @@ always @(posedge clk) begin
         end
     end
     FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
+        nxt_bl<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
         if(r_fifo_status) begin
             state <= START_ADDR;
         end

@@ -14,7 +14,9 @@ module acc_fifo_rden #(
     output reg [FIFO_NO-1:0] valid_rd_en = 0,
     input rst,
     input [FIFO_NO-1:0] empty_fifo,
+    input [FIFO_NO-1:0] almost_empty_fifo,
     input [(N*COL_SA)-1:0] empty_sa,
+    input [(N*COL_SA)-1:0] almost_empty_sa,
     input op_full,
     input data_valid_tree,
     input clk,
@@ -48,23 +50,27 @@ always @(posedge clk) begin
       rden_toggle <= 0;
       valid_rd_en <= 0;
     end else begin
-        if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
-          //valid_rd_en <= ~valid_rd_en;
-          for(i=0;i<NO_PORT;i=i+1) begin
-            if(sel_rden[i]==1) begin
-              valid_rd_en[COL_SA*(i) +: COL_SA] <= {COL_SA{1'b1}};
-            end
-            else begin
-              valid_rd_en[COL_SA*(i) +: COL_SA] <= {COL_SA{1'b0}};
-            end
+      // if(((&almost_empty_sa) || (&almost_empty_fifo) || op_full) && enable && (|valid_rd_en)) begin
+      //   valid_rd_en <= 0;
+      // end
+      // else 
+      if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
+        //valid_rd_en <= ~valid_rd_en;
+        for(i=0;i<NO_PORT;i=i+1) begin
+          if(sel_rden[i]==1) begin
+            valid_rd_en[COL_SA*(i) +: COL_SA] <= {COL_SA{1'b1}};
           end
-          if (toggle) begin
-            rden_toggle <= ~rden_toggle;
+          else begin
+            valid_rd_en[COL_SA*(i) +: COL_SA] <= {COL_SA{1'b0}};
           end
-        end else begin
-          valid_rd_en <= 0;
-          rden_toggle <= rden_toggle;
         end
+        if (toggle) begin
+          rden_toggle <= ~rden_toggle;
+        end
+      end else begin
+        valid_rd_en <= 0;
+        rden_toggle <= rden_toggle;
+      end
     end
 end
 

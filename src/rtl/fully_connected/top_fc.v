@@ -102,7 +102,7 @@ dsp_pe_grid#(
     .W_PSUM(W_PSUM)
 )pe_blocks(
     .i_clk(s_clk),
-    .i_rstn(i_rstn&(~r_accumulator_dv)),
+    .i_rstn(i_rstn),
     .i_weight(pe_weights),
     .in_data(pe_image),
     .o_partial_sum(out_south_data),

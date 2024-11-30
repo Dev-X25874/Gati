@@ -16,6 +16,7 @@ module fifo_array#(
     input [DIMENSION-1:0] i_read_enable,
     output [(W_DATA * DIMENSION)-1:0] o_data,
     output [DIMENSION-1:0] o_fifo_empty,
+    output [DIMENSION-1:0] o_fifo_almost_empty,
     output [DIMENSION-1:0] o_data_valid,
     output [DIMENSION-1 : 0] o_fifo_full,
     output [((DIMENSION * (W_ADDR + 1)))-1 : 0] o_occupants
@@ -30,6 +31,7 @@ generate
         ) psum_fifo (
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),
+            .almost_empty_o(o_fifo_almost_empty[i]),
             .clk_i(i_clk),
             .wr_en_i(i_write_enable[i]),
             .rd_en_i(i_read_enable[i]),

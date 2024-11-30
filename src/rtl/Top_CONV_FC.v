@@ -176,7 +176,7 @@ module Top_CONV_FC #(
   top_buffer #(
       .BUFFER_SIZE(8),
       .N_SA(N_SA),
-      .DRAM_BW(32)
+      .DRAM_BW(DRAM_BW)
   ) buffers (
       .clk(i_clk),
       .stall_on(stall_on),
@@ -256,8 +256,8 @@ module Top_CONV_FC #(
   );
 
   //parameters will change for top_SA (for CONV opeartion)
-  wire [OP_FIFO-1:0] empty_vector;
-  wire [(N_SA*COL_SA)-1:0] empty_sa;
+  wire [OP_FIFO-1:0] empty_vector, almost_empty_vector;
+  wire [(N_SA*COL_SA)-1:0] empty_sa, almost_empty_sa;
   wire [(N_SA*COL_SA)-1:0] opsum_rden;
 
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
@@ -292,6 +292,7 @@ module Top_CONV_FC #(
       .p_full_output(p_full_output),
 	    .o_psum_ff_array_partial_sums(o_psum_ff_array),
       .o_psum_ff_array_empty(empty_sa),
+      .o_psum_ff_array_almost_empty(almost_empty_sa),
 	    .o_psum_ff_array_dv(valid_psum),
       .i_done(iteration_Done),
       .i_layer_done(layer_done),
@@ -308,8 +309,11 @@ module Top_CONV_FC #(
       .FIFO(OP_FIFO)
   ) op_psum_rden_inst (
       .clk(i_clk),
+      .rst(rst),
       .empty_vector(empty_vector),
+      .almost_empty_vector(almost_empty_vector),
       .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
 	    .op_full(op_full),
       .vector_enable(vector_add_enable),
       .opsum_rden(opsum_rden)
@@ -510,10 +514,13 @@ module Top_CONV_FC #(
   ) vector_addition (
       .top_clk(i_clk),
       .top_wr_en(vector_add_wren), //input: comes from ddr
-      .rst(rst&(~iteration_Done)),
+      .rst(rst),
+      .Iteration_Done(iteration_Done), //input: for resetting the acc_fifo_rden_ctrl
       .top_data_in(vector_add_values), // input: comes from ddr
       .w_empty_flag(empty_vector),
+      .w_almost_empty_flag(almost_empty_vector),
       .empty_sa(empty_sa),
+      .almost_empty_sa(almost_empty_sa),
       .op_full(op_full),
       .top_data_out(output_block_out),
       .top_data_in_adder_tree(data_SA_FC), //interconnect data o/p
@@ -602,8 +609,7 @@ module Top_CONV_FC #(
     .fifo_occupants(fc_bias_fifo_occupants)
 );
 
-
-
+  
   top_relu_gen #(
       .N(COL_SA),
       .DATA_WIDTH(DATA_WIDTH),

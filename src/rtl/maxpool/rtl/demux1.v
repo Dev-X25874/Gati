@@ -50,7 +50,7 @@ module demux1 #(parameter DATA_IN = 8) (
  // always @(posedge rx_valid)
   always @(*)
   begin
-    c <= a;
+    c = a;
   end
 
 endmodule

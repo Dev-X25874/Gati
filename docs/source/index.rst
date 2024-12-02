@@ -28,6 +28,7 @@ serves as an internal document of the underlying architecture.
    DNN Networks <networks>
    Operator Support <operator_support>
    Gati - The Architecture <gati>
+   Alignment <alignment>
    Analysis <analysis>
    Bus <bus>
    General <general>

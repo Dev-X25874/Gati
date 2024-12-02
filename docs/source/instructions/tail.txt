@@ -17,6 +17,6 @@ PoolHeight:4
 PoolStride:4
 PoolPadding:4
 BiasEn:1
-FCBiasEn:1
+BiasWidth:8
 BiasStartAddress:32
 BiasEndAddress:32

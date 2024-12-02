@@ -12,3 +12,9 @@
   - update instructions
     - adds EndAddresses for all addresses
     - adds En signals in tail blocks
+
+0.4
+  - update instructions
+    - add DWP related instructions
+    - add Output_Dispatch
+    - add zeroth instruction

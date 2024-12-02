@@ -7,3 +7,6 @@ KernelItr:12
 ImageDimOutput:16
 ImageDimAcc:16
 AccEn:1
+DispatchEn:1
+DispatchID:32
+OnChipAcc:1

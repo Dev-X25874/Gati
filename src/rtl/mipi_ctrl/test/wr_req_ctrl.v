@@ -114,7 +114,7 @@ always @(posedge i_clk)begin
                 //Add addr_valid in address counter
                // addr <= r_addr;//Add counter 1-4
                 burst_len <= r_burst_len;
-                offset <=((burst_len+1)<<$clog2(W_DATA));
+                offset <=((burst_len+1)<<$clog2(AXI_BYTES));
                 if(addr_counter < 3)begin
                     addr_counter <= addr_counter + 1;
                     addr <= r_addr[(W_DATA - (addr_counter * 8))-1 -: 8];

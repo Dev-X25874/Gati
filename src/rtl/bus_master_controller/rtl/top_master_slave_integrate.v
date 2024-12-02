@@ -30,6 +30,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter ACTEN_WIDTH = 1,
             parameter DISPATCH_ID_WIDTH = 32,
             parameter DISPATCHEN_WIDTH = 1,
+            parameter ACC_ONCHIP_WIDTH = 1,
             parameter ACTTYPE_WIDTH = 4,
             parameter ACTPARAM_WIDTH = 8,
             parameter QUANTEN_WIDTH = 1,
@@ -43,7 +44,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter POOLPADDING_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
-            parameter FCBIASEN = 1
+            parameter BiasWidth_WIDTH = 8
             ) 
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
@@ -88,6 +89,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [ACCEN_WIDTH -1 : 0] AccEn,
                 output [DISPATCH_ID_WIDTH-1 : 0] DispatchId,
                 output [DISPATCHEN_WIDTH-1 : 0] DispatchEn,
+                output [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip,
                 output [OP_CODE_WIDTH - 1 : 0] opcode_TB,
                 output [BNEN_WIDTH - 1 : 0] BNEn,
                 output [BNCHANNELS_WIDTH -1 : 0] BNchannels,
@@ -106,12 +108,12 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [POOLSTRIDE_WIDTH - 1 : 0] poolstride,
                 output [POOLPADDING_WIDTH - 1 : 0] poolpadding,
                 output [BIASEN_WIDTH - 1 : 0] BiasEn,
-                output [FCBIASEN - 1 : 0] FCBiasEn,
+                output [BiasWidth_WIDTH - 1 : 0] BiasWidth,
                 output [ADDRESS_WIDTH - 1 : 0] BiasStartAddress,
                 output [ADDRESS_WIDTH - 1 : 0] BiasEndAddress
     );
 
-    `include "instructions.vh"
+    `include "../../common/instructions.vh"
 //localparam APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR);
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
 wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 
@@ -220,7 +222,8 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .IMAGEDIMACC_WIDTH(IMAGEDIMACC_WIDTH),
 .ACCEN_WIDTH(ACCEN_WIDTH),
 .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
-.DISPATCHEN_WIDTH(DISPATCHEN_WIDTH))
+.DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
+.ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
     .sel(select_line[`OP_OutputBlock]),
@@ -238,7 +241,8 @@ OP_Outputblock(
     .ImageDimAcc(ImageDimAcc),
     .AccEn(AccEn),
     .DispatchId(DispatchId),
-    .DispatchEn(DispatchEn)
+    .DispatchEn(DispatchEn),
+    .Acc_onchip(Acc_onchip)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -261,7 +265,7 @@ OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .POOLPADDING_WIDTH(POOLPADDING_WIDTH),
 .BIASEN_WIDTH(BIASEN_WIDTH),
 .BNCHANNELS_WIDTH(BNCHANNELS_WIDTH),
-.FCBIASEN(FCBIASEN)) 
+.BiasWidth_WIDTH(BiasWidth_WIDTH)) 
 OP_Tailblock(
     .din(dout_top_master),
     .sel(select_line[`OP_TailBlock]),
@@ -288,7 +292,7 @@ OP_Tailblock(
     .poolstride(poolstride),
     .poolpadding(poolpadding),
     .BiasEn(BiasEn),
-    .FCBiasEn(FCBiasEn),
+    .BiasWidth(BiasWidth),
     .BiasStartAddress(BiasStartAddress),
     .BiasEndAddress(BiasEndAddress)
 );

@@ -111,6 +111,7 @@ module rah_gati #(
     parameter ACCEN_WIDTH       = `OutputBlock_AccEn_WIDTH,
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
+    parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter N_DMUX_PORTS = 2,
@@ -131,7 +132,7 @@ module rah_gati #(
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
     parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
-    parameter FCBIASEN_WIDTH    = `TailBlock_FCBiasEn_WIDTH,
+    parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
     
 
     //Other parameters
@@ -644,6 +645,7 @@ module rah_gati #(
       .ACCEN_WIDTH(ACCEN_WIDTH),
       .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
       .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
+      .ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
       .MOD1(MOD1),
       .MOD2(MOD2),
       .N_DMUX_PORTS(N_DMUX_PORTS),
@@ -662,7 +664,7 @@ module rah_gati #(
       .QUANTEN_WIDTH(QUANTEN_WIDTH),
       .POOLEN_WIDTH(POOLEN_WIDTH),
       .BIASEN_WIDTH(BIASEN_WIDTH),
-      .FCBIASEN_WIDTH(FCBIASEN_WIDTH),
+      .BiasWidth_WIDTH(BiasWidth_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .OP_FIFO(OP_FIFO),

@@ -394,12 +394,12 @@ module Top_CONV_FC #(
   //interconnect of SA and FC
   always @ (*) begin
 	if(CONV_FC) begin 
-		data_SA_FC<=op_data_mux_FC;
-		dv_SA_FC<={COL_SA{valid_out_FC}};
+		data_SA_FC=op_data_mux_FC;
+		dv_SA_FC={COL_SA{valid_out_FC}};
 	end 
 	else begin 
-		data_SA_FC<=result_tree;
-		dv_SA_FC<=valid_tree;
+		data_SA_FC=result_tree;
+		dv_SA_FC=valid_tree;
 	end
   end
 // assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;

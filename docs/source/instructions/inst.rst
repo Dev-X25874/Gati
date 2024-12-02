@@ -127,11 +127,11 @@
 	`define TailBlock_PoolPadding_WIDTH 4
 	`define TailBlock_BiasEn 134:134
 	`define TailBlock_BiasEn_WIDTH 1
-	`define TailBlock_FCBiasEn 135:135
-	`define TailBlock_FCBiasEn_WIDTH 1
-	`define TailBlock_BiasStartAddress 167:136
+	`define TailBlock_BiasWidth 142:135
+	`define TailBlock_BiasWidth_WIDTH 8
+	`define TailBlock_BiasStartAddress 174:143
 	`define TailBlock_BiasStartAddress_WIDTH 32
-	`define TailBlock_BiasEndAddress 199:168
+	`define TailBlock_BiasEndAddress 206:175
 	`define TailBlock_BiasEndAddress_WIDTH 32
 
 	`define ACT_RELU 'h00
@@ -341,14 +341,14 @@
 	#define TailBlock_BiasEn_LOW 134
 	#define TailBlock_BiasEn_HIGH 134
 	#define TailBlock_BiasEn_COUNT 1
-	#define TailBlock_FCBiasEn_LOW 135
-	#define TailBlock_FCBiasEn_HIGH 135
-	#define TailBlock_FCBiasEn_COUNT 1
-	#define TailBlock_BiasStartAddress_LOW 136
-	#define TailBlock_BiasStartAddress_HIGH 167
+	#define TailBlock_BiasWidth_LOW 135
+	#define TailBlock_BiasWidth_HIGH 142
+	#define TailBlock_BiasWidth_COUNT 8
+	#define TailBlock_BiasStartAddress_LOW 143
+	#define TailBlock_BiasStartAddress_HIGH 174
 	#define TailBlock_BiasStartAddress_COUNT 32
-	#define TailBlock_BiasEndAddress_LOW 168
-	#define TailBlock_BiasEndAddress_HIGH 199
+	#define TailBlock_BiasEndAddress_LOW 175
+	#define TailBlock_BiasEndAddress_HIGH 206
 	#define TailBlock_BiasEndAddress_COUNT 32
 
 	#define ACT_RELU 0x00
@@ -529,8 +529,8 @@
 		tbl.order.push_back("PoolPadding");
 		tbl.tbl.insert({"BiasEn", bitset_range_get<TailBlock_BiasEn_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasEn_LOW, TailBlock_BiasEn_HIGH)});
 		tbl.order.push_back("BiasEn");
-		tbl.tbl.insert({"FCBiasEn", bitset_range_get<TailBlock_FCBiasEn_COUNT, INST_SIZE_BITS>(inst, TailBlock_FCBiasEn_LOW, TailBlock_FCBiasEn_HIGH)});
-		tbl.order.push_back("FCBiasEn");
+		tbl.tbl.insert({"BiasWidth", bitset_range_get<TailBlock_BiasWidth_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasWidth_LOW, TailBlock_BiasWidth_HIGH)});
+		tbl.order.push_back("BiasWidth");
 		tbl.tbl.insert({"BiasStartAddress", bitset_range_get<TailBlock_BiasStartAddress_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasStartAddress_LOW, TailBlock_BiasStartAddress_HIGH)});
 		tbl.order.push_back("BiasStartAddress");
 		tbl.tbl.insert({"BiasEndAddress", bitset_range_get<TailBlock_BiasEndAddress_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasEndAddress_LOW, TailBlock_BiasEndAddress_HIGH)});

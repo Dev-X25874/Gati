@@ -90,6 +90,7 @@ module top_gati_module #(
     parameter ACCEN_WIDTH       = `OutputBlock_AccEn_WIDTH,
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
+    parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter N_DMUX_PORTS = 2,
@@ -110,7 +111,7 @@ module top_gati_module #(
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
     parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
-    parameter FCBIASEN_WIDTH    = `TailBlock_FCBiasEn_WIDTH,
+    parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
     
 
     //Other parameters
@@ -358,7 +359,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] acc_start_address;
   wire [AXI_ADDR_W-1:0] acc_stop_address;
   wire [AXI_ADDR_W-1:0] op_start_address;
-  wire  Acc_onchip;
+  wire [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip;
 
   //Tail inst. signals
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
@@ -369,7 +370,7 @@ module top_gati_module #(
   wire [ACTEN_WIDTH-1:0] ACT_EN;
   wire [QUANTEN_WIDTH-1:0] QUANT_EN;
   wire [BIASEN_WIDTH-1:0] BIAS_EN;
-  wire [FCBIASEN_WIDTH-1:0] FC_BIAS_EN;
+  wire [BiasWidth_WIDTH-1:0] BiasWidth;
   wire [POOLEN_WIDTH-1:0] POOL_EN;
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
@@ -562,6 +563,7 @@ module top_gati_module #(
     .ACCEN_WIDTH(ACCEN_WIDTH),
     .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
     .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
+    .ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
     .BNEN_WIDTH(BNEN_WIDTH),
     .ACTEN_WIDTH(ACTEN_WIDTH),
     .ACTTYPE_WIDTH(ACT_TYPE_WIDTH),
@@ -577,7 +579,7 @@ module top_gati_module #(
     .POOLPADDING_WIDTH(W_POOL_PAD),
     .BIASEN_WIDTH(BIASEN_WIDTH),
     .BNCHANNELS_WIDTH(BNCHANNEL_WIDTH),
-    .FCBIASEN(FCBIASEN_WIDTH)
+    .BiasWidth_WIDTH(BiasWidth_WIDTH)
   )
   bus_inst(
     .din(instruction), //i-wire : instruction from config blk
@@ -628,6 +630,7 @@ module top_gati_module #(
     .AccEn(ACC_EN),
     .DispatchId(dispatch_id),
     .DispatchEn(dispatch_cpu_en),
+    .Acc_onchip(Acc_onchip),
 
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
@@ -648,7 +651,7 @@ module top_gati_module #(
     .poolstride(),
     .poolpadding(),
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
-    .FCBiasEn(FC_BIAS_EN), //goes to iteration cter and fc_bias req ctrler
+    .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
     .BiasEndAddress(bias_stop_address)
   );
@@ -738,7 +741,8 @@ module top_gati_module #(
       .last(mc_fc_last)
   );
 
-
+  wire Bias_En;
+  assign Bias_En = (BIAS_EN && BiasWidth > 8);
   request_controller_bias #(
       .BURST_LENGTH(BIAS_REQ_BLEN),
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
@@ -750,7 +754,7 @@ module top_gati_module #(
       .stop_addr(bias_stop_address),
       .config_start(start),
       .fifo_status(bias_fifo_status),
-      .Biasen(BIAS_EN), 
+      .Biasen(Bias_En), 
       .clk(i_clk),
       .addr_out(mc_bias_addr),
       .wr_enable(mc_bias_rdreq),
@@ -759,6 +763,8 @@ module top_gati_module #(
       .last(mc_bias_last)
   );
 
+  wire Bias8_EN;
+  assign Bias8_EN = (BIAS_EN && BiasWidth==8);
   request_controller_FCbias #(
       .BURST_LENGTH(BIAS_REQ_BLEN),
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
@@ -770,7 +776,7 @@ module top_gati_module #(
       .stop_addr(bias_stop_address),
       .config_start(start),
       .fifo_status(fc_bias_fifo_status),
-      .FCbiasen(FC_BIAS_EN), 
+      .FCbiasen(Bias8_EN), 
       .clk(i_clk),
       .addr_out(mc_fc_bias_addr),
       .wr_enable(mc_fc_bias_rdreq),
@@ -1478,12 +1484,12 @@ module top_gati_module #(
         .o_c_done(channel_done),
         .o_layer_done(layer_done),
 
-        .BIAS_EN(BIAS_EN),
+        .BIAS_EN(Bias_En),
         .RELU_EN(ACT_EN),
         .QUANT_EN(QUANT_EN),
         .POOL_EN(POOL_EN),
         .ACC_EN(ACC_EN),  
-        .FC_BIAS_EN(FC_BIAS_EN), //above six signals comes from instruction fields
+        .FC_BIAS_EN(Bias8_EN), //above six signals comes from instruction fields
 
         .acc_en(vector_add_enable),
         .relu_en(relu_enable),
@@ -1581,7 +1587,7 @@ module top_gati_module #(
   assign fpga2cpu_start_address = op_start_address;
 
   //Hard-coded logic to for Acc_onchip flag: Should be deprecated after inclusion of support from sysim
-  assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
+  // assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
   // assign Acc_onchip = (layer_cntr>=7)? 1 : 0;
   // assign Acc_onchip = 0;
 endmodule

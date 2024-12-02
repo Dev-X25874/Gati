@@ -20,7 +20,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
             parameter POOLPADDING_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
-            parameter FCBIASEN = 1)
+            parameter BiasWidth_WIDTH = 8)
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
@@ -47,12 +47,12 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [POOLSTRIDE_WIDTH - 1 : 0] poolstride = 0,
                 output reg [POOLPADDING_WIDTH - 1 : 0] poolpadding = 0,
                 output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
-                output reg [FCBIASEN - 1 : 0] FCBiasEn = 0,
+                output reg [BiasWidth_WIDTH - 1 : 0] BiasWidth = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0
         );
 
-        `include "instructions.vh"
+        `include "../../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -128,7 +128,7 @@ always @(posedge clk) begin
             poolstride <= data_instruction[`TailBlock_PoolStride];
             poolpadding <= data_instruction[`TailBlock_PoolPadding];
             BiasEn <= data_instruction[`TailBlock_BiasEn];
-            FCBiasEn <= data_instruction[`TailBlock_FCBiasEn];
+            BiasWidth <= data_instruction[`TailBlock_BiasWidth];
             BiasStartAddress <= data_instruction[`TailBlock_BiasStartAddress];
             BiasEndAddress <= data_instruction[`TailBlock_BiasEndAddress];
             valid <= 1'b1;

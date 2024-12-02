@@ -79,6 +79,8 @@
 `define OutputBlock_DispatchEn_WIDTH 1
 `define OutputBlock_DispatchID 157:126
 `define OutputBlock_DispatchID_WIDTH 32
+`define OutputBlock_OnChipAcc 158:158
+`define OutputBlock_OnChipAcc_WIDTH 1
 
 `define OP_START 'hff
 `define START_Opcode 3:0
@@ -125,11 +127,11 @@
 `define TailBlock_PoolPadding_WIDTH 4
 `define TailBlock_BiasEn 134:134
 `define TailBlock_BiasEn_WIDTH 1
-`define TailBlock_FCBiasEn 135:135
-`define TailBlock_FCBiasEn_WIDTH 1
-`define TailBlock_BiasStartAddress 167:136
+`define TailBlock_BiasWidth 142:135
+`define TailBlock_BiasWidth_WIDTH 8
+`define TailBlock_BiasStartAddress 174:143
 `define TailBlock_BiasStartAddress_WIDTH 32
-`define TailBlock_BiasEndAddress 199:168
+`define TailBlock_BiasEndAddress 206:175
 `define TailBlock_BiasEndAddress_WIDTH 32
 
 `define ACT_RELU 'h00
@@ -137,5 +139,19 @@
 `define POOL_MAX 'h00
 `define POOL_AVERAGE 'h01
 `define POOL_GLOBAL_AVG 'h02
+`define WORD_SIZE 32
+`define ACC_SIZE 32
+`define GATI_INST_ORG 0
+`define DWP_HEADER_BYTES 12
+`define DWP_PACKET_SZ 4
+`define DWP_SOP 'hffffffff
+`define DWP_SOP_INDEX 0
+`define DWP_DS_INDEX 1
+`define DWP_ADDR_INDEX 2
+
+`define ZerothStartAddress 31:0
+`define ZerothStartAddress_WIDTH 32
+`define ZerothEndAddress 63:32
+`define ZerothEndAddress_WIDTH 32
 
 `endif

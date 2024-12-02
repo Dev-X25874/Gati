@@ -79,6 +79,8 @@
 	`define OutputBlock_DispatchEn_WIDTH 1
 	`define OutputBlock_DispatchID 157:126
 	`define OutputBlock_DispatchID_WIDTH 32
+	`define OutputBlock_OnChipAcc 158:158
+	`define OutputBlock_OnChipAcc_WIDTH 1
 
 	`define OP_START 'hf
 	`define START_Opcode 3:0
@@ -269,6 +271,9 @@
 	#define OutputBlock_DispatchID_LOW 126
 	#define OutputBlock_DispatchID_HIGH 157
 	#define OutputBlock_DispatchID_COUNT 32
+	#define OutputBlock_OnChipAcc_LOW 158
+	#define OutputBlock_OnChipAcc_HIGH 158
+	#define OutputBlock_OnChipAcc_COUNT 1
 
 	#define OP_START 0xf
 	#define START_Opcode_LOW 0
@@ -464,6 +469,8 @@
 		tbl.order.push_back("DispatchEn");
 		tbl.tbl.insert({"DispatchID", bitset_range_get<OutputBlock_DispatchID_COUNT, INST_SIZE_BITS>(inst, OutputBlock_DispatchID_LOW, OutputBlock_DispatchID_HIGH)});
 		tbl.order.push_back("DispatchID");
+		tbl.tbl.insert({"OnChipAcc", bitset_range_get<OutputBlock_OnChipAcc_COUNT, INST_SIZE_BITS>(inst, OutputBlock_OnChipAcc_LOW, OutputBlock_OnChipAcc_HIGH)});
+		tbl.order.push_back("OnChipAcc");
 		return tbl;
 	}
 	inline void pretty_print_outputblock(const std::bitset<INST_SIZE_BITS>& inst) {

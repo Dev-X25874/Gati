@@ -14,6 +14,7 @@ module inst_read_ctrl#(
     parameter TOTAL_LAY_N=12
   )(
     input clkin,
+    input rst,
     input valid_inst,
     input [NUM_INSTRUCTIONS-1:0]valid_ack,
     input [(NUM_INSTRUCTIONS*2)-1:0]prev_in,
@@ -55,22 +56,28 @@ module inst_read_ctrl#(
 reg f1,f2;
 always @(*) begin 
 
-	f1<=((layer_number==total_layers)&&(opcode==ALL_ONES))?1:0;
-	f2<=((status_inst_q && done_status)| (flag&&status_inst_q))?1:0;
+	f1=((layer_number==total_layers)&&(opcode==ALL_ONES))?1:0;
+	f2=((status_inst_q && done_status)| (flag&&status_inst_q))?1:0;
 
 end
 
-
-
-
-
-
-
-
-
-
   always @(posedge clkin)
   begin
+    if(!rst) begin
+      flag <= 1;
+      start_command <= 0;
+      start_out <= 0;
+      state_start_2 <= 4'd0;
+      read_signal_reg <= 1'b0;
+      top_state <= 4'd0;
+      psedo_ack_reg <= 0;
+      bus_master_valid <= 1'b0;
+      super_state <= 4'd0;
+      state0 <= 0;
+      state_start <= 0;
+      flag_2 <= 0;
+    end
+    else begin
     case(super_state)
       4'd0:
       begin
@@ -80,7 +87,7 @@ end
           if(flag_2)
           begin
             super_state<=4'd1;
-            flag_2<=0;
+            // flag_2<=0;
           end
         end
         valid_ack_reg<=valid_ack;
@@ -93,7 +100,6 @@ end
               prev_reg[(2*i)+:2]<=prev_in[(2*i)+:2];
               ack_reg[i]<=ack_in[i];
             end
-
           end
         end
         else
@@ -104,7 +110,7 @@ end
               if(user_start)
               begin
                 top_state<=4'd1;//shift to nonidle state
-                flag_2<=1;
+                // flag_2<=1;
                 ack_reg<=0;
                 prev_reg<=0;
                 flag<=1;
@@ -115,7 +121,6 @@ end
             end
             4'd1:
             begin
-
               if(f2) //send read signal
               begin
                 read_signal_reg<=1'b1;
@@ -135,9 +140,14 @@ end
             end
             4'd3:
             begin
-              if(valid_inst) begin
+              if(valid_inst & f1) begin
+                flag_2 <= flag_2;
+                top_state <= 4'd0;
+              end
+              else if(valid_inst) begin
                 r_opcode<=opcode; //store opcode
                 top_state<=4'd4;
+                flag_2<=1;
               end
             end
             4'd4:
@@ -289,11 +299,13 @@ end
             super_state<=4'd0;
             state0<=0;
             state_start<=0;
+            flag_2 <= 0;
           end
         endcase
 
       end
     endcase
+    end
   end
   assign read_signal=read_signal_reg;
 

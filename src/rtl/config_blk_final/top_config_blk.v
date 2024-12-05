@@ -110,6 +110,7 @@ module config_blk #(
                    .LAY_N(LAY_N),
                    .TOTAL_LAY_N(TOTAL_LAY_N))inst_read_ctrl_4(
                    .clkin(clkin),
+                   .rst(rst),
                    .valid_inst(o_instruction_3_5_v),
                    .valid_ack(valid_6_4),
                    .prev_in(prev_6_4),

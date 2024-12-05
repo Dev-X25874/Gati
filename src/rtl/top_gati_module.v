@@ -507,14 +507,14 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) begin
       systolic_array_trigger <= 1'b0;
-      // im2col_en <= 0;
+      im2col_flag <= 0;
     end
     else begin
 	  	if(row==5 && col==1) begin
 		  im2col_flag<=1;
 	  	end
 
-      if(im2col_flag ) begin
+      if(im2col_flag) begin
 			  systolic_array_trigger <= 1'b1;
 			  im2col_flag<=0;
 		  end
@@ -1425,9 +1425,9 @@ module top_gati_module #(
 
  	always @ (*) begin 
 		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
-			op_full<=0;
+			op_full=0;
 		end else begin 
-			op_full<=1;
+			op_full=1;
 		end
 	end
 
@@ -1586,7 +1586,7 @@ module top_gati_module #(
   assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*n_kernels;
   assign fpga2cpu_start_address = op_start_address;
 
-  //Hard-coded logic to for Acc_onchip flag: Should be deprecated after inclusion of support from sysim
+  //Hard-coded logic for Acc_onchip flag: Deprecated after inclusion of support from sysim
   // assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
   // assign Acc_onchip = (layer_cntr>=7)? 1 : 0;
   // assign Acc_onchip = 0;

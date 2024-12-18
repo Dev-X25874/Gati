@@ -7,29 +7,16 @@
 Welcome to Gati's documentation!
 ======================================
 
-Gati brings Convolutional Neural Network acceleration to Vaaman. This site
+Gati brings algorithm acceleration to Vaaman. This site
 serves as an internal document of the underlying architecture.
-
-.. TODO
-
-   Overview (prerequisites, doc organization)
-
-   TOC
-      Goals
-      Terms
-      Architecture
 
 .. toctree::
    :glob:
-   :maxdepth: 3
+   :maxdepth: 2
 
    Overview <overview>
    Introduction <introduction>
    DNN Networks <networks>
-   Operator Support <operator_support>
    Gati - The Architecture <gati>
    Alignment <alignment>
-   Analysis <analysis>
-   Bus <bus>
-   General <general>
    References <references>

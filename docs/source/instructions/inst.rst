@@ -147,6 +147,12 @@
 	`define DWP_SOP_INDEX 0
 	`define DWP_DS_INDEX 1
 	`define DWP_ADDR_INDEX 2
+	`define META_SOP 'hffffffffffff
+	`define META_TYPE_RESET 'h00000000
+	`define META_TYPE_DISPATCH 'h00000001
+	`define META_TYPE_PAYLOAD_SIZE 'h00000002
+	`define META_CONST_DISPATCH_RAH 'h00000000
+	`define META_CONST_DISPATCH_UART 'h00000001
 
 	`define ZerothStartAddress 31:0
 	`define ZerothStartAddress_WIDTH 32
@@ -364,6 +370,12 @@
 	#define DWP_SOP_INDEX 0
 	#define DWP_DS_INDEX 1
 	#define DWP_ADDR_INDEX 2
+	#define META_SOP 0xffffffffffff
+	#define META_TYPE_RESET 0x00000000
+	#define META_TYPE_DISPATCH 0x00000001
+	#define META_TYPE_PAYLOAD_SIZE 0x00000002
+	#define META_CONST_DISPATCH_RAH 0x00000000
+	#define META_CONST_DISPATCH_UART 0x00000001
 
 	#define ZerothStartAddress_LOW 0
 	#define ZerothStartAddress_HIGH 31

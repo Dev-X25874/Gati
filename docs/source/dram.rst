@@ -19,7 +19,7 @@ start addresses of these segments are pointed by `layer_op_start_add1` and
 buffering scheme, wherein while reading 'LO Seg-1', valid layer output is
 written on 'LO Seg-2' and vice-versa. This is due to fact that the input feature
 map to the convolution block should be applied multiple times and not be
-overriden. (See :ref:`end_to_end_flow`)
+overriden. 
 
 .. image:: _static/DDRaccess.jpg
    :width: 50%

@@ -23,7 +23,8 @@
 ### Coding Standard
 
 Consistent style across a project makes reading/maintaining a codebase easier. 
-We adopt [this](http://fpgacpu.ca/fpga/verilog.html) standard for verilog. 
+We adopt [this Verilog style guidline for FPGA Design](/docs/verilog_style_guide.md).
+You are advised to go through this througly before making any changes or adding new code.  
 
 ### Simulation
 

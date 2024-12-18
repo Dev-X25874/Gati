@@ -1,13 +1,13 @@
-.. _memory_controller:
+.. _DRAM_controller:
 
-Memory Controller
+DRAM Controller
 *****************
 
 This document presents the architecture of Memory Controller with 'N' requestors
 and a 'Round Robin Priority Arbiter'
 
-.. image:: _static/Memory_Controller.jpg
-    :width: 70%
+.. image:: _static/dram_ctrl.svg
+    :width: 100%
     :align: center
 
 It comprises of 'N' ports wherein, each requestor is connected to a particular

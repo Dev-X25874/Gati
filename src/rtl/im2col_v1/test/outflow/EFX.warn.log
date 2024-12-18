@@ -1,0 +1,79 @@
+
+///////////////////////////////////
+// Efinity Synthesis Started 
+// Dec 17, 2024 11:16:30
+///////////////////////////////////
+
+[EFX-0011 VERI-WARNING] port 'probe12' remains unconnected for this instance (VERI-1927) (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:148)
+[EFX-0011 VERI-WARNING] input port 'probe12[0]' remains unconnected for this instance (VDB-1053) (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0200 WARNING] Removing redundant signal : compared_in[0]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:5518)
+[EFX-0200 WARNING] Removing redundant signal : mask_in[0]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:5519)
+[EFX-0200 WARNING] Removing redundant signal : trigger_in. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:5729)
+[EFX-0200 WARNING] Removing redundant signal : din[46]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:4621)
+[EFX-0200 WARNING] Removing redundant signal : trig_out. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:4900)
+[EFX-0200 WARNING] Removing redundant signal : trig_out_ack. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:4901)
+[EFX-0200 WARNING] Removing redundant signal : bscan_DRCK. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:1054)
+[EFX-0200 WARNING] Removing redundant signal : bscan_RUNTEST. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:1056)
+[EFX-0200 WARNING] Removing redundant signal : bscan_SEL. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:1057)
+[EFX-0200 WARNING] Removing redundant signal : bscan_TMS. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:1061)
+[EFX-0200 WARNING] Removing redundant signal : trig_in_ack. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:1072)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[11]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[10]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[9]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[8]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[7]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[6]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[5]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[4]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0200 WARNING] Removing redundant signal : mux_capture_cmp[3]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:3484)
+[EFX-0266 WARNING] Module Instance 'la0' input pin tied to constant (trig_in=0).
+[EFX-0266 WARNING] Module Instance 'la0' input pin tied to constant (trig_out_ack=0).
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe12[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe13[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe14[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe15[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe16[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe17[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe18[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe19[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe20[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'la0.probe21[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_dbg/debug_top.v:116)
+[EFX-0011 VERI-WARNING] Input/Inout Port bscan_DRCK is unconnected and will be removed 
+[EFX-0011 VERI-WARNING] Input/Inout Port bscan_RUNTEST is unconnected and will be removed 
+[EFX-0011 VERI-WARNING] Input/Inout Port bscan_TMS is unconnected and will be removed 
+
+///////////////////////////////////
+// Efinity Synthesis Started 
+// Dec 17, 2024 11:16:58
+///////////////////////////////////
+
+[EFX-0200 WARNING] Removing redundant signal : i_valid_data. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:9)
+[EFX-0200 WARNING] Removing redundant signal : o_data[7]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[6]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[5]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[4]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[3]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[2]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[1]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : o_data[0]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/index_coordinate.v:15)
+[EFX-0200 WARNING] Removing redundant signal : k[31]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[30]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[29]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[28]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[27]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[26]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[25]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[24]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[23]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[22]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0200 WARNING] Removing redundant signal : k[21]. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/bound_generation.v:80)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'index_dut.i_valid_data'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:44)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'valid'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:32)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[7]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[6]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[5]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[4]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[3]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[2]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[1]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)
+[EFX-0201 WARNING] Re-wiring to GND non-driven net 'data[0]'. (/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/top_im2col.v:35)

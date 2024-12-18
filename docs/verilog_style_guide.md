@@ -2002,7 +2002,7 @@ body for explanations examples, and exceptions.
 
 ### Suffixes for signals and types
 
-* Add `i_ ` to module inputs, `o_` to module outputs or `io_` for
+* Add `i_` to module inputs, `o_` to module outputs or `io_` for
   bi-directional module signals
 * The input (next state) of a registered signal should have `_d` and
   the output `_q` as suffix
@@ -2055,6 +2055,6 @@ body for explanations examples, and exceptions.
 
 * It is always recommended to use the system verilog for writing your design as most of the EDA tools supports it now and it comes with featueres that makes our job easier and synthesizes better RTL. However we understand that it shift will take time so its recommende to start writing your new designes in SV from now on and you will realized there in not much diffrence after all. 
 
-* The various white papers written by Clifford Cummings are Must Read for Desiging your RTL better these are linked ["Here"](http://www.sunburst-design.com/papers/#papers_top)
+* The various white papers written by Clifford Cummings are Must Read for Desiging your RTL these are linked ["Here"](http://www.sunburst-design.com/papers/#papers_top)
 
 * It is recommended to go throught these paper at your pace and start using these standard in your design.

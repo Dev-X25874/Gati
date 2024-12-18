@@ -1,0 +1,147 @@
+
+Efinix FPGA Placement and Routing.
+Version: 2023.2.307 
+Compiled: Dec 15 2023.
+
+Copyright (C) 2013 - 2023 Efinix, Inc. All rights reserved.
+
+
+The Tool Is Based on VPR of University of Toronto,
+a free open source code under MIT license.
+
+
+Running Placement and Routing for Family "Trion", Device "T120F324" ...
+
+***** Beginning stage routing graph generation ... *****
+Read ipin pattern from /home/pikachu/Downloads/efinity-2023.2.307-ubuntu-x64/efinity/2023.2/arch/./ipin_oph.xml
+Finished parsing ipin pattern file '/home/pikachu/Downloads/efinity-2023.2.307-ubuntu-x64/efinity/2023.2/arch/./ipin_oph.xdb'.
+Finished parsing switch_block file '/home/pikachu/Downloads/efinity-2023.2.307-ubuntu-x64/efinity/2023.2/arch/./sb_connectivity_subset.xdb'.
+BuildGraph process took 16.691 seconds.
+	BuildGraph process took 15.99 seconds (approximately) in total CPU time.
+BuildGraph process virtual memory usage: begin = 1374.75 MB, end = 3152.31 MB, delta = 1777.56 MB
+BuildGraph process resident set memory usage: begin = 648.576 MB, end = 2432.13 MB, delta = 1783.55 MB
+	BuildGraph process peak resident set memory usage = 2432.13 MB
+check rr_graph process took 0.488751 seconds.
+	check rr_graph process took 0.49 seconds (approximately) in total CPU time.
+check rr_graph process virtual memory usage: begin = 3308.37 MB, end = 3334.46 MB, delta = 26.088 MB
+check rr_graph process resident set memory usage: begin = 2588.16 MB, end = 2614.27 MB, delta = 26.112 MB
+	check rr_graph process peak resident set memory usage = 2614.27 MB
+Generated 6658228 RR nodes and 25246112 RR edges
+This design has 0 global control net(s). See /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.route.rpt for details.
+Routing graph took 17.6035 seconds.
+	Routing graph took 16.82 seconds (approximately) in total CPU time.
+Routing graph virtual memory usage: begin = 1374.75 MB, end = 3282.44 MB, delta = 1907.69 MB
+Routing graph resident set memory usage: begin = 648.32 MB, end = 2562.38 MB, delta = 1914.06 MB
+	Routing graph peak resident set memory usage = 2614.27 MB
+***** Ending stage routing graph generation *****
+
+***** Beginning stage routing ... *****
+WARNING(1): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid object(s) found for 'clk_in'
+WARNING(2): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid pin(s) found for clock
+WARNING(3): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] Unable to run 'create_clock' constraint due to warnings found
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' blank or does not contain valid constraint or not found.
+Using default timing constraint of 1 ns.
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' parsed successfully.
+3 clocks (including virtual clocks), 0 inputs and 0 outputs were constrained.
+
+
+ ---------      -------     --------------      -------------
+ Iteration      Overuse     Crit Path (ns)      Calc Time (s)
+ ---------      -------     --------------      -------------
+         1        18044               7.87               3.18
+         2         3891              7.724                1.7
+         3         1824              7.724               1.42
+         4          702              7.609               1.47
+         5          289               7.69               2.25
+         6          178              7.586                1.9
+         7           95              7.795               1.44
+         8           61              7.791              0.341
+         9           19              7.811              0.356
+        10            9              7.791              0.348
+        11            2              7.791              0.359
+        12            0              7.791              0.362
+
+Successfully routed netlist after 12 routing iterations and 44220203 heapops
+Completed net delay value cross check successfully.
+
+***** Beginning stage routing check ... *****
+***** Ending stage routing check *****
+
+
+Serial number (magic cookie) for the routing is: 253355171
+Netlist fully routed.
+
+Successfully created FPGA route file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.route'
+Routing took 16.7404 seconds.
+	Routing took 17.6 seconds (approximately) in total CPU time.
+Routing virtual memory usage: begin = 3282.44 MB, end = 3282.44 MB, delta = 0 MB
+Routing resident set memory usage: begin = 2562.38 MB, end = 2562.54 MB, delta = 0.156 MB
+	Routing peak resident set memory usage = 2944.08 MB
+***** Ending stage routing *****
+
+***** Beginning stage final timing analysis ... *****
+WARNING(4): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid object(s) found for 'clk_in'
+WARNING(5): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid pin(s) found for clock
+WARNING(6): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] Unable to run 'create_clock' constraint due to warnings found
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' blank or does not contain valid constraint or not found.
+Using default timing constraint of 1 ns.
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' parsed successfully.
+3 clocks (including virtual clocks), 0 inputs and 0 outputs were constrained.
+
+
+Cross clock domain timing relationship was detected. Refer to the clocks section of the timing report for more details. You can use set_clock_groups to control how clocks are analyzed.
+Maximum possible analyzed clocks frequency
+  Clock Name   Period (ns)  Frequency (MHz)     Edge
+i_clk             7.169        139.489         (R-R)
+jtag_inst1_TCK    7.911        126.406         (R-R)
+
+Geomean max period: 7.531
+
+Setup (Max) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+ i_clk            i_clk                1.000            -6.169           (R-R)
+ i_clk            jtag_inst1_TCK       1.000             0.216           (R-R)
+ jtag_inst1_TCK   i_clk                1.000            -9.898           (R-R)
+ jtag_inst1_TCK   jtag_inst1_TCK       1.000            -6.911           (R-R)
+
+Hold (Min) Clock Relationship
+  Launch Clock    Capture Clock   Constraint (ns)     Slack (ns)          Edge
+ i_clk            i_clk                0.000             0.119           (R-R)
+ i_clk            jtag_inst1_TCK       0.000            -1.238           (R-R)
+ jtag_inst1_TCK   i_clk                0.000             2.252           (R-R)
+ jtag_inst1_TCK   jtag_inst1_TCK       0.000             0.307           (R-R)
+
+WARNING(7): Clock domain between i_clk (rising) and i_clk (rising) may not meet (slack: -6.169 ns) the setup (max) timing requirement
+WARNING(8): Clock domain between jtag_inst1_TCK (rising) and i_clk (rising) may not meet (slack: -9.898 ns) the setup (max) timing requirement
+WARNING(9): Clock domain between jtag_inst1_TCK (rising) and jtag_inst1_TCK (rising) may not meet (slack: -6.911 ns) the setup (max) timing requirement
+
+WARNING(10): Clock domain between i_clk (rising) and jtag_inst1_TCK (rising) may not meet (slack: -1.238 ns) the hold (min) timing requirement
+
+Write Timing Report to "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.timing.rpt" ...
+final timing analysis took 0.51902 seconds.
+	final timing analysis took 0.5 seconds (approximately) in total CPU time.
+final timing analysis virtual memory usage: begin = 3282.44 MB, end = 3282.44 MB, delta = 0 MB
+final timing analysis resident set memory usage: begin = 2562.67 MB, end = 2562.8 MB, delta = 0.128 MB
+	final timing analysis peak resident set memory usage = 2944.08 MB
+***** Ending stage final timing analysis *****
+
+***** Beginning stage bitstream generation ... *****
+Reading core interface constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv'.
+Successfully processed interface constraints file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv".
+Finished writing bitstream file /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.lbf.
+Bitstream generation took 2.6928 seconds.
+	Bitstream generation took 2.62 seconds (approximately) in total CPU time.
+Bitstream generation virtual memory usage: begin = 3282.44 MB, end = 3313.98 MB, delta = 31.54 MB
+Bitstream generation resident set memory usage: begin = 2562.92 MB, end = 2594.98 MB, delta = 32.052 MB
+	Bitstream generation peak resident set memory usage = 2944.08 MB
+***** Ending stage bitstream generation *****
+
+The entire flow of EFX_PNR took 65.548 seconds.
+	The entire flow of EFX_PNR took 87.02 seconds (approximately) in total CPU time.
+The entire flow of EFX_PNR virtual memory usage: begin = 172.94 MB, end = 2375.71 MB, delta = 2202.77 MB
+The entire flow of EFX_PNR resident set memory usage: begin = 30.336 MB, end = 1656.74 MB, delta = 1626.4 MB
+	The entire flow of EFX_PNR peak resident set memory usage = 2944.08 MB

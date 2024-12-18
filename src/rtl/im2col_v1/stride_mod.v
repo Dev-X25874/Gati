@@ -1,4 +1,4 @@
-module stride_mod #(
+module stride_mod_v1 #(
     parameter DATA_WIDTH = 8,
     parameter UPPER_BOUND = 224,
     parameter STRIDE = 3)
@@ -20,7 +20,7 @@ module stride_mod #(
     assign theta = stride * 64;
    
    // MOD operation for row coordinate
-    gen_mod_op #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) rowdut(
+    gen_mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) rowdut(
         .clk(clk),
         .rst(rst),
         .crd(row),
@@ -31,7 +31,7 @@ module stride_mod #(
     );
 
     // MOD operation for column coordinate
-    gen_mod_op #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) coldut(
+    gen_mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) coldut(
         .clk(clk),
         .rst(rst),
         .crd(col),

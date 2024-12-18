@@ -1,4 +1,4 @@
-module gen_mod_op #(
+module gen_mod_op_v1 #(
     parameter DATA_WIDTH = 8,
     parameter UPPER_BOUND = 224,
     parameter STRIDE = 3)
@@ -27,7 +27,7 @@ module gen_mod_op #(
             wire [$clog2(STRIDE*64):0] shift;
 
             if(i == 0) begin
-            mod_op #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut1(
+            mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut1(
                 .clk(clk),
                 .rst(rst),
                 .diff(diff),
@@ -38,7 +38,7 @@ module gen_mod_op #(
         end
 
         else if (i == 6) begin
-            mod_op #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut7(
+            mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut7(
             .clk(clk),
             .rst(rst),
             .diff(blocks[i-1].partial),
@@ -49,7 +49,7 @@ module gen_mod_op #(
         end
 
         else begin
-            mod_op #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut(
+            mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut(
             .clk(clk),
             .rst(rst),
             .diff(blocks[i-1].partial),

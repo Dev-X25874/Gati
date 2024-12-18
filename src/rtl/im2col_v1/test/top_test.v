@@ -76,7 +76,7 @@ rd_ctrl #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) ctrl_dut(
 );
 
 top_im2col #(.KERNEL_SIZE(KERNEL_SIZE), .DATA_WIDTH(DATA_WIDTH), .LOWER_BOUND(LOWER_BOUND), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) top_dut(
-.clk_in(clk_in),
+.i_clk(clk_in),
 .rstn(rstn),
 .valid_mat_size(mat_valid),
 .i_start_im2col_index(i_im2col_start_index),

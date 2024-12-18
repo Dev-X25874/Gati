@@ -1,4 +1,4 @@
-module mod_op #(
+module mod_op_v1 #(
     parameter DATA_WIDTH = 8,
     parameter STRIDE = 3)
     (

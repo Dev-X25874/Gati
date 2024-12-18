@@ -49,7 +49,13 @@ module Top_CONV_FC #(
     parameter FC_BRAM_DEPTH = 1024,
     parameter W_KERNEL_CNT = 16,
     parameter W_FC_IMAG_DIM = 20,
-    parameter ACC_DATA_REORDER = 1 //parameter to specify FC o/p data reordering is required or not
+    parameter ACC_DATA_REORDER = 1, //parameter to specify FC o/p data reordering is required or not
+
+    // im2col_v1 parameter
+
+    parameter KERNEL_SIZE = 3,  // im2col kernal size
+    parameter STRIDE      = 1  // im2col stride 
+
 ) (
 
    
@@ -222,6 +228,9 @@ module Top_CONV_FC #(
   localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
 
   //im2col block
+
+
+
   top_im2col #(
       .UPPER_BOUND (IMAGE_DIM),
       .DATA_WIDTH  (DATA_WIDTH),
@@ -254,6 +263,37 @@ module Top_CONV_FC #(
       .i_valid_data(1'b0),
       .im2col_done(im2col_done)
   );
+  // top im2col_v1
+
+  
+/*
+
+  top_im2col_v1 # (.KERNEL_SIZE(KERNEL_SIZE),
+                .UPPER_BOUND(IMAGE_DIM),
+                .LOWER_BOUND(1),
+                .DATA_WIDTH(DATA_WIDTH),
+                .STRIDE(STRIDE)) 
+
+    im2col_v1 (
+      .i_clk(i_clk),
+      .rstn(rst),
+      .valid_mat_size(valid_img_size_im2col),
+      .i_start_im2col_index(im2col_global_start),
+      .i_valid_data(1'b0),
+      .i_data(),
+      .zero_pad(4'b0000),
+      .ksize(3'b011), // should be fetched from configure block
+      .zero_padded(zero_pad_enable), // should be fetched from configure block
+      .i_mat_size(image_size),
+      .valid_sq(o_valid_squares),
+      .o_valid(im2col_o_valid),
+      .valid_sq_data_o(),
+      .stride(1), // should be fetched from configure block
+      .o_valid_buff(read_buf_data)
+
+    ); 
+
+*/
 
   //parameters will change for top_SA (for CONV opeartion)
   wire [ACC_FIFO-1:0] empty_vector, almost_empty_vector;

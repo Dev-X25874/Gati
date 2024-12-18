@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<efx:project name="im2col" description="" last_change="1723533419" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="sync" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
+<efx:project name="im2col" description="" last_change="1734420065" sw_version="2023.2.307" last_run_state="pass" last_run_flow="bitstream" config_result_in_sync="true" design_ood="change" place_ood="sync" route_ood="sync" xmlns:efx="http://www.efinixinc.com/enf_proj" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.efinixinc.com/enf_proj enf_proj.xsd">
     <efx:device_info>
         <efx:family name="Trion"/>
         <efx:device name="T120F324"/>
         <efx:timing_model name="C4"/>
     </efx:device_info>
     <efx:design_info def_veri_version="verilog_2k" def_vhdl_version="vhdl_2008">
-        <efx:top_module name="top_test"/>
+        <efx:top_module name="top_im2col_v1"/>
         <efx:design_file name="../stride_mod.v" version="default" library="default"/>
         <efx:design_file name="../stride_block.v" version="default" library="default"/>
         <efx:design_file name="../mod_op.v" version="default" library="default"/>

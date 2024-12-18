@@ -1,4 +1,4 @@
-module stride_block #(
+module stride_block_v1 #(
     parameter DATA_WIDTH = 8,
     parameter KERNEL_SIZE = 4,
     parameter UPPER_BOUND = 224,
@@ -68,7 +68,7 @@ module stride_block #(
     // Stride block for each valid_sq row
     generate 
         for(m=0; m<KERNEL_SIZE*KERNEL_SIZE; m=m+1) begin
-                    stride_mod #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) finaldut(
+                    stride_mod_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) finaldut(
                     .clk(clk),
                     .rst(rst),
                     .row(row),

@@ -1,0 +1,279 @@
+
+Efinix FPGA Placement and Routing.
+Version: 2023.2.307 
+Compiled: Dec 15 2023.
+
+Copyright (C) 2013 - 2023 Efinix, Inc. All rights reserved.
+
+
+The Tool Is Based on VPR of University of Toronto,
+a free open source code under MIT license.
+
+
+Running Placement and Routing for Family "Trion", Device "T120F324" ...
+
+***** Beginning stage netlist pre-processing ... *****
+Successfully Read in Verific binary Netlist dump file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.dbg.vdb".
+***** Beginning VDB Netlist Checker ... *****
+VDB Netlist Checker took 0.11954 seconds.
+	VDB Netlist Checker took 0.12 seconds (approximately) in total CPU time.
+VDB Netlist Checker virtual memory usage: begin = 200.292 MB, end = 200.292 MB, delta = 0 MB
+VDB Netlist Checker resident set memory usage: begin = 63.624 MB, end = 64.008 MB, delta = 0.384 MB
+	VDB Netlist Checker peak resident set memory usage = 1536.76 MB
+***** Ending VDB Netlist Checker ... *****
+Reading core interface constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv'.
+Successfully processed interface constraints file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv".
+Found 0 constant generator nets.
+Pass 0: Swept away 0 nets with no fanout.
+logical_block #42(jtag_inst1_DRCK) has no fanout.
+Removing input.
+logical_block #44(jtag_inst1_RUNTEST) has no fanout.
+Removing input.
+logical_block #49(jtag_inst1_TMS) has no fanout.
+Removing input.
+Pass 0: Swept away 3 blocks with no fanout.
+Pass 1: Swept away 0 nets with no fanout.
+Pass 1: Swept away 0 blocks with no fanout.
+Swept away 0 nets and 3 blocks in total.
+Removed 0 LUT buffers.
+Sweeped away 3 nodes.
+Successfully created VPR logical netlist from Verific binary DataBase file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.dbg.vdb".
+Netlist pre-processing took 0.279731 seconds.
+	Netlist pre-processing took 0.27 seconds (approximately) in total CPU time.
+Netlist pre-processing virtual memory usage: begin = 200.292 MB, end = 214.916 MB, delta = 14.624 MB
+Netlist pre-processing resident set memory usage: begin = 62.984 MB, end = 78.984 MB, delta = 16 MB
+	Netlist pre-processing peak resident set memory usage = 1536.76 MB
+***** Ending stage netlist pre-processing *****
+
+***** Beginning stage pre-packing ... *****
+***** Ending stage pre-packing *****
+
+***** Beginning stage packing ... *****
+Generate proto netlist for file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.net_proto" took 0.00865 seconds
+Creating IO constraints file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.io_place'
+Packing took 0.0430341 seconds.
+	Packing took 0.04 seconds (approximately) in total CPU time.
+Packing virtual memory usage: begin = 215.516 MB, end = 221.828 MB, delta = 6.312 MB
+Packing resident set memory usage: begin = 79.752 MB, end = 86.256 MB, delta = 6.504 MB
+	Packing peak resident set memory usage = 1536.76 MB
+***** Ending stage packing *****
+
+***** Beginning stage packed netlist loading ... *****
+Read proto netlist file /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.net_proto
+Read proto netlist for file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.net_proto" took 0.002007 seconds
+Setup net and block data structure took 0.203856 seconds
+Packed netlist loading took 1.38718 seconds.
+	Packed netlist loading took 1.75 seconds (approximately) in total CPU time.
+Packed netlist loading virtual memory usage: begin = 221.828 MB, end = 589.728 MB, delta = 367.9 MB
+Packed netlist loading resident set memory usage: begin = 86.256 MB, end = 171.256 MB, delta = 85 MB
+	Packed netlist loading peak resident set memory usage = 1536.76 MB
+***** Ending stage packed netlist loading *****
+
+***** Beginning stage pre-placement ... *****
+
+***** Ending stage pre-placement *****
+
+WARNING(1): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid object(s) found for 'clk_in'
+WARNING(2): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] No valid pin(s) found for clock
+WARNING(3): [SDC /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc:1] Unable to run 'create_clock' constraint due to warnings found
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' blank or does not contain valid constraint or not found.
+Using default timing constraint of 1 ns.
+
+SDC file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/clock_cns.sdc' parsed successfully.
+3 clocks (including virtual clocks), 0 inputs and 0 outputs were constrained.
+
+***** Beginning stage initial placement ... *****
+Reading core interface constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv'.
+Successfully processed interface constraints file "/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.csv".
+Writing IO placement constraints to '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.io'.
+
+Reading placement constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.interface.io'.
+
+Reading placement constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/work_pnr/im2col.io_place'.
+WARNING(4): i_clk has no assigned placement; it will be placed randomly.
+WARNING(5): valid_mat_size has no assigned placement; it will be placed randomly.
+WARNING(6): i_start_im2col_index has no assigned placement; it will be placed randomly.
+WARNING(7): zero_pad[3] has no assigned placement; it will be placed randomly.
+WARNING(8): zero_pad[2] has no assigned placement; it will be placed randomly.
+WARNING(9): zero_pad[1] has no assigned placement; it will be placed randomly.
+WARNING(10): zero_pad[0] has no assigned placement; it will be placed randomly.
+WARNING(11): ksize[2] has no assigned placement; it will be placed randomly.
+WARNING(12): ksize[1] has no assigned placement; it will be placed randomly.
+WARNING(13): ksize[0] has no assigned placement; it will be placed randomly.
+WARNING(14): zero_padded[1] has no assigned placement; it will be placed randomly.
+WARNING(15): zero_padded[0] has no assigned placement; it will be placed randomly.
+WARNING(16): i_mat_size[7] has no assigned placement; it will be placed randomly.
+WARNING(17): i_mat_size[6] has no assigned placement; it will be placed randomly.
+WARNING(18): i_mat_size[5] has no assigned placement; it will be placed randomly.
+WARNING(19): i_mat_size[4] has no assigned placement; it will be placed randomly.
+WARNING(20): i_mat_size[3] has no assigned placement; it will be placed randomly.
+WARNING(21): i_mat_size[2] has no assigned placement; it will be placed randomly.
+WARNING(22): i_mat_size[1] has no assigned placement; it will be placed randomly.
+WARNING(23): i_mat_size[0] has no assigned placement; it will be placed randomly.
+WARNING(24): valid_sq[15] has no assigned placement; it will be placed randomly.
+WARNING(25): valid_sq[14] has no assigned placement; it will be placed randomly.
+WARNING(26): valid_sq[13] has no assigned placement; it will be placed randomly.
+WARNING(27): valid_sq[12] has no assigned placement; it will be placed randomly.
+WARNING(28): valid_sq[11] has no assigned placement; it will be placed randomly.
+WARNING(29): valid_sq[10] has no assigned placement; it will be placed randomly.
+WARNING(30): valid_sq[9] has no assigned placement; it will be placed randomly.
+WARNING(31): valid_sq[8] has no assigned placement; it will be placed randomly.
+WARNING(32): valid_sq[7] has no assigned placement; it will be placed randomly.
+WARNING(33): valid_sq[6] has no assigned placement; it will be placed randomly.
+WARNING(34): valid_sq[5] has no assigned placement; it will be placed randomly.
+WARNING(35): valid_sq[4] has no assigned placement; it will be placed randomly.
+WARNING(36): valid_sq[3] has no assigned placement; it will be placed randomly.
+WARNING(37): valid_sq[2] has no assigned placement; it will be placed randomly.
+WARNING(38): valid_sq[1] has no assigned placement; it will be placed randomly.
+WARNING(39): valid_sq[0] has no assigned placement; it will be placed randomly.
+WARNING(40): stride[2] has no assigned placement; it will be placed randomly.
+WARNING(41): stride[1] has no assigned placement; it will be placed randomly.
+WARNING(42): stride[0] has no assigned placement; it will be placed randomly.
+WARNING(43): o_valid_buff has no assigned placement; it will be placed randomly.
+40 IOs will have random placement.
+WARNING(44): Clock driver jtag_inst1_TCK should use the dedicated clock pad.
+The driver, rstn, of control net, rstn, should be placed at a dedicated control pad location.
+The driver, jtag_inst1_RESET, of control net, jtag_inst1_RESET, should be placed at a dedicated control pad location.
+***** Ending stage initial placement *****
+
+***** Beginning stage placement ... *****
+Create /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col_after_qp.qdelay
+QPLACER STATIC DB USAGE DISABLED
+Starting Global Placer with 4 threads ...
+
+ ----------     -------  --------------     -------
+  Iteration       WHPWL Worst Slack (ps) Convergence
+ ----------     -------  --------------     -------
+          1    11071939           -6500         6.8%
+          2    10001440           -6067         8.3%
+          3     7869081           -5805         9.3%
+          4     6054347           -6067        11.1%
+          5     2389643           -6208        14.7%
+          6      921040           -7386        23.7%
+          7      456497           -8178        34.2%
+          8      309962           -9077        43.9%
+          9      258383           -8545        49.6%
+         10      253631           -9442        55.7%
+         11      246778           -8953        57.6%
+         12      241829           -9028        58.1%
+         13      243135           -8952        60.7%
+         14      228563           -9447        60.9%
+         15      246253          -10362        64.0%
+         16      219991           -9992        64.3%
+         17      241805          -10061        67.2%
+         18      214523           -9952        67.2%
+         19      225176           -9387        69.5%
+         20      213208           -9437        69.5%
+         21      229457           -9669        71.6%
+         22      203929           -9322        71.6%
+         23      225168           -9433        73.4%
+         24      203298           -9789        73.4%
+         25      214346           -9733        75.6%
+         26      199070           -9400        75.6%
+         27      213062           -9360        76.5%
+         28      199901           -9552        76.5%
+         29      204796          -10275        77.8%
+         30      192276          -10113        77.8%
+         31      206877           -9850        81.6%
+         32      185894          -10018        81.6%
+         33      202278           -9837        82.4%
+         34      185171           -9831        82.4%
+         35      202854           -9505        82.9%
+         36      185347          -10084        82.9%
+         37      202270          -10174        83.9%
+         38      185995           -9698        83.9%
+         39      203897           -9853        84.0%
+         40      184223          -10477        84.0%
+         41      198175          -10474        85.8%
+         42      183690          -10396        85.8%
+         43      199927          -10250        85.9%
+         44      185560          -10150        85.9%
+         45      201210          -10706        86.1%
+         46      184734          -10039        86.1%
+         47      199952          -10280        87.4%
+         48      181916          -10185        87.4%
+         49      197420          -10186        88.1%
+         50      182736          -10280        88.1%
+         51      199193          -10324        88.4%
+         52      181797          -10711        88.4%
+         53      198564          -10793        88.9%
+         54      181571          -10793        88.9%
+         55      198569          -10486        89.2%
+         56      179859          -10455        89.2%
+         57      197272          -10260        90.1%
+         58      179563          -10844        90.1%
+         59      194819          -10254        90.1%
+         60      180275          -10349        90.1%
+         61      198393          -10434        90.1%
+         62      181328          -10541        90.1%
+         63      197123          -10792        90.7%
+         64      183597          -10647        90.7%
+         65      199857          -10619        91.2%
+         66      182572          -10829        91.2%
+         67      196030          -10693        91.7%
+         68      181368          -10860        91.7%
+         69      195133          -10523        91.7%
+         70      181862          -10821        91.7%
+         71      187963          -11072        93.4%
+         72      175889          -10502        93.4%
+         73      185266          -11001        94.7%
+         74      176611          -11249        94.7%
+         75      186035          -11142        95.0%
+         76      176332          -11246        95.0%
+         77      184266          -10899        95.4%
+Starting Annealer
+
+ ----------     -------  --------------     -------
+  Iteration       WHPWL  Delay Max (ps)     R Limit
+ ----------     -------  --------------     -------
+          0      175889           12817        30.0
+          1      166341           12515        29.8
+          2      136397           12537        29.6
+          3      121025           11713        29.0
+          4      112179           11517        28.5
+          5      108840           11425        27.5
+          6      107532           11233        26.6
+          7      106655           10990        25.5
+          8      104635           10932        24.4
+          9      103657           10932        23.2
+         10      103686           10932        22.0
+         11      102197           10957        20.8
+         12      101373           10957        19.7
+         13       99954           11025        18.5
+         14      100631           11330        17.5
+         15       97695           10945        16.4
+         16       97411           10710        15.5
+         17       96807           10641        14.5
+         18       97008           10641        13.6
+         19       95576           10400        12.8
+         20       94435           10540        11.9
+         21       94594           10441        11.1
+         22       94367           10190        10.4
+         23       93150           10304         9.7
+         24       92431            9964         9.1
+         25       90827           10341         8.5
+         26       89288           10024         7.9
+         27       88471            9764         7.4
+         28       89319            9818         6.9
+         29       87240            9778         6.4
+         30       86155            9746         5.9
+         31       85702            9802         5.4
+         32       85528            9688         4.9
+Generate /home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col_after_qp.qdelay
+Placement successful: 6044 cells are placed
+Peak congestion smeared over 1/4 of the chip is 0.229911 at 0,17
+Congestion-weighted HPWL per net: 9.38159
+
+Reading placement constraints from '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.qplace'.
+Finished Realigning Types (1127 blocks needed type change)
+
+Completed placement consistency check successfully.
+Successfully created FPGA place file '/home/pikachu/speed/rah/rtl/Gati/src/rtl/im2col_v1/test/outflow/im2col.place'
+Placement took 19.2419 seconds.
+	Placement took 40.75 seconds (approximately) in total CPU time.
+Placement virtual memory usage: begin = 612.624 MB, end = 1374.75 MB, delta = 762.124 MB
+Placement resident set memory usage: begin = 195.064 MB, end = 648.32 MB, delta = 453.256 MB
+	Placement peak resident set memory usage = 1536.76 MB
+***** Ending stage placement *****
+

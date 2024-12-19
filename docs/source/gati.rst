@@ -9,7 +9,8 @@ Gati
     quantization
     dram
     configuration-block
-    memory-controller
+    DRAM-controller
+    adder_tree
     transpose
 
 .. contents:: Table of Contents
@@ -87,6 +88,11 @@ stationary. exploring other dataflows (e.g. row stationary) for
 convolution layers is a future work.
 
 Refer to :ref:`sa` for more info.
+
+Adder Tree
+==========
+
+Refer to :ref:`adder_tree`
 
 Output Block
 ************
@@ -259,7 +265,7 @@ transpositions on them happens once, at the start, on CPU and later by the FPGA.
 
 For concrete details on the layout and access pattern, see :ref:`ddr_layout_and_access`.
 
-For implementation of memory controller, see :ref:`memory_controller`
+For implementation of memory controller, see :ref:`DRAM_controller`
 
 Configuration Block
 *******************

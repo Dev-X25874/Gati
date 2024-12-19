@@ -1,4 +1,4 @@
-
+.. _adder_tree:
 
 Adder Tree
 ################

@@ -391,8 +391,8 @@ For concrete details on the layout and access pattern, see :ref:`ddr_layout_and_
 
 For implementation of memory controller, see :ref:`memory_controller`
 
-Configuration Block
-*******************
+Configuration Block/Bus master controller
+****************************************
 
 .. note::
 
@@ -410,7 +410,11 @@ packets as instructions where the instruction width is 256. None of the
 above configs currently take all 256 bits, this is not a problem, these
 least significant remaining bits can be assumed to be reserved.
 
-For implementation details of config block, see
+The Bus Master Controller facilitates communication between a master 
+device and multiple slave devices within a system. It transmits the 
+instruction set from the config block to different compute block.
+
+For implementation details of config block/Bus master controller, see
 :ref:`configuration_block`
 
 .. sectionauthor:: Shreeyash Pandey (@bojle)
@@ -538,3 +542,31 @@ already been completed by the time the final partial sums from SA
 arrive. Final accumulation happens shortly after the DRAM controller
 receives the output psum of the final channel from SA. These psum
 deposits can now be used as input to the next layer.
+
+DRAM write protocol
+*******************
+
+This protocol is designed to streamline data communication between the CPU 
+and FPGA's DRAM. Each packet includes information such as data size, the 
+start address for storage in DRAM, and the actual payload data. 
+
+A DWP module manages the depacketization of incoming data streams and 
+packetization of data retrieved from DRAM, ensuring compatibility with 
+DRAM's native read/write mechanisms. This structured approach allows Gati,
+to work along with the CPU, maintaining data flow.     
+
+For implementation of DWP, see :ref:`DWP`
+
+Dispatch Block 
+**************
+
+This block manages data transfer between the FPGA and the CPU, specifically 
+facilitating the movement of results from the FPGA's DDR memory to the CPU 
+after completing all layers of the model. This block is responsible for 
+generating transfer requests and handling data width conversion. It adapts 
+the AXI protocol's 256-bit wide data formate to the 32-bit data width expected 
+by the CPU.
+
+For more Abstract view of Dispatcher, see :ref:`Dispatcher`
+
+

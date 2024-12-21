@@ -39,7 +39,7 @@ CPU <-> FPGA
 Vaaman has the arrangement:
 
 .. image:: _static/vaaman-arch.svg
-   :width: 100%
+   :width: 80%
    :align: center
 
 Communication b/w the CPU and FPGA are carried out by the `Rah

@@ -1,7 +1,6 @@
 
 
 module top_bias_block #(
-    parameter BIAS=1,
     parameter DATA_WIDTH     = 32,
     parameter N              = 4,
     parameter FIFO_NO        = 8,
@@ -73,9 +72,9 @@ assign w_empty_flag=empty_flag;
     if(TOGGLE) begin
         wire [NO_PORT-1:0] sel_mux;
         //   assign sel_mux = 1 << sel_conv;
-  
+
         //delay sel_mux to sync with i/p data and bias fifo data - for FC only
-        reg [NO_PORT-1:0] f_sel,s_sel,t_sel;
+        reg [NO_PORT-1:0] f_sel,s_sel;
         always@(posedge top_clk) begin
           f_sel <= 1 << sel_fc;
           s_sel <= f_sel;

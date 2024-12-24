@@ -5,7 +5,6 @@ mux select lines are also controlled here.
 */
 
 module new_controller #(
-    parameter BIAS = 1,
     parameter TOGGLE  = 1,
     parameter NO_PORT = 2,
     parameter COL_SA = 4,

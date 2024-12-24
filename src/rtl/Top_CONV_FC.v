@@ -31,13 +31,13 @@ module Top_CONV_FC #(
     parameter NO_PORT_FC = 2,
     parameter RELU_CLIP_WIDTH = 8,
     parameter ACT_TYPE_WIDTH = 4,
-    parameter NSA_LUT = 8,
-    parameter BIAS_FIFO_FC = 32, // Number of FC_bias fifos
-    parameter ACC_TOGGLE = 1,
-    parameter NO_PORT_VA = 1,
-    parameter NO_PORT_BAC = 1,
-    parameter NO_PORT_BAFC = 16,
-    parameter POP_THRESHOLD = 3	,
+    parameter NSA_LUT = 5,
+    parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
+    parameter ACC_TOGGLE = 0,
+    parameter NO_PORT_VA=1,
+    parameter NO_PORT_BAC=1,
+    parameter NO_PORT_BAFC=4,
+    parameter POP_THRESHOLD=(DRAM_BW/N_SA) - 3,
     // parameter I_SIZE_WIDTH=20, // input image data width
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
@@ -589,10 +589,11 @@ endgenerate
   // Vector addition block for addition of psum accumulants
   top_output_block #(
       .DRAM_BW(DRAM_BW),
-      .DATA_WIDTH(DATA_WIDTH_OB),
+      .DATA_WIDTH_ACC(DATA_WIDTH_OB),
       .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
       .N(N_SA),
       .COL_SA(COL_SA),
+      .TOGGLE(ACC_TOGGLE),
       .FIFO_NO(ACC_FIFO),
       .TOGGLE(ACC_TOGGLE),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
@@ -673,7 +674,7 @@ endgenerate
   wire [(DATA_WIDTH*N_SA)-1:0] bias_fc_out ;
   wire [N_SA-1:0] bias_fc_valid;
 
-  /*top_bias_fc #(
+  top_bias_fc #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH($clog2(BIAS_FIFO_DEPTH)),
     .DRAM_BW(DRAM_BW),
@@ -693,7 +694,7 @@ endgenerate
     .w_empty_flag(),
     .top_out_data_valid(bias_fc_valid),
     .fifo_occupants(fc_bias_fifo_occupants)
-);*/
+);
 
   
   top_relu_gen #(
@@ -703,8 +704,8 @@ endgenerate
       .CLIP_WIDTH(RELU_CLIP_WIDTH)
   ) relu (
       .top_clk(i_clk),
-      .top_i_data(quantized_output),
-      .top_i_valid(tail_valid),
+      .top_i_data(bias_fc_out),
+      .top_i_valid(bias_fc_valid),
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),

@@ -32,13 +32,13 @@ module rah_gati #(
     parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
     
     //Default burst lenghts for various memory request controllers
-    parameter MIPI_REQ_BLEN         = 15,
-    parameter CONFIG_REQ_BLEN       = 7,
-    parameter IMG_REQ_BLEN          = 15,
-    parameter WEIGHT_REQ_BLEN       = 7,
-    parameter FC_WEIGHT_REQ_BLEN    = 63,
-    parameter ACC_REQ_BLEN          = 15,
-    parameter BIAS_REQ_BLEN         = 15,
+    parameter MIPI_REQ_BLEN = 15,
+    parameter CONFIG_REQ_BLEN = 7,
+    parameter IMG_REQ_BLEN = 15,
+    parameter WEIGHT_REQ_BLEN = 31,
+    parameter FC_WEIGHT_REQ_BLEN = 63,
+    parameter ACC_REQ_BLEN = 15,
+    parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,
@@ -87,7 +87,7 @@ module rah_gati #(
     parameter ROW           = 9,
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
-    parameter IMAGE_DIM     = 224,
+    parameter IMAGE_DIM     = 2**CONV_IW_WIDTH,
 
     // FC inst. related params
     parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
@@ -102,9 +102,9 @@ module rah_gati #(
     parameter N_BANK            = 4,
     parameter N_BRAM            = 8,
     parameter FC_BRAM_DEPTH     = 1024,
-    parameter ACC_DATA_REORDER  = 0,
-    parameter N_FC_MUX          = 4, //number of muxes for FC output
-    parameter NO_PORT_FC        = 8, //FC mux size
+    parameter ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0,
+    parameter N_FC_MUX          = COL_SA, //number of muxes for FC output
+    parameter NO_PORT_FC        = COL_FC/COL_SA, //FC mux size
 
     //Output block inst param
     parameter W_CITER_CNT       = `OutputBlock_ChannelItr_WIDTH,
@@ -117,7 +117,7 @@ module rah_gati #(
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
     parameter MOD1 = 2,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
-    parameter N_DMUX_PORTS = 2,
+    parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
 
     //Tail block param
     parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
@@ -148,10 +148,10 @@ module rah_gati #(
     parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
-    parameter NO_PORT_VA    = 2,
-    parameter NO_PORT_BAC   = 2,
-    parameter ACC_TOGGLE    = 1,
-    parameter NO_PORT_BAFC  = 8
+    parameter NO_PORT_VA    = 1,
+    parameter NO_PORT_BAC   = 1,
+    parameter ACC_TOGGLE    = 0,
+    parameter NO_PORT_BAFC  = 4
 
 
 ) (

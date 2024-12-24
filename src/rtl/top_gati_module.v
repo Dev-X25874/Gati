@@ -25,7 +25,7 @@ module top_gati_module #(
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 9, //Number of read and write requestors
+    parameter NUM_PORTS = 10, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH        = 256,
@@ -82,12 +82,12 @@ module top_gati_module #(
     parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
     // FC Engine related parameters
     parameter ACC_DW            = 32,
-    parameter N_BANK            = 2,
-    parameter N_BRAM            = 16,
-    parameter FC_BRAM_DEPTH     = 128,
-    parameter ACC_DATA_REORDER  = 0,
-    parameter N_FC_MUX          = 16, //number of muxes for FC output
-    parameter NO_PORT_FC        = 2, //FC mux size
+    parameter N_BANK            = 4,
+    parameter N_BRAM            = 8,
+    parameter FC_BRAM_DEPTH     = 1024,
+    parameter ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0,
+    parameter N_FC_MUX          = COL_SA, //number of muxes for FC output
+    parameter NO_PORT_FC        = COL_FC/COL_SA, //FC mux size
 
     //Output block inst param
     parameter W_CITER_CNT       = `OutputBlock_ChannelItr_WIDTH,
@@ -100,7 +100,7 @@ module top_gati_module #(
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
     parameter MOD1 = 1,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
-    parameter N_DMUX_PORTS = 1,
+    parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
 
     //Tail block param
     parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
@@ -1322,6 +1322,7 @@ module top_gati_module #(
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
+      .ACC_TOGGLE(ACC_TOGGLE),
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),
       .ACC_TOGGLE(ACC_TOGGLE),

@@ -5,7 +5,6 @@
 
 module top_output_block #(
     parameter DRAM_BW        = 32,
-    parameter DATA_WIDTH     = 32,
     parameter DATA_WIDTH_ACC = 32,
     parameter N              = 4,
     parameter COL_SA         = 4,
@@ -26,7 +25,7 @@ module top_output_block #(
     input                                 op_full,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
-    input  [      (DATA_WIDTH*N)-1:0] top_data_in_adder_tree,
+    input  [      (DATA_WIDTH_ACC*N)-1:0] top_data_in_adder_tree,
     input                             rst,
     input                             Iteration_Done,
     output [             FIFO_NO-1:0] w_empty_flag,
@@ -145,11 +144,11 @@ dram_fifo #(
   
 
   localparam APPEND = OUT_DATA_WIDTH - DATA_WIDTH_ACC;
-  wire [(DATA_WIDTH*N)-1:0] data_in_accumulant;
+  wire [(DATA_WIDTH_ACC*N)-1:0] data_in_accumulant;
   genvar i;
   generate
     for(i=0;i<N;i=i+1) begin
-      assign data_in_accumulant[(DATA_WIDTH*(N-i)-1) -: DATA_WIDTH] = 
+      assign data_in_accumulant[(DATA_WIDTH_ACC*(N-i)-1) -: DATA_WIDTH_ACC] = 
       {{APPEND{mux_out[(DATA_WIDTH_ACC*(N-i)-1)]}} ,mux_out[(DATA_WIDTH_ACC*(N-i)-1) -: DATA_WIDTH_ACC]};
     end
   endgenerate
@@ -208,7 +207,7 @@ dram_fifo #(
   endgenerate
 
   adder_gen #(
-      .DATA_WIDTH(DATA_WIDTH),
+      .DATA_WIDTH(DATA_WIDTH_ACC),
       .OUT_DATA_WIDTH(OUT_DATA_WIDTH),
       .N(N)
   ) adder_gen_mod (

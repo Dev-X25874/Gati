@@ -266,3 +266,81 @@ re-ordering commits
 
 1. [Verilog Standard](http://fpgacpu.ca/fpga/verilog.html)
 2. [Commit Message Guidelines](https://gist.github.com/robertpainsi/b632364184e70900af4ab688decf6f53)
+
+
+
+# Layer wise Debugging Guide
+This section provides a comprehensive guide for debugging Gati layer by layer. The steps cover both FPGA and CPU (simulation) environments.
+
+
+
+## 1. Compiling ONNX Model to GML
+
+Before debugging, one needs to compile the ONNX model to GML. Use the `gaticc` with the `--dispatch` argument. The exact command can be found in the `gaticc` help manual. The help manual can be accessed with `gaticc -h`. Take a look in the **USAGE: sysim [OPTIONS]** section of the help manual for understanding the required terms, and for examples, refer to the **USAGE EXAMPLES** section.
+
+
+
+## 2. Running the Model on FPGA
+
+### Steps for Debugging on FPGA
+
+1. **Specify a Layer for Debugging**
+   Use the `--dispatch` argument to define the layer you want to debug. Refer to the `gaticc` help for details about this argument.
+
+2. **Customize Post-Processing**:
+   The default `post_imagenet` function only provides the final output. To get intermediate outputs, one must create a custom post-processing function. As we know, a post-processing function is responsible for displaying or providing the desired output of the inference or processed results. When checking intermediate outputs, the following steps are essential:
+   - **Understand the Output Structure**: First, analyze and figure out what the output structure looks like at the intermediate stage you are debugging. This could involve understanding the tensor shape, data format, and any specific encoding used.
+   - **Create the Function**: Based on the information about the output structure, design a custom function that processes and displays the intermediate output in a meaningful way. This might include reshaping tensors, extracting specific features, or visualizing data.
+
+3. **Find Layer Names**
+   Use the `--summary` option in `gaticc` to list the layer names in the model. Instructions for using this option are in the `gaticc` help.
+
+### FPGA Layer Debugging Example
+
+**Example Model Structure:**
+```
+QuantizeLinear1 --> QLinearConv1 --> DequantizeLinear1 --> Relu --> QuantizeLinear2 --> QLinearConv2
+```
+
+If you want to check the output after `QLinearConv1`, pass `QLinearConv1` to the `--dispatch` argument. The FPGA will return the output after processing the layers:
+```
+DequantizeLinear1 --> Relu --> QuantizeLinear2
+```
+
+> Note: In the current FPGA architecture, the `DequantizeLinear` and `QuantizeLinear` layers are fused into a single operation during execution.
+
+
+
+## 3. Simulating the Model on CPU
+
+### Debugging on CPU Simulation
+
+1. **Layer Output Behavior**
+   On the CPU, the simulation model outputs data directly after the specified layer. For example, passing `QLinearConv1` to the `--dispatch` argument will give the output immediately after `QLinearConv1`.
+
+2. **Comparing FPGA and CPU Outputs**
+   To match the outputs from FPGA and CPU simulations, note the difference in behavior:
+
+   - **For FPGA**: Pass `QLinearConv1` will give the output after the operations from `DequantizeLinear1` to `QuantizeLinear2`.
+   - **For CPU**: Pass `QuantizeLinear2` to obtain the equivalent output. This ensures consistency between the FPGA and CPU outputs for debugging.
+
+3. **Output File**
+   When using the `--dispatch` argument in CPU simulation, the output is saved as a `.npy` file. You can analyze this file or use your own script for further processing based on your needs.
+
+
+## Comparing Outputs Using --compare-layer
+
+Another option available in `gaticc` for debugging is the `--compare-layer` argument. Details about this option can be found in the `gaticc` help manual.
+
+### How to Use `--compare-layer`
+
+- When running the simulation on the CPU, `gaticc` creates a `.npy` file that stores the tensor output of the required layer.
+- During runtime, you can use the `--compare-layer` argument to compare this `.npy` tensor with the dispatched layer output.
+
+### Implementation Details
+
+- The `compare_npy` function in the `src/ml_inference.py` file is responsible for performing this comparison.
+- This function compares the `.npy` file with the dispatched layer output to identify any differences.
+- one can modify the `compare_npy` function as needed to match your specific debugging requirements.
+
+By using `--compare-layer`, one can easily compare outputs and identify any mismatches between FPGA and CPU simulations during debugging.

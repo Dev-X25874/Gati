@@ -35,7 +35,7 @@ module gen_mod_op_v1 #(
                 .o_partial(partial),
                 .o_shift(shift)
             );
-        end
+            end
 
         else if (i == 6) begin
             mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut7(

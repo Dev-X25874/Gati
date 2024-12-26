@@ -4,22 +4,22 @@
 module top_gati_module #(
     
     // FIFO Depth varies between operators to avoid overflow and underflow 
-    parameter INST_QUEUE_DEPTH = 512,
+    parameter INST_QUEUE_DEPTH    = 512,
     parameter DRAM_IMG_FIFO_DEPTH = 512,
-    parameter IM2COL_FIFO_DEPTH = 1024,
-    parameter WEIGHT_FIFO_DEPTH = 512,
-    parameter PSUM_FIFO_DEPTH = 1024,
-    parameter ACC_FIFO_DEPTH = 512,
-    parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
+    parameter IM2COL_FIFO_DEPTH   = 1024,
+    parameter WEIGHT_FIFO_DEPTH   = 512,
+    parameter PSUM_FIFO_DEPTH     = 1024,
+    parameter ACC_FIFO_DEPTH      = 512,
+    parameter BIAS_FIFO_DEPTH     = 512, //For both conv and FC
     parameter OP_WRITE_FIFO_DEPTH = 1024,
     
     //Default burst lenghts for various memory request controllers
-    parameter CONFIG_REQ_BLEN = 7,
-    parameter IMG_REQ_BLEN = 15,
-    parameter WEIGHT_REQ_BLEN = 15,
-    parameter FC_WEIGHT_REQ_BLEN = 64,
-    parameter ACC_REQ_BLEN = 15,
-    parameter BIAS_REQ_BLEN = 15,
+    parameter CONFIG_REQ_BLEN       = 7,
+    parameter IMG_REQ_BLEN          = 15,
+    parameter WEIGHT_REQ_BLEN       = 15,
+    parameter FC_WEIGHT_REQ_BLEN    = 64,
+    parameter ACC_REQ_BLEN          = 15,
+    parameter BIAS_REQ_BLEN         = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     
@@ -27,43 +27,47 @@ module top_gati_module #(
     parameter NUM_PORTS = 9, //Number of read and write requestors
 
     //parameters related to AXI
-    parameter AXI_DATA_WIDTH = 256,
-    parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
-    parameter AXI_ADDR_W = `CONV_ImageStartAddress_WIDTH,   // Axi Address width
-    parameter BURST_LENGTH_WIDTH =8,
+    parameter AXI_DATA_WIDTH        = 256,
+    parameter AXI_DATA_BYTES        = 32,  // Axi Data width = 256 bit
+    parameter AXI_ADDR_W            = `CONV_ImageStartAddress_WIDTH,   // Axi Address width
+    parameter BURST_LENGTH_WIDTH    =8,
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS = 4,
-    parameter INST_W = 256,
+    parameter NUM_INSTRUCTIONS      = 4,
+    parameter INST_W                = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
-    parameter LAYERCNT_WIDTH = `START_LayerNumber_WIDTH,
-    parameter TOTAL_LAYERCNT_WIDTH = `START_TotalLayers_WIDTH,
+    parameter LAYERCNT_WIDTH        = `START_LayerNumber_WIDTH,
+    parameter TOTAL_LAYERCNT_WIDTH  = `START_TotalLayers_WIDTH,
     
     //CONV Parameters(inst related)
-    parameter OPCODE_WIDTH  = `CONV_Opcode_WIDTH,
-    parameter CONV_IW_WIDTH = `CONV_IW_WIDTH,
-    parameter CONV_IH_WIDTH = `CONV_IH_WIDTH,
-    parameter CONV_OW_WIDTH = `CONV_OW_WIDTH,
-    parameter CONV_OH_WIDTH = `CONV_OH_WIDTH,
-    parameter CONV_IC_WIDTH = `CONV_IC_WIDTH,
-    parameter CONV_KN_WIDTH = `CONV_KN_WIDTH,
-    parameter CONV_KW_WIDTH = `CONV_KW_WIDTH,
-    parameter CONV_KH_WIDTH = `CONV_KH_WIDTH,
+    parameter OPCODE_WIDTH      = `CONV_Opcode_WIDTH,
+    parameter CONV_IW_WIDTH     = `CONV_IW_WIDTH,
+    parameter CONV_IH_WIDTH     = `CONV_IH_WIDTH,
+    parameter CONV_OW_WIDTH     = `CONV_OW_WIDTH,
+    parameter CONV_OH_WIDTH     = `CONV_OH_WIDTH,
+    parameter CONV_IC_WIDTH     = `CONV_IC_WIDTH,
+    parameter CONV_KN_WIDTH     = `CONV_KN_WIDTH,
+    parameter CONV_KW_WIDTH     = `CONV_KW_WIDTH,
+    parameter CONV_KH_WIDTH     = `CONV_KH_WIDTH,
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
-    parameter CONV_PAD_WIDTH = `CONV_Pad_WIDTH,
+    parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
+
+    //im2col related param 
+    parameter STRIDE          =  1,        //`CONV_Stride,
+    parameter KERNEL_SIZE     =  3,       //`CONV_KH,   
     //SA related param
-    parameter POP_THRESHOLD = 5,
-    parameter NSA_DSP       = 4, 
-    parameter NSA_LUT       = 0,
-    parameter N_SA          = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH    = 8,
-    parameter COL_SA        = 4,
-    parameter COL_FC        = 32,
-    parameter ROW           = 9,
-    parameter W_PSUM        = 20,
-    parameter DATA_WIDTH_OB = 32,
-    parameter DATA_WIDTH_ACC = 32,
-    parameter IMAGE_DIM     = 224,
+    parameter POP_THRESHOLD   = 5,
+    parameter NSA_DSP         = 4, 
+    parameter NSA_LUT         = 0,
+    parameter N_SA            = NSA_DSP + NSA_LUT,
+    parameter DATA_WIDTH      = 8,
+    parameter COL_SA          = 4,
+    parameter COL_FC          = 32,
+    parameter ROW             = 9,
+    parameter W_PSUM          = 20,
+    parameter DATA_WIDTH_OB   = 32,
+    parameter DATA_WIDTH_ACC  = 32,
+    parameter IMAGE_DIM       = 224,
 
     // FC inst. related params
     parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
@@ -112,7 +116,6 @@ module top_gati_module #(
     parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
     parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
-    
 
     //Other parameters
     parameter SHFT_REG_X    = 4, // Number of shift register blocks
@@ -383,6 +386,7 @@ module top_gati_module #(
   wire FC_layerdone;
   reg valid_conv, valid_fc;
 
+  // Valid signal genration for CONV
   always@(posedge i_clk) begin
     if(!i_rst) begin
         valid_conv <= 0;
@@ -395,6 +399,7 @@ module top_gati_module #(
     end
   end
   
+  // Valid signal genration for FC 
   always@(posedge i_clk) begin
     if(!i_rst) begin
         valid_fc <= 0;
@@ -467,6 +472,8 @@ module top_gati_module #(
 
  // end
 	
+
+  // Generate logic for stall_on signal 
   reg stall_on=0;
   reg stall_enable=0;
   always@(posedge i_clk) begin 
@@ -500,7 +507,8 @@ module top_gati_module #(
     end 
   end
   */
-  // Generation of systolic array and flattening module triggers
+  // Generation of systolic array start trigger and flattening module triggers
+  // 
   always@(posedge i_clk) begin
     if(!i_rst) begin
       systolic_array_trigger <= 1'b0;
@@ -783,9 +791,9 @@ module top_gati_module #(
   );
 
   
-  // wire im2col_global_start;
+  wire im2col_global_start;
   wire vector_add_enable;
-
+  
   assign acc_stop_address = acc_start_address + (img_dim_Acc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
 
   request_controller_accumulator #(
@@ -1281,7 +1289,10 @@ module top_gati_module #(
       .FC_BRAM_DEPTH(FC_BRAM_DEPTH),
       .W_KERNEL_CNT(W_KITER_CNT),
       .W_FC_IMAG_DIM(W_FC_IMAG_DIM),
-      .ACC_DATA_REORDER(ACC_DATA_REORDER)
+      .ACC_DATA_REORDER(ACC_DATA_REORDER),
+      // for im2col_v1
+      .STRIDE(STRIDE),
+      .KERNEL_SIZE(KERNEL_SIZE)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),

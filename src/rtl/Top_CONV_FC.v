@@ -54,7 +54,7 @@ module Top_CONV_FC #(
     // im2col_v1 parameter
 
     parameter KERNEL_SIZE = 3,  // im2col kernal size
-    parameter STRIDE      = 1  // im2col stride 
+    parameter STRIDE      = 3  // im2col stride 
 
 ) (
 
@@ -186,7 +186,7 @@ module Top_CONV_FC #(
   ) buffers (
       .clk(i_clk),
       .stall_on(stall_on),
-      .rst(rst&(~im2col_done)),
+      .rst(rst&(~im2col_done)),               // .rst(rst&(~im2col_done)),
       .data_in(fifo_o),
       .data_signal(read_buf_data),
       .data_out(buff_out),
@@ -214,7 +214,7 @@ module Top_CONV_FC #(
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}};
-
+//dpks 
   top_mux #(
       .N_SA(N_SA),
       .INPUT_SIZE(DATA_WIDTH)
@@ -222,15 +222,41 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .sel(sel_mux),
       .data_a(buff_out),
-      .out_mux(mux_out)
+      .out_mux(mux_out)  // mux out should be delayed by 7 cycle 
   );
   
   localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
 
   //im2col block
 
+// generate block for 7 cycle dealay in the input reg mux_out
+
+//reg [(DATA_WIDTH*N_SA) -1:0] delay_reg [6:0];
+
+// Generate block for delay the SA data to match 6 cycle delay of im2col
+genvar f;
+generate
+    for (f = 0; f < 7; f = f + 1) begin : delay_stage
+    reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
+        
+        if (f == 0) begin
+        always @(posedge i_clk ) begin
+          delay_reg <= mux_out;
+        end 
+        end 
+        else begin
+          always @(posedge i_clk ) begin
+
+            delay_reg <= delay_stage[f-1].delay_reg;
+        end
+        end
+    end
+endgenerate
+
+//assign delayed_out = delay_reg[6];
 
 
+/*
   top_im2col #(
       .UPPER_BOUND (IMAGE_DIM),
       .DATA_WIDTH  (DATA_WIDTH),
@@ -257,17 +283,16 @@ module Top_CONV_FC #(
       .row(row),
       .col(col),
       .i_mat_size(image_size),
-      .i_zero_pad(zero_pad_enable),
+      .i_zero_pad(),
       .o_valid_data(im2col_o_valid),
       .o_valid_buff(read_buf_data), //read signal to im2col buffers
       .i_valid_data(1'b0),
-      .im2col_done(im2col_done)
+      .im2col_done(im2col_done)  // lookhere
   );
-  // top im2col_v1
-
+*/
   
-/*
 
+// im2col version 1 instance 
   top_im2col_v1 # (.KERNEL_SIZE(KERNEL_SIZE),
                 .UPPER_BOUND(IMAGE_DIM),
                 .LOWER_BOUND(1),
@@ -275,25 +300,26 @@ module Top_CONV_FC #(
                 .STRIDE(STRIDE)) 
 
     im2col_v1 (
-      .i_clk(i_clk),
+      .clk_in(i_clk),
       .rstn(rst),
       .valid_mat_size(valid_img_size_im2col),
+      .i_data(0),
       .i_start_im2col_index(im2col_global_start),
-      .i_valid_data(1'b0),
-      .i_data(),
-      .zero_pad(4'b0000),
-      .ksize(3'b011), // should be fetched from configure block
+      .zero_pad({zero_pad_enable,zero_pad_enable,zero_pad_enable,zero_pad_enable}),  // TODO -- Take from configure block
+      .ksize(KERNEL_SIZE), // should be fetched from configure block
       .zero_padded(zero_pad_enable), // should be fetched from configure block
       .i_mat_size(image_size),
       .valid_sq(o_valid_squares),
       .o_valid(im2col_o_valid),
-      .valid_sq_data_o(),
-      .stride(1), // should be fetched from configure block
-      .o_valid_buff(read_buf_data)
+      .stride(3'b001),               // should be fetched from configure block
+      .o_valid_buff(read_buf_data),
+      .o_im2col_done(im2col_done),
+      .i_stall_on (stall_on),
+      .o_row(row),
+      .o_col(col)
 
     ); 
 
-*/
 
   //parameters will change for top_SA (for CONV opeartion)
   wire [ACC_FIFO-1:0] empty_vector, almost_empty_vector;
@@ -326,7 +352,7 @@ module Top_CONV_FC #(
       .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
       .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
       .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
-      .i_image_ff_array_data(mux_out), //i-wire : from im2col
+      .i_image_ff_array_data(delay_stage[5].delay_reg), //i-wire : from im2col
       .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
       .i_psum_ff_array_read_en(opsum_rden),
       .p_full_output(p_full_output),

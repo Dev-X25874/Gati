@@ -7,7 +7,7 @@ module bound_generation_v1 #(
   parameter KERNEL_SIZE = 4)
  // parameter IMAGE_SIZE = 224)
   (
-  //input                               i_valid,
+  input                               i_valid,
   input  [$clog2(UPPER_BOUND)-1:0]    mat_size_col,
   input  [$clog2(UPPER_BOUND)-1:0]    mat_size_row,     
   input                               clk,
@@ -16,9 +16,10 @@ module bound_generation_v1 #(
   input  [$clog2(UPPER_BOUND)-1:0]    curr_row,
   input  [$clog2(UPPER_BOUND)-1:0]    curr_col,
   output [(KERNEL_SIZE*KERNEL_SIZE)-1:0]  valid_sq,           
- // input  [DATA_WIDTH-1:0]             valid_sq_data_i,   //Input data from the previous block 
-  output [DATA_WIDTH-1:0]             valid_sq_data_o    //Output data
-  //output                              o_valid
+  input  [DATA_WIDTH-1:0]             valid_sq_data_i,   //Input data from the previous block 
+  output [DATA_WIDTH-1:0]             valid_sq_data_o,    //Output data
+  output                              o_valid,
+  input                               i_stall_on
   //input  [$clog2(STRIDE):0]           stride
 );
 
@@ -84,7 +85,7 @@ always @(posedge clk) begin
     valid_sq_reg <= 0;
     r_data_i <= 0;
   end
-  else begin // checking for each of the bounds
+  else if ( rstn && ~i_stall_on) begin // checking for each of the bounds
       for(k=0; k<KERNEL_SIZE; k=k+1) begin
      // upper_bound_row[(DATA_WIDTH*(KERNEL_SIZE-k))-1 -:DATA_WIDTH] = lower_bound_row[k] + r_mat_size_row - ksize;
         for(l=0; l<KERNEL_SIZE; l=l+1) begin
@@ -115,15 +116,20 @@ always @(posedge clk) begin
                     valid_sq_reg[l + KERNEL_SIZE*(k)] <= 0;
                 end
             end
-           // r_data_i <= valid_sq_data_i;
+            r_data_i <= valid_sq_data_i;
         end
        //i// l=0;
       end
     //  k=0;
   end
+
+  // make's valid square zero if the stall is one 
+  else if (i_stall_on) begin 
+    valid_sq_reg <= 0; 
+  end 
 end
 
-//assign o_valid = i_valid;
+assign o_valid = i_valid;
 assign valid_sq = valid_sq_reg; 
 assign valid_sq_data_o = r_data_i;
 

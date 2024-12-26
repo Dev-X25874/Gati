@@ -11,11 +11,12 @@ parameter DATA_WIDTH = 8)
 (
 input  clk_in,
 input  rstn,
+input stall_on,
 //input  i_RX_Serial,
 //output o_TX_Serial
 input i_im2col_start,
 output o_valid,
-output [DATA_WIDTH-1:0] o_data,
+//output [DATA_WIDTH-1:0] o_data,
 output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq
 );
 
@@ -78,18 +79,19 @@ rd_ctrl #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) ctrl_dut(
 top_im2col #(.KERNEL_SIZE(KERNEL_SIZE), .DATA_WIDTH(DATA_WIDTH), .LOWER_BOUND(LOWER_BOUND), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) top_dut(
 .i_clk(clk_in),
 .rstn(rstn),
+.stall_on(stall_on),
 .valid_mat_size(mat_valid),
 .i_start_im2col_index(i_im2col_start_index),
-.i_valid_data(datavalid),
-.i_data(data),
+//.i_valid_data(datavalid),
+//.i_data(data),
 .zero_pad(zero_pad),
 .zero_padded(zero_padded),
 .i_mat_size(mat_size),
 .valid_sq(valid_sq),
 .ksize(w_ksize),
-.o_valid(o_valid),
+//.o_valid(o_valid),
 .stride(stride),
-.valid_sq_data_o(o_data),
+//.valid_sq_data_o(o_data),
 .o_valid_buff(valid_buff)
 );
 

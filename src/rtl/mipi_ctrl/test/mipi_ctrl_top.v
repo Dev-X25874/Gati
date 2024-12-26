@@ -60,16 +60,17 @@ wire w_start;
 // wire [7:0] address_wr_req_ctrl;
 wire [W_BURST_LEN-1 : 0] burst_len_wr_req_ctrl;
 wire last_wr_req_ctrl;
+reg last_dram_wr_req_ctrl;
 // wire valid_wr_req_ctrl;
 // wire data_last_wr_req_ctrl;
 // assign data_last_wr_req_ctrl = o_data_last;
 
 (* async_reg="true" *) reg f_o_data_last,s_o_data_last;
 always @(posedge i_clk) begin
-    f_o_data_last <= o_data_last;
+    f_o_data_last <= last_dram_wr_req_ctrl;
     s_o_data_last <= f_o_data_last;
 end
-
+wire ack_dram_wr_req_ctrl;
 wr_req_ctrl#(
     .W_DATA(W_DATA),
     .W_BURST_LEN(W_BURST_LEN),
@@ -84,6 +85,7 @@ wr_req_ctrl#(
     .i_fifo_occupants(ff_array_occ), //comes from fifo array
     .i_start_address(start_address),   //comes from fifo_wr_ctrl
     .i_data_size(data_size),   //comes from fifo_wr_ctrl
+    .o_ack_dram_ctrl(ack_dram_wr_req_ctrl), //acknowledgment for last signal from dram_wr_ctrl
     .o_request(req_wr_req_ctrl),   //request goes to DDR ctrl
     .o_address(address_wr_req_ctrl), //requested address, goes to DDR ctrl
     .o_burst_len(burst_len_wr_req_ctrl),  //requested burst length, goes to DDR ctrl
@@ -98,7 +100,8 @@ image_fifo_array_async#(
     .DIMENSION(N_FIFO),
     .W_DATA(W_DATA),
     .W_ADDR(W_ADDR),
-    .RAM_DEPTH(1 << W_ADDR)
+    .RAM_DEPTH(1 << W_ADDR),
+    .OUTPUT_REG(0)
 )mul_fifo_array(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
@@ -120,6 +123,20 @@ always @(posedge dr_clk) begin
     f_w_start <= w_start;
     s_w_start <= f_w_start;
 end
+
+//stretching data_last signal for 81MHz CDC
+(*async_reg = "true"*) reg ack_dram_wr_req_ctrl1, ack_dram_wr_req_ctrl2;
+always@(posedge dr_clk) begin
+    ack_dram_wr_req_ctrl1 <= ack_dram_wr_req_ctrl;
+    ack_dram_wr_req_ctrl2 <= ack_dram_wr_req_ctrl1;
+end
+always@(posedge dr_clk) begin
+    if(!i_rstn) last_dram_wr_req_ctrl <= 0;
+    else begin
+        if(o_data_last) last_dram_wr_req_ctrl <= 1;
+        else if(ack_dram_wr_req_ctrl2) last_dram_wr_req_ctrl <= 0;
+    end
+end
 //wire o_data_last;
 dram_wr_ctrl#(
     .W_ADDR(W_ADDR),
@@ -128,7 +145,7 @@ dram_wr_ctrl#(
 )dram_write_controller(
     .i_clk(dr_clk),
 	.i_dv(&dv),
-	.s_start(w_start),
+	.s_start(s_w_start),
     .i_rstn(i_rstn),
     .i_select(ddr_sel),
     .i_write_ready(ddr_wready),

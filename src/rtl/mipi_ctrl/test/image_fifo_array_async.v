@@ -6,7 +6,8 @@ module image_fifo_array_async#(
     parameter DIMENSION = 64,
     parameter W_DATA = 8,
     parameter W_ADDR = 9,
-    parameter RAM_DEPTH = (1 << W_ADDR)
+    parameter RAM_DEPTH = (1 << W_ADDR),
+    parameter OUTPUT_REG = 1
 )(
     input i_clk,
     input i_rstn,
@@ -26,7 +27,8 @@ generate
     for(i = 0; i < DIMENSION; i = i + 1)begin
         async_81#(
             .W_DATA(W_DATA),
-            .W_ADDR(W_ADDR)
+            .W_ADDR(W_ADDR),
+            .OUTPUT_REG(OUTPUT_REG)
         ) fifo_inst (
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),

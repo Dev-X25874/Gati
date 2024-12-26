@@ -16,6 +16,7 @@ module wr_req_ctrl#(
     input [((W_ADDR + 1) * N_FIFO)-1 : 0] i_fifo_occupants, //comes from fifo array
     input [W_DATA-1 : 0] i_start_address,   //comes from fifo_wr_ctrl
     input [W_DATA-1 : 0] i_data_size,   //comes from fifo_wr_ctrl
+    output reg o_ack_dram_ctrl, //acknowledgemnt for last signal to dram_wr_ctrl
     output o_request,   //request goes to DDR ctrl
     output [7:0]o_address, //requested address, goes to DDR ctrl
     output [W_BURST_LEN-1 : 0]o_burst_len,  //requested burst length, goes to DDR ctrl
@@ -70,9 +71,11 @@ always @(posedge i_clk)begin
         r_addr <= 0;
         data_size <= 0;
         valid <= 0;
+        o_ack_dram_ctrl <= 0;
     end else begin
         case (state)
             0:begin
+                o_ack_dram_ctrl <= 0;
                 if(r_i_data_valid && (r_i_data_size!=0))begin
                     r_burst_len <= BURST_LEN;
 					data_size<=r_i_data_size;
@@ -98,6 +101,7 @@ always @(posedge i_clk)begin
 
             3: begin
                 // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
+                o_ack_dram_ctrl <= 0;
                 if(r_i_fifo_occupants >= fifo_occupants) begin
                 	state <= 2;
                 end
@@ -141,12 +145,14 @@ always @(posedge i_clk)begin
 						if(r_i_data_last) begin 
                             state <= 3;
 						    r_addr <= r_addr + offset;
+                            o_ack_dram_ctrl <= 1;
 						end
                     end else begin
                         r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 						if(r_i_data_last) begin 
                             state <= 3;
 							r_addr <= r_addr + offset;
+                            o_ack_dram_ctrl <= 1;
 						end
 
 
@@ -154,6 +160,7 @@ always @(posedge i_clk)begin
                 end else begin
 					if(r_i_data_last) begin 
                     state <= 0;
+                    o_ack_dram_ctrl <= 1;
 					end
                 end
             end

@@ -34,10 +34,10 @@ module rah_gati #(
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 7,
     parameter FC_WEIGHT_REQ_BLEN = 64,
-    parameter ACC_REQ_BLEN = 11,
+    parameter ACC_REQ_BLEN = 15,
     parameter BIAS_REQ_BLEN = 15,
-    parameter OP_WRITE_REQ_ACC_BLEN = 11, //burst length for writng accumulants (32-bit) into the DRAM
-    parameter OP_WRITE_REQ_QUA_BLEN = 11, //burst length for writng quantized output (8-bit) into the DRAM
+    parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
@@ -255,7 +255,7 @@ module rah_gati #(
   wire final_last_wr_req_ctrl;
   wire valid_wr_req_ctrl;
   wire user_start;
-  parameter MIPI_REQ_BLEN = 11;
+  parameter MIPI_REQ_BLEN = 15;
   
   assign soft_start = user_start;
 	////////////////////////////MIPI controller rx

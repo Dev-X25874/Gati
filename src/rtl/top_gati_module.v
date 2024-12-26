@@ -276,9 +276,6 @@ module top_gati_module #(
 // wire mc_config_rdreq;
 //    wire mc_config_valid;
 
-
-
-		
   config_blk#(
       .ADDR_W(AXI_ADDR_W),
       .INST_W(INST_W),
@@ -1066,7 +1063,7 @@ module top_gati_module #(
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
   // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
-  assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]/4);
+  assign acc_fifo_th = ((ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0])/2);
   // assign acc_fifo_th = input_img_width*2;
 	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   always @ (posedge i_clk) begin
@@ -1408,7 +1405,7 @@ module top_gati_module #(
       .DIMENSION(OP_FIFO),
       .W_DATA(DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
-      .OUTPUT_REG(1),
+      .OUTPUT_REG(0),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
   ) op_write_dram_fifo (
       .i_clk(i_clk),
@@ -1548,17 +1545,17 @@ module top_gati_module #(
     end
   end
 
-  reg [31:0] stall_cntr;
-  always@(posedge i_clk) begin
-    if(!i_rst) stall_cntr <= 0;
-    else begin
-      if(OpBlock_Ack) stall_cntr <= 0;
-      else if(start_en) begin
-        if(stall_on) stall_cntr <= stall_cntr + 1;
-      end
-      else stall_cntr <= stall_cntr;
-    end
-  end
+  // reg [31:0] stall_cntr;
+  // always@(posedge i_clk) begin
+  //   if(!i_rst) stall_cntr <= 0;
+  //   else begin
+  //     if(OpBlock_Ack) stall_cntr <= 0;
+  //     else if(start_en) begin
+  //       if(stall_on) stall_cntr <= stall_cntr + 1;
+  //     end
+  //     else stall_cntr <= stall_cntr;
+  //   end
+  // end
 
   always@(posedge i_clk) begin
     if(!i_rst) start_en <= 0;
@@ -1583,7 +1580,7 @@ module top_gati_module #(
   assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
 
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
-  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*n_kernels;
+  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA;
   assign fpga2cpu_start_address = op_start_address;
 
   //Hard-coded logic for Acc_onchip flag: Deprecated after inclusion of support from sysim

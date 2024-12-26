@@ -10,7 +10,7 @@ module Mem_write_ctrl #(
     input [BURST_LENGTH_WIDTH-1:0] blen, // from DRAM ctrler (WR_ID mger)
     
     output o_data_valid,
-    output reg data_last,
+    output data_last,
     // output [AXI_DATA_WIDTH-1:0] data_out,
     output [N_FIFO-1:0] fifo_rd_en
 );
@@ -53,7 +53,7 @@ module Mem_write_ctrl #(
                 2'd2:begin
                     // if((count_blen > r_blen) && DataWrEnd) begin
                     if(count_blen > r_blen) begin
-                        if(wready) begin
+                        if(wready & data_valid) begin
                             data_valid <= 1'b0;
                         end
                         if(data_last) begin
@@ -99,7 +99,7 @@ module Mem_write_ctrl #(
 
     assign fifo_rd_en = (data_valid & wready) ? {N_FIFO{1'b1}} : {N_FIFO{1'b0}};
 
-    assign DataWrEnd = (r_blen==0)? (DataWrLast & wready) : (DataWrLast & data_valid & wready);
+    assign DataWrEnd = (r_blen==0)? (DataWrLast & wready) : (DataWrLast & dv & wready);
 
     // assign DataWrEnd = DataWrLast & data_valid & wready;
                 
@@ -107,7 +107,7 @@ module Mem_write_ctrl #(
     begin
         if(!rst)                                                DataWrLast <= 1'b0;
         else if (data_valid && (r_blen==0))                     DataWrLast <= 1'b1;
-        else if (data_valid && wready && (count_blen==r_blen))  DataWrLast <= 1'b1;
+        else if (data_valid && wready && (count_blen==r_blen+1))DataWrLast <= 1'b1;
         else if (DataWrEnd)                                     DataWrLast <= 1'b0;
     end
 
@@ -115,21 +115,30 @@ module Mem_write_ctrl #(
 
     reg f_DataWrEnd;
 
-    always@(posedge clk) begin
-        if(r_blen==0) begin
-            data_last <= DataWrLast; 
-        end
-        else begin
-            f_DataWrEnd <= DataWrEnd;
-            data_last <= f_DataWrEnd;
-        end
-    end
+    // always@(posedge clk) begin
+    //     if(r_blen==0) begin
+    //         data_last <= DataWrLast; 
+    //     end
+    //     else begin
+    //         f_DataWrEnd <= DataWrEnd;
+    //         data_last <= f_DataWrEnd;
+    //     end
+    // end
 
     reg dv1,dv;
     always@(posedge clk) begin
-        dv1 <= data_valid;
-        dv  <= dv1;
+        if(!rst) dv <= 0;
+        else begin
+            if(r_blen==0) begin
+                dv  <= data_valid;
+            end
+            else begin
+                if(data_last) dv <= 1'b0;
+                else if(data_valid) dv <= 1'b1;
+            end
+        end
     end
 
     assign o_data_valid = dv;
+    assign data_last = (r_blen==0)? DataWrLast : DataWrEnd;
 endmodule

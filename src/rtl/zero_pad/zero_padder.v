@@ -63,8 +63,8 @@ begin
    end
 end
 
-reg flag1,flag2;
-
+reg flag1,flag2,flag1_d;
+always@(posedge clk) flag1_d <= flag1;
 always@(*) 
 begin
     if(r_i_dv==1'b1)
@@ -82,7 +82,7 @@ begin
         // end
         
         // else 
-        if(flag1)
+        if(flag1_d)
         begin
             doutns  = 0;
             o_dvns  = 1'b1;

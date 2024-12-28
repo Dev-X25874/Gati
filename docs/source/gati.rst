@@ -296,15 +296,26 @@ For implementation details of config block, see
 :ref:`configuration_block`
 or implementation of memory controller, see :ref:`DRAM_controller`
 
+.. include:: instructions/inst.rst
+
+.. _flattening:
+
 Flattening
 **********
-This controller takes output of last convolution layer from DDR, converts it 
-into one dimension, and send it into fully connected layer. Output obtained 
-from the last systolic convolution layer are in NCHW format. But the processing 
-element of FC engine are of output stationary. So to flatten the inputs for 
-FC engine, Flattening process is needed. This controller consist of flattening, 
-BRAMS and controllers to write and read flattened data into and from the BRAM 
-array.  
+
+In a network, when the inputs to FC are the outputs of a convolution operation,
+a "flattening" operation needs to be performed on the outputs. Reason is the
+order in which the SA that carries out convolution outputs to the DRAM. If, for 
+example, a 9x4x4 SA is used, the outputs a NHW4C4, i.e. first four elements of 
+channel one, first four elements of channel two, and so on till channel four after
+which next four elements of channel one and this continues. FC expects inputs
+in the form of 1xN where N is all the elements in row-major order. To deal with
+this, when reading NHW4C4 outputs of a convolution, the flattening controller
+is used to flatten it to a 1xN so that it can be input to FC. Note that the
+flatten controller need not be always enabled, as any FC layers following an FC
+layer will have their inputs already flattened. When and when not to enable
+flattening is conveniently provided by the software through the 'Flatten' field
+in the FC instruction.
 
 Following image shows the flattening process:
 
@@ -313,78 +324,90 @@ Following image shows the flattening process:
    :align: center
 
 
-FC inputs are obtained from DDR are storred in local on-chip memory (BRAM). Here 'M'
-represents the number of columns in each systolic arrays and 'N' represents the number of systolic engine.
+FC inputs obtained from DDR are storred in local on-chip memory (BRAM). Here 'M'
+represents the number of columns in each systolic arrays and 'N' represents the
+number of systolic engine.
 
-This flattening controller consist of following blocks:
+The flattening controller works thusly:
 
-    Convolution output reorder: Output coming from convolution is reordered in 
-    desired way.
-
-    BRAM brank array:
-        * There exist 'N' number of BANKs, each having 'M' number of BRAMs.
-        * Size of each BRAM is 8 x 1024.
-        * The reordered data gets stored into this BRAM bank array.
-        * Data stored in each BANK in in row-major order of it's corrosponding channel.
-
-    BRAM write enable controller:
-        * Handles the write enable signal and write valid reordered data into BRAM bank array.
-        * Data is written into BRAMs in following way, despite of the value of flattening bit coming from config block:
-         
-         1. Writes one byte into all 'M' BRAMs, present in all 'N' number of banks at the same clock cycle.
-         2. Hence, number of clock cycles taken to write data into all the BRAMs in array is equal to number of bytes to be written into each BRAM.
-        
-        * When the entire data is written into BRAMs, this controller assert done signal to indicate that it's done writting data into BRAMs.
-
-    BRAM read enable controller:
-        * Handles read enable signal of BRAMs. It asserts the read enable once done signal is received from BRAM write enable controller.
-        * The way it asserts read enable signal is different based on the flattening input coming from instructions, i.e., whether flattening is required or not.
-        * Following is the way it asserts read enable signal if flattening is not required (flattening input coming from config block is 0):
-         
-         1. Counters are used to read data of different BRAMs and switch between different BANKs.
-         2. Starting from BANK 1, one byte per cycle is read from BRAM 1 to BRAM M.
-         3. Followed by reading byte from BRAM 1 to BRAM M of BANK 2, and so on.
-         4. This continues till the byte of last BRAM in last BANK is read.
-         5. Now, first byte from all the BRAM is read, the counters will then switch to next address of BANK 1.
-         6. The same way data will be read from all BRAM, starting from BRAM 1 to BRAM M in all the BANKs.
-         7. Once, the entire data is read, it will wait to receive valid signal from accumulator.
-         8. As it receives accumulator valid signal, the image is read again in the same way for different set of kernals.
-         9. Once it reaches maximum count for kernals, done flag is asserted, indicating the completion of reading image for all different set of kernals.
-        
-        * If flattening is needed to be done on the data, this controllers works in the way explained below:
-         
-         1. Reading data and switching of bank is similar to the way it is described in the above case, but, the only difference is when it switches the bank.
-         2. As described in case for flattening equals to 0, after reading one byte from all n BRAMs in a bank, the BANK is switched, here, for flattening equals to 1, when it reads first byte from all n BRAMs, it will still be in the same bank, and the address will be incremented of the respective bank, and it will keep on reading from BRAM 1 to BRAM n , and would again increment the address and read from BRAM 1 to BRAM n, this will go on, until it reads total bytes from all BRAMs in a bank equal to the image dimension coming from config block.
-         3. Once it read image dimension number of bytes from a bank, it will go to the next bank, and will read in the same way it read in the previous bank.
-         4. This will go on until it reads all the elements.
-         5. And then it will wait for accumulator valid, to read bytes again from BRAM, and will increment kernal counter as well aftrer receiving valid from accumulator. Once, it reaches maximum number of kernal count, it will assert done signal indicating completion of reading all the data.
-
-
+Each bank is supposed to house a single channel. The NHW4C4 outputs are read,
+and split into sections of 4 each. These 4 values are then put into their
+respective banks. Then the banks are read out, one after another in serial
+fashion which flattens them. 
 
 FC Engine
 *********
 
-One dimensional flattened inputs are loaded into FC Engine from. This architecture consist of PE blocks, fifo and accumulators.
+The FC engine very similar to the SA except for one small difference is the 
+dataflow. It is a grid very much like the SA but it works in 'output stationary'
+manner i.e. what is being 'stored' inside the PEs is not weights (like Conv
+SA) but outputs. Both 'weights' and 'inputs' are continuosly fed to the PE grid.
 
-Below given is the architectural block diagram of fully connected layer:
+PE Grid
+=======
 
-.. image:: _static/FC_Engine.png
+The inputs to the FC engine would be of the form:
+
+.. code::
+
+   1xN NxM
+
+The output would be of dim:
+
+.. code::
+
+   1xM
+
+`1xN` is the inputs and `NxM` is the weight. 
+
+Based on this the shape of the PE grid can be figured out. 
+
+Since, input is 1 dimensional, we only need one row in the grid. So, the
+size should be `1xP`. 
+
+What should `P` be? The DRAM can return a finite number of bytes (elements) (32
+bytes for vaaman) in a cycle, so `P` cannot exceed the DRAM bandwidth. The
+minimum can be decided based on resource constraints. A good configuration
+(which is being used in Gati as of v0.2.4) is 1x32. 
+
+How FC Engine Functions
+=======================
+
+.. figure:: _static/FC_Engine.png
    :width: 80%
    :align: center
 
-Description of working of fully connected:
+   *FC Engine - High-Level Architecture*
 
-    PE grid:
+The weight matrix (`NxM`) is continuosly sent from the weight fifos (that the FC
+engine shares with the SA). The inputs are fully stored on-chip in the input
+fifos and also sent continuosly. The FC engine processes `P` columns of the
+weight matrix at a time. This means that an FC operations takes ~ `Nx(M/P)`
+cycles to complete. The weights are arranged and aligned in the order of `P`.
+If `M` is not evenly divisible by `P`, extra columns of only zeros are padded
+to the weight matrix by the compiler. The outputs are accumulated in the 
+accumulator registers. At the end of each iteration, these outputs are sent to
+the tail block to be processed further and ultimately end up in the DRAM via
+the output block. The process starting from tail block is the same as that of 
+conv outputs after vector addition.
 
-   1. Dimension of PE grid is 1 row and N columns, where, columns will be equal to number of bytes received from DDR, in a burst.
-   2. Weights coming from weight fifo array(present in fifo sharing module), are loaded into all the PE blocks together.
-   3. Image is broadcasted into all the PE blocks together, coming from flattening layer.
-   4. Product of image and weights are then sent as output fromthese proccesing element block.
+Decoding the FC instruction
+===========================
 
-    Accumulator array:
+The instruction consists of the usual opcodes, input start/end address, weight 
+start/end address, and sizes for inputs/weights. 
 
-   1. Each PE block's output is stored in a accumulator, hence, there is one accumulator in each column of FC.
-   2. Once, it receives image dimension number of outputs, (i.e., 7x7x512, in case of VGG16), from PE blocks, the output is received, and valid accumulated output is sent out from accumulator array.
+Explanation of less-standard fields follows:
 
-Conf
-.. include:: instructions/inst.rst
+#. **Flatten**
+    If the preceding layer of this FC is a convolution, its outputs (present in
+    NHW4C4 order in DRAM) need to be re-arranged in row-major-FC-engine-friendly
+    order. This bit signals the config block to enable the :ref:`flattening`
+    controller.
+
+#. **ImageDim**
+    If flatten is enabled this field is the product of ROW and COLUMN field of
+    the previous convolution operation.
+
+#. **Vec2MatCols**
+   umm... i don't really remember what this was for.

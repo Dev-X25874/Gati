@@ -12,10 +12,13 @@ QuantScale:16
 QuantShift:5
 PoolEn:1
 PoolType:3
-PoolWidth:4
-PoolHeight:4
+PoolWidth:10
+PoolHeight:10
 PoolStride:4
 PoolPadding:4
+PoolCeil:1
+PoolModCount:4
+PoolPadSides:4
 BiasEn:1
 BiasWidth:8
 BiasStartAddress:32

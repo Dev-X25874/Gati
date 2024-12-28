@@ -23,13 +23,15 @@
 	`define CONV_Stride_WIDTH 4
 	`define CONV_Pad 78:76
 	`define CONV_Pad_WIDTH 3
-	`define CONV_ImageStartAddress 110:79
+	`define CONV_PadSides 82:79
+	`define CONV_PadSides_WIDTH 4
+	`define CONV_ImageStartAddress 114:83
 	`define CONV_ImageStartAddress_WIDTH 32
-	`define CONV_ImageEndAddress 142:111
+	`define CONV_ImageEndAddress 146:115
 	`define CONV_ImageEndAddress_WIDTH 32
-	`define CONV_WeightStartAddress 174:143
+	`define CONV_WeightStartAddress 178:147
 	`define CONV_WeightStartAddress_WIDTH 32
-	`define CONV_WeightEndAddress 206:175
+	`define CONV_WeightEndAddress 210:179
 	`define CONV_WeightEndAddress_WIDTH 32
 
 	`define OP_FC 'h03
@@ -117,21 +119,27 @@
 	`define TailBlock_PoolEn_WIDTH 1
 	`define TailBlock_PoolType 117:115
 	`define TailBlock_PoolType_WIDTH 3
-	`define TailBlock_PoolWidth 121:118
-	`define TailBlock_PoolWidth_WIDTH 4
-	`define TailBlock_PoolHeight 125:122
-	`define TailBlock_PoolHeight_WIDTH 4
-	`define TailBlock_PoolStride 129:126
+	`define TailBlock_PoolWidth 127:118
+	`define TailBlock_PoolWidth_WIDTH 10
+	`define TailBlock_PoolHeight 137:128
+	`define TailBlock_PoolHeight_WIDTH 10
+	`define TailBlock_PoolStride 141:138
 	`define TailBlock_PoolStride_WIDTH 4
-	`define TailBlock_PoolPadding 133:130
+	`define TailBlock_PoolPadding 145:142
 	`define TailBlock_PoolPadding_WIDTH 4
-	`define TailBlock_BiasEn 134:134
+	`define TailBlock_PoolCeil 146:146
+	`define TailBlock_PoolCeil_WIDTH 1
+	`define TailBlock_PoolModCount 150:147
+	`define TailBlock_PoolModCount_WIDTH 4
+	`define TailBlock_PoolPadSides 154:151
+	`define TailBlock_PoolPadSides_WIDTH 4
+	`define TailBlock_BiasEn 155:155
 	`define TailBlock_BiasEn_WIDTH 1
-	`define TailBlock_BiasWidth 142:135
+	`define TailBlock_BiasWidth 163:156
 	`define TailBlock_BiasWidth_WIDTH 8
-	`define TailBlock_BiasStartAddress 174:143
+	`define TailBlock_BiasStartAddress 195:164
 	`define TailBlock_BiasStartAddress_WIDTH 32
-	`define TailBlock_BiasEndAddress 206:175
+	`define TailBlock_BiasEndAddress 227:196
 	`define TailBlock_BiasEndAddress_WIDTH 32
 
 	`define ACT_RELU 'h00
@@ -195,17 +203,20 @@
 	#define CONV_Pad_LOW 76
 	#define CONV_Pad_HIGH 78
 	#define CONV_Pad_COUNT 3
-	#define CONV_ImageStartAddress_LOW 79
-	#define CONV_ImageStartAddress_HIGH 110
+	#define CONV_PadSides_LOW 79
+	#define CONV_PadSides_HIGH 82
+	#define CONV_PadSides_COUNT 4
+	#define CONV_ImageStartAddress_LOW 83
+	#define CONV_ImageStartAddress_HIGH 114
 	#define CONV_ImageStartAddress_COUNT 32
-	#define CONV_ImageEndAddress_LOW 111
-	#define CONV_ImageEndAddress_HIGH 142
+	#define CONV_ImageEndAddress_LOW 115
+	#define CONV_ImageEndAddress_HIGH 146
 	#define CONV_ImageEndAddress_COUNT 32
-	#define CONV_WeightStartAddress_LOW 143
-	#define CONV_WeightStartAddress_HIGH 174
+	#define CONV_WeightStartAddress_LOW 147
+	#define CONV_WeightStartAddress_HIGH 178
 	#define CONV_WeightStartAddress_COUNT 32
-	#define CONV_WeightEndAddress_LOW 175
-	#define CONV_WeightEndAddress_HIGH 206
+	#define CONV_WeightEndAddress_LOW 179
+	#define CONV_WeightEndAddress_HIGH 210
 	#define CONV_WeightEndAddress_COUNT 32
 
 	#define OP_FC 0x03
@@ -333,28 +344,37 @@
 	#define TailBlock_PoolType_HIGH 117
 	#define TailBlock_PoolType_COUNT 3
 	#define TailBlock_PoolWidth_LOW 118
-	#define TailBlock_PoolWidth_HIGH 121
-	#define TailBlock_PoolWidth_COUNT 4
-	#define TailBlock_PoolHeight_LOW 122
-	#define TailBlock_PoolHeight_HIGH 125
-	#define TailBlock_PoolHeight_COUNT 4
-	#define TailBlock_PoolStride_LOW 126
-	#define TailBlock_PoolStride_HIGH 129
+	#define TailBlock_PoolWidth_HIGH 127
+	#define TailBlock_PoolWidth_COUNT 10
+	#define TailBlock_PoolHeight_LOW 128
+	#define TailBlock_PoolHeight_HIGH 137
+	#define TailBlock_PoolHeight_COUNT 10
+	#define TailBlock_PoolStride_LOW 138
+	#define TailBlock_PoolStride_HIGH 141
 	#define TailBlock_PoolStride_COUNT 4
-	#define TailBlock_PoolPadding_LOW 130
-	#define TailBlock_PoolPadding_HIGH 133
+	#define TailBlock_PoolPadding_LOW 142
+	#define TailBlock_PoolPadding_HIGH 145
 	#define TailBlock_PoolPadding_COUNT 4
-	#define TailBlock_BiasEn_LOW 134
-	#define TailBlock_BiasEn_HIGH 134
+	#define TailBlock_PoolCeil_LOW 146
+	#define TailBlock_PoolCeil_HIGH 146
+	#define TailBlock_PoolCeil_COUNT 1
+	#define TailBlock_PoolModCount_LOW 147
+	#define TailBlock_PoolModCount_HIGH 150
+	#define TailBlock_PoolModCount_COUNT 4
+	#define TailBlock_PoolPadSides_LOW 151
+	#define TailBlock_PoolPadSides_HIGH 154
+	#define TailBlock_PoolPadSides_COUNT 4
+	#define TailBlock_BiasEn_LOW 155
+	#define TailBlock_BiasEn_HIGH 155
 	#define TailBlock_BiasEn_COUNT 1
-	#define TailBlock_BiasWidth_LOW 135
-	#define TailBlock_BiasWidth_HIGH 142
+	#define TailBlock_BiasWidth_LOW 156
+	#define TailBlock_BiasWidth_HIGH 163
 	#define TailBlock_BiasWidth_COUNT 8
-	#define TailBlock_BiasStartAddress_LOW 143
-	#define TailBlock_BiasStartAddress_HIGH 174
+	#define TailBlock_BiasStartAddress_LOW 164
+	#define TailBlock_BiasStartAddress_HIGH 195
 	#define TailBlock_BiasStartAddress_COUNT 32
-	#define TailBlock_BiasEndAddress_LOW 175
-	#define TailBlock_BiasEndAddress_HIGH 206
+	#define TailBlock_BiasEndAddress_LOW 196
+	#define TailBlock_BiasEndAddress_HIGH 227
 	#define TailBlock_BiasEndAddress_COUNT 32
 
 	#define ACT_RELU 0x00
@@ -413,6 +433,8 @@
 		tbl.order.push_back("Stride");
 		tbl.tbl.insert({"Pad", bitset_range_get<CONV_Pad_COUNT, INST_SIZE_BITS>(inst, CONV_Pad_LOW, CONV_Pad_HIGH)});
 		tbl.order.push_back("Pad");
+		tbl.tbl.insert({"PadSides", bitset_range_get<CONV_PadSides_COUNT, INST_SIZE_BITS>(inst, CONV_PadSides_LOW, CONV_PadSides_HIGH)});
+		tbl.order.push_back("PadSides");
 		tbl.tbl.insert({"ImageStartAddress", bitset_range_get<CONV_ImageStartAddress_COUNT, INST_SIZE_BITS>(inst, CONV_ImageStartAddress_LOW, CONV_ImageStartAddress_HIGH)});
 		tbl.order.push_back("ImageStartAddress");
 		tbl.tbl.insert({"ImageEndAddress", bitset_range_get<CONV_ImageEndAddress_COUNT, INST_SIZE_BITS>(inst, CONV_ImageEndAddress_LOW, CONV_ImageEndAddress_HIGH)});
@@ -539,6 +561,12 @@
 		tbl.order.push_back("PoolStride");
 		tbl.tbl.insert({"PoolPadding", bitset_range_get<TailBlock_PoolPadding_COUNT, INST_SIZE_BITS>(inst, TailBlock_PoolPadding_LOW, TailBlock_PoolPadding_HIGH)});
 		tbl.order.push_back("PoolPadding");
+		tbl.tbl.insert({"PoolCeil", bitset_range_get<TailBlock_PoolCeil_COUNT, INST_SIZE_BITS>(inst, TailBlock_PoolCeil_LOW, TailBlock_PoolCeil_HIGH)});
+		tbl.order.push_back("PoolCeil");
+		tbl.tbl.insert({"PoolModCount", bitset_range_get<TailBlock_PoolModCount_COUNT, INST_SIZE_BITS>(inst, TailBlock_PoolModCount_LOW, TailBlock_PoolModCount_HIGH)});
+		tbl.order.push_back("PoolModCount");
+		tbl.tbl.insert({"PoolPadSides", bitset_range_get<TailBlock_PoolPadSides_COUNT, INST_SIZE_BITS>(inst, TailBlock_PoolPadSides_LOW, TailBlock_PoolPadSides_HIGH)});
+		tbl.order.push_back("PoolPadSides");
 		tbl.tbl.insert({"BiasEn", bitset_range_get<TailBlock_BiasEn_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasEn_LOW, TailBlock_BiasEn_HIGH)});
 		tbl.order.push_back("BiasEn");
 		tbl.tbl.insert({"BiasWidth", bitset_range_get<TailBlock_BiasWidth_COUNT, INST_SIZE_BITS>(inst, TailBlock_BiasWidth_LOW, TailBlock_BiasWidth_HIGH)});

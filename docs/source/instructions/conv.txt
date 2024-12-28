@@ -10,6 +10,7 @@ KW:4
 KH:4
 Stride:4
 Pad:3
+PadSides:4
 ImageStartAddress:32
 ImageEndAddress:32
 WeightStartAddress:32

@@ -19,6 +19,10 @@ networks are resilient to minor turbulence in activations and give similar
 accuracies in smaller bit-widths as they would with greater range of precision.
 The only decidable variable here then is how we quantize our numbers.
 
+.. image:: _static/Quantization.png
+   :width: 40%
+   :align: center
+
 To quantize a Float32 number :code:`x`, we need to *scale* it down to what Int8
 can fit. This is achieved by calculating a **scale** variable. The scale
 can be calculated thusly:
@@ -145,6 +149,10 @@ Floating Point Multiplication/Division on FPGA
 
 The scale value is a floating-point number, ergo, the quantization operation is
 a multiplication of a floating point number with a Int32 (with dequantization being a float division).
+
+.. image:: _static/Quantization1.png
+   :width: 60%
+   :align: center
 
 Floating point operations are costly on the FPGA. There is a need for a
 transformation of the numbers so that a :math:`Float32 x Int32` can be

@@ -12,6 +12,8 @@ Gati
     DRAM-controller
     adder_tree
     transpose
+    DWP
+    dispatcher
 
 .. contents:: Table of Contents
    :local:
@@ -477,4 +479,4 @@ compilation. See user manual of software for more details.
 As a result, the dispatcher is flexible in that it can provide the final results 
 after computation has ended, or be used for debugging intermidiate layers.
 
-For more Abstract view of Dispatcher, see :ref:`Dispatcher`
+For more Abstract view of Dispatcher, see :ref:`dispatcher`

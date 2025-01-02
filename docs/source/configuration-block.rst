@@ -11,8 +11,8 @@ various blocks in the architecture.
 The below figure shows the architecture for configuration block wherein, it comprises, an instruction Queue of 
 data width 256-bit wherein the instructions read from DDR gets stored in and applied to the various blocks when required.
 
-.. image:: _static/Configuration_Block.jpg
-   :width: 70%
+.. image:: _static/config.png
+   :width: 100%
    :align: center
 
 
@@ -106,7 +106,7 @@ updates the status of 'Previous sent register' to `Instruction acknowledgment re
 
 An example of the slave controller at the block for each unique instruction is shown below
 
-.. image:: _static/Slave_example.jpg
+.. image:: _static/slave.png
    :width: 70%
    :align: center
 

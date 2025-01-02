@@ -279,8 +279,8 @@ For concrete details on the layout and access pattern, see :ref:`ddr_layout_and_
 
 For implementation of memory controller, see :ref:`DRAM_controller`
 
-Configuration Block
-*******************
+Configuration Block/Bus master controller
+*****************************************
 
 Configuration block stores required configurations for each layers and
 programs input, output, and tail blocks ahead of time so that they can
@@ -292,7 +292,11 @@ packets as instructions where the instruction width is 256. None of the
 above configs currently take all 256 bits, this is not a problem, these
 least significant remaining bits can be assumed to be reserved.
 
-For implementation details of config block, see
+The Bus Master Controller facilitates communication between a master 
+device and multiple slave devices within a system. It transmits the 
+instruction set from the config block to different compute block.
+
+For implementation details of config block/Bus master controller, see
 :ref:`configuration_block`
 or implementation of memory controller, see :ref:`DRAM_controller`
 
@@ -410,4 +414,67 @@ Explanation of less-standard fields follows:
     the previous convolution operation.
 
 #. **Vec2MatCols**
-   umm... i don't really remember what this was for.
+    The input to FC is a vector of size 1xM, the flattening controllers has
+    `P` fifos. Vec2MatCols gives the number of elements belonging in each
+    fifo aligned to word size.
+
+    .. code::
+
+       vec2matcols = align(M/P, WORD_SIZE)
+
+    For an input tensor, which is the output of a convolution of size
+    12x43x43 (CHW), the alignment would be thusly:
+
+    .. code::
+
+      vec2matcols = align(align(43*43, WORD_SIZE) * align(12, WORD_SIZE), WORD_SIZE)
+
+
+DRAM write protocol
+*******************
+
+Storing data on the DRAM needs two main things: data and address. In Gati,
+the instruction blob (i.e. set of all instructions), and all the weights (and
+biases)
+are first stored in the DRAM. Consider a neural net with 5 layers, each layer
+having a weight and a bias. In this case, there are total 10 (weight + bias) + 1
+(instructions) distinct pieces of data. The software is responsible for figuring
+out where each distinct piece of data should be stored i.e. the addresses. Where
+to store these distinct packets is communicated to the FPGA through a protocol
+called DWP (DRAM Write Protocol). 
+
+Here's the protocol: 
+
+.. image:: _static/dwp_packet.png
+  :width: 110%
+  :align: center
+
+It's a simple packet-based protocol with these fields: SOP (Start Of Packet), DS
+(Data Size), and DRAM Address, followed by variable length data (payload). SOP
+differentiates two packets.  DS is the size (in bytes) of the following payload.
+Address is where the payload should be written in the DRAM. The DWP decoder on
+the FPGA interprets these packets and write the data into DRAM. DWP is a 32bit
+protocol as the DRAM operates on boundries of 32. All addresses are aligned to
+this constraint by the software. 
+
+.. TODO: memory segmentation diagram
+
+For implementation of DWP, see :ref:`DWP`
+
+Dispatch Block 
+**************
+
+Once compute is complete, the results need to be sent back to the CPU. 
+The Dispatcher takes care of that. All megablocks have a output instruction
+sent along with it. This is because all outputs are centrally managed by the
+output block. The instruction is really meant for the output block. It contains,
+among addresses and sizes, a flag to indicate whether computed outputs need to
+be sent to the CPU. This is the `dispatch` flag. If an output instruction
+has this enabled, the outputs shall be dispatched back to the CPU. The software
+provides a way to enabled dispatch on any megablock layers of the model during
+compilation. See user manual of software for more details. 
+
+As a result, the dispatcher is flexible in that it can provide the final results 
+after computation has ended, or be used for debugging intermidiate layers.
+
+For more Abstract view of Dispatcher, see :ref:`Dispatcher`

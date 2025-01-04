@@ -54,7 +54,8 @@ module Top_CONV_FC #(
     // im2col_v1 parameter
 
     parameter KERNEL_SIZE = 3,  // im2col kernal size
-    parameter STRIDE      = 3  // im2col stride 
+    parameter STRIDE      = 3,  // im2col stride 
+    parameter CONV_STRIDE_WIDTH = 2
 
 ) (
 
@@ -129,6 +130,7 @@ module Top_CONV_FC #(
     input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
+    input [CONV_STRIDE_WIDTH-1:0] stride,
     
     // output write signals
     output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
@@ -254,8 +256,6 @@ generate
 endgenerate
 
 //assign delayed_out = delay_reg[6];
-
-
 /*
   top_im2col #(
       .UPPER_BOUND (IMAGE_DIM),
@@ -311,7 +311,7 @@ endgenerate
       .i_mat_size(image_size),
       .valid_sq(o_valid_squares),
       .o_valid(im2col_o_valid),
-      .stride(3'b001),               // should be fetched from configure block
+      .stride(3'b001),         
       .o_valid_buff(read_buf_data),
       .o_im2col_done(im2col_done),
       .i_stall_on (stall_on),

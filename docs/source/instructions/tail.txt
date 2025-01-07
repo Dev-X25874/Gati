@@ -1,6 +1,6 @@
 TailBlock:HEX01
 Opcode:4
-BNEn:1
+BNEn:1:Batch Norm Yes/No
 BNChannels:10
 BNStartAddress:32
 BNEndAddress:32
@@ -17,9 +17,9 @@ PoolHeight:10
 PoolStride:4
 PoolPadding:4
 PoolCeil:1
-PoolModCount:4
-PoolPadSides:4
+PoolModCount:4:For pools with input size that is not evenly divisible by kernel size, mod count is the ceil(input % kernel). For example, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column to be considered.
+PoolPadSides:4:Same as PadSides for convolution
 BiasEn:1
-BiasWidth:8
+BiasWidth:8:There are two known bias widths 8/32. This is that field.
 BiasStartAddress:32
 BiasEndAddress:32

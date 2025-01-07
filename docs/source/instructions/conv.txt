@@ -1,16 +1,16 @@
 CONV:HEX00
-Opcode:4
-IW:10  
-IH:10
-OW:10
-OH:10
-IC:10
-KN:10
-KW:4
-KH:4
+Opcode:4:Opcode
+IW:10:Width of the input image
+IH:10:Height of the input image
+OW:10:Width of the output feature map
+OH:10:Height of the output feature map
+IC:10:Channel count for the input
+KN:10:Kernel count for the input
+KW:4:Kernel width
+KH:4:Kernel Height
 Stride:4
 Pad:3
-PadSides:4
+PadSides:4:Bit vector where each bit represents a side (left,bottom,right,top) of a feature map that should be padded with 'Pad'
 ImageStartAddress:32
 ImageEndAddress:32
 WeightStartAddress:32

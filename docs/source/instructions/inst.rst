@@ -1,28 +1,39 @@
 .. code::
 
 	`define OP_CONV 'h00
+	// Opcode
 	`define CONV_Opcode 3:0
 	`define CONV_Opcode_WIDTH 4
+	// Width of the input image
 	`define CONV_IW 13:4
 	`define CONV_IW_WIDTH 10
+	// Height of the input image
 	`define CONV_IH 23:14
 	`define CONV_IH_WIDTH 10
+	// Width of the output feature map
 	`define CONV_OW 33:24
 	`define CONV_OW_WIDTH 10
+	// Height of the output feature map
 	`define CONV_OH 43:34
 	`define CONV_OH_WIDTH 10
+	// Channel count for the input
 	`define CONV_IC 53:44
 	`define CONV_IC_WIDTH 10
+	// Kernel count for the input
 	`define CONV_KN 63:54
 	`define CONV_KN_WIDTH 10
+	// Kernel width
 	`define CONV_KW 67:64
 	`define CONV_KW_WIDTH 4
+	// Kernel Height
 	`define CONV_KH 71:68
 	`define CONV_KH_WIDTH 4
 	`define CONV_Stride 75:72
 	`define CONV_Stride_WIDTH 4
 	`define CONV_Pad 78:76
 	`define CONV_Pad_WIDTH 3
+	// Bit vector where each bit represents a side (left,bottom,rig
+	// ht,top) of a feature map that should be padded with 'Pad'
 	`define CONV_PadSides 82:79
 	`define CONV_PadSides_WIDTH 4
 	`define CONV_ImageStartAddress 114:83
@@ -45,8 +56,13 @@
 	`define FC_InputRows_WIDTH 16
 	`define FC_DropoutConstant 59:52
 	`define FC_DropoutConstant_WIDTH 8
+	// If this FC follows a CONV, the outputs of conv should be fla
+	// ttened, this bit signals flattening
 	`define FC_Flatten 60:60
 	`define FC_Flatten_WIDTH 1
+	// If flatten is 1, this is the Height x Width of the previous 
+	// conv. For example, if conv output is 128x7x7, ImageDim will 
+	// be 49
 	`define FC_ImageDim 80:61
 	`define FC_ImageDim_WIDTH 20
 	`define FC_ImageStartAddress 112:81
@@ -57,6 +73,9 @@
 	`define FC_WeightStartAddress_WIDTH 32
 	`define FC_WeightEndAddress 208:177
 	`define FC_WeightEndAddress_WIDTH 32
+	// Input vector (say of size 4096) can be seen to be a matrix o
+	// f size 32x128, vec2mat cols is the number of cols of this ma
+	// trix i.e. 128
 	`define FC_Vec2MatCols 224:209
 	`define FC_Vec2MatCols_WIDTH 16
 
@@ -71,16 +90,32 @@
 	`define OutputBlock_ChannelItr_WIDTH 12
 	`define OutputBlock_KernelItr 91:80
 	`define OutputBlock_KernelItr_WIDTH 12
+	// Following the SA, there are tail blocks. Some of the tail bl
+	// ocks like maxpool modify the shape of the output, this field
+	//  accounts for that. In cases, when shape is not modified, th
+	// is field is equal to ImageDimAcc
 	`define OutputBlock_ImageDimOutput 107:92
 	`define OutputBlock_ImageDimOutput_WIDTH 16
+	// Output of the conv operation (HxW)
 	`define OutputBlock_ImageDimAcc 123:108
 	`define OutputBlock_ImageDimAcc_WIDTH 16
+	// For layer with fewer channels than number of columns in the 
+	// systolic array, accumulation of partial sums across iteratio
+	// ns is disabled
 	`define OutputBlock_AccEn 124:124
 	`define OutputBlock_AccEn_WIDTH 1
+	// If this layer's output is supposed to be sent back to the CP
+	// U, this flag is set
 	`define OutputBlock_DispatchEn 125:125
 	`define OutputBlock_DispatchEn_WIDTH 1
+	// This is a integrity id that the FPGA should attach to the Ad
+	// dr part of the receiving DWP packet.
 	`define OutputBlock_DispatchID 157:126
 	`define OutputBlock_DispatchID_WIDTH 32
+	// If output dimensions of a conv operation can fit on the FPGA
+	//  output buffers, they should not be sent to the DRAM, all of
+	//  the conv can happen on chip saving latency. This flag sets 
+	// that bit.
 	`define OutputBlock_OnChipAcc 158:158
 	`define OutputBlock_OnChipAcc_WIDTH 1
 
@@ -95,6 +130,7 @@
 	`define OP_TailBlock 'h01
 	`define TailBlock_Opcode 3:0
 	`define TailBlock_Opcode_WIDTH 4
+	// Batch Norm Yes/No
 	`define TailBlock_BNEn 4:4
 	`define TailBlock_BNEn_WIDTH 1
 	`define TailBlock_BNChannels 14:5
@@ -129,12 +165,18 @@
 	`define TailBlock_PoolPadding_WIDTH 4
 	`define TailBlock_PoolCeil 146:146
 	`define TailBlock_PoolCeil_WIDTH 1
+	// For pools with input size that is not evenly divisible by ke
+	// rnel size, mod count is the ceil(input % kernel). For exampl
+	// e, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column 
+	// to be considered.
 	`define TailBlock_PoolModCount 150:147
 	`define TailBlock_PoolModCount_WIDTH 4
+	// Same as PadSides for convolution
 	`define TailBlock_PoolPadSides 154:151
 	`define TailBlock_PoolPadSides_WIDTH 4
 	`define TailBlock_BiasEn 155:155
 	`define TailBlock_BiasEn_WIDTH 1
+	// There are two known bias widths 8/32. This is that field.
 	`define TailBlock_BiasWidth 163:156
 	`define TailBlock_BiasWidth_WIDTH 8
 	`define TailBlock_BiasStartAddress 195:164
@@ -171,30 +213,39 @@
 .. code::
 
 	#define OP_CONV 0x00
+	// Opcode
 	#define CONV_Opcode_LOW 0
 	#define CONV_Opcode_HIGH 3
 	#define CONV_Opcode_COUNT 4
+	// Width of the input image
 	#define CONV_IW_LOW 4
 	#define CONV_IW_HIGH 13
 	#define CONV_IW_COUNT 10
+	// Height of the input image
 	#define CONV_IH_LOW 14
 	#define CONV_IH_HIGH 23
 	#define CONV_IH_COUNT 10
+	// Width of the output feature map
 	#define CONV_OW_LOW 24
 	#define CONV_OW_HIGH 33
 	#define CONV_OW_COUNT 10
+	// Height of the output feature map
 	#define CONV_OH_LOW 34
 	#define CONV_OH_HIGH 43
 	#define CONV_OH_COUNT 10
+	// Channel count for the input
 	#define CONV_IC_LOW 44
 	#define CONV_IC_HIGH 53
 	#define CONV_IC_COUNT 10
+	// Kernel count for the input
 	#define CONV_KN_LOW 54
 	#define CONV_KN_HIGH 63
 	#define CONV_KN_COUNT 10
+	// Kernel width
 	#define CONV_KW_LOW 64
 	#define CONV_KW_HIGH 67
 	#define CONV_KW_COUNT 4
+	// Kernel Height
 	#define CONV_KH_LOW 68
 	#define CONV_KH_HIGH 71
 	#define CONV_KH_COUNT 4
@@ -204,6 +255,8 @@
 	#define CONV_Pad_LOW 76
 	#define CONV_Pad_HIGH 78
 	#define CONV_Pad_COUNT 3
+	// Bit vector where each bit represents a side (left,bottom,rig
+	// ht,top) of a feature map that should be padded with 'Pad'
 	#define CONV_PadSides_LOW 79
 	#define CONV_PadSides_HIGH 82
 	#define CONV_PadSides_COUNT 4
@@ -236,9 +289,14 @@
 	#define FC_DropoutConstant_LOW 52
 	#define FC_DropoutConstant_HIGH 59
 	#define FC_DropoutConstant_COUNT 8
+	// If this FC follows a CONV, the outputs of conv should be fla
+	// ttened, this bit signals flattening
 	#define FC_Flatten_LOW 60
 	#define FC_Flatten_HIGH 60
 	#define FC_Flatten_COUNT 1
+	// If flatten is 1, this is the Height x Width of the previous 
+	// conv. For example, if conv output is 128x7x7, ImageDim will 
+	// be 49
 	#define FC_ImageDim_LOW 61
 	#define FC_ImageDim_HIGH 80
 	#define FC_ImageDim_COUNT 20
@@ -254,6 +312,9 @@
 	#define FC_WeightEndAddress_LOW 177
 	#define FC_WeightEndAddress_HIGH 208
 	#define FC_WeightEndAddress_COUNT 32
+	// Input vector (say of size 4096) can be seen to be a matrix o
+	// f size 32x128, vec2mat cols is the number of cols of this ma
+	// trix i.e. 128
 	#define FC_Vec2MatCols_LOW 209
 	#define FC_Vec2MatCols_HIGH 224
 	#define FC_Vec2MatCols_COUNT 16
@@ -274,21 +335,37 @@
 	#define OutputBlock_KernelItr_LOW 80
 	#define OutputBlock_KernelItr_HIGH 91
 	#define OutputBlock_KernelItr_COUNT 12
+	// Following the SA, there are tail blocks. Some of the tail bl
+	// ocks like maxpool modify the shape of the output, this field
+	//  accounts for that. In cases, when shape is not modified, th
+	// is field is equal to ImageDimAcc
 	#define OutputBlock_ImageDimOutput_LOW 92
 	#define OutputBlock_ImageDimOutput_HIGH 107
 	#define OutputBlock_ImageDimOutput_COUNT 16
+	// Output of the conv operation (HxW)
 	#define OutputBlock_ImageDimAcc_LOW 108
 	#define OutputBlock_ImageDimAcc_HIGH 123
 	#define OutputBlock_ImageDimAcc_COUNT 16
+	// For layer with fewer channels than number of columns in the 
+	// systolic array, accumulation of partial sums across iteratio
+	// ns is disabled
 	#define OutputBlock_AccEn_LOW 124
 	#define OutputBlock_AccEn_HIGH 124
 	#define OutputBlock_AccEn_COUNT 1
+	// If this layer's output is supposed to be sent back to the CP
+	// U, this flag is set
 	#define OutputBlock_DispatchEn_LOW 125
 	#define OutputBlock_DispatchEn_HIGH 125
 	#define OutputBlock_DispatchEn_COUNT 1
+	// This is a integrity id that the FPGA should attach to the Ad
+	// dr part of the receiving DWP packet.
 	#define OutputBlock_DispatchID_LOW 126
 	#define OutputBlock_DispatchID_HIGH 157
 	#define OutputBlock_DispatchID_COUNT 32
+	// If output dimensions of a conv operation can fit on the FPGA
+	//  output buffers, they should not be sent to the DRAM, all of
+	//  the conv can happen on chip saving latency. This flag sets 
+	// that bit.
 	#define OutputBlock_OnChipAcc_LOW 158
 	#define OutputBlock_OnChipAcc_HIGH 158
 	#define OutputBlock_OnChipAcc_COUNT 1
@@ -308,6 +385,7 @@
 	#define TailBlock_Opcode_LOW 0
 	#define TailBlock_Opcode_HIGH 3
 	#define TailBlock_Opcode_COUNT 4
+	// Batch Norm Yes/No
 	#define TailBlock_BNEn_LOW 4
 	#define TailBlock_BNEn_HIGH 4
 	#define TailBlock_BNEn_COUNT 1
@@ -359,15 +437,21 @@
 	#define TailBlock_PoolCeil_LOW 146
 	#define TailBlock_PoolCeil_HIGH 146
 	#define TailBlock_PoolCeil_COUNT 1
+	// For pools with input size that is not evenly divisible by ke
+	// rnel size, mod count is the ceil(input % kernel). For exampl
+	// e, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column 
+	// to be considered.
 	#define TailBlock_PoolModCount_LOW 147
 	#define TailBlock_PoolModCount_HIGH 150
 	#define TailBlock_PoolModCount_COUNT 4
+	// Same as PadSides for convolution
 	#define TailBlock_PoolPadSides_LOW 151
 	#define TailBlock_PoolPadSides_HIGH 154
 	#define TailBlock_PoolPadSides_COUNT 4
 	#define TailBlock_BiasEn_LOW 155
 	#define TailBlock_BiasEn_HIGH 155
 	#define TailBlock_BiasEn_COUNT 1
+	// There are two known bias widths 8/32. This is that field.
 	#define TailBlock_BiasWidth_LOW 156
 	#define TailBlock_BiasWidth_HIGH 163
 	#define TailBlock_BiasWidth_COUNT 8

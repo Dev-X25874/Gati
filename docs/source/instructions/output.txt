@@ -4,9 +4,9 @@ AccumulantAddr:32
 OutputAddr:32
 ChannelItr:12
 KernelItr:12
-ImageDimOutput:16
-ImageDimAcc:16
-AccEn:1
-DispatchEn:1
-DispatchID:32
-OnChipAcc:1
+ImageDimOutput:16:Following the SA, there are tail blocks. Some of the tail blocks like maxpool modify the shape of the output, this field accounts for that. In cases, when shape is not modified, this field is equal to ImageDimAcc
+ImageDimAcc:16:Output of the conv operation (HxW)
+AccEn:1:For layer with fewer channels than number of columns in the systolic array, accumulation of partial sums across iterations is disabled
+DispatchEn:1:If this layer's output is supposed to be sent back to the CPU, this flag is set
+DispatchID:32:This is a integrity id that the FPGA should attach to the Addr part of the receiving DWP packet.
+OnChipAcc:1:If output dimensions of a conv operation can fit on the FPGA output buffers, they should not be sent to the DRAM, all of the conv can happen on chip saving latency. This flag sets that bit.

@@ -4,10 +4,10 @@ WeightRows:16
 WeightCols:16
 InputRows:16
 DropoutConstant:8
-Flatten:1
-ImageDim:20
+Flatten:1:If this FC follows a CONV, the outputs of conv should be flattened, this bit signals flattening
+ImageDim:20:If flatten is 1, this is the Height x Width of the previous conv.  For example, if conv output is 128x7x7, ImageDim will be 49
 ImageStartAddress:32
 ImageEndAddr:32
 WeightStartAddress:32
 WeightEndAddress:32
-Vec2MatCols:16:Input vector can be assumed to be a matrix of size 32xN, this is N
+Vec2MatCols:16:Input vector (say of size 4096) can be seen to be a matrix of size 32x128, vec2mat cols is the number of cols of this matrix i.e. 128

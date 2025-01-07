@@ -1,5 +1,14 @@
 #!/bin/bash
 #
+#
+# prints a max of 80 chars on a line
+function print_char_max() {
+  local input="$1"
+  while [ -n "$input" ]; do
+      echo -e "\t// ${input:0:60}"
+      input="${input:60}"
+  done
+}
 
 file_name=$1
 if [[ $file_name == "meta.txt" ]]; then
@@ -30,6 +39,10 @@ else
     op_name="$(head -n 1 $file_name | cut -d ":" -f 1)"
     name="$(echo $line | cut -d ":" -f 1)"
     upper_bound="$(( upper_bound + $(echo $line | cut -d ":" -f 2) ))"
+    comment="$(echo $line | cut -d ":" -f 3)"
+    if [[ -n "$comment" ]]; then
+      print_char_max "$comment"
+    fi
     printf "\t#define "$op_name"_"$name"_LOW "$lower_bound"\n"
     printf "\t#define "$op_name"_"$name"_HIGH "$(( upper_bound - 1 ))"\n"
     printf "\t#define "$op_name"_"$name"_COUNT "$(( upper_bound - lower_bound ))"\n"

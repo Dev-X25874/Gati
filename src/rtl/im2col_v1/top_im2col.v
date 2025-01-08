@@ -7,7 +7,8 @@
 //6. Synthesis RAM              -- DONE 
 //7. Zero Pad Enable signal     -- DONE
 //8. Valid Square for stride1   -- DONE
-//5. Integrate it               --
+//9. Integrate it               --  
+
 
 
 module top_im2col_v1 #(

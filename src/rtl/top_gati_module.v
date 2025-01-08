@@ -1293,7 +1293,8 @@ module top_gati_module #(
       // for im2col_v1
       .STRIDE(STRIDE),
       .KERNEL_SIZE(KERNEL_SIZE),
-      .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH)
+      .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+      .CONV_KW_WIDTH (CONV_KW_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
@@ -1375,7 +1376,9 @@ module top_gati_module #(
       .acc_fifo_occupants(acc_fifo_occupants),
       .bias_fifo_occupants(bias_fifo_occupants),
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
-      .stride(stride)
+      .stride(stride),
+      .kernel_width(kernel_width)
+
   );
 
 //   wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b;

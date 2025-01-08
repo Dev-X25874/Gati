@@ -9,7 +9,7 @@ module Top_CONV_FC #(
     parameter ROW = 9,
     parameter DRAM_BW = 32,
     parameter W_PSUM = 20,
-    parameter MOD1=2,
+    parameter MOD1 = 2,
     parameter MOD2 = 8,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
     parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
@@ -32,8 +32,8 @@ module Top_CONV_FC #(
     parameter ACT_TYPE_WIDTH = 4,
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
-    parameter NO_PORT_VA=2,
-    parameter NO_PORT_BAC=2,
+    parameter NO_PORT_VA = 2,
+    parameter NO_PORT_BAC = 2,
     parameter NO_PORT_BAFC=8,
     parameter POP_THRESHOLD=5	,
     // parameter I_SIZE_WIDTH=20, // input image data width
@@ -54,8 +54,9 @@ module Top_CONV_FC #(
     // im2col_v1 parameter
 
     parameter KERNEL_SIZE = 3,  // im2col kernal size
-    parameter STRIDE      = 3,  // im2col stride 
-    parameter CONV_STRIDE_WIDTH = 2
+    parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
+    parameter CONV_STRIDE_WIDTH = 2,
+    parameter  CONV_KW_WIDTH = 4
 
 ) (
 
@@ -130,7 +131,8 @@ module Top_CONV_FC #(
     input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
-    input [CONV_STRIDE_WIDTH-1:0] stride,
+    input [CONV_STRIDE_WIDTH-1:0] stride, // im2col input stride 
+    input [CONV_KW_WIDTH-1:0] kernel_width,
     
     // output write signals
     output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
@@ -155,6 +157,9 @@ module Top_CONV_FC #(
 );
 
   localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
+  localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
+
+
  	wire [COL_SA -1:0] relu_valid;
 	wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
 
@@ -188,7 +193,7 @@ module Top_CONV_FC #(
   ) buffers (
       .clk(i_clk),
       .stall_on(stall_on),
-      .rst(rst&(~im2col_done)),               // .rst(rst&(~im2col_done)),
+      .rst(rst&(~im2col_done)),              
       .data_in(fifo_o),
       .data_signal(read_buf_data),
       .data_out(buff_out),
@@ -208,15 +213,14 @@ module Top_CONV_FC #(
   end
   wire [COL_SA-1:0] maxpool_valid;
   wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
-  wire  [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
+  wire [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
 
   wire [COL_SA-1:0] x_final_valid;
 
 
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
-  assign fifo_image_wren = {N_SA{o_valid_squares}};
-//dpks 
+  assign fifo_image_wren = {N_SA{o_valid_squares}}; 
   top_mux #(
       .N_SA(N_SA),
       .INPUT_SIZE(DATA_WIDTH)
@@ -224,17 +228,13 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .sel(sel_mux),
       .data_a(buff_out),
-      .out_mux(mux_out)  // mux out should be delayed by 7 cycle 
+      .out_mux(mux_out)  // mux out should be delayed by 6 cycles going to the SA buffer 
   );
   
-  localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
+  
 
-  //im2col block
-
+//im2col block
 // generate block for 7 cycle dealay in the input reg mux_out
-
-//reg [(DATA_WIDTH*N_SA) -1:0] delay_reg [6:0];
-
 // Generate block for delay the SA data to match 6 cycle delay of im2col
 genvar f;
 generate
@@ -303,19 +303,19 @@ endgenerate
       .clk_in(i_clk),
       .rstn(rst),
       .valid_mat_size(valid_img_size_im2col),
-      .i_data(0),
+      .i_data(0), // the data does not go throught the Im2col so it does not matter what you give here but zero should be prefered  
       .i_start_im2col_index(im2col_global_start),
       .zero_pad({zero_pad_enable,zero_pad_enable,zero_pad_enable,zero_pad_enable}),  // TODO -- Take from configure block
-      .ksize(KERNEL_SIZE), // should be fetched from configure block
-      .zero_padded(zero_pad_enable), // should be fetched from configure block
+      .ksize(kernel_width),  // instructions gives two output's Width and height but the im2col does not support the rectangluar kernal so anything will work fine 
+      .zero_padded(zero_pad_enable), 
       .i_mat_size(image_size),
       .valid_sq(o_valid_squares),
       .o_valid(im2col_o_valid),
-      .stride(3'b001),         
+      .stride(stride),       
       .o_valid_buff(read_buf_data),
       .o_im2col_done(im2col_done),
       .i_stall_on (stall_on),
-      .o_row(row),
+      .o_row(row), 
       .o_col(col)
 
     ); 
@@ -367,6 +367,7 @@ endgenerate
   );
 
   assign SA_psum_fifo_empty = &(empty_sa);
+
   //////////////////
   
   op_psum_rden #(
@@ -388,8 +389,8 @@ endgenerate
   
 
   //////////////////
-  
-  
+
+
   /// Adder Tree
   wire [COL_SA-1:0] valid_tree;
   wire [(COL_SA*DATA_WIDTH_OB)-1:0] result_tree;
@@ -460,12 +461,12 @@ endgenerate
   //interconnect of SA and FC
   always @ (*) begin
 	if(CONV_FC) begin 
-		data_SA_FC=op_data_mux_FC;
-		dv_SA_FC={COL_SA{valid_out_FC}};
+		data_SA_FC = op_data_mux_FC;
+		dv_SA_FC = {COL_SA{valid_out_FC}};
 	end 
 	else begin 
-		data_SA_FC=result_tree;
-		dv_SA_FC=valid_tree;
+		data_SA_FC = result_tree;
+		dv_SA_FC = valid_tree;
 	end
   end
 // assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
@@ -513,7 +514,7 @@ endgenerate
   
  
   //interconnect of SA and FC
- // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
+  // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
   //assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
   
   //Interconnect to pass SA output or FC ouput
@@ -829,7 +830,8 @@ endgenerate
     .o_datavalid(op_write_dmux_datavalid)
   );
 
-  
+
+
 
   demux_controller_sel_op # (
     .COL(1),

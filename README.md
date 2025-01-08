@@ -1,9 +1,8 @@
 # Gati
 
-## TODO
-
-- documenting code - doxygen/rst
-- how git does version control (rant)
+> [!NOTE] 
+> Gati docs and crash-course videos are hosted locally which you can
+> access while in office premises. See #Gati slack channel for links.
 
 # Contribution Guidelines
 

@@ -1291,7 +1291,7 @@ module top_gati_module #(
       .W_FC_IMAG_DIM(W_FC_IMAG_DIM),
       .ACC_DATA_REORDER(ACC_DATA_REORDER),
       // for im2col_v1
-      .STRIDE(STRIDE),
+      .STRIDE(CONV_STRIDE_WIDTH),
       .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH (CONV_KW_WIDTH)

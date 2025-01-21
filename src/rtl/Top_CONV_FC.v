@@ -56,7 +56,8 @@ module Top_CONV_FC #(
     parameter KERNEL_SIZE = 3,  // im2col kernal size
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
-    parameter  CONV_KW_WIDTH = 4
+    parameter  CONV_KW_WIDTH = 4,
+    parameter CONV_PADSIDES_WIDTH =4
 
 ) (
 
@@ -133,6 +134,7 @@ module Top_CONV_FC #(
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     input [CONV_STRIDE_WIDTH-1:0] stride, // im2col input stride 
     input [CONV_KW_WIDTH-1:0] kernel_width,
+    input [CONV_PADSIDES_WIDTH-1 :0] Pad_side,
     
     // output write signals
     output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
@@ -307,7 +309,7 @@ endgenerate
       .valid_mat_size(valid_img_size_im2col),
       .i_data(0), // the data does not go throught the Im2col so it does not matter what you give here but zero should be prefered  
       .i_start_im2col_index(im2col_global_start),
-      .zero_pad({zero_pad_enable,zero_pad_enable,zero_pad_enable,zero_pad_enable}),  // TODO -- Take from configure block
+      .zero_pad(Pad_side),
       .ksize(kernel_width),  // instructions gives two output's Width and height but the im2col does not support the rectangluar kernal so anything will work fine 
       .zero_padded(zero_pad_enable), 
       .i_mat_size(image_size),

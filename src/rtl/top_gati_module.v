@@ -51,6 +51,7 @@ module top_gati_module #(
     parameter CONV_KH_WIDTH     = `CONV_KH_WIDTH,
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
+    parameter CONV_PADSIDES_WIDTH = `CONV_PadSides_WIDTH,
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
@@ -331,6 +332,7 @@ module top_gati_module #(
   wire [CONV_KH_WIDTH-1:0] kernel_height;
   wire [CONV_STRIDE_WIDTH-1:0] stride;
   wire [CONV_PAD_WIDTH-1:0] conv_zeropad;
+  wire [CONV_PADSIDES_WIDTH-1 :0] Pad_side; 
 
   wire [AXI_ADDR_W-1:0] start_address_weights;
   wire [AXI_ADDR_W-1:0] stop_address_weights;
@@ -554,6 +556,7 @@ module top_gati_module #(
     .KW_WIDTH(CONV_KW_WIDTH),
     .STRIDE_WIDTH(CONV_STRIDE_WIDTH),
     .PAD_WIDTH(CONV_PAD_WIDTH),
+    .PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
     .WEIGHTROWS_WIDTH(FC_WEIGHTROW_WIDTH),
     .WEIGHTCOLS_WIDTH(FC_WEIGHTCOL_WIDTH),
     .INPUTROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),
@@ -605,6 +608,7 @@ module top_gati_module #(
     .KH(kernel_height),
     .Stride(stride),
     .Pad(conv_zeropad),
+    .Pad_side(Pad_side)
     .ImageStartAddress_conv(img_start_address),
     .ImageEndAddress_conv(img_stop_address),
     .WeightStartAddress_conv(weight_start_addr_conv),
@@ -1294,7 +1298,8 @@ module top_gati_module #(
       .STRIDE(CONV_STRIDE_WIDTH),
       .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-      .CONV_KW_WIDTH (CONV_KW_WIDTH)
+      .CONV_KW_WIDTH (CONV_KW_WIDTH),
+      .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
@@ -1377,7 +1382,8 @@ module top_gati_module #(
       .bias_fifo_occupants(bias_fifo_occupants),
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
       .stride(stride),
-      .kernel_width(kernel_width)
+      .kernel_width(kernel_width),
+      .Pad_side(Pad_side)
 
   );
 

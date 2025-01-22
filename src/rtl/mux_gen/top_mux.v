@@ -42,7 +42,7 @@ module mux_image #(
     output reg [INPUT_SIZE-1:0] out_mux
 );
 //  assign out_mux=(sel)?8'd0:data_a;
-  always @(posedge clk) begin
+  always @(*) begin
    case (sel)
      1'b0: out_mux <= data_a;
      1'b1: out_mux <= 8'd0;

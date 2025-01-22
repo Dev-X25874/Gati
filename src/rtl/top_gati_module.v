@@ -59,18 +59,18 @@ module top_gati_module #(
     parameter STRIDE          =  1,        //`CONV_Stride,
     parameter KERNEL_SIZE     =  4,       //`CONV_KH,   
     //SA related param
-    parameter POP_THRESHOLD   = 3,
-    parameter NSA_DSP         = 15, 
-    parameter NSA_LUT         = 1,
-    parameter N_SA            = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH      = 8,
-    parameter COL_SA          = 1,
-    parameter COL_FC          = 32,
-    parameter ROW             = 16,
-    parameter W_PSUM          = 20,
-    parameter DATA_WIDTH_OB   = 32,
-    parameter DATA_WIDTH_ACC  = 32,
-    parameter IMAGE_DIM       = 224,
+    parameter POP_THRESHOLD = (AXI_DATA_BYTES/N_SA) - 3,
+    parameter NSA_DSP       = 3, 
+    parameter NSA_LUT       = 5,
+    parameter N_SA          = NSA_DSP + NSA_LUT,
+    parameter DATA_WIDTH    = 8,
+    parameter COL_SA        = 8,
+    parameter COL_FC        = 32,
+    parameter ROW           = 9,
+    parameter W_PSUM        = 20,
+    parameter DATA_WIDTH_OB = 32,
+    parameter DATA_WIDTH_ACC = 32,
+    parameter IMAGE_DIM     = 2**CONV_IW_WIDTH,
 
     // FC inst. related params
     parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
@@ -465,7 +465,7 @@ module top_gati_module #(
     if(im2col_global_start) begin
       stall_enable<=1;
     end
-    else if((row==input_img_width+1) && (col>=input_img_width-9)) begin 
+    else if((row==input_img_width+1) && (col>=input_img_width-5)) begin 
       stall_enable<=0;
     end
     else begin 
@@ -874,7 +874,8 @@ module top_gati_module #(
 
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
-  assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>3;
+  // assign img_fifo_th = input_img_width>>1;
+  assign img_fifo_th = (3*(DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0]))/4;
 
   /* Generation of img_fifo_status that controls the img read requests */
   reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;

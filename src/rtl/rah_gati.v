@@ -99,8 +99,8 @@ module rah_gati #(
     parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
     // FC Engine related parameters
     parameter ACC_DW            = 32,
-    parameter N_BANK            = 4,
-    parameter N_BRAM            = 8,
+    parameter N_BANK            = COL_SA,
+    parameter N_BRAM            = AXI_DATA_BYTES/COL_SA,
     parameter FC_BRAM_DEPTH     = 1024,
     parameter ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0,
     parameter N_FC_MUX          = COL_SA, //number of muxes for FC output

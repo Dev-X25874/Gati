@@ -6,13 +6,13 @@
 module top_output_block #(
     parameter DRAM_BW        = 32,
     parameter DATA_WIDTH_ACC = 32,
-    parameter N              = 4,
-    parameter COL_SA         = 4,
+    parameter N              = 8,
+    parameter COL_SA         = 8,
     parameter FIFO_NO        = 8,
-    parameter TOGGLE         = 1,
+    parameter TOGGLE         = 0,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
-    parameter NO_PORT=2
+    parameter NO_PORT=1
 
 
 ) (
@@ -185,7 +185,7 @@ dram_fifo #(
     end
   endgenerate
 
-  wire [(DATA_WIDTH*N)-1:0] data_in_adder_tree;
+  wire [(DATA_WIDTH_ACC*N)-1:0] data_in_adder_tree;
   wire [N-1:0] adder_in_data_valid;
 
   reg [(DATA_WIDTH_ACC*N)-1:0] r_data_in_adder_tree;

@@ -9,10 +9,10 @@ module top_buffer #(
     input [(DRAM_BW*BUFFER_SIZE) -1:0] data_in,
     input data_signal,
     output [BUFFER_SIZE*N_SA -1 : 0] data_out,
-    output [2:0] elements_poped
+    output [$clog2((DRAM_BW/N_SA))-1:0] elements_poped
 );
-  wire [(N_SA*3)-1:0] element_poped;
-  assign elements_poped = element_poped[2:0];
+  wire [(N_SA*($clog2(DRAM_BW/N_SA)))-1:0] element_poped;
+  assign elements_poped = element_poped[$clog2((DRAM_BW/N_SA))-1:0];
   genvar i;
   generate
     for (i = 0; i < N_SA; i = i + 1) begin
@@ -26,7 +26,7 @@ module top_buffer #(
 		      .stall_on(stall_on),
           .data_in(data_in[(DRAM_BW/N_SA)*(N_SA-i)*BUFFER_SIZE-1-:BUFFER_SIZE*(DRAM_BW/N_SA)]),
           .data_signal(data_signal),
-          .element_poped(element_poped[((N_SA-i)*3) -1 -:3]),
+          .element_poped(element_poped[((N_SA-i)*($clog2(DRAM_BW/N_SA))) -1 -:($clog2(DRAM_BW/N_SA))]),
           .data_out(data_out[BUFFER_SIZE*(N_SA-i)-1-:BUFFER_SIZE])
       );
     end
@@ -45,11 +45,11 @@ module buffers #(
 	  input stall_on,
     input [((DRAM_BW/N_SA)*BUFFER_SIZE) - 1:0] data_in,
     input data_signal,
-    output reg [2:0] element_poped = 0,
+    output reg [$clog2((DRAM_BW/N_SA))-1:0] element_poped = 0,
     output reg [BUFFER_SIZE -1 : 0] data_out
 );
 
-  reg [(BUFFER_SIZE*(DRAM_BW/N_SA))-1:0] buffer = 0;
+  reg [(BUFFER_SIZE*(DRAM_BW/N_SA))-1:0] buffer = 0, r_buff = 0;
 
   reg  [$clog2((DRAM_BW/N_SA))-1:0] j = 0;
 	integer i;
@@ -60,7 +60,17 @@ module buffers #(
       buffer = 0;
     end
     else begin
-      buffer = data_in;
+      buffer = (element_poped == 0)? data_in:r_buff;
+    end
+  end
+
+  always@(posedge clk) begin
+    if(~rst) begin
+      r_buff <= 0;
+    end
+    else begin
+      if(element_poped == 0) r_buff <= data_in;
+      else r_buff <= r_buff;
     end
   end
 

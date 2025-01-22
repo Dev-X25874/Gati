@@ -9,7 +9,7 @@ module im2col_buffer_write #(
     input read_buf_data,
     input stall_on,
 	  input [DRAM_BW-1:0] fifo_empty,
-    input [2:0]count,
+    input [$clog2((DRAM_BW/N_SA))-1:0] count,
     output [DRAM_BW -1:0] rden 
 );
 
@@ -38,7 +38,7 @@ module im2col_buffer_write #(
             rd <= {DRAM_BW{1'b1}};
             state <= ONGOING;
           end
-          else if(count!=0 && (~|fifo_empty) && ~stall_on && im2col_done) begin
+          else if((count!=0 && count<POP_THRESHOLD) && (~|fifo_empty) && ~stall_on && im2col_done) begin
             rd <= {DRAM_BW{1'b1}};
             state <= ONGOING;
           end

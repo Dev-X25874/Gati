@@ -235,7 +235,7 @@ module Top_CONV_FC #(
   wire im2col_o_valid;
   wire [DATA_WIDTH -1:0] im2col_o_data;
   
-  always @(*) begin
+  always @(posedge i_clk) begin
 	   sel_mux =(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
   wire [N_SA-1:0] maxpool_valid;
@@ -376,7 +376,7 @@ endgenerate
   );
 
   assign SA_psum_fifo_empty = &(empty_sa);
-
+  assign opsum_rden = (vector_add_enable)? (&(empty_vector)? 0:psum_rden):psum_rden;
   //////////////////
   
   op_psum_rden #(
@@ -392,7 +392,7 @@ endgenerate
       .almost_empty_sa(almost_empty_sa),
       .op_full(op_full),
       .vector_enable(vector_add_enable),
-      .opsum_rden(opsum_rden)
+      .opsum_rden(psum_rden)
   );
 
   

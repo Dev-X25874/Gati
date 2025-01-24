@@ -470,7 +470,7 @@ always@(posedge clk) begin
         // else flag <= 1;
     end
 end
-////// this logic is use in arbiter module ///////
+////// this logic is used for arbiter module ///////
 always@(*) begin
     if(!Axi0Rst_N) RR_en_pin = 1;
     else begin

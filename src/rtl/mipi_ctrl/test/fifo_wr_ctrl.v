@@ -70,7 +70,7 @@ always @(posedge i_clk)begin
 			IDLE:begin 
 				soft_start<=0;
 				last<=0;
-
+				valid<=1'b0;
 				if(i_data_valid && (i_data==sof)) begin 
 					state<=DATA_SIZE;
 				end

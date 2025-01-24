@@ -30,11 +30,14 @@ reg data_valid;
     wire DataWrEnd;
 
 	always @(posedge i_clk) begin 
-		if(s_start) begin 
-			s_flag<=1;	
-		end
-        else if(soft_start) begin
-            s_flag <= 0;
+        if (!i_rstn) s_flag <= 0;
+        else begin
+            if(s_start) begin 
+                s_flag<=1;	
+            end
+            else if(soft_start) begin
+                s_flag <= 0;
+            end
         end
 	end
 

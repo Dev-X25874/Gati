@@ -26,14 +26,14 @@ module rah_gati #(
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512, //For both conv and FC
     parameter OP_WRITE_FIFO_DEPTH = 2048,
-    parameter FPGA2CPU_FIFO_DEPTH = 512, //FIFO Depth of data FIFO in CPU dispatch module 
+    parameter FPGA2CPU_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
     parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN = 7,
     parameter IMG_REQ_BLEN = 15,
     parameter WEIGHT_REQ_BLEN = 7,
-    parameter FC_WEIGHT_REQ_BLEN = 64,
+    parameter FC_WEIGHT_REQ_BLEN = 63,
     parameter ACC_REQ_BLEN = 15,
     parameter BIAS_REQ_BLEN = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM

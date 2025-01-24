@@ -92,7 +92,7 @@ generate
         else begin
             if(datavalid_dram_weight) 
             begin
-                if(sel_dmux) begin
+                if(~sel_dmux) begin
                     weight_fifo_wren <= {{(COL-DRAM_BW){1'b1}},{DRAM_BW{1'b0}}};
                     o_dram_weight[(COL*DATA_WIDTH)-1 -:(COL-DRAM_BW)*DATA_WIDTH]    <= i_dram_weight;
                 end

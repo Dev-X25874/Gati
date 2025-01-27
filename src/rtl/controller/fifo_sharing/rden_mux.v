@@ -22,8 +22,10 @@ module rden_mux#(
 
 reg [COL-1 : 0] north_rden = 0;
 wire [COL-1 : 0] conv_north_rden;
+wire [COL-1 : 0] fc_north_rden;
+assign fc_north_rden = {i_fc_rden,{(COL-COL_FC){1'b0}}};
 assign o_sel = sel_count;
-assign o_north_rden = (i_sel_1)? (((N_SA * COL_SA) < N_DRAM_BYTES)?conv_north_rden:north_rden):i_fc_rden;
+assign o_north_rden = (i_sel_1)? (((N_SA * COL_SA) < N_DRAM_BYTES)?conv_north_rden:north_rden):fc_north_rden;
 localparam SHIFTS = N_DRAM_BYTES/(N_SA*COL_SA);
 reg [$clog2(SHIFTS)-1:0] sel_count = 0;
 reg [$clog2(ROW)-1:0] row_counter = 0;

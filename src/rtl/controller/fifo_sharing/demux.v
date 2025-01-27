@@ -156,7 +156,6 @@ always @(*)begin
             r_fc_occ = i_weight_ff_array_occupants[(COL * (WEIGHT_FF_ADDR + 1))-1 -: (N_FIFO_FC*(WEIGHT_FF_ADDR + 1))];
             r_fc_data = i_weight_ff_array_data[(COL * W_DATA)-1 -: (N_FIFO_FC * W_DATA)];
             r_fc_dv = i_weight_ff_array_dv[(COL-1) -: N_FIFO_FC];
-
             r_sa_occ = 0;
             r_sa_empty = {(N_SA){1'b1}};
             r_sa_data = 0; 

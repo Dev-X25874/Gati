@@ -139,13 +139,13 @@ always @(posedge clk) begin
 
                                         bank_counter <= bank_counter + 1;
                                         element_counter <= 0;
-                                        for(i=0;i<=3;i=i+1) begin
-									    	if(bank_counter==i) begin 
-												addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
-											end
+                                        for(i=0;i<=N_BANK-1;i=i+1) begin
+                                            if(bank_counter==i) begin 
+                                                addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                            end
 										end
-
-										//addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
+                                        
+                                        //addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
                                         // addr_counter <= next_addr;
                                         if(rden_counter == 0)
                                             rden[N_BRAM-1] <= 0;
@@ -156,7 +156,7 @@ always @(posedge clk) begin
                                     end else begin
                                         element_counter <= element_counter + 1;
                                         bank_counter <= bank_counter;
-                                        for(i=0;i<=3;i=i+1) begin
+                                        for(i=0;i<=N_BANK-1;i=i+1) begin
 											if(bank_counter==i) begin 
 												addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
 											end			
@@ -268,7 +268,7 @@ always @(posedge clk) begin
 
                                             bank_counter <= bank_counter + 1;
                                             element_counter <= 0;
-                                          	for(i=0;i<=3;i=i+1) begin
+                                          	for(i=0;i<=N_BANK-1;i=i+1) begin
 												if(bank_counter==i) begin 
 													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
 
@@ -285,7 +285,7 @@ always @(posedge clk) begin
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;
                                            // addr[((W_ADDR + 1) * (bank_counter + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
-                                            for(i=0;i<=3;i=i+1) begin
+                                            for(i=0;i<=N_BANK-1;i=i+1) begin
 												if(bank_counter==i) begin 
 													addr[((W_ADDR + 1) * (i + 1))-1 -: (W_ADDR + 1)] <= addr_counter;
 												end											

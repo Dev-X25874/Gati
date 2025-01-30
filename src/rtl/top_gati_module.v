@@ -949,9 +949,11 @@ module top_gati_module #(
         .o_data_last(weight_data_last)
   );
 
-  localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
-  wire [(COL * DATA_WIDTH)-1 : 0] weight_dram_fifosharing;
-  wire [COL-1 : 0] weight_write_en_fifosharing;
+  //Calculating the total number of FIFOs required for weights sharing between CONV and FC block
+  localparam N_FIFOS = ((N_SA * COL_SA) > AXI_DATA_BYTES) ? (N_SA) : (AXI_DATA_BYTES/COL_SA);
+  localparam N_FIFO_FC = AXI_DATA_BYTES/COL_SA; // number of FIFOS shared for FC Engine
+  wire [(N_FIFOS * COL_SA * DATA_WIDTH)-1 : 0] weight_dram_fifosharing;
+  wire [N_FIFOS-1 : 0] weight_write_en_fifosharing;
 
   fifo_sharing_weight_wren_ctrl#(
     .SA_OPCODE(`OP_CONV),
@@ -979,21 +981,21 @@ module top_gati_module #(
   
   // signals from Top_CONV_FC Block
   wire fc_mux_Sel;
-  wire [COL_FC-1 : 0] weight_read_en_fc;
-  wire [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc;
-  wire [COL_FC-1 : 0] weight_empty_fc;
-  wire [COL_FC-1 : 0] weight_almost_empty_fc;
-  wire [COL_FC-1 : 0] weight_dv_fc;
+  wire [N_FIFO_FC-1 : 0] weight_read_en_fc;
+  wire [(N_FIFO_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc;
+  wire weight_empty_fc;
+  wire weight_almost_empty_fc;
+  wire [N_FIFO_FC-1 : 0] weight_dv_fc;
   wire [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc;
 
   //wire sel_sa_rden;
-  wire [(N_SA * COL_SA)-1 : 0] weight_read_en_sa;
-  wire [(N_SA * COL_SA)-1 : 0] weight_dv_sa;
-  wire [(N_SA * (COL_SA * ($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa;
-  wire [(N_SA * COL_SA)-1 : 0] weight_empty_sa;
+  wire [(N_SA)-1 : 0] weight_read_en_sa;
+  wire [(N_SA)-1 : 0] weight_dv_sa;
+  wire [(N_SA * (($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa;
+  wire [(N_SA)-1 : 0] weight_empty_sa;
   wire [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa;
 
-  wire [(COL* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
+  wire [(N_FIFOS* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
   always @(*) begin 
 	  limit_c<=(2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
@@ -1018,7 +1020,7 @@ module top_gati_module #(
   end
   assign weight_fifo_status = (CONV_FC==0)? 
                               (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_c}})? 1 : 0) : 
-                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
+                              (((weight_occupants_fc[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),

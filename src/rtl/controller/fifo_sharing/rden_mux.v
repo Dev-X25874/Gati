@@ -13,8 +13,8 @@ module rden_mux#(
     input i_clk,
     input i_rstn,
     input i_done,
-    input [COL_FC-1 : 0] i_fc_rden,
-    input [(N_SA * COL_SA)-1 : 0] i_sa_rden,
+    input [(N_DRAM_BYTES/COL_SA)-1 : 0] i_fc_rden,
+    input [(N_SA)-1 : 0] i_sa_rden,
     input i_sel_1,
     output o_sel,
     output [COL-1 : 0] o_north_rden
@@ -124,7 +124,7 @@ end
 
 Dmux_param # (
     .NUM_PORTS(SHIFTS),
-    .DATA_WIDTH(N_SA*COL_SA),
+    .DATA_WIDTH(N_SA),
     .COL_SA(1)
   )
   Dmux_param_inst (

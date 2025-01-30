@@ -12,11 +12,11 @@ module weight_ff_rden#(
     input i_sel_mux,
     input [W_KERNAL_CNT-1 : 0] i_kernal_count,
     input i_accumulator_valid,
-    input [COL-1 : 0] i_north_empty,
-    input [COL-1 : 0] i_north_almost_empty,
+    input i_north_empty,
+    input i_north_almost_empty,
     input [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] i_north_occ,
     input [W_IMG_DIM-1 : 0] i_img_dim,
-    output [COL-1 : 0] o_north_rden
+    output o_north_rden
 );
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
@@ -33,7 +33,7 @@ pulse_gen one_pulse (
     .b(w_trigger)
 );
 */
-reg [COL-1 : 0] north_rden = 0;
+reg north_rden = 0;
 reg [1:0] state = 0;
 reg [3:0] dbg_cnt = 0;
 reg r_start = 0;
@@ -83,13 +83,13 @@ always @(posedge i_clk)begin
                             state <= 2;
                             // dbg_cnt <= dbg_cnt + 1;
                         end else begin
-                            if((&(i_north_almost_empty)) && (&(north_rden)))begin
+                            if((i_north_almost_empty) && (&(north_rden)))begin
                                 north_rden <= 0;
                                 counter <= counter;
                                 state <= 1;
                             end
                             else if(i_north_empty==0) begin
-                                north_rden <= {COL{1'b1}};
+                                north_rden <= {{1'b1}};
                                 counter <= counter + 1;
                                 state <= 1;
                             end                        

@@ -22,7 +22,7 @@ module Req_Manager #(
 
 reg [7:0] w_data = 0;
 reg [7:0] n_ports = 0;
-reg  [DATA_WIDTH-1:0] data_sel=0;
+reg [DATA_WIDTH-1:0] data_sel=0;
 
 
 assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;

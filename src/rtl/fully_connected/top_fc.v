@@ -20,12 +20,12 @@ module top_fc#(
     input  [W_IMG_DIM-1 : 0]                    i_img_dim,              //comes from config block
     input  [(COL * W_DATA)-1 : 0]               i_weight_ff_array_data,
     input  [COL-1 : 0]                          i_weight_ff_array_dv,
-    input  [COL-1 : 0]                          i_weight_ff_array_empty,
-    input  [COL-1 : 0]                          i_weight_ff_array_almost_empty,
+    input                                       i_weight_ff_array_empty,
+    input                                       i_weight_ff_array_almost_empty,
     input  [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] i_weight_ff_array_occ,
     input  [W_DATA-1 : 0]                       i_image_data,
     input  [W_KERNAL_CNT-1 : 0]                 i_kernal_count,
-    output [COL-1 : 0]                          o_weight_ff_array_rden,
+    output                                      o_weight_ff_array_rden,
     // output [ROW-1 : 0]                          o_image_ff_array_rden,
     output [(COL * N_SA)-1 : 0]                 accumulator_dv,
     output [((COL * W_ACC) * N_SA)-1 : 0]       accumulator_data

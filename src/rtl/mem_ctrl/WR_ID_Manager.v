@@ -29,6 +29,7 @@ reg [BURST_LEN_WIDTH:0] count_wr = 0 ;
 //reg [7:0] stored_id = 0; // Store the ID when wready is high for the first time
 
 reg w_en_ack_reg;
+assign w_en_ack = w_en_ack_reg;
 
 always @(posedge clk) begin
     if (!rst) begin

@@ -75,16 +75,23 @@ module buffers #(
     //   buffer <= data_in;
     // end
     //	if(read_state) stat<=read_fifo;
+    else begin
+      if (data_signal && (~stall_on)) begin
+      for( i=0;i<(DRAM_BW/N_SA);i=i+1) begin 
+        if(j==i) begin 
+          data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-i)-1-:BUFFER_SIZE];
+        end
+      end 
+        j <= j + 1;
+        element_poped <= element_poped + 1;
+      end
 
-    if (data_signal && (~stall_on)) begin
-		for( i=0;i<(DRAM_BW/N_SA);i=i+1) begin 
-			if(j==i) begin 
-				data_out <= buffer[BUFFER_SIZE*((DRAM_BW/N_SA)-i)-1-:BUFFER_SIZE];
-			end
-		end 
-      j <= j + 1;
-      element_poped <= element_poped + 1;
-	  end
+      else if (~data_signal && (~stall_on)) begin 
+        data_out <= {BUFFER_SIZE{1'b0}};
+        j <= j;
+        element_poped <= element_poped;
+      end 
+    end
   end
 
 endmodule

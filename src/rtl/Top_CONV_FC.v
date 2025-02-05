@@ -221,6 +221,8 @@ module Top_CONV_FC #(
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}}; 
+
+  /*
   top_mux #(
       .N_SA(N_SA),
       .INPUT_SIZE(DATA_WIDTH)
@@ -230,7 +232,7 @@ module Top_CONV_FC #(
       .data_a(buff_out),
       .out_mux(mux_out)  // mux out should be delayed by 6 cycles going to the SA buffer 
   );
-  
+  */
   
 
 //im2col block
@@ -243,7 +245,7 @@ generate
         
         if (f == 0) begin
         always @(posedge i_clk ) begin
-          delay_reg <= mux_out;
+          delay_reg <= buff_out;
         end 
         end 
         else begin

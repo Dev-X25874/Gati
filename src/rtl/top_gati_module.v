@@ -201,12 +201,12 @@ module top_gati_module #(
     input [AXI_DATA_WIDTH - 1 : 0] dram_rd_data,
 
     //op_write block signals
-    // input sel_op_write, // Todo: have to check , wheteher sel is common or not
+    input sel_op_write, // Todo: have to check , wheteher sel is common or not
     input [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len,
     input wready,
     output dv_op_write,
     output o_data_last_op_write,
-    output [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo,
+    output [(OP_FIFO*N_SA*DATA_WIDTH_OB)-1:0] op_dram_fifo,
 
     output layer_debug_pin,
     
@@ -877,7 +877,6 @@ module top_gati_module #(
 
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
-  // assign img_fifo_th = input_img_width>>1;
   assign img_fifo_th = (DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0])>>3;
 
   /* Generation of img_fifo_status that controls the img read requests */
@@ -1100,7 +1099,7 @@ module top_gati_module #(
   wire [ACC_FIFO-1:0] vector_add_wren_dram;
   // Data from Opwrite_FIFO
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_opfifo;
-  wire [ACC_FIFO-1:0] vector_add_wren_opfifo;
+  wire [OP_FIFO-1:0] vector_add_wren_opfifo;
 
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
   wire [ACC_FIFO-1:0] vector_add_wren;
@@ -1134,7 +1133,7 @@ module top_gati_module #(
     .PORT_SIZE(ACC_FIFO),
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
-    .in({vector_add_wren_opfifo,vector_add_wren_dram}),
+    .in({{ACC_FIFO{&(vector_add_wren_opfifo)}},vector_add_wren_dram}),
     .sel(1<<Acc_onchip),
     .out(vector_add_wren)
   );
@@ -1214,7 +1213,7 @@ module top_gati_module #(
   endgenerate
 
   wire [OP_FIFO-1:0] op_wren;
-  wire [(DATA_WIDTH_ACC*OP_FIFO)-1:0] data_op_write_dram_fifo;
+  wire [(DATA_WIDTH_ACC*N_SA*OP_FIFO)-1:0] data_op_write_dram_fifo;
   wire shift_reg_en;
   wire [SHFT_REG_X-1:0] shift_reg_sel;
   assign shift_reg_sel = {SHFT_REG_X{shift_reg_en}};
@@ -1376,11 +1375,11 @@ module top_gati_module #(
   assign op_write_fifo_rden = (~Acc_onchip)? op_dram_rden : (quant_enable ? op_dram_rden : ((~|(op_dram_fifo_empty)? {OP_FIFO{1'b1}} : 0)));
   
   // Demux for separting the op_write fifo out path to DRAM and local ACC_FIFOs
-  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo1;
+  wire [(OP_FIFO*N_SA*DATA_WIDTH_OB)-1:0] op_dram_fifo1;
   wire [OP_FIFO-1:0] op_dram_dv,op_write_fifo_dv;
   Dmux_param #(
     .NUM_PORTS(2),
-    .DATA_WIDTH(OP_FIFO*DATA_WIDTH_OB),
+    .DATA_WIDTH(OP_FIFO*N_SA*DATA_WIDTH_OB),
     .COL_SA(1)
   ) Dmux_param_op_fifo_data_inst (
     .i_din(op_dram_fifo1),
@@ -1405,7 +1404,7 @@ module top_gati_module #(
   //o/p write FIFO to DDR
   dram_fifo #(
       .DIMENSION(OP_FIFO),
-      .W_DATA(DATA_WIDTH_ACC),
+      .W_DATA(N_SA*DATA_WIDTH_ACC),
       .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
       .OUTPUT_REG(0),
       .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
@@ -1438,7 +1437,7 @@ module top_gati_module #(
   ) op_dram_fifo_rden_ctrl(
     .clk(i_clk),
     .rst(i_rst),
-    .select(select[`OPWrite]), //select signal from DRAM ctrler (WR_ID mger)
+    .select(sel_op_write), //select signal from DRAM ctrler (WR_ID mger)
     .wready(wready), // from DRAM ctrler (WR_ID mger)
     .blen(wr_burst_len), // from DRAM ctler ()
     .o_data_valid(dv_op_write),

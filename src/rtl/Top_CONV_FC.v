@@ -125,7 +125,7 @@ module Top_CONV_FC #(
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     
     // output write signals
-    output [(DATA_WIDTH_ACC*(OP_FIFO)) -1:0] op_write_dmux_data,
+    output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
@@ -408,7 +408,8 @@ module Top_CONV_FC #(
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
   wire [NO_PORT_FC-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
-  
+  wire weight_read_en_fc1;
+
   top_fc#(
     .W_DATA(DATA_WIDTH),
     .COL(COL_FC),
@@ -747,16 +748,16 @@ module Top_CONV_FC #(
   // endgenerate  
   
   wire [$clog2(N_DMUX_PORTS)-1 : 0] sel_dmx;
-  wire [(N_DMUX_PORTS*COL_SA)-1 : 0] op_write_dmux_datavalid;
+  wire [(N_DMUX_PORTS)-1 : 0] op_write_dmux_datavalid;
 
   Dmux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
-    .DATA_WIDTH(DATA_WIDTH_ACC),
-    .COL_SA(COL_SA)
+    .DATA_WIDTH(N_SA*DATA_WIDTH_ACC),
+    .COL_SA(1)
   )
   dmux_param_inst(
     .i_din(x_final_data),
-    .i_datavalid(x_final_valid),
+    .i_datavalid(&(x_final_valid)),
     .i_sel(sel_dmx),
     .o_dout(op_write_dmux_data),
     .o_datavalid(op_write_dmux_datavalid)
@@ -765,14 +766,14 @@ module Top_CONV_FC #(
   
 
   demux_controller_sel_op # (
-    .COL(COL_SA),
+    .COL(1),
     .NUM_PORTS(N_DMUX_PORTS),
     .OP_FIFO_WRITE(OP_FIFO)
   )
   demux_sel_ctr (
     .rst(rst&(~iteration_Done)),
     .clk(i_clk),
-    .data_valid(x_final_valid),
+    .data_valid(&(x_final_valid)),
     .op_wren(op_wren),
     .sel(sel_dmx)
   );

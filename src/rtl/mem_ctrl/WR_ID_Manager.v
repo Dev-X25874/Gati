@@ -92,12 +92,12 @@ always @(posedge clk) begin
                     state <= IDLE ; 
                 end 
              
-                else begin
-                    select  <= select ;
-                    ack <= 0 ;
-                    w_en_ack_reg <= 0 ;
-                    state <= WAIT_DATAEND ;
-                end
+                // else begin
+                //     select[wid[PORT_ID_WIDTH-1:0]] <= 1'b1 ;
+                //     ack <= 0 ;
+                //     w_en_ack_reg <= 0 ;
+                //     state <= WAIT_DATAEND ;
+                // end
             end 
         endcase
     end

@@ -22,7 +22,7 @@ module Req_Manager #(
 
 reg [7:0] w_data = 0;
 reg [7:0] n_ports = 0;
-reg [DATA_WIDTH-1:0] data_sel=0;
+(* syn_use_dsp = "no" *) reg [DATA_WIDTH-1:0] data_sel=0;
 
 
 assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;
@@ -62,35 +62,37 @@ always @(posedge clk) begin
     end
 end
 
-	integer i=0;
+/*
+integer i=0;
 
 always @(posedge clk) begin
     if(~rst)begin
         data_sel <= 0;
-        // valid_req <= 1'b0;
     end else begin
 		for(i=0;i<NUM_PORTS;i=i+1) begin
 			if(rd_valid[i])begin
                 data_sel<=in_data_div[DATA_WIDTH*(i[$clog2(NUM_PORTS)-1:0]) +:DATA_WIDTH];
-    	        // data_sel <= in_data_div [(DATA_WIDTH*(NUM_PORTS-i)) -1 -: DATA_WIDTH] ;
-    	        // valid_req <= 1'b1;
     	    end 
-            // else begin
-    	    //     valid_req <= 1'b0;
-    	    // end
 		end
     end
 end
-
-/*
-always @(*) begin
-    if (valid_req == 1) begin 
-        o_rw_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH-1];
-    end 
-    
-    else 
-        o_rw_div = 0 ;
-end
 */
+
+wire [DATA_WIDTH-1 : 0] w_data_sel;
+vector_mux_param #(
+    .PORT_SIZE(DATA_WIDTH),
+    .NO_PORT(NUM_PORTS)
+) vector_mux_inst (
+    .in(in_data_div),
+    .sel(rd_valid),
+    .out(w_data_sel)
+);
+
+always@(posedge clk) begin
+    if(~rst) data_sel <= 0;
+    else begin
+        if(|(rd_valid)) data_sel <= w_data_sel;
+    end
+end
 
 endmodule

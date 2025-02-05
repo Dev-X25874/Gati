@@ -15,32 +15,32 @@ module Top_DRAM_controller #(
     parameter   ADW_C               = AXI_DATA_WIDTH    ,
     parameter   ABN_C               = AXI_BYTE_NUMBER   
 ) (
-    input clk,
-    input c_81_clk,
-	input   [ 1:0]  PllLocked ,
-    input rst ,                                            // active low
+    input           clk,
+    input           c_81_clk,
+	input   [1:0]   PllLocked ,
+    input           rst ,                                            // active low
     
     //DDR Controner Control Signal
-    output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
-    output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
-    output      DdrCtrl_CFG_SEQ_START ,                       //(O)[Control]DDR Controner Sequencer Start 
-    input [NUM_PORTS-1:0] port_ctrl_i_valid ,                           // valid signal for port controller
-    input [(NUM_PORTS * 8)-1:0] port_ctrl_i_address,                   // 8 bit of address for port controller generator 
-    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] port_ctrl_i_BLEN,     // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
-    input [NUM_PORTS-1:0] port_ctrl_i_rw_enable ,                          // read/ write enable pin for port controller generator module
-    input [NUM_PORTS-1:0] port_ctrl_i_last ,         
+    output                                          DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
+    output                                          DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output                                          DdrCtrl_CFG_SEQ_START ,                       //(O)[Control]DDR Controner Sequencer Start 
+    input [NUM_PORTS-1:0]                           port_ctrl_i_valid ,                           // valid signal for port controller
+    input [(NUM_PORTS * 8)-1:0]                     port_ctrl_i_address,                   // 8 bit of address for port controller generator 
+    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0]    port_ctrl_i_BLEN,     // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
+    input [NUM_PORTS-1:0]                           port_ctrl_i_rw_enable ,                          // read/ write enable pin for port controller generator module
+    input [NUM_PORTS-1:0]                           port_ctrl_i_last ,         
     
-    output reg [AXI_DATA_WIDTH-1 :0 ] axi_read_o_delay_data ,         // delay for read data
-    output         rd_r_last ,                                    // delay of read axi last signal
-    output         rd_r_valid ,                                   // delay of read axi valid signal
-    output         wr_id_o_wready ,                               // delauy of wready signal
-    output [BURST_LENGTH_WIDTH-1:0] wr_axi_blen ,                 // write axi burst length
-    input         wr_axi_valid,                                   // write valid signal for axi write data
-    input         wr_axi_last ,                                   // last signal for indicating the last data of write 
-    input [AXI_DATA_WIDTH-1:0] wr_axi_data ,                     // write data for AXI
-    output [NUM_PORTS-1:0] select_wr ,                            // select signal for selecting the write port
-    output [NUM_PORTS-1:0] select_rd ,                            // select signal for selecting the read port
-    output                d_done, //Indicates the user that DDR initialization is done and data transfer can begin
+    output reg [AXI_DATA_WIDTH-1 :0 ]               axi_read_o_delay_data ,         // delay for read data
+    output                                          rd_r_last ,                                    // delay of read axi last signal
+    output                                          rd_r_valid ,                                   // delay of read axi valid signal
+    output                                          wr_id_o_wready ,                               // delauy of wready signal
+    output [BURST_LENGTH_WIDTH-1:0]                 wr_axi_blen ,                 // write axi burst length
+    input                                           wr_axi_valid,                                   // write valid signal for axi write data
+    input                                           wr_axi_last ,                                   // last signal for indicating the last data of write 
+    input [AXI_DATA_WIDTH-1:0]                      wr_axi_data ,                     // write data for AXI
+    output [NUM_PORTS-1:0]                          select_wr ,                            // select signal for selecting the write port
+    output [NUM_PORTS-1:0]                          select_rd ,                            // select signal for selecting the read port
+    output                                          d_done, //Indicates the user that DDR initialization is done and data transfer can begin
     
 ////DDR controller Axi signals /////////////    
     output  [      7:0] aid     ,
@@ -132,6 +132,10 @@ Req_Queue_gen_inst(
     
 );
 
+//pipeline register for empty signal of Req_queue
+reg [NUM_PORTS-1 : 0] r_fifo_empty_out;
+always@(posedge clk) r_fifo_empty_out <= fifo_empty_out;
+
 RR_ARB  #(
     .N (NUM_PORTS),
     .NUM_PORTS (NUM_PORTS),
@@ -144,7 +148,7 @@ RR_ARB  #(
 RR_ARB_inst(
 	.rst_an (Axi0Rst_N),
 	.clk (clk),
-	.req (~fifo_empty_out),              // request 
+	.req (~r_fifo_empty_out),              // request 
 	.grant_out (),                       // grant
     .en_pin (RR_en_pin),                   // enable pin is depend on the read|write acknowlege pin come from ID manager  
     .rd_sel_binary (),

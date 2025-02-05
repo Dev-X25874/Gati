@@ -54,7 +54,7 @@ reg [1:0] counter;
 
 //reg state1;
 wire data_last;
-wire result_int;
+reg result_int;
 
 assign data_last = i_data_last;
 assign o_address   = r_addr;
@@ -66,7 +66,7 @@ assign o_valid     = r_valid;
 // updation of fifo status based on fifo occupants
 wire [$clog2(DEPTH) : 0] r_burst_len_1;
 assign r_burst_len_1 = r_burst_len+1;
-assign result_int = (occupants>=({N{r_burst_len_1}}))? 1 : 0; 
+// assign result_int = (occupants>=({N{r_burst_len_1}}))? 1 : 0; 
 
 //calculation of burst length
 wire [ADDR_WIDTH-1 : 0] offset1, offset2;
@@ -131,6 +131,7 @@ integer i;
 
 always@(posedge clkin) begin
     r_channel_itr <= i_channel_itr;
+    result_int <= (occupants[$clog2(DEPTH) : 0]>=(r_burst_len_1));
 end
 
 always@(posedge clkin) begin
@@ -294,7 +295,7 @@ always@(posedge clkin) begin
                         end
                     end
                     counter      <=  counter+1;
-                    r_last        <=  0;
+                    r_last       <=  0;
                     state        <=  3'd5;
                 end
             end

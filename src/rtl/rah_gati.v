@@ -137,8 +137,9 @@ module rah_gati #(
 
     //Other parameters
     parameter SHFT_REG_X    = 4, // Number of shift register blocks
+    parameter MIPI_FIFO     = 8, // Number of MIPI DWP FIFOs
     parameter BIAS_FIFO     = 8, // Number of bias FIFOs
-    parameter OP_FIFO       = 8,  // Number of output write FIFOs
+    parameter OP_FIFO       = 2,  // Number of output write FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
     parameter NO_PORT_VA    = 2,
@@ -244,9 +245,9 @@ module rah_gati #(
  // end
 
 
-
+  reg sel_mipi_write;
   wire         wr_id_o_wready ;                              
-  wire [(ACC_DW * OP_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
+  wire [(MIPI_DATA_WIDTH * MIPI_FIFO)-1 : 0] o_fifo_data;  //comes from fifo array
   wire final_o_data_last;  //comes from dram wr ctrl
   wire o_data_valid;  //comes from dram wr ctrl
   wire req_wr_req_ctrl;
@@ -260,7 +261,7 @@ module rah_gati #(
   assign soft_start = user_start;
 	////////////////////////////MIPI controller rx
   mipi_ctrl_top #(
-      .N_FIFO(OP_FIFO),
+      .N_FIFO(MIPI_FIFO),
       .W_DATA(MIPI_DATA_WIDTH),
       .BURST_LEN(MIPI_REQ_BLEN),
       .W_BURST_LEN(BURST_LENGTH_WIDTH),
@@ -268,12 +269,12 @@ module rah_gati #(
       .AXI_BYTES(AXI_DATA_BYTES)
   ) mipi_ctrler_reciver (
       .i_clk(c_81_clk),
-	    .dr_clk(m_clk),
+	    .dr_clk(i_clk),
       .i_rstn(i_rst),
       // .i_rstn(1'b1),
       .i_data_valid(valid_data),
       .i_data(o_data),
-      .ddr_sel(select_wr[`MIPI_Wr]),
+      .ddr_sel(sel_mipi_write),
       .ddr_wready(wr_id_o_wready),
       .ddr_blen(wr_burst_len),
       .o_fifo_data(o_fifo_data),
@@ -371,19 +372,37 @@ module rah_gati #(
   wire [AXI_DATA_WIDTH - 1 : 0] dram_rd_data;
 
   //op_write block signals
-  // wire sel_op_write; // Todo: have to check ; wheteher sel is common or not
+  reg sel_op_write; // Todo: have to check ; wheteher sel is common or not
   wire [BURST_LENGTH_WIDTH-1 : 0] wr_burst_len;
   wire dv_op_write;
   wire data_last_op_write;
-  wire [(OP_FIFO*DATA_WIDTH_OB)-1:0] op_dram_fifo;
+  wire [(AXI_DATA_WIDTH)-1:0] op_dram_fifo;
 
   assign in_wr_data_mux = {op_dram_fifo, o_fifo_data};
+
+  //Generation of select signals locally for write to DRAM
+  
+  always@(posedge i_clk) begin
+    if(!i_rst) sel_mipi_write <= 0;
+    else begin
+      if(final_o_data_last) sel_mipi_write <= 0;
+      else if(select_wr[`MIPI_Wr]) sel_mipi_write <= 1;
+    end
+  end
+
+  always@(posedge i_clk) begin
+    if(!i_rst) sel_op_write <= 0;
+    else begin
+      if(data_last_op_write) sel_op_write <= 0;
+      else if(select_wr[`OPWrite]) sel_op_write <= 1;
+    end
+  end
 
   vector_mux_param #(
       .PORT_SIZE(AXI_DATA_WIDTH),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_data (
-      .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
+      .sel({sel_op_write,sel_mipi_write}),
       .in (in_wr_data_mux),
       .out(dram_in_wrdata)
 
@@ -399,7 +418,7 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
-	    .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
+	    .sel({sel_op_write,sel_mipi_write}),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
 
@@ -417,12 +436,12 @@ module rah_gati #(
       .PORT_SIZE(1'b1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_last (
-      .sel({select_wr[`OPWrite],select_wr[`MIPI_Wr]}),
-	  .in (in_wr_last_mux),
+      .sel({sel_op_write,sel_mipi_write}),
+	    .in (in_wr_last_mux),
       .out(dram_in_wrlast)
 
   );
-
+  
   wire [NUM_PORTS-1:0] i_valid;
   wire [(NUM_PORTS*8)-1:0] in_address;
   wire [(NUM_PORTS*8)-1:0] in_BLEN;
@@ -520,7 +539,7 @@ module rah_gati #(
     .ABN_C(ABN_C)
   )
   Top_DRAM_controller_inst (
-    .clk(m_clk),
+    .clk(i_clk),
     .c_81_clk(c_81_clk),
     .rst(i_rst),
     .PllLocked(PllLocked),
@@ -724,6 +743,7 @@ module rah_gati #(
       .dram_rd_datavalid(dram_rd_datavalid),
       .dram_rd_data_last(dram_rd_data_last),
       .dram_rd_data(dram_rd_data),
+      .sel_op_write(sel_op_write),
 	    .wready(wr_id_o_wready),
 	    .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),

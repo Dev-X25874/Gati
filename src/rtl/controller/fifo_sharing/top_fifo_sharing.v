@@ -19,41 +19,42 @@ module top_fifo_sharing#(
     input i_rstn,
     input i_done,
     //input i_sel_sa_rden_ctrl,                       //select signal coming from weight fifo array read enable ctrl in SA
-    input [3:0] i_opcode,                           //comes from config block
-    input [(COL * W_DATA)-1 : 0] i_data_weight_ff_array,
-    input [COL-1 : 0] i_write_en_weight_ff_array,
-    input [COL_FC-1 : 0] i_read_en_fc,              //weight fifo array read enable signal, coming form FC
-    input [(N_SA * COL_SA)-1 : 0] i_read_en_sa,     //weight fifo array read enable signal, coming from SA
+    input [W_OPCODE-1:0] i_opcode,                           //comes from config block
+    input [(N_FIFOS * COL_SA * W_DATA)-1 : 0] i_data_weight_ff_array,
+    input [N_FIFOS-1 : 0] i_write_en_weight_ff_array,
+    input [N_FIFO_FC-1 : 0] i_read_en_fc,              //weight fifo array read enable signal, coming form FC
+    input [(N_SA)-1 : 0] i_read_en_sa,     //weight fifo array read enable signal, coming from SA
     output o_demux_select,                               
-    output [(COL_FC * (WEIGHT_FF_ADDR + 1))-1 : 0] o_occupants_mux_fc,
-    output [COL_FC-1 : 0] o_empty_mux_fc,
-    output [COL_FC-1 : 0] o_almost_empty_mux_fc,
-    output [COL_FC-1 : 0] o_dv_mux_fc,
-    output [(N_SA * COL_SA)-1 : 0] o_dv_mux_sa,
-    output [(N_SA * (COL_SA * (WEIGHT_FF_ADDR + 1)))-1 : 0] o_occupants_mux_sa,
-    output [(N_SA * COL_SA)-1 : 0] o_empty_mux_sa,
+    output [(N_FIFO_FC * (WEIGHT_FF_ADDR + 1))-1 : 0] o_occupants_mux_fc,
+    output o_empty_mux_fc,
+    output o_almost_empty_mux_fc,
+    output [N_FIFO_FC-1 : 0] o_dv_mux_fc,
+    output [(N_SA)-1 : 0] o_dv_mux_sa,
+    output [(N_SA * ((WEIGHT_FF_ADDR + 1)))-1 : 0] o_occupants_mux_sa,
+    output [(N_SA)-1 : 0] o_empty_mux_sa,
     output [(COL_FC * W_DATA)-1 : 0] o_data_mux_fc,
     output [(N_SA * COL_SA * W_DATA)-1 : 0] o_data_mux_sa,
-    output [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] o_weight_ff_array_occupants
+    output [(N_FIFOS * (WEIGHT_FF_ADDR + 1))-1 : 0] o_weight_ff_array_occupants
 );
 
 localparam WEIGHT_FF_ADDR = $clog2(WEIGHT_FF_DEPTH);
-localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
+localparam N_FIFOS = ((N_SA * COL_SA) > N_DRAM_BYTES) ? (N_SA) : (N_DRAM_BYTES/COL_SA);
+localparam N_FIFO_FC = N_DRAM_BYTES/COL_SA;
 
-wire [COL-1 : 0] weight_ff_array_read_en;
-wire [COL-1 : 0] weight_ff_array_empty;
-wire [COL-1 : 0] weight_ff_array_almost_empty;
-wire [COL-1 : 0] weight_ff_array_dv;
-wire [(COL * W_DATA)-1 : 0] weight_ff_array_data;
-wire [(COL * (WEIGHT_FF_ADDR + 1))-1 : 0] weight_ff_array_occupants;
+wire [N_FIFOS-1 : 0] weight_ff_array_read_en;
+wire [N_FIFOS-1 : 0] weight_ff_array_empty;
+wire [N_FIFOS-1 : 0] weight_ff_array_almost_empty;
+wire [N_FIFOS-1 : 0] weight_ff_array_dv;
+wire [(N_FIFOS * COL_SA * W_DATA)-1 : 0] weight_ff_array_data;
+wire [(N_FIFOS * (WEIGHT_FF_ADDR + 1))-1 : 0] weight_ff_array_occupants;
 wire i_sel_sa_rden_ctrl;
 
 assign o_weight_ff_array_occupants = weight_ff_array_occupants;
 
 //weight fifo array
 weight_ff_array#(
-    .COL(COL),
-    .W_DATA(W_DATA),
+    .COL(N_FIFOS),
+    .W_DATA(COL_SA*W_DATA),
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH)
 ) weight_fifo_array(
     .i_clk(clk),
@@ -74,14 +75,14 @@ wire o_demux_select;
 //handles toggling of read enable signal for SA or FC
 demux#(
     .WEIGHT_FF_DEPTH(WEIGHT_FF_DEPTH),
-    .COL(COL),
+    .COL(N_FIFOS),
     .N_SA(N_SA),     
     .COL_SA(COL_SA),   
     .COL_FC(COL_FC),  
     .N_DRAM_BYTES(N_DRAM_BYTES),
     .SA_OPCODE(SA_OPCODE),
     .FC_OPCODE(FC_OPCODE),
-    .W_DATA(W_DATA),
+    .W_DATA(COL_SA*W_DATA),
     .W_OPCODE(W_OPCODE)
 )sa_fc_demux(
     .i_clk(clk),
@@ -108,7 +109,7 @@ demux#(
 
 //mux to send read enable signal from SA and FC into weight fifo array
 rden_mux#(
-    .COL(COL),
+    .COL(N_FIFOS),
     .COL_FC(COL_FC),
     .ROW(ROW),
     .N_SA(N_SA),

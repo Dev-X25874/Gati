@@ -23,8 +23,8 @@ module top_flattening#(
     input [W_IMG_BRAM_ADDR-1 : 0] i_addr_counter,               //comes from instructions indicating total addresses to be written in each BRAM
     input [W_KERNAL_CNT-1 : 0] i_kernal_counter,                //comes from instructions, indicates total counts for loading same image, but for different set of kernals
     input [(N_BANK * N_BRAM)-1 : 0] i_data_valid,               //data valid signal of data coming from DDR
-    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_empty,
-    input [(N_BANK * N_BRAM)-1 : 0] i_weight_ff_array_almost_empty,    
+    input i_weight_ff_array_empty,
+    input i_weight_ff_array_almost_empty,    
     input [W_IMG_DIM-1 : 0] i_image_dimension,                  //comes from indtruction, as of now, it is 7x7
     input [((N_BANK * N_BRAM) * W_DATA)-1 : 0]  i_data,         //data from DDR
     output [W_DATA-1 : 0] o_data_mux,                           //output data byte

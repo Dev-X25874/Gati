@@ -77,27 +77,27 @@ always @(posedge clk) begin
             end            
 
             WAIT_DATAEND : begin 
-                if(count_wr==0) begin
-                    count_wr <= 0;
-                    w_en_ack_reg <= 1;
-                end
-                else begin
-                    if(wready) count_wr <= count_wr-1;
-                end
+                // if(count_wr==0) begin
+                //     count_wr <= 0;
+                //     w_en_ack_reg <= 1;
+                // end
+                // else begin
+                //     if(wready) count_wr <= count_wr-1;
+                // end
 
                 if (wlast) begin 
                     select  <= 0 ;
                     ack <= 0 ;
-                    // w_en_ack <= 1'b1 ;
+                    w_en_ack_reg <= 1'b1 ;
                     state <= IDLE ; 
                 end 
              
-                else begin
-                    select  <= select ;
-                    ack <= 0 ;
-                    // w_en_ack <= 0 ;
-                    state <= WAIT_DATAEND ;
-                end
+                // else begin
+                //     select[wid[PORT_ID_WIDTH-1:0]] <= 1'b1 ;
+                //     ack <= 0 ;
+                //     w_en_ack_reg <= 0 ;
+                //     state <= WAIT_DATAEND ;
+                // end
             end 
         endcase
     end
@@ -107,6 +107,9 @@ always @(*) begin
     wready_out = wready;
 end 
 
+assign w_en_ack = w_en_ack_reg;
+
+/*
 pulse_gen one_pulse_inst
 (
     .clk(clk),
@@ -114,5 +117,5 @@ pulse_gen one_pulse_inst
     .a(w_en_ack_reg),
     .b(w_en_ack)
 );
- 
+*/ 
 endmodule

@@ -20,8 +20,8 @@ module top_output_block #(
     input  [             FIFO_NO-1:0]     top_wr_en,
     input  [(DATA_WIDTH_ACC*FIFO_NO)-1:0] top_data_in, //previous accumulnats from ddr
     input                                 vector_add_enable,
-    input   [         (N*COL_SA)-1:0]     empty_sa,
-    input   [         (N*COL_SA)-1:0]     almost_empty_sa,
+    input   [                (N)-1:0]     empty_sa,
+    input   [                (N)-1:0]     almost_empty_sa,
     input                                 op_full,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,

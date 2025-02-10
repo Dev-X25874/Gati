@@ -16,11 +16,11 @@ module fifo_sharing_weight_wren_ctrl#(
     input [DRAM_BW-1 : 0] i_datavalid_dram_weight,
     input [DRAM_BW*DATA_WIDTH - 1 : 0] i_dram_weight,
 
-    output reg [COL-1 : 0] weight_fifo_wren,
-    output reg [COL*DATA_WIDTH - 1 : 0] o_dram_weight
+    output reg [N_FIFOS-1 : 0] weight_fifo_wren,
+    output reg [N_FIFOS*COL_SA*DATA_WIDTH - 1 : 0] o_dram_weight
 );
 
-localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
+localparam N_FIFOS = ((N_SA * COL_SA) > DRAM_BW) ? (N_SA) : (DRAM_BW/COL_SA);
 reg [OPCODE_WIDTH-1:0] r_opcode;
 
 always@(posedge i_clk) begin
@@ -81,7 +81,7 @@ always@(posedge i_clk) begin
     end
 end
 
-
+//Todo : To be generalized in the case of switch = 1 for other structures such as 9x16x16, 9x32x32 etc
 generate
     if(switch==1) begin
         always @(posedge i_clk) 
@@ -92,17 +92,17 @@ generate
         else begin
             if(datavalid_dram_weight) 
             begin
-                if(sel_dmux) begin
-                    weight_fifo_wren <= {{(COL-DRAM_BW){1'b1}},{DRAM_BW{1'b0}}};
-                    o_dram_weight[(COL*DATA_WIDTH)-1 -:(COL-DRAM_BW)*DATA_WIDTH]    <= i_dram_weight;
+                if(~sel_dmux) begin
+                    weight_fifo_wren <= {{(N_FIFOS-(DRAM_BW/COL_SA)){1'b1}},{(DRAM_BW/COL_SA){1'b0}}};
+                    o_dram_weight[(N_FIFOS*COL_SA*DATA_WIDTH)-1 -:DRAM_BW*DATA_WIDTH]    <= i_dram_weight;
                 end
                 else begin
-                    weight_fifo_wren <= {{(COL-DRAM_BW){1'b0}},{DRAM_BW{1'b1}}};
-                    o_dram_weight[((COL-DRAM_BW)*DATA_WIDTH)-1 -:(COL-DRAM_BW)*DATA_WIDTH]    <= i_dram_weight;
+                    weight_fifo_wren <= {{(N_FIFOS-(DRAM_BW/COL_SA)){1'b0}},{(DRAM_BW/COL_SA){1'b1}}};
+                    o_dram_weight[((N_FIFOS-(DRAM_BW/COL_SA))*COL_SA*DATA_WIDTH)-1 -:DRAM_BW*DATA_WIDTH]    <= i_dram_weight;
                 end
             end
             else begin
-                weight_fifo_wren <= {COL{1'b0}};
+                weight_fifo_wren <= {N_FIFOS{1'b0}};
                 o_dram_weight    <= o_dram_weight;
             end
         end
@@ -116,46 +116,16 @@ generate
        end
        else begin
         if(datavalid_dram_weight) begin
-            weight_fifo_wren <= {COL{1'b1}};
+            weight_fifo_wren <= {N_FIFOS{1'b1}};
             o_dram_weight    <= i_dram_weight;
         end
         else begin
-            weight_fifo_wren <= {COL{1'b0}};
+            weight_fifo_wren <= {N_FIFOS{1'b0}};
             o_dram_weight    <= o_dram_weight;
         end
        end
        end 
     end
 endgenerate
-
-/*
-always @(posedge i_clk) begin
-    if(switch) begin
-        if(datavalid_dram_weight) begin
-            if(sel_dmux) begin
-                weight_fifo_wren <= {{(COL-DRAM_BW){1'b1}},{DRAM_BW{1'b0}}};
-                o_dram_weight[((COL*DATA_WIDTH)-1) -:(DRAM_BW)*DATA_WIDTH] <= i_dram_weight;
-            end
-            else begin
-                weight_fifo_wren <= {{(COL-DRAM_BW){1'b0}},{DRAM_BW{1'b1}}};
-                o_dram_weight[((COL-DRAM_BW)*DATA_WIDTH)-1 :(DRAM_BW)*DATA_WIDTH]    <= i_dram_weight;
-            end
-        end else begin
-            weight_fifo_wren <= {COL{1'b0}};
-            o_dram_weight    <= o_dram_weight;
-        end
-    end
-    else begin
-        if(datavalid_dram_weight) begin
-            weight_fifo_wren <= {COL{1'b1}};
-            o_dram_weight    <= i_dram_weight;
-        end
-        else begin
-            weight_fifo_wren <= {COL{1'b0}};
-            o_dram_weight    <= o_dram_weight;
-        end
-    end
-end
-*/
 
 endmodule

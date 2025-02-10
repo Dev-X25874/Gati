@@ -64,17 +64,17 @@ module Top_CONV_FC #(
     input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
     //weight fifo sharing signals
     output sel_sa_rden,
-    output [COL_FC-1 : 0] weight_read_en_fc,
-    input [(COL_FC * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc,
-    input [COL_FC-1 : 0] weight_empty_fc,
-    input [COL_FC-1 : 0] weight_almost_empty_fc,
-    input [COL_FC-1 : 0] weight_dv_fc,
+    output [(COL_FC/COL_SA)-1 : 0] weight_read_en_fc,
+    input [((COL_FC/COL_SA) * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc,
+    input weight_empty_fc,
+    input weight_almost_empty_fc,
+    input [(COL_FC/COL_SA)-1 : 0] weight_dv_fc,
     input [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc,
     
-    output [(N_SA * COL_SA)-1 : 0] weight_read_en_sa,
-    input [(N_SA * COL_SA)-1 : 0] weight_dv_sa,
-    input [(N_SA * (COL_SA * ($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa,
-    input [(N_SA * COL_SA)-1 : 0] weight_empty_sa,
+    output [(N_SA)-1 : 0] weight_read_en_sa,
+    input [(N_SA)-1 : 0] weight_dv_sa,
+    input [(N_SA * (($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa,
+    input [(N_SA)-1 : 0] weight_empty_sa,
     input [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa,
     
     //Flattening and FC signals
@@ -125,7 +125,7 @@ module Top_CONV_FC #(
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     
     // output write signals
-    output [(DATA_WIDTH_ACC*(OP_FIFO)) -1:0] op_write_dmux_data,
+    output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
     // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
     output [OP_FIFO-1:0] op_wren,
@@ -257,11 +257,11 @@ module Top_CONV_FC #(
 
   //parameters will change for top_SA (for CONV opeartion)
   wire [OP_FIFO-1:0] empty_vector, almost_empty_vector;
-  wire [(N_SA*COL_SA)-1:0] empty_sa, almost_empty_sa;
-  wire [(N_SA*COL_SA)-1:0] opsum_rden;
+  wire [(N_SA)-1:0] empty_sa, almost_empty_sa;
+  wire [(N_SA)-1:0] opsum_rden;
 
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
-  wire [COL_SA*N_SA-1:0] valid_psum;
+  wire [N_SA-1:0] valid_psum;
 
   wire [(N_SA*COL_SA)-1:0] psum_fifo_almost_full, psum_fifo_almost_empty;
   top_sa #(
@@ -283,9 +283,9 @@ module Top_CONV_FC #(
       .stall_on(stall_on),
 	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
       .i_data_weight_ff_sharing(weight_data_sa),
-      .i_dv_weight_ff_sharing(weight_dv_sa),
-      .i_empty_weight_ff_sharing(weight_empty_sa),
-      .i_occupants_weight_ff_sharing(weight_occupants_sa),
+      .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
+      .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
+      .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
       .i_image_ff_array_data(mux_out), //i-wire : from im2col
       .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
       .i_psum_ff_array_read_en(opsum_rden),
@@ -338,7 +338,7 @@ module Top_CONV_FC #(
       .clk(i_clk),
       .rst(rst),
       .o_psum_ff_array(o_psum_ff_array),
-      .valid_in(valid_psum),
+      .valid_in({COL_SA{valid_psum}}),
       .valid_out(valid_tree),
       .result_final(result_tree)
   );
@@ -408,7 +408,8 @@ module Top_CONV_FC #(
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
   wire [NO_PORT_FC-1:0] sel_FC_op_data_mux; //select signal for the instance FC_op_data_mux
-  
+  wire weight_read_en_fc1;
+
   top_fc#(
     .W_DATA(DATA_WIDTH),
     .COL(COL_FC),
@@ -430,17 +431,17 @@ module Top_CONV_FC #(
     .i_img_dim(i_img_dim_fc), //input: img dim (input rows) of FC layer - from inst.
     .i_weight_rden_trigger(weight_rden_trigger_FC), //i-wire: trigger signal to load weights into FC
     .i_weight_ff_array_data(weight_data_fc), //
-    .i_weight_ff_array_dv(weight_dv_fc),
+    .i_weight_ff_array_dv({COL_FC{&weight_dv_fc}}),
     .i_weight_ff_array_empty(weight_empty_fc),
     .i_weight_ff_array_almost_empty(weight_almost_empty_fc),
-    .o_weight_ff_array_rden(weight_read_en_fc), //output: weight fifo rden, goes to fifo sharing
+    .o_weight_ff_array_rden(weight_read_en_fc1), //output: weight fifo rden, goes to fifo sharing
     .i_weight_ff_array_occ(weight_occupants_fc), //input: weight fifo occupants from fifo sharing
     // .o_image_ff_array_rden(), //Todo: check it
     .i_kernal_count(i_kernel_cnt_FC),
     .accumulator_dv(dv_FC_accumulator_data),
     .accumulator_data(FC_accumulator_op_data)
   );
-
+  assign weight_read_en_fc = {(DRAM_BW/COL_SA){weight_read_en_fc1}};
   assign FC_done = &(dv_FC_accumulator_data);
   
   
@@ -747,16 +748,16 @@ module Top_CONV_FC #(
   // endgenerate  
   
   wire [$clog2(N_DMUX_PORTS)-1 : 0] sel_dmx;
-  wire [(N_DMUX_PORTS*COL_SA)-1 : 0] op_write_dmux_datavalid;
+  wire [(N_DMUX_PORTS)-1 : 0] op_write_dmux_datavalid;
 
   Dmux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
-    .DATA_WIDTH(DATA_WIDTH_ACC),
-    .COL_SA(COL_SA)
+    .DATA_WIDTH(N_SA*DATA_WIDTH_ACC),
+    .COL_SA(1)
   )
   dmux_param_inst(
     .i_din(x_final_data),
-    .i_datavalid(x_final_valid),
+    .i_datavalid(&(x_final_valid)),
     .i_sel(sel_dmx),
     .o_dout(op_write_dmux_data),
     .o_datavalid(op_write_dmux_datavalid)
@@ -765,14 +766,14 @@ module Top_CONV_FC #(
   
 
   demux_controller_sel_op # (
-    .COL(COL_SA),
+    .COL(1),
     .NUM_PORTS(N_DMUX_PORTS),
     .OP_FIFO_WRITE(OP_FIFO)
   )
   demux_sel_ctr (
     .rst(rst&(~iteration_Done)),
     .clk(i_clk),
-    .data_valid(x_final_valid),
+    .data_valid(&(x_final_valid)),
     .op_wren(op_wren),
     .sel(sel_dmx)
   );

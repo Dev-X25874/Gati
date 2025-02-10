@@ -13,7 +13,7 @@ module instruct_q #(
   )(
     input clkin,
     input rst,
-	input [INSTRUCT_W-1:0]instruct_mem, //talking to inst q controller
+	  input [INSTRUCT_W-1:0]instruct_mem, //talking to inst q controller
     input read_req_inst, //talking to inst read controller
     input instruct_valid, //talking to isnt q controller
     output [INSTRUCT_W-1:0]o_instruction,
@@ -21,24 +21,24 @@ module instruct_q #(
     output o_status_dram,
     output o_status_inst
   );
-	wire [$clog2(DEPTH):0] ten;
+	wire [$clog2(DEPTH):0] fifo_occupants;
 	wire empt;
   sync_fifo  #(.W_ADDR($clog2(DEPTH)),
-	  .W_DATA(INSTRUCT_W))
+	           .W_DATA(INSTRUCT_W))
 	instant(.clk_i(clkin),
-           .a_rst_i(~rst),
-           .wr_en_i(instruct_valid),
-           .rd_en_i(read_req_inst),
-           .wdata(instruct_mem),
-           .rdata(o_instruction),
-           .o_valid(o_instruction_valid),
-         	.datacount_o(ten), 
-	   // .ten_trigg(o_status_dram),
-           .empty_o(empt));
+            .a_rst_i(~rst),
+            .wr_en_i(instruct_valid),
+            .rd_en_i(read_req_inst),
+            .wdata(instruct_mem),
+            .rdata(o_instruction),
+            .o_valid(o_instruction_valid),
+         	  .datacount_o(fifo_occupants), 
+            .empty_o(empt)
+  );
 
 
 		   assign o_status_inst=~empt;
 
-		   assign o_status_dram=(ten<STATUS_DRAM_LIM);
+		   assign o_status_dram=(fifo_occupants<STATUS_DRAM_LIM);
 
 endmodule

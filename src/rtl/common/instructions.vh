@@ -1,98 +1,54 @@
 `ifndef instruction_vh
 
 `define OP_CONV 'h00
+// Opcode
 `define CONV_Opcode 3:0
 `define CONV_Opcode_WIDTH 4
+// Width of the input image
 `define CONV_IW 13:4
 `define CONV_IW_WIDTH 10
+// Height of the input image
 `define CONV_IH 23:14
 `define CONV_IH_WIDTH 10
+// Width of the output feature map
 `define CONV_OW 33:24
 `define CONV_OW_WIDTH 10
+// Height of the output feature map
 `define CONV_OH 43:34
 `define CONV_OH_WIDTH 10
+// Channel count for the input
 `define CONV_IC 53:44
 `define CONV_IC_WIDTH 10
+// Kernel count for the input
 `define CONV_KN 63:54
 `define CONV_KN_WIDTH 10
+// Kernel width
 `define CONV_KW 67:64
 `define CONV_KW_WIDTH 4
+// Kernel Height
 `define CONV_KH 71:68
 `define CONV_KH_WIDTH 4
 `define CONV_Stride 75:72
 `define CONV_Stride_WIDTH 4
 `define CONV_Pad 78:76
 `define CONV_Pad_WIDTH 3
-`define CONV_ImageStartAddress 110:79
+// Bit vector where each bit represents a side (left,bottom,rig
+// ht,top) of a feature map that should be padded with 'Pad'
+`define CONV_PadSides 82:79
+`define CONV_PadSides_WIDTH 4
+`define CONV_ImageStartAddress 114:83
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 142:111
+`define CONV_ImageEndAddress 146:115
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 174:143
+`define CONV_WeightStartAddress 178:147
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 206:175
+`define CONV_WeightEndAddress 210:179
 `define CONV_WeightEndAddress_WIDTH 32
-
-`define OP_FC 'h03
-`define FC_Opcode 3:0
-`define FC_Opcode_WIDTH 4
-`define FC_WeightRows 19:4
-`define FC_WeightRows_WIDTH 16
-`define FC_WeightCols 35:20
-`define FC_WeightCols_WIDTH 16
-`define FC_InputRows 51:36
-`define FC_InputRows_WIDTH 16
-`define FC_DropoutConstant 59:52
-`define FC_DropoutConstant_WIDTH 8
-`define FC_Flatten 60:60
-`define FC_Flatten_WIDTH 1
-`define FC_ImageDim 80:61
-`define FC_ImageDim_WIDTH 20
-`define FC_ImageStartAddress 112:81
-`define FC_ImageStartAddress_WIDTH 32
-`define FC_ImageEndAddr 144:113
-`define FC_ImageEndAddr_WIDTH 32
-`define FC_WeightStartAddress 176:145
-`define FC_WeightStartAddress_WIDTH 32
-`define FC_WeightEndAddress 208:177
-`define FC_WeightEndAddress_WIDTH 32
-`define FC_Vec2MatCols 224:209
-`define FC_Vec2MatCols_WIDTH 16
-
-`define OP_OutputBlock 'h02
-`define OutputBlock_Opcode 3:0
-`define OutputBlock_Opcode_WIDTH 4
-`define OutputBlock_AccumulantAddr 35:4
-`define OutputBlock_AccumulantAddr_WIDTH 32
-`define OutputBlock_OutputAddr 67:36
-`define OutputBlock_OutputAddr_WIDTH 32
-`define OutputBlock_ChannelItr 79:68
-`define OutputBlock_ChannelItr_WIDTH 12
-`define OutputBlock_KernelItr 91:80
-`define OutputBlock_KernelItr_WIDTH 12
-`define OutputBlock_ImageDimOutput 107:92
-`define OutputBlock_ImageDimOutput_WIDTH 16
-`define OutputBlock_ImageDimAcc 123:108
-`define OutputBlock_ImageDimAcc_WIDTH 16
-`define OutputBlock_AccEn 124:124
-`define OutputBlock_AccEn_WIDTH 1
-`define OutputBlock_DispatchEn 125:125
-`define OutputBlock_DispatchEn_WIDTH 1
-`define OutputBlock_DispatchID 157:126
-`define OutputBlock_DispatchID_WIDTH 32
-`define OutputBlock_OnChipAcc 158:158
-`define OutputBlock_OnChipAcc_WIDTH 1
-
-`define OP_START 'hff
-`define START_Opcode 3:0
-`define START_Opcode_WIDTH 4
-`define START_LayerNumber 15:4
-`define START_LayerNumber_WIDTH 12
-`define START_TotalLayers 27:16
-`define START_TotalLayers_WIDTH 12
 
 `define OP_TailBlock 'h01
 `define TailBlock_Opcode 3:0
 `define TailBlock_Opcode_WIDTH 4
+// Batch Norm Yes/No
 `define TailBlock_BNEn 4:4
 `define TailBlock_BNEn_WIDTH 1
 `define TailBlock_BNChannels 14:5
@@ -117,23 +73,118 @@
 `define TailBlock_PoolEn_WIDTH 1
 `define TailBlock_PoolType 117:115
 `define TailBlock_PoolType_WIDTH 3
-`define TailBlock_PoolWidth 121:118
-`define TailBlock_PoolWidth_WIDTH 4
-`define TailBlock_PoolHeight 125:122
-`define TailBlock_PoolHeight_WIDTH 4
-`define TailBlock_PoolStride 129:126
+`define TailBlock_PoolWidth 127:118
+`define TailBlock_PoolWidth_WIDTH 10
+`define TailBlock_PoolHeight 137:128
+`define TailBlock_PoolHeight_WIDTH 10
+`define TailBlock_PoolStride 141:138
 `define TailBlock_PoolStride_WIDTH 4
-`define TailBlock_PoolPadding 133:130
+`define TailBlock_PoolPadding 145:142
 `define TailBlock_PoolPadding_WIDTH 4
-`define TailBlock_BiasEn 134:134
+`define TailBlock_PoolCeil 146:146
+`define TailBlock_PoolCeil_WIDTH 1
+// For pools with input size that is not evenly divisible by ke
+// rnel size, mod count is the ceil(input % kernel). For exampl
+// e, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column 
+// to be considered.
+`define TailBlock_PoolModCount 150:147
+`define TailBlock_PoolModCount_WIDTH 4
+// Same as PadSides for convolution
+`define TailBlock_PoolPadSides 154:151
+`define TailBlock_PoolPadSides_WIDTH 4
+`define TailBlock_BiasEn 155:155
 `define TailBlock_BiasEn_WIDTH 1
-`define TailBlock_BiasWidth 142:135
+// There are two known bias widths 8/32. This is that field.
+`define TailBlock_BiasWidth 163:156
 `define TailBlock_BiasWidth_WIDTH 8
-`define TailBlock_BiasStartAddress 174:143
+`define TailBlock_BiasStartAddress 195:164
 `define TailBlock_BiasStartAddress_WIDTH 32
-`define TailBlock_BiasEndAddress 206:175
+`define TailBlock_BiasEndAddress 227:196
 `define TailBlock_BiasEndAddress_WIDTH 32
 
+`define OP_OutputBlock 'h02
+`define OutputBlock_Opcode 3:0
+`define OutputBlock_Opcode_WIDTH 4
+`define OutputBlock_AccumulantAddr 35:4
+`define OutputBlock_AccumulantAddr_WIDTH 32
+`define OutputBlock_OutputAddr 67:36
+`define OutputBlock_OutputAddr_WIDTH 32
+`define OutputBlock_ChannelItr 79:68
+`define OutputBlock_ChannelItr_WIDTH 12
+`define OutputBlock_KernelItr 91:80
+`define OutputBlock_KernelItr_WIDTH 12
+// Following the SA, there are tail blocks. Some of the tail bl
+// ocks like maxpool modify the shape of the output, this field
+//  accounts for that. In cases, when shape is not modified, th
+// is field is equal to ImageDimAcc
+`define OutputBlock_ImageDimOutput 107:92
+`define OutputBlock_ImageDimOutput_WIDTH 16
+// Output of the conv operation (HxW)
+`define OutputBlock_ImageDimAcc 123:108
+`define OutputBlock_ImageDimAcc_WIDTH 16
+// For layer with fewer channels than number of columns in the 
+// systolic array, accumulation of partial sums across iteratio
+// ns is disabled
+`define OutputBlock_AccEn 124:124
+`define OutputBlock_AccEn_WIDTH 1
+// If this layer's output is supposed to be sent back to the CP
+// U, this flag is set
+`define OutputBlock_DispatchEn 125:125
+`define OutputBlock_DispatchEn_WIDTH 1
+// This is a integrity id that the FPGA should attach to the Ad
+// dr part of the receiving DWP packet.
+`define OutputBlock_DispatchID 157:126
+`define OutputBlock_DispatchID_WIDTH 32
+// If output dimensions of a conv operation can fit on the FPGA
+//  output buffers, they should not be sent to the DRAM, all of
+//  the conv can happen on chip saving latency. This flag sets 
+// that bit.
+`define OutputBlock_OnChipAcc 158:158
+`define OutputBlock_OnChipAcc_WIDTH 1
+
+`define OP_FC 'h03
+`define FC_Opcode 3:0
+`define FC_Opcode_WIDTH 4
+`define FC_WeightRows 19:4
+`define FC_WeightRows_WIDTH 16
+`define FC_WeightCols 35:20
+`define FC_WeightCols_WIDTH 16
+`define FC_InputRows 51:36
+`define FC_InputRows_WIDTH 16
+`define FC_DropoutConstant 59:52
+`define FC_DropoutConstant_WIDTH 8
+// If this FC follows a CONV, the outputs of conv should be fla
+// ttened, this bit signals flattening
+`define FC_Flatten 60:60
+`define FC_Flatten_WIDTH 1
+// If flatten is 1, this is the Height x Width of the previous 
+// conv. For example, if conv output is 128x7x7, ImageDim will 
+// be 49
+`define FC_ImageDim 80:61
+`define FC_ImageDim_WIDTH 20
+`define FC_ImageStartAddress 112:81
+`define FC_ImageStartAddress_WIDTH 32
+`define FC_ImageEndAddr 144:113
+`define FC_ImageEndAddr_WIDTH 32
+`define FC_WeightStartAddress 176:145
+`define FC_WeightStartAddress_WIDTH 32
+`define FC_WeightEndAddress 208:177
+`define FC_WeightEndAddress_WIDTH 32
+// Input vector (say of size 4096) can be seen to be a matrix o
+// f size 32x128, vec2mat cols is the number of cols of this ma
+// trix i.e. 128
+`define FC_Vec2MatCols 224:209
+`define FC_Vec2MatCols_WIDTH 16
+
+`define OP_START 'hf
+`define START_Opcode 3:0
+`define START_Opcode_WIDTH 4
+`define START_LayerNumber 15:4
+`define START_LayerNumber_WIDTH 12
+`define START_TotalLayers 27:16
+`define START_TotalLayers_WIDTH 12
+
+`define ISA_VERSION 0
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00
@@ -148,6 +199,14 @@
 `define DWP_SOP_INDEX 0
 `define DWP_DS_INDEX 1
 `define DWP_ADDR_INDEX 2
+
+`define META_SOP 'hffffffffffff
+`define META_TYPE_RESET 'h000000000000
+`define META_TYPE_DISPATCH 'h000000000001
+`define META_TYPE_PAYLOAD_SIZE 'h000000000002
+`define META_TYPE_INST_ORIGIN 'h000000000003
+`define META_CONST_DISPATCH_RAH 'h000000000000
+`define META_CONST_DISPATCH_UART 'h000000000001
 
 `define ZerothStartAddress 31:0
 `define ZerothStartAddress_WIDTH 32

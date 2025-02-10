@@ -21,7 +21,7 @@ module weight_fifo_array_rden#(
     input i_layer_done,
     input [COL-1 : 0] i_fifo_empty,
     input [(COL * (W_ADDR + 1))-1 : 0] i_fifo_occupants,
-    output [COL-1 : 0] o_fifo_read_enable,
+    output o_fifo_read_enable,
     output o_sel,
     output o_enable_image_rden_ctrl
 );
@@ -47,7 +47,7 @@ reg [2:0] state = 0;
 reg [4:0] counter = 0;
 reg sel = 1;
 reg read_img = 0;
-reg [COL-1 : 0] rden = 0;
+reg rden = 0;
 
 assign o_enable_image_rden_ctrl = read_img;
 assign o_fifo_read_enable = rden;
@@ -75,7 +75,7 @@ always @(posedge i_clk) begin
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW
                 if((i_fifo_empty == 0))begin            //(i_fifo_occupants >= {COL{S_ROW}})
-                    rden <= {COL{1'b1}};
+                    rden <= {{1'b1}};
                     state <= 2;
                 end
             end

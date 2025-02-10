@@ -17,8 +17,8 @@ module bram_rden_controller#(
     input accumulator_valid,
     input flatten,
     input [W_KERNAL_CNT-1 : 0] kernal_count,
-    input [(N_BANK * N_BRAM)-1 : 0] weight_ff_array_empty,
-    input [(N_BANK * N_BRAM)-1 : 0] weight_ff_array_almost_empty,
+    input weight_ff_array_empty,
+    input weight_ff_array_almost_empty,
     input [W_IMG_DIM-1 : 0] image_dimension,
     input [W_IMG_BRAM_ADDR-1 : 0] i_addr_counter,
     output [N_BRAM-1 : 0] o_read_enable,
@@ -72,6 +72,12 @@ wire[W_ADDR:0] temp_value;
     reg flag;
 
 assign temp_value = shift_rim + (mod_rim == 0 ? 0 : 1);
+    wire fc_ff_empty;
+    wire fc_ff_almost_empty;
+
+    assign fc_ff_empty = (weight_ff_array_empty);
+    assign fc_ff_almost_empty = (weight_ff_array_almost_empty);
+
 	always @(posedge clk) begin 
 		mod_rim<=r_image_dimension % N_BRAM;
 		shift_rim<=r_image_dimension >> ($clog2(N_BRAM));
@@ -111,10 +117,10 @@ always @(posedge clk) begin
                     end
                     1: begin
                         if(kernal_counter < r_kernal_count) begin
-                            if((&(weight_ff_array_almost_empty)) && |(rden)) begin
+                            if((fc_ff_almost_empty) && |(rden)) begin
                                 rden <= 0;
                             end
-                            else if(~|(weight_ff_array_empty)) begin
+                            else if(~(fc_ff_empty)) begin
                                 // flag <= 1;
                                 if(bank_shift_counter < r_i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
                                     if(element_counter == (N_BRAM-1))begin
@@ -243,10 +249,10 @@ always @(posedge clk) begin
                     end
                     1: begin
                         if(kernal_counter < r_kernal_count)begin
-                            if((&(weight_ff_array_almost_empty)) && |(rden)) begin
+                            if(((fc_ff_almost_empty)) && |(rden)) begin
                                 rden <= 0;
                             end
-                            else if(~|(weight_ff_array_empty))begin
+                            else if(~(fc_ff_empty))begin
                                 // rd_flag <= 1;
                                 if(bank_shift_counter < r_i_addr_counter)begin   //need to keep shifting bank enable signal for 4 times, 1-7  addresses in one shifting of a bank's enable
                                         if(element_counter == (sub1_rim))begin

@@ -9,16 +9,23 @@ module Port_ctrl_gen #(
     parameter BURST_LENGTH_WIDTH = 4,
     parameter PORT_ID_WIDTH = 4
 ) (
-    input    clk,
-	input    c_81_clk,
-    input    rst, 
-    input [NUM_PORTS-1:0]       valid,        
-    input [NUM_PORTS-1:0]       last,         
-    input [(NUM_PORTS * IN_ADDR)-1:0] in_address,   
-    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0] in_burst_len, 
-    input [NUM_PORTS-1:0]       in_enable_rw, 
-    output [NUM_PORTS-1 : 0] o_valid,
-    output [(COMBINED_DATA_WIDTH * NUM_PORTS)-1 : 0] combined_out
+    input                                             clk,
+	  input                                             c_81_clk,
+    input                                             rst, 
+    
+    input                                             valid_clk81,        
+    input                                             last_81,         
+    input [IN_ADDR-1:0]                               in_address_clk81,   
+    input [BURST_LENGTH_WIDTH-1:0]                    in_burst_len_clk81, 
+    input                                             in_enable_rw_clk81, 
+    
+    input [NUM_PORTS-2:0]                             valid,        
+    input [NUM_PORTS-2:0]                             last,         
+    input [((NUM_PORTS-1) * IN_ADDR)-1:0]             in_address,   
+    input [((NUM_PORTS-1) * BURST_LENGTH_WIDTH)-1:0]  in_burst_len, 
+    input [NUM_PORTS-2:0]                             in_enable_rw, 
+    output [NUM_PORTS-1 : 0]                          o_valid,
+    output [(COMBINED_DATA_WIDTH * NUM_PORTS)-1 : 0]  combined_out
 );
 
   // Generate block to instantiate multiple instances of Port_controller
@@ -37,11 +44,11 @@ module Port_ctrl_gen #(
       ) Port_controller_inst (
         .clk(c_81_clk),
         .rst(rst),
-        .valid(valid[NUM_PORTS-i-1]),  
-        .last (last[NUM_PORTS-i-1]), 
-        .in_address(in_address[(IN_ADDR * (NUM_PORTS - i))-1 -: IN_ADDR]),        
-        .in_enable_rw(in_enable_rw[NUM_PORTS-i-1]),           
-        .in_burst_len(in_burst_len[(BURST_LENGTH_WIDTH * (NUM_PORTS - i))- 1 -: BURST_LENGTH_WIDTH]),
+        .valid(valid_clk81),  
+        .last (last_81), 
+        .in_address(in_address_clk81),        
+        .in_enable_rw(in_enable_rw_clk81),           
+        .in_burst_len(in_burst_len_clk81),
         .o_valid (o_valid[NUM_PORTS-i-1]),
         .combined_out (combined_out [(COMBINED_DATA_WIDTH * (NUM_PORTS - i))-1 -: COMBINED_DATA_WIDTH])
       );

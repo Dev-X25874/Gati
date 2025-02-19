@@ -21,26 +21,33 @@ module Top_DRAM_controller #(
     input           rst ,                                            // active low
     
     //DDR Controner Control Signal
-    output                                          DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
-    output                                          DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
-    output                                          DdrCtrl_CFG_SEQ_START ,                       //(O)[Control]DDR Controner Sequencer Start 
-    input [NUM_PORTS-1:0]                           port_ctrl_i_valid ,                           // valid signal for port controller
-    input [(NUM_PORTS * 8)-1:0]                     port_ctrl_i_address,                   // 8 bit of address for port controller generator 
-    input [(NUM_PORTS * BURST_LENGTH_WIDTH)-1:0]    port_ctrl_i_BLEN,     // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
-    input [NUM_PORTS-1:0]                           port_ctrl_i_rw_enable ,                          // read/ write enable pin for port controller generator module
-    input [NUM_PORTS-1:0]                           port_ctrl_i_last ,         
+    output                                              DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
+    output                                              DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output                                              DdrCtrl_CFG_SEQ_START ,                       //(O)[Control]DDR Controner Sequencer Start 
     
-    output reg [AXI_DATA_WIDTH-1 :0 ]               axi_read_o_delay_data ,         // delay for read data
-    output                                          rd_r_last ,                                    // delay of read axi last signal
-    output                                          rd_r_valid ,                                   // delay of read axi valid signal
-    output                                          wr_id_o_wready ,                               // delauy of wready signal
-    output [BURST_LENGTH_WIDTH-1:0]                 wr_axi_blen ,                 // write axi burst length
-    input                                           wr_axi_valid,                                   // write valid signal for axi write data
-    input                                           wr_axi_last ,                                   // last signal for indicating the last data of write 
-    input [AXI_DATA_WIDTH-1:0]                      wr_axi_data ,                     // write data for AXI
-    output [NUM_PORTS-1:0]                          select_wr ,                            // select signal for selecting the write port
-    output [NUM_PORTS-1:0]                          select_rd ,                            // select signal for selecting the read port
-    output                                          d_done, //Indicates the user that DDR initialization is done and data transfer can begin
+    input                                               port_ctrl_i_valid_clk81 ,
+    input [7:0]                                         port_ctrl_i_address_clk81 ,
+    input [BURST_LENGTH_WIDTH-1:0]                      port_ctrl_i_BLEN_clk81 ,
+    input                                               port_ctrl_i_rw_enable_clk81 ,
+    input                                               port_ctrl_i_last_clk81 ,
+    
+    input [NUM_PORTS-2:0]                               port_ctrl_i_valid ,                           // valid signal for port controller
+    input [((NUM_PORTS-1) * 8)-1:0]                     port_ctrl_i_address,                   // 8 bit of address for port controller generator 
+    input [((NUM_PORTS-1) * BURST_LENGTH_WIDTH)-1:0]    port_ctrl_i_BLEN,     // 4 bit of burst length for port controller (NUM_PORTS is use for generating the port controller)
+    input [NUM_PORTS-2:0]                               port_ctrl_i_rw_enable ,                          // read/ write enable pin for port controller generator module
+    input [NUM_PORTS-2:0]                               port_ctrl_i_last ,         
+    
+    output reg [AXI_DATA_WIDTH-1 :0 ]                   axi_read_o_delay_data ,         // delay for read data
+    output                                              rd_r_last ,                                    // delay of read axi last signal
+    output                                              rd_r_valid ,                                   // delay of read axi valid signal
+    output                                              wr_id_o_wready ,                               // delauy of wready signal
+    output [BURST_LENGTH_WIDTH-1:0]                     wr_axi_blen ,                 // write axi burst length
+    input                                               wr_axi_valid,                                   // write valid signal for axi write data
+    input                                               wr_axi_last ,                                   // last signal for indicating the last data of write 
+    input [AXI_DATA_WIDTH-1:0]                          wr_axi_data ,                     // write data for AXI
+    output [NUM_PORTS-1:0]                              select_wr ,                            // select signal for selecting the write port
+    output [NUM_PORTS-1:0]                              select_rd ,                            // select signal for selecting the read port
+    output                                              d_done, //Indicates the user that DDR initialization is done and data transfer can begin
     
 ////DDR controller Axi signals /////////////    
     output  [      7:0] aid     ,
@@ -103,12 +110,17 @@ port_ctrl_gen_inst(
     .clk (clk),
 	.c_81_clk(c_81_clk),
     .rst(Axi0Rst_N), 
+    .valid_clk81(port_ctrl_i_valid_clk81),     
+    .last_81(port_ctrl_i_last_clk81),   
+    .in_address_clk81(port_ctrl_i_address_clk81), 
+    .in_burst_len_clk81(port_ctrl_i_BLEN_clk81),
+    .in_enable_rw_clk81(port_ctrl_i_rw_enable_clk81),
     .valid(port_ctrl_i_valid),        
-    .last (port_ctrl_i_last),       
-    .o_valid (port_ctrl_o_valid),  
+    .last (port_ctrl_i_last),  
     .in_address (port_ctrl_i_address),    //[I] address (8 bit)
     .in_burst_len (port_ctrl_i_BLEN),     //[I]burst length (4 bit)
     .in_enable_rw(port_ctrl_i_rw_enable),    // [I]read/write enable  (1 bit)
+    .o_valid (port_ctrl_o_valid),
     .combined_out (port_ctrl_req_out)  // combine the meta data pass to the synchronous fifo (41 bit - as of now i am testing only four ports that is why it becomes 41 bits)
 );
 
@@ -180,13 +192,14 @@ assign rd_blen = RR_o_blen ;
 assign wr_axi_blen = RR_o_blen ;
 // assign axi_id = {t, {EXT1{1'b0}}, RR_o_port_id} ;
 assign axi_id = {t, RR_o_port_id} ;
-// assign axi_wr_start = RR_o_rw & RR_o_valid_req ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
-// assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
-assign axi_wr_start = wr_start ;    
-assign axi_rd_start = rd_start ;  
+assign axi_wr_start = RR_o_rw & RR_o_valid_req  ;    // read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM Write operation 
+assign axi_rd_start = !RR_o_rw & RR_o_valid_req ;   //  read/write enable pin and valid request signal come from request manager and arbiter module to enable the DDR RAM read operation 
+// assign axi_wr_start = wr_start ;    
+// assign axi_rd_start = rd_start ;  
 
 ///////////////////////////////////////////////////////////////////////////////////
 /* Generation of wr_start and rd_start based on previous and current requests */
+/*
 reg [1:0] state;
 reg [1:0] prev_req, curr_req, req;
 reg wr_start, rd_start;
@@ -291,7 +304,7 @@ always@(posedge clk) begin
         end
     end
 end
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////
 
   reg [7:0] PowerOnResetCnt = 8'h0  ; //Power On Reset Counter

@@ -28,7 +28,7 @@ reg [7:0] n_ports = 0;
 assign o_addr_div = data_sel[DATA_WIDTH-1:PORT_ID_WIDTH+BURST_WIDTH+1] ;
 assign o_burst_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-1 -: BURST_WIDTH];
 assign o_port_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-1 -: PORT_ID_WIDTH];
-assign o_rw_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH-1] & ~r_rw ;
+assign o_rw_div = data_sel [DATA_WIDTH-ADDRESS_WIDTH-BURST_WIDTH-PORT_ID_WIDTH-1];
 
 reg r_rw;
 

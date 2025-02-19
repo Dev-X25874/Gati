@@ -47,23 +47,31 @@ assign o_burst_len = burst_len;
 assign o_last = last;
 assign o_valid = valid;
 
-	reg r_i_data_last;   //burst last; comes from DDR write controller
-    reg r_i_data_valid;
-    reg [((W_ADDR + 1) * N_FIFO)-1 : 0] r_i_fifo_occupants; //comes from fifo array
-    reg [W_DATA-1 : 0] r_i_start_address;   //comes from fifo_wr_ctrl
-    reg [W_DATA-1 : 0] r_i_data_size;   //comes from fifo_wr_ctrl
+reg r_i_data_last;   //burst last; comes from DDR write controller
+reg r_i_data_valid;
+reg [((W_ADDR + 1) * N_FIFO)-1 : 0] r_i_fifo_occupants; //comes from fifo array
+reg [W_DATA-1 : 0] r_i_start_address;   //comes from fifo_wr_ctrl
+reg [W_DATA-1 : 0] r_i_data_size;   //comes from fifo_wr_ctrl
 
-	always @ (posedge i_clk) begin 
-	
-		r_i_data_last<=i_data_last;
-		r_i_data_valid<=i_data_valid;
-		r_i_fifo_occupants<=i_fifo_occupants;
-		r_i_start_address<=i_start_address;
-		r_i_data_size<=i_data_size;
-	end
+wire [N_FIFO-1 : 0] occ_threshold;
+genvar i;
+generate
+    for(i = 0; i < N_FIFO; i = i + 1) begin
+        assign occ_threshold[N_FIFO - i -1] = ((r_i_fifo_occupants[((W_ADDR + 1) * (N_FIFO - i)) - 1 -: (W_ADDR + 1)]) >= replicated_value);
+    end
+endgenerate
+
+always @ (posedge i_clk) begin 
+	r_i_data_last<=i_data_last;
+	r_i_data_valid<=i_data_valid;
+	r_i_fifo_occupants<=i_fifo_occupants;
+	r_i_start_address<=i_start_address;
+	r_i_data_size<=i_data_size;
+end
+
 always @(posedge i_clk)begin
     if(~i_rstn)begin
-        // req <= 0;
+        req <= 0;
         state <= 0;
         burst_len <= 0;
         r_burst_len <= 0;
@@ -102,7 +110,7 @@ always @(posedge i_clk)begin
             3: begin
                 // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
                 o_ack_dram_ctrl <= 0;
-                if(r_i_fifo_occupants >= fifo_occupants) begin
+                if(&(occ_threshold)) begin
                 	state <= 2;
                 end
 				if(data_size<(BURST_LEN<<$clog2(AXI_BYTES)) && data_size!=0) begin 
@@ -123,18 +131,21 @@ always @(posedge i_clk)begin
                     addr_counter <= addr_counter + 1;
                     addr <= r_addr[(W_DATA - (addr_counter * 8))-1 -: 8];
                     valid <= 1'b1;
+                    req <= 1'b1;
                 end
                 else if(addr_counter == 3)begin
                     addr_counter <= addr_counter + 1;
                     addr <= r_addr[(W_DATA - (addr_counter * 8))-1 -: 8];
                     last <= 1'b1;
                     valid <= 1'b1;
+                    req <= 1'b1;
                     //reduce data size
                     data_size <= (data_size - (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1)));  //For eg, 98x4 - 256/8
                 end else begin
                     addr_counter <= 0;
                     last <= 1'b0;
                     valid <= 1'b0;
+                    req <= 1'b0;
                     state <= 6;
                 end
             end
@@ -169,7 +180,7 @@ always @(posedge i_clk)begin
         endcase
     end
 end
-
+/*
 always @(posedge i_clk)begin
     case (rq_state)
         0:begin
@@ -187,5 +198,5 @@ always @(posedge i_clk)begin
         default:rq_state <= 0; 
     endcase
 end
-  
+*/
 endmodule

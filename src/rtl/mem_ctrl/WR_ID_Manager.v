@@ -57,7 +57,7 @@ always @(posedge clk) begin
                 end 
             end
             STORE_ID: begin
-              if (wready) begin
+                if (wready) begin
                 if (wid == aid) begin 
                     select[wid[PORT_ID_WIDTH-1:0]] <= 1'b1 ;
                     w_en_ack_reg <= 0 ;

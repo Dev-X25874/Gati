@@ -11,22 +11,33 @@
 		If sel=0000, out = 0
 */
 
-module vector_mux_param #(parameter PORT_SIZE=32,
-                     parameter NO_PORT=8  )
+module vector_mux_param #(
+   parameter PORT_SIZE=32,
+   parameter NO_PORT=8  )
  (// input clk,
-       input [PORT_SIZE*NO_PORT -1:0] in,
-    output wor  [PORT_SIZE-1:0] out,
-        	 input[NO_PORT-1:0]  sel);
+   input [PORT_SIZE*NO_PORT -1:0] in,
+   output reg  [PORT_SIZE-1:0] out,
+   input[NO_PORT-1:0]  sel);
 
-
-	 genvar i;
-	 generate 
-		 for(i=0;i<NO_PORT;i=i+1)
-		 begin 
-		 assign out=(sel[i])?in[i*PORT_SIZE +:PORT_SIZE]:0;
-		end
- 	 endgenerate 
-
+   /*
+	genvar i;
+	generate 
+	   for(i=0;i<NO_PORT;i=i+1)
+	   begin 
+	      assign out=(sel[i])?in[i*PORT_SIZE +:PORT_SIZE]:0;
+	   end
+ 	endgenerate 
+   */
+   
+   //Generates a mux tree
+   integer i;
+   always@(*) begin
+      out = 0; //default value
+      for(i=0;i<NO_PORT;i=i+1)
+	   begin 
+	      if(sel[i]) out = in[i*PORT_SIZE +: PORT_SIZE];
+	   end
+   end
 
 
 endmodule

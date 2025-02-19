@@ -185,7 +185,7 @@ always@(posedge i_clk) begin
 		// 	counter1 <= 0;
 		// end
 		// else begin
-			if(counter==0 && i_data==sof && state==3) begin
+			if(counter==0 && i_data==sof && state==NEXT) begin
 				counter1 <= counter1 + 1;
 			end
 		// end

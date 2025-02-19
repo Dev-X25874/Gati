@@ -415,7 +415,7 @@ module rah_gati #(
 
 
   vector_mux_param #(
-      .PORT_SIZE(1'b1),
+      .PORT_SIZE(1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_valid (
 	    .sel({sel_op_write,sel_mipi_write}),
@@ -433,7 +433,7 @@ module rah_gati #(
 
 
   vector_mux_param #(
-      .PORT_SIZE(1'b1),
+      .PORT_SIZE(1),
       .NO_PORT  (NO_PORT_WR)
   ) dram_write_last (
       .sel({sel_op_write,sel_mipi_write}),
@@ -442,14 +442,25 @@ module rah_gati #(
 
   );
   
-  wire [NUM_PORTS-1:0] i_valid;
-  wire [(NUM_PORTS*8)-1:0] in_address;
-  wire [(NUM_PORTS*8)-1:0] in_BLEN;
-  wire [NUM_PORTS-1:0] i_enable;
-  wire [NUM_PORTS-1:0] i_last;
+  wire i_valid_req_clk81;
+  wire [IN_ADDR-1:0] in_address_clk81;
+  wire [AXI_ID_BLEN_CON-1 : 0] in_BLEN_clk81;
+  wire i_rw_enable_clk81;
+  wire i_last_clk81;
+
+  assign i_valid_req_clk81  = valid_wr_req_ctrl;
+  assign in_address_clk81   = address_wr_req_ctrl;
+  assign in_BLEN_clk81      = final_burst_len_wr_req_ctrl;
+  assign i_rw_enable_clk81  = req_wr_req_ctrl;
+  assign i_last_clk81       = final_last_wr_req_ctrl;
+
+  wire [NUM_PORTS-2:0] i_valid;
+  wire [((NUM_PORTS-1)*8)-1:0] in_address;
+  wire [((NUM_PORTS-1)*8)-1:0] in_BLEN;
+  wire [NUM_PORTS-2:0] i_enable;
+  wire [NUM_PORTS-2:0] i_last;
 
    assign i_valid = {
-    valid_wr_req_ctrl,
     mc_config_valid,    
     mc_img_valid,
     mc_wghts_valid,
@@ -462,7 +473,6 @@ module rah_gati #(
    };
 
    assign in_address = {
-    address_wr_req_ctrl,
     mc_config_addr,
     mc_img_addr,
     mc_wghts_addr,
@@ -475,7 +485,6 @@ module rah_gati #(
    };
 
    assign in_BLEN = {
-    final_burst_len_wr_req_ctrl,
     mc_config_bl,
     mc_img_bl,
     mc_wghts_bl,
@@ -488,7 +497,6 @@ module rah_gati #(
    };
 
    assign i_enable = {
-    req_wr_req_ctrl,
     mc_config_rdreq,  
     mc_img_rdreq,
     mc_wghts_rdreq,
@@ -501,7 +509,6 @@ module rah_gati #(
    };
 
    assign i_last = {
-    final_last_wr_req_ctrl,
     mc_config_last,
     mc_img_last,
     mc_wghts_last,
@@ -546,6 +553,11 @@ module rah_gati #(
     .DdrCtrl_CFG_RST_N(DdrCtrl_CFG_RST_N),
     .DdrCtrl_CFG_SEQ_RST(DdrCtrl_CFG_SEQ_RST),
     .DdrCtrl_CFG_SEQ_START(DdrCtrl_CFG_SEQ_START),
+    .port_ctrl_i_valid_clk81(i_valid_req_clk81),
+    .port_ctrl_i_address_clk81(in_address_clk81),
+    .port_ctrl_i_BLEN_clk81(in_BLEN_clk81),
+    .port_ctrl_i_rw_enable_clk81(i_rw_enable_clk81),
+    .port_ctrl_i_last_clk81(i_last_clk81),
     .port_ctrl_i_valid(i_valid),
     .port_ctrl_i_address(in_address),
     .port_ctrl_i_BLEN(in_BLEN),

@@ -105,7 +105,7 @@ image_fifo_array_async#(
 )mul_fifo_array(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
-	 .dr_clk(dr_clk),
+    .dr_clk(dr_clk),
     .i_data(data_ff_wr_ctrl),
     .i_write_enable(ff_write_enable),
     .i_read_enable(ff_read_enable),
@@ -118,9 +118,12 @@ image_fifo_array_async#(
 
 
 wire [N_FIFO-1 : 0] ff_read_enable;
+reg prev_w_start;
+always@(posedge i_clk) prev_w_start <= w_start;
+
 (* async_reg="true" *) reg f_w_start,s_w_start;
 always @(posedge dr_clk) begin
-    f_w_start <= w_start;
+    f_w_start <= (w_start | prev_w_start);
     s_w_start <= f_w_start;
 end
 

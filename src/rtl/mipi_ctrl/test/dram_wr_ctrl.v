@@ -5,14 +5,14 @@ module dram_wr_ctrl#(
 )(
     input i_clk,
     input i_rstn,
-   input i_dv,
-	input s_start,
-	input i_select,
+    input i_dv,
+    input s_start,
+    input i_select,
     input i_write_ready,
     input [W_BURST_LEN-1 : 0]i_burst_length,
     output [N_FIFO-1 : 0] o_fifo_read_enable,
     output o_data_last,
-	output reg soft_start,
+    output reg soft_start,
     output o_data_valid
 );
 reg data_last = 0;

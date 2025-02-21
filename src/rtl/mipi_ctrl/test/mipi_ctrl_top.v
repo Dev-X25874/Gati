@@ -127,10 +127,13 @@ always @(posedge dr_clk) begin
     s_w_start <= f_w_start;
 end
 
-//stretching data_last signal for 81MHz CDC
+//stretching data_last signal for 81MHz CDC and also stretch ack signal to sample in i_clk
+reg r_ack_dram_wr_req_ctrl = 0;
+always@(posedge i_clk) r_ack_dram_wr_req_ctrl <= ack_dram_wr_req_ctrl;
+
 (*async_reg = "true"*) reg ack_dram_wr_req_ctrl1, ack_dram_wr_req_ctrl2;
 always@(posedge dr_clk) begin
-    ack_dram_wr_req_ctrl1 <= ack_dram_wr_req_ctrl;
+    ack_dram_wr_req_ctrl1 <= (ack_dram_wr_req_ctrl | r_ack_dram_wr_req_ctrl);
     ack_dram_wr_req_ctrl2 <= ack_dram_wr_req_ctrl1;
 end
 always@(posedge dr_clk) begin

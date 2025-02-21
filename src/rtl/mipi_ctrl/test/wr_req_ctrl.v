@@ -69,6 +69,8 @@ always @ (posedge i_clk) begin
 	r_i_data_size<=i_data_size;
 end
 
+
+
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         req <= 0;
@@ -125,6 +127,7 @@ always @(posedge i_clk)begin
                 // req <= 1'b1;
                 //Add addr_valid in address counter
                // addr <= r_addr;//Add counter 1-4
+                o_ack_dram_ctrl <= 0;
                 burst_len <= r_burst_len;
                 offset <=((burst_len+1)<<$clog2(AXI_BYTES));
                 if(addr_counter < 3)begin

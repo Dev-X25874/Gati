@@ -380,6 +380,9 @@ end
     
   wire    Axi1Rst_N  = Axi1ResetReg[2]; //System Reset (Low Active)
 
+  wire temp_wvalid;
+  assign wvalid = temp_wvalid & (|(select_wr));
+
 Top_Axi #(
     .AXI_DATA_WIDTH (AXI_DATA_WIDTH),
     .AXI_BYTE_NUMBER (AXI_BYTE_NUMBER) ,                                  
@@ -414,7 +417,7 @@ NATIVE_AXI_inst(
     .wid    (wid)     , 
     .wstrb  (wstrb)   , 
     .wlast  (wlast)   , 
-    .wvalid (wvalid)  , 
+    .wvalid (temp_wvalid)  , 
     .wready (wready)  , 
     .wdata  (wdata)   , 
     .rid    (rid)     , 

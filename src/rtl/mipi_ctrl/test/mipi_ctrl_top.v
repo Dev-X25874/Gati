@@ -25,19 +25,20 @@ module mipi_ctrl_top#(
 	output soft_start,
 	output eop
 );
-
-wire [W_DATA-1 : 0] start_address;
+wire rd_en_size_address;
+wire empty_size_address;
+wire valid_size_address;
+wire [W_DATA-1 : 0] rd_size_address;
 wire [W_DATA-1 : 0] data_size;
 wire [N_FIFO-1 : 0] ff_write_enable;
 wire [W_DATA-1 : 0] data_ff_wr_ctrl;
 wire dv_ff_wr_ctrl;
-
 wire o_data_last;
 
 	assign final_o_data_last=o_data_last;
 	assign final_last_wr_req_ctrl=last_wr_req_ctrl;
 	assign final_burst_len_wr_req_ctrl=burst_len_wr_req_ctrl;
-
+  
 fifo_wr_ctrl#(
     .W_DATA(W_DATA),
     .N_FIFO(N_FIFO)
@@ -45,12 +46,14 @@ fifo_wr_ctrl#(
     .i_clk(i_clk),
     .i_rstn(i_rstn),           //Active low reset
     // .i_dlen(),           //TODO: check size of this input, and where does it comes from?
-    .i_data_valid(i_data_valid),     //comes from mipi fifo
-    .i_data(i_data),           //comes from mipi fifo
-    .o_start_address(start_address),  //sends initial address to write request controller
-    .o_data_size(data_size),      //sends total number of bytes of data to write request controller, for eg, 98x4
-    .o_write_enable(ff_write_enable),   //sends write enable signal to fifo array
-    .o_data(data_ff_wr_ctrl),            //sends data to store into fifo array
+    .i_data_valid(i_data_valid),    //comes from mipi fifo
+    .i_data(i_data),                //comes from mipi fifo
+    .i_rd_en_size_address(rd_en_size_address),
+    .o_empty_size_address(empty_size_address),
+    .o_valid_size_address(valid_size_address),
+    .o_rd_size_address(rd_size_address),
+    .o_write_enable(ff_write_enable),       //sends write enable signal to fifo array
+    .o_data(data_ff_wr_ctrl),               //sends data to store into fifo array
     .o_valid(dv_ff_wr_ctrl),
 	.soft_start(w_start),
 	.eop(eop)
@@ -83,9 +86,13 @@ wr_req_ctrl#(
     .i_data_last(s_o_data_last),   //burst last, comes from DDR write controller
     .i_data_valid(dv_ff_wr_ctrl),
     .i_fifo_occupants(ff_array_occ), //comes from fifo array
-    .i_start_address(start_address),   //comes from fifo_wr_ctrl
-    .i_data_size(data_size),   //comes from fifo_wr_ctrl
     .o_ack_dram_ctrl(ack_dram_wr_req_ctrl), //acknowledgment for last signal from dram_wr_ctrl
+
+    .i_valid_size_address(valid_size_address),
+    .i_empty_size_address(empty_size_address),
+    .i_rd_size_address(rd_size_address),
+    .o_rd_en_size_address(rd_en_size_address),
+
     .o_request(req_wr_req_ctrl),   //request goes to DDR ctrl
     .o_address(address_wr_req_ctrl), //requested address, goes to DDR ctrl
     .o_burst_len(burst_len_wr_req_ctrl),  //requested burst length, goes to DDR ctrl

@@ -14,9 +14,11 @@ module wr_req_ctrl#(
     input i_data_last,   //burst last, comes from DDR write controller
     input i_data_valid,
     input [((W_ADDR + 1) * N_FIFO)-1 : 0] i_fifo_occupants, //comes from fifo array
-    input [W_DATA-1 : 0] i_start_address,   //comes from fifo_wr_ctrl
-    input [W_DATA-1 : 0] i_data_size,   //comes from fifo_wr_ctrl
     output reg o_ack_dram_ctrl, //acknowledgemnt for last signal to dram_wr_ctrl
+    input i_valid_size_address,
+    input i_empty_size_address,
+    input [W_DATA-1 : 0] i_rd_size_address,
+    output reg o_rd_en_size_address,
     output o_request,   //request goes to DDR ctrl
     output [7:0]o_address, //requested address, goes to DDR ctrl
     output [W_BURST_LEN-1 : 0]o_burst_len,  //requested burst length, goes to DDR ctrl
@@ -47,29 +49,13 @@ assign o_burst_len = burst_len;
 assign o_last = last;
 assign o_valid = valid;
 
-reg r_i_data_last;   //burst last; comes from DDR write controller
-reg r_i_data_valid;
-reg [((W_ADDR + 1) * N_FIFO)-1 : 0] r_i_fifo_occupants; //comes from fifo array
-reg [W_DATA-1 : 0] r_i_start_address;   //comes from fifo_wr_ctrl
-reg [W_DATA-1 : 0] r_i_data_size;   //comes from fifo_wr_ctrl
-
 wire [N_FIFO-1 : 0] occ_threshold;
 genvar i;
 generate
     for(i = 0; i < N_FIFO; i = i + 1) begin
-        assign occ_threshold[N_FIFO - i -1] = ((r_i_fifo_occupants[((W_ADDR + 1) * (N_FIFO - i)) - 1 -: (W_ADDR + 1)]) >= replicated_value);
+        assign occ_threshold[N_FIFO - i -1] = ((i_fifo_occupants[((W_ADDR + 1) * (N_FIFO - i)) - 1 -: (W_ADDR + 1)]) >= replicated_value);
     end
 endgenerate
-
-always @ (posedge i_clk) begin 
-	r_i_data_last<=i_data_last;
-	r_i_data_valid<=i_data_valid;
-	r_i_fifo_occupants<=i_fifo_occupants;
-	r_i_start_address<=i_start_address;
-	r_i_data_size<=i_data_size;
-end
-
-
 
 always @(posedge i_clk)begin
     if(~i_rstn)begin
@@ -86,34 +72,40 @@ always @(posedge i_clk)begin
         case (state)
             0:begin
                 o_ack_dram_ctrl <= 0;
-                if(r_i_data_valid && (r_i_data_size!=0))begin
+                if(~i_empty_size_address) begin
                     r_burst_len <= BURST_LEN;
-					data_size<=r_i_data_size;
-					state <= 1;
+                    o_rd_en_size_address <= 1'b1;
+                    state <= 1;    
                 end
             end
-
-
-			1:begin 
-                if(r_i_data_size==0) begin
+            1:begin
+                if(i_valid_size_address) begin
+                    o_rd_en_size_address <= 1'b1;
+                    data_size <= i_rd_size_address;
+                    state <= 2;
+                end
+                else begin
+                    o_rd_en_size_address <= 0;
+                    state <= 1;
+                end
+            end
+            2:begin
+                o_rd_en_size_address <= 1'b0;
+                if (data_size==0) begin
                     state <= 0;
                 end
                 else begin
-                    if(r_i_data_valid) begin 				
-                        r_addr <= r_i_start_address;
+                    if (i_valid_size_address) begin
+                        r_addr <= i_rd_size_address;
                         r_burst_len <= BURST_LEN;
-                        state<=3;
+                        state <= 3;
                     end
                 end
-			end
-
-			
-
-            3: begin
-                // if(i_fifo_occupants == {N_FIFO{burst_len}})begin
+            end
+            3: begin 
                 o_ack_dram_ctrl <= 0;
                 if(&(occ_threshold)) begin
-                	state <= 2;
+                	state <= 4;
                 end
 				if(data_size<(BURST_LEN<<$clog2(AXI_BYTES)) && data_size!=0) begin 
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
@@ -122,11 +114,7 @@ always @(posedge i_clk)begin
 					r_burst_len<=BURST_LEN;
 				end
 			end
-            2: begin
-                //send req to DDR
-                // req <= 1'b1;
-                //Add addr_valid in address counter
-               // addr <= r_addr;//Add counter 1-4
+            4: begin 
                 o_ack_dram_ctrl <= 0;
                 burst_len <= r_burst_len;
                 offset <=((burst_len+1)<<$clog2(AXI_BYTES));
@@ -149,30 +137,28 @@ always @(posedge i_clk)begin
                     last <= 1'b0;
                     valid <= 1'b0;
                     req <= 1'b0;
-                    state <= 6;
+                    state <= 5;
                 end
             end
-            6: begin
-                if(data_size != 0)begin
-                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1 )&& (data_size[31]!=1) )) begin  //if data size = 32 * (blen+1)
+            5: begin 
+                if(data_size != 0 )begin
+                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1) && (data_size[31]!=1))) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
-						if(r_i_data_last) begin 
-                            state <= 3;
+						if(i_data_last) begin 
+                            state <= 3; 
 						    r_addr <= r_addr + offset;
                             o_ack_dram_ctrl <= 1;
 						end
                     end else begin
                         r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
-						if(r_i_data_last) begin 
-                            state <= 3;
+						if(i_data_last) begin 
+                            state <= 3; 
 							r_addr <= r_addr + offset;
                             o_ack_dram_ctrl <= 1;
 						end
-
-
                     end
                 end else begin
-					if(r_i_data_last) begin 
+					if(i_data_last) begin 
                     state <= 0;
                     o_ack_dram_ctrl <= 1;
 					end
@@ -187,7 +173,7 @@ end
 always @(posedge i_clk)begin
     case (rq_state)
         0:begin
-            if(state == 2)begin
+            if(state == 4)begin //2
                 if(addr_counter == 0)begin
                     req <= 1'b1;
                     rq_state <= 1;
@@ -202,4 +188,5 @@ always @(posedge i_clk)begin
     endcase
 end
 */
+    
 endmodule

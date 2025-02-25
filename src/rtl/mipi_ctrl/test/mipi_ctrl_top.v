@@ -35,9 +35,9 @@ wire [W_DATA-1 : 0] data_ff_wr_ctrl;
 wire dv_ff_wr_ctrl;
 wire o_data_last;
 
-	assign final_o_data_last=o_data_last;
-	assign final_last_wr_req_ctrl=last_wr_req_ctrl;
-	assign final_burst_len_wr_req_ctrl=burst_len_wr_req_ctrl;
+assign final_o_data_last=o_data_last;
+assign final_last_wr_req_ctrl=last_wr_req_ctrl;
+assign final_burst_len_wr_req_ctrl=burst_len_wr_req_ctrl;
   
 fifo_wr_ctrl#(
     .W_DATA(W_DATA),

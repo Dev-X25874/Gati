@@ -39,9 +39,10 @@ reg [N_FIFO-1 : 0] wren = 0;
 assign o_data = data;
 assign o_write_enable = wren;
 assign o_valid = valid;
-	reg last=0;
-	reg 				r_i_data_valid;                     //comes from mipi fifo
-    reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
+
+reg last=0;
+reg 				r_i_data_valid;                     //comes from mipi fifo
+reg [W_DATA-1 : 0]  r_i_data;            //comes from mipi fifo
 
 
 always @(posedge i_clk)begin
@@ -167,26 +168,26 @@ sync_fifo # (
     .W_DATA(W_DATA),
     .OUTPUT_REG(0),
     .W_ADDR(6)
-  )
-  sync_fifo_inst (
-    .almost_full_o(),
-    .prog_full_o(),
-    .full_o(full_dao),
-    .overflow_o(overflow_dao),
-    .wr_ack_o(),
-    .empty_o(o_empty_size_address),
-    .almost_empty_o(),
-    .underflow_o(),
-    .clk_i(i_clk),
-    .wr_en_i(wr_en_dai),
-    .rd_en_i(i_rd_en_size_address),
-    .wdata(wdata_dao),
-    .datacount_o(datacount_dao),
-    .rst_busy(),
-    .rdata(o_rd_size_address),
-    .a_rst_i(~i_rstn),
-    .o_valid(o_valid_size_address)
-  );
+)
+sync_fifo_inst (
+	.almost_full_o(),
+	.prog_full_o(),
+	.full_o(full_dao),
+	.overflow_o(overflow_dao),
+	.wr_ack_o(),
+	.empty_o(o_empty_size_address),
+	.almost_empty_o(),
+	.underflow_o(),
+	.clk_i(i_clk),
+	.wr_en_i(wr_en_dai),
+	.rd_en_i(i_rd_en_size_address),
+	.wdata(wdata_dao),
+	.datacount_o(datacount_dao),
+	.rst_busy(),
+	.rdata(o_rd_size_address),
+	.a_rst_i(~i_rstn),
+	.o_valid(o_valid_size_address)
+);
 
 /* Logic added for debugging */
 reg [15:0] counter1;

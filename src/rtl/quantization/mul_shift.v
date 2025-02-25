@@ -15,18 +15,18 @@ module mul_shift#(
   parameter SHIFT_WIDTH = 8  
 )(
   input                                 clk,
-  input [DATA_WIDTH-1:0]                dina, //input data from bias block
+  input signed [DATA_WIDTH-1:0]         dina, //input data from bias block
   input [SCALE_WIDTH-1:0]               dinb, //scale value from inst.
   input                                 enabled,
   output reg [DATA_WIDTH-1:0]           quantized_passthrough,
   output reg                            unquantized_valid,
-  output [OUT_DATA_WIDTH-1:0]           dout, 
+  output signed [OUT_DATA_WIDTH-1:0]    dout, 
   input                                 data_valid,
   output                                o_data_valid,
   input [SHIFT_WIDTH-1:0]               bit_shift
 );
-  wire [DATA_WIDTH*2-1:0]         w_dout;
-  reg  [DATA_WIDTH*2-1:0]         rdout=0;
+  wire signed [DATA_WIDTH*2-1:0]        w_dout;
+  reg  signed [DATA_WIDTH*2-1:0]        rdout=0;
   reg                                   r_data_valid=0;
   reg [DATA_WIDTH-1:0]                  r_dina;
 
@@ -54,7 +54,7 @@ module mul_shift#(
     end
   end
   
-  assign w_dout = (enabled==1)? ((rdout+(1<<(bit_shift-1))) >> bit_shift) : 0;
+  assign w_dout = (enabled==1)? ((rdout+(1<<(bit_shift-1))) >>> bit_shift) : 0;
   // assign w_dout = (enabled==1)? ((rdout+((1<<bit_shift)>>(1))) >> bit_shift) : 0;
   assign dout = w_dout[OUT_DATA_WIDTH-1:0];
   assign o_data_valid = r_data_valid;

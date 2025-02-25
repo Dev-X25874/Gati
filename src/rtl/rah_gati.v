@@ -140,6 +140,7 @@ module rah_gati #(
     parameter MIPI_FIFO     = 8, // Number of MIPI DWP FIFOs
     parameter BIAS_FIFO     = 8, // Number of bias FIFOs
     parameter OP_FIFO       = 2,  // Number of output write FIFOs
+    parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
     parameter NO_PORT_VA    = 2,
@@ -699,6 +700,7 @@ module rah_gati #(
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .OP_FIFO(OP_FIFO),
+      .ACC_FIFO(ACC_FIFO),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),

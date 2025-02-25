@@ -1018,8 +1018,8 @@ module top_gati_module #(
     end
   end
   assign weight_fifo_status = (CONV_FC==0)? 
-                              (((weight_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_c}})? 1 : 0) : 
-                              (((weight_occupants_fc[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
+                              (((weight_fifo_occupants[$clog2(WEIGHT_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_c}})? 1 : 0) : 
+                              (((weight_occupants_fc[$clog2(WEIGHT_FIFO_DEPTH):0]+virtual_occ_weight)<={{limit_f}})? 1 : 0);
 
   top_fifo_sharing#(
     .W_DATA(DATA_WIDTH),

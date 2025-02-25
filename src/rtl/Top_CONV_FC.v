@@ -256,7 +256,7 @@ module Top_CONV_FC #(
   );
 
   //parameters will change for top_SA (for CONV opeartion)
-  wire [OP_FIFO-1:0] empty_vector, almost_empty_vector;
+  wire [ACC_FIFO-1:0] empty_vector, almost_empty_vector;
   wire [(N_SA)-1:0] empty_sa, almost_empty_sa;
   wire [(N_SA)-1:0] opsum_rden;
 
@@ -306,7 +306,7 @@ module Top_CONV_FC #(
   op_psum_rden #(
       .N_SA(N_SA),
       .COL (COL_SA),
-      .FIFO(OP_FIFO)
+      .FIFO(ACC_FIFO)
   ) op_psum_rden_inst (
       .clk(i_clk),
       .rst(rst),

@@ -467,9 +467,9 @@ module rah_gati #(
   wire [NUM_PORTS-2:0] i_last;
 
    assign i_valid = {
-    mc_config_valid,    
+    mc_config_valid,
+    mc_wghts_valid,    
     mc_img_valid,
-    mc_wghts_valid,
     mc_fc_valid,
     mc_acc_valid,
     mc_op_write_valid,
@@ -480,8 +480,8 @@ module rah_gati #(
 
    assign in_address = {
     mc_config_addr,
-    mc_img_addr,
     mc_wghts_addr,
+    mc_img_addr,
     mc_fc_addr,
     mc_acc_addr,
     mc_op_write_addr,
@@ -492,8 +492,8 @@ module rah_gati #(
 
    assign in_BLEN = {
     mc_config_bl,
-    mc_img_bl,
     mc_wghts_bl,
+    mc_img_bl,
     mc_fc_bl,
     mc_acc_bl,
     mc_op_write_bl,
@@ -503,9 +503,9 @@ module rah_gati #(
    };
 
    assign i_enable = {
-    mc_config_rdreq,  
+    mc_config_rdreq,
+    mc_wghts_rdreq,  
     mc_img_rdreq,
-    mc_wghts_rdreq,
     mc_fc_rdreq,
     mc_acc_rdreq,
     mc_op_writereq,
@@ -516,8 +516,8 @@ module rah_gati #(
 
    assign i_last = {
     mc_config_last,
-    mc_img_last,
     mc_wghts_last,
+    mc_img_last,
     mc_fc_last,
     mc_acc_last,
     mc_op_write_last,

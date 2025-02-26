@@ -2,8 +2,8 @@
 
 `define MIPI_Wr 0
 `define Config 1
-`define Image 2
-`define Weight 3
+`define Image 3
+`define Weight 2
 `define FullyConn 4
 `define Acc 5
 `define OPWrite 6

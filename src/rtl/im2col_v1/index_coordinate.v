@@ -21,7 +21,8 @@ module index_coordinate_v1 #(
     output         o_valid_buff,                                         //    [1]=bottom
     output                     o_valid_data ,                                         //    [0]=left
     output    reg o_im2col_done,
-    input         i_stall_on
+    input         i_stall_on,
+    output    reg r_start_im2col
 
 
 );
@@ -81,8 +82,8 @@ module index_coordinate_v1 #(
             curr_col <= LOWER_BOUND;
           end     
           end else begin
-            curr_row <= curr_row;
-            curr_col <= curr_col;
+            curr_row <= 0;
+            curr_col <= 0;
           end
         end
     end

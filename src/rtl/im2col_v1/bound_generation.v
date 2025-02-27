@@ -19,7 +19,10 @@ module bound_generation_v1 #(
   input  [DATA_WIDTH-1:0]             valid_sq_data_i,   //Input data from the previous block 
   output [DATA_WIDTH-1:0]             valid_sq_data_o,    //Output data
   output                              o_valid,
-  input                               i_stall_on
+  input                               i_stall_on,
+  input                               r_start_im2col,
+  input im2col_start,
+  input im2col_done
   //input  [$clog2(STRIDE):0]           stride
 );
 
@@ -129,8 +132,24 @@ always @(posedge clk) begin
   end 
 end
 
+
+//Generation of im2col_start_flag
+reg r_im2col_start_flag = 0;
+always@(posedge clk) begin
+  if(!rstn) begin
+    r_im2col_start_flag <= 0;
+  end
+  else begin
+    if(im2col_start) r_im2col_start_flag <= 1;
+    else if(im2col_done) r_im2col_start_flag <= 0;
+  end
+end
+
 assign o_valid = i_valid;
-assign valid_sq = valid_sq_reg; 
+
+assign valid_sq = (r_im2col_start_flag) ? valid_sq_reg : 0 ; 
+
+
 assign valid_sq_data_o = r_data_i;
 
 endmodule

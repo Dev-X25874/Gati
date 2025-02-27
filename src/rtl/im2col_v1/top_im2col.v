@@ -74,8 +74,11 @@ module top_im2col_v1 #(
         .o_valid_data(valid),
         .o_valid_buff(o_valid_buff),
         .o_im2col_done(o_im2col_done),
-        .i_stall_on   (i_stall_on)
+        .i_stall_on   (i_stall_on),
+        .r_start_im2col (r_start_im2col)
     );
+
+    wire r_start_im2col;
 
     bound_generation_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE)) bound_dut(
         .clk(clk_in),
@@ -91,7 +94,10 @@ module top_im2col_v1 #(
         .valid_sq_data_o(w_data),
         //.stride(stride),
         .o_valid(o_valid),
-        .i_stall_on(i_stall_on)
+        .i_stall_on(i_stall_on),
+        .r_start_im2col(r_start_im2col),
+        .im2col_start(i_start_im2col_index),
+        .im2col_done(o_im2col_done)
     );
     
     // Delay registers to match the initial delay of stride_block

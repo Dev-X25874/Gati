@@ -608,7 +608,7 @@ module top_gati_module #(
     .KH(kernel_height),
     .Stride(stride),
     .Pad(conv_zeropad),
-    .Pad_side(Pad_side)
+    .Pad_side(Pad_side),
     .ImageStartAddress_conv(img_start_address),
     .ImageEndAddress_conv(img_stop_address),
     .WeightStartAddress_conv(weight_start_addr_conv),

@@ -259,42 +259,6 @@ generate
     end
 endgenerate
 
-//assign delayed_out = delay_reg[6];
-/*
-  top_im2col #(
-      .UPPER_BOUND (IMAGE_DIM),
-      .DATA_WIDTH  (DATA_WIDTH),
-      .LOWER_BOUND (1),
-      .MAX_VALID_SQ(ROW)
-  ) im2col (
-      .i_valid_mat_size(valid_img_size_im2col),
-      .i_start_im2col_top(im2col_global_start),
-      .i_im2col_data(8'd0),
-      .i_clk(i_clk),
-      .i_rstn(rst),
-      .stall_on(stall_on), 
-	    .o_im2col_data(im2col_o_data),
-      .o_valid_squares(o_valid_squares),
-      .o_row1(),
-      .o_row2(),
-      .o_row3(),
-      .o_row4(),
-      .o_row5(),
-      .o_row6(),
-      .o_row7(),
-      .o_row8(),
-      .o_row9(),
-      .row(row),
-      .col(col),
-      .i_mat_size(image_size),
-      .i_zero_pad(),
-      .o_valid_data(im2col_o_valid),
-      .o_valid_buff(read_buf_data), //read signal to im2col buffers
-      .i_valid_data(1'b0),
-      .im2col_done(im2col_done)  // lookhere
-  );
-*/
-  
 
 // im2col version 1 instance 
   top_im2col_v1 # (.KERNEL_SIZE(KERNEL_SIZE),

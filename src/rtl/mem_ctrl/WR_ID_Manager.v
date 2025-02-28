@@ -108,7 +108,6 @@ always @(*) begin
     wready_out = wready;
 end 
 
-assign w_en_ack = w_en_ack_reg;
 
 /*
 pulse_gen one_pulse_inst

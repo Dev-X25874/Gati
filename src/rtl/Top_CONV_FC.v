@@ -45,8 +45,8 @@ module Top_CONV_FC #(
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
-    parameter N_BANK = 16,
-    parameter N_BRAM = 2,
+    parameter N_BANK = 8,
+    parameter N_BRAM = 4,
     parameter W_FC_RW_COUNTER = 10, // width of r/w address counter
     parameter FC_BRAM_DEPTH = 128,
     parameter W_KERNEL_CNT = 16,
@@ -236,7 +236,7 @@ module Top_CONV_FC #(
   wire [DATA_WIDTH -1:0] im2col_o_data;
   
   always @(posedge i_clk) begin
-	   sel_mux =(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
+	  sel_mux <= (im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
   wire [N_SA-1:0] maxpool_valid;
   wire [(N_SA*DATA_WIDTH) -1:0] maxpool_output;
@@ -316,7 +316,7 @@ endgenerate
   //parameters will change for top_SA (for CONV opeartion)
   wire [ACC_FIFO-1:0] empty_vector, almost_empty_vector;
   wire [(N_SA)-1:0] empty_sa, almost_empty_sa;
-  wire [(N_SA)-1:0] opsum_rden;
+  wire [(N_SA)-1:0] opsum_rden, psum_rden;
 
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
   wire [N_SA-1:0] valid_psum;
@@ -849,8 +849,9 @@ endgenerate
       assign acc_op_wren = (&(zp_unquant_dv))? {ACC_OP_FIFO{1'b1}} : {ACC_OP_FIFO{1'b0}};
       assign sel_dmx     = 0;
     end
-  endgenerate
-
+  endgenerate  
+  
+  
   Dmux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
     .DATA_WIDTH(N_SA*DATA_WIDTH_ACC),

@@ -4,7 +4,7 @@
 // Project Name: Gati
 // Description: Is the top module that integrates all the sub modules of the configuration block.
 //////////////////////////////////////////////////////////////////////////////////
-`include "instructions.vh"
+`include "../common/instructions.vh"
 module config_blk #(
     parameter  ADDR_W=32,
     parameter  INST_W=256,

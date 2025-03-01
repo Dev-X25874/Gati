@@ -33,7 +33,7 @@ module OP_FC #(parameter OP_CODE_WIDTH = 4,
                 output reg [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols = 0
             );
 
-            `include "../../common/instructions.vh"
+            `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

@@ -52,7 +52,7 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0
         );
 
-        `include "../../common/instructions.vh"
+        `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

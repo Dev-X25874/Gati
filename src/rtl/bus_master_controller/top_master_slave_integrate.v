@@ -115,7 +115,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [ADDRESS_WIDTH - 1 : 0] BiasEndAddress
     );
 
-    `include "../../common/instructions.vh"
+    `include "../common/instructions.vh"
 //localparam APPEND = ((1<<OP_CODE_WIDTH) - NO_OF_OPERATOR);
 wire [(OUTPUT_WIDTH)-1 : 0] dout_top_master; 
 wire [(1<<OP_CODE_WIDTH)-1 : 0] select_line; 

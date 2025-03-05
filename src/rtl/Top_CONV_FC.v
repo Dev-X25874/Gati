@@ -57,7 +57,9 @@ module Top_CONV_FC #(
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
     parameter  CONV_KW_WIDTH = 4,
-    parameter CONV_PADSIDES_WIDTH =4
+    parameter CONV_PADSIDES_WIDTH =4,
+    parameter CONV_PAD_WIDTH = 3
+
 
 ) (
 
@@ -113,6 +115,8 @@ module Top_CONV_FC #(
     input quant_enable,
     input bias_fc_enable,
     input zero_pad_enable,
+
+    input [CONV_PAD_WIDTH-1:0] conv_zeropad,
     
     //im2col signals
     input [W_CONV_IMAGE_DIM-1:0] image_size,
@@ -275,7 +279,7 @@ endgenerate
       .i_start_im2col_index(im2col_global_start),
       .zero_pad(Pad_side),
       .ksize(kernel_width),  // instructions gives two output's Width and height but the im2col does not support the rectangluar kernal so anything will work fine 
-      .zero_padded(zero_pad_enable), 
+      .zero_padded(conv_zeropad), 
       .i_mat_size(image_size),
       .valid_sq(o_valid_squares),
       .o_valid(im2col_o_valid),

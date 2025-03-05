@@ -1299,7 +1299,8 @@ module top_gati_module #(
       .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH (CONV_KW_WIDTH),
-      .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH)
+      .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
+      .CONV_PAD_WIDTH(CONV_PAD_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
@@ -1351,6 +1352,7 @@ module top_gati_module #(
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),
       .zero_pad_enable(zero_pad_enable),
+      .conv_zeropad(conv_zeropad),
       .image_size(input_img_width),
       .valid_img_size_im2col(valid_conv), //valid inst conv
       .im2col_global_start(im2col_global_start),

@@ -9,7 +9,7 @@ module stride_mod_v1 #(
         input [$clog2(UPPER_BOUND)-1:0] lower_bound_row,
         input [$clog2(UPPER_BOUND)-1:0] lower_bound_col,
         input [$clog2(UPPER_BOUND)-1:0] col,
-        input [$clog2(STRIDE):0] stride,
+        input [STRIDE-1:0] stride,
         output o_mod
     );
 

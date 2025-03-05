@@ -20,7 +20,7 @@ module top_im2col_v1 #(
         output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq,           
         output                                 o_valid,
         output [DATA_WIDTH-1:0]                valid_sq_data_o,
-        input  [$clog2(STRIDE):0]              stride,
+        input  [STRIDE-1:0]              stride,
         output                                 o_valid_buff,
         output                                 o_im2col_done,
         input                                  i_stall_on,
@@ -99,7 +99,7 @@ module top_im2col_v1 #(
     .o_data(valid_sq_data_o)
     );
     
-    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE), .UPPER_BOUND(UPPER_BOUND)) stride_dut(
+    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
     .clk(clk_in),
     .rst(rstn),
     .stride(stride),

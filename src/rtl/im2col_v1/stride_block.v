@@ -8,7 +8,7 @@ module stride_block_v1 #(
         input rst,
         input  [$clog2(UPPER_BOUND)-1:0] curr_row,
         input  [$clog2(UPPER_BOUND)-1:0] curr_col,
-        input  [$clog2(STRIDE):0]        stride, 
+        input  [STRIDE-1:0]        stride, 
         input  [$clog2(KERNEL_SIZE):0]   ksize,
         output [KERNEL_SIZE*KERNEL_SIZE-1:0] valid_stride
     );

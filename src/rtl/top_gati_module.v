@@ -517,7 +517,7 @@ module top_gati_module #(
       im2col_flag <= 0;
     end
     else begin
-	  	if(row==5 && col==1) begin
+	  	if(row== 28 && col==1) begin
 		  im2col_flag<=1;
 	  	end
 

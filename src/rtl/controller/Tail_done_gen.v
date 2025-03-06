@@ -9,7 +9,7 @@ module Tail_done_gen#(
     input CONV_FC,
     input [N -1:0] datavalid_acc,
     input [N -1:0] datavalid_pool,
-    input pool_en,
+    input quant_en, 
     input [I_ACC_SIZE_WIDTH-1:0] img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] img_dim_Op,
 
@@ -25,9 +25,11 @@ reg [I_SIZE_WIDTH : 0] counter;
 reg state;
 reg r_tail_done;
 
+// TODO : write for stride and pad 
+
 always @ (posedge i_clk) begin 
 	if(~CONV_FC) begin	
-		if (~pool_en) begin
+		if (~quant_en) begin
 		    data_count<=img_dim_Acc;
 		end
 		else begin 

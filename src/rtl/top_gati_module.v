@@ -1101,6 +1101,8 @@ module top_gati_module #(
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
 
+  // TODO : Remove the below code after testing as the zero pad enable is no more needed remove from Top_CONV_FC input as well 
+  
   reg  zero_pad_enable;
   always @ (posedge i_clk) begin 
    zero_pad_enable <= |(conv_zeropad);

@@ -1,7 +1,8 @@
 module index_coordinate_v1 #(
     parameter UPPER_BOUND = 28,
     parameter DATA_WIDTH = 8,
-    parameter LOWER_BOUND = 1) 
+    parameter LOWER_BOUND = 1,
+    parameter CONV_PAD_WIDTH = 3 ) 
 (
     input                                   valid_mat_size,
 //    output                                o_start_im2col_ctrl,
@@ -17,7 +18,7 @@ module index_coordinate_v1 #(
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_col,
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_row,
     input  [3:0]                            zero_pad, //Each bit represents one side of the image,i.e., [3]=top
-    input  [1:0]                            zero_padded,//No. of 0's to be padded                                              [2]=right
+    input  [CONV_PAD_WIDTH-1:0]            zero_padded,//No. of 0's to be padded                                              [2]=right
     output         o_valid_buff,                                         //    [1]=bottom
     output                     o_valid_data ,                                         //    [0]=left
     output    reg o_im2col_done,

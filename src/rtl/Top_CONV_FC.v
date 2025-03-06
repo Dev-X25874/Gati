@@ -269,7 +269,8 @@ endgenerate
                 .UPPER_BOUND(IMAGE_DIM),
                 .LOWER_BOUND(1),
                 .DATA_WIDTH(DATA_WIDTH),
-                .STRIDE(STRIDE)) 
+                .STRIDE(STRIDE),
+                .CONV_PAD_WIDTH(CONV_PAD_WIDTH))
 
     im2col_v1 (
       .clk_in(i_clk),
@@ -754,7 +755,7 @@ endgenerate
       .CONV_FC(CONV_FC),
       .datavalid_acc(zp_unquant_dv),
       .datavalid_pool(zp_valid),
-      .pool_en(maxpool_enable),
+      .quant_en(quant_enable),
       .img_dim_Acc(i_img_dim_Acc),
       .img_dim_Op(i_img_dim_Op),
       .Tail_done(Tail_done)

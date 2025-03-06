@@ -16,7 +16,8 @@ module top_im2col_v1 #(
     parameter UPPER_BOUND = 224,
     parameter LOWER_BOUND = 1,
     parameter DATA_WIDTH = 8,
-    parameter STRIDE = 3)
+    parameter STRIDE = 3,
+    parameter CONV_PAD_WIDTH = 3)
     (
         input  clk_in,
         input  rstn,
@@ -26,7 +27,7 @@ module top_im2col_v1 #(
         input  [DATA_WIDTH-1:0] i_data,
         input  [3:0] zero_pad,
         input  [$clog2(KERNEL_SIZE):0] ksize,
-        input  [1:0] zero_padded,
+        input  [CONV_PAD_WIDTH-1:0] zero_padded,
         input  [$clog2(UPPER_BOUND)-1:0] i_mat_size,
         output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq,           
         output o_valid,
@@ -56,7 +57,7 @@ module top_im2col_v1 #(
     assign o_col = w_col;
 
 
-    index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH)) index_dut(
+    index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .CONV_PAD_WIDTH(CONV_PAD_WIDTH)) index_dut(
         .clk(clk_in),
         .rstn(rstn),
         .i_data(i_data),

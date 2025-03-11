@@ -1,59 +1,61 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-	  parameter DATA_WIDTH = 8,
-    parameter COL_SA = 4,
+    parameter DATA_WIDTH = 8,
+    parameter COL_SA = 1,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
     parameter QUANT_SCALE = 16,
-    parameter ROW = 9,
+    parameter ROW = 16,
     parameter DRAM_BW = 32,
     parameter W_PSUM = 20,
-    parameter MOD1 = 2,
-    parameter MOD2 = 8,
+    parameter MOD1 = 1,
+    parameter MOD2 = DRAM_BW/N_SA,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
     parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
     // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
-    parameter SHFT_REG_X = 4,
-    parameter BIAS_FIFO = 8, // Number of bias fifos
-    parameter OP_FIFO = 8, // Number of o/p fifos
-    parameter ACC_FIFO = 8, // Number of accumulant fifos
+    parameter SHFT_REG_X = DRAM_BW/N_SA,
+    parameter BIAS_FIFO = 16, // Number of bias fifos
+    parameter ACC_OP_FIFO = 1, // Number of accumulant o/p fifos
+    parameter QUANT_OP_FIFO = 1, // Number of quantized o/p fifos
+    parameter ACC_FIFO = 16, // Number of accumulant fifos
     parameter WEIGHT_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH = 1024,
-    parameter PSUM_FIFO_DEPTH = 8192,
+    parameter PSUM_FIFO_DEPTH = 512,
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512,
-    parameter NSA_DSP = 4,
-    parameter N_FC_MUX = 4,
-    parameter NO_PORT_FC = 8,
+    parameter NSA_DSP = 8,
+    parameter N_FC_MUX = 16,
+    parameter NO_PORT_FC = 2,
     parameter RELU_CLIP_WIDTH = 8,
     parameter ACT_TYPE_WIDTH = 4,
-    parameter NSA_LUT = 0,
-    parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
-    parameter NO_PORT_VA = 2,
-    parameter NO_PORT_BAC = 2,
-    parameter NO_PORT_BAFC=8,
-    parameter POP_THRESHOLD=5	,
+    parameter NSA_LUT = 8,
+    parameter BIAS_FIFO_FC = 32, // Number of FC_bias fifos
+    parameter ACC_TOGGLE = 0,
+    parameter NO_PORT_VA = 1,
+    parameter NO_PORT_BAC = 1,
+    parameter NO_PORT_BAFC = 16,
+    parameter POP_THRESHOLD = 3	,
     // parameter I_SIZE_WIDTH=20, // input image data width
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
-    parameter N_DMUX_PORTS = 2,
+    parameter N_DMUX_PORTS = 1,
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
-    parameter N_BANK = 4,
-    parameter N_BRAM = 8,
+    parameter N_BANK = 16,
+    parameter N_BRAM = 2,
     parameter W_FC_RW_COUNTER = 10, // width of r/w address counter
-    parameter FC_BRAM_DEPTH = 1024,
+    parameter FC_BRAM_DEPTH = 128,
     parameter W_KERNEL_CNT = 16,
     parameter W_FC_IMAG_DIM = 20,
-    parameter ACC_DATA_REORDER = 1, //parameter to specify FC o/p data reordering is required or not
+    parameter ACC_DATA_REORDER = 0, //parameter to specify FC o/p data reordering is required or not
 
     // im2col_v1 parameter
 
-    parameter KERNEL_SIZE = 3,  // im2col kernal size
+    parameter KERNEL_SIZE = 4,  // im2col kernal size
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
     parameter  CONV_KW_WIDTH = 4,
@@ -69,8 +71,6 @@ module Top_CONV_FC #(
     input rst,
     input [DRAM_BW-1:0] image_fifo_empty,
     input CONV_FC,
-    // input switch_enable,
-    //	input CONV_FC,
     input op_full,
     input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
     //weight fifo sharing signals
@@ -107,7 +107,7 @@ module Top_CONV_FC #(
     input layer_done,
     input iteration_Done,
     input channel_done,
-    input [SHFT_REG_X-1:0] shift_reg_sel,
+    input [N_SA-1:0] shift_reg_sel,
     input systolic_array_trigger,
     input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
     input [ACT_TYPE_WIDTH-1:0] relu_act_type,
@@ -138,14 +138,16 @@ module Top_CONV_FC #(
     input [CONV_KW_WIDTH-1:0] kernel_width,
     input [CONV_PADSIDES_WIDTH-1 :0] Pad_side,
     
-    // output write signals
-    output [(DATA_WIDTH_ACC*N_SA*(OP_FIFO)) -1:0] op_write_dmux_data,
-    // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b,
-    // output [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c,
-    output [OP_FIFO-1:0] op_wren,
-	  output  [$clog2(IMAGE_DIM)-1:0]      row,    
- 	  output  [$clog2(IMAGE_DIM)-1:0]      col,
+    // accumulant output write signals
+    output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
+    output [ACC_OP_FIFO-1:0] acc_op_wren,
+    // quantized output write signals
+    output [(DATA_WIDTH*N_SA*SHFT_REG_X*(QUANT_OP_FIFO)) -1:0] quant_op_write_data,
+    output [QUANT_OP_FIFO-1:0] quant_op_wren,
+    
     //operator status signals
+    output  [$clog2(IMAGE_DIM)-1:0]      row,    
+    output  [$clog2(IMAGE_DIM)-1:0]      col,
     output im2col_done,
     output SA_psum_fifo_empty,
     output Tail_done,
@@ -165,15 +167,14 @@ module Top_CONV_FC #(
 
   localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
   localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
+  localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (DRAM_BW*DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
 
-
- 	wire [COL_SA -1:0] relu_valid;
-	wire [(COL_SA*DATA_WIDTH) -1:0] relu_output;
+ 	wire [N_SA -1:0] relu_valid;
+	wire [(N_SA*DATA_WIDTH) -1:0] relu_output;
 
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
 
-  //
   // Data buffers between DRAM image FIFO and im2col FIFOs 
   wire [($clog2(DRAM_BW/N_SA))-1:0] element_poped;
   // Write buffer controller
@@ -194,7 +195,7 @@ module Top_CONV_FC #(
     
   //Data buffers
   top_buffer #(
-      .BUFFER_SIZE(8),
+      .BUFFER_SIZE(DATA_WIDTH),
       .N_SA(N_SA),
       .DRAM_BW(DRAM_BW)
   ) buffers (
@@ -218,13 +219,11 @@ module Top_CONV_FC #(
   always @(*) begin
 	   sel_mux =(im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
   end
-  wire [COL_SA-1:0] maxpool_valid;
-  wire [(COL_SA*DATA_WIDTH) -1:0] maxpool_output;
-  wire [(COL_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
+  wire [N_SA-1:0] maxpool_valid;
+  wire [(N_SA*DATA_WIDTH) -1:0] maxpool_output;
+  wire [(N_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
 
-  wire [COL_SA-1:0] x_final_valid;
-
-
+  wire [N_SA-1:0] x_final_valid;
 
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}}; 
@@ -347,10 +346,10 @@ endgenerate
 
       .i_psum_ff_array_read_en(opsum_rden),
       .p_full_output(p_full_output),
-	    .o_psum_ff_array_partial_sums(o_psum_ff_array),
+      .o_psum_ff_array_partial_sums(o_psum_ff_array),
       .o_psum_ff_array_empty(empty_sa),
       .o_psum_ff_array_almost_empty(almost_empty_sa),
-	    .o_psum_ff_array_dv(valid_psum),
+      .o_psum_ff_array_dv(valid_psum),
       .i_done(iteration_Done),
       .i_layer_done(layer_done),
       .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
@@ -372,7 +371,7 @@ endgenerate
       .almost_empty_vector(almost_empty_vector),
       .empty_sa(empty_sa),
       .almost_empty_sa(almost_empty_sa),
-	    .op_full(op_full),
+      .op_full(op_full),
       .vector_enable(vector_add_enable),
       .opsum_rden(opsum_rden)
   );
@@ -383,24 +382,32 @@ endgenerate
 
 
   /// Adder Tree
-  wire [COL_SA-1:0] valid_tree;
-  wire [(COL_SA*DATA_WIDTH_OB)-1:0] result_tree;
-  top_adder_tree_gen #(
-      .W_PSUM(W_PSUM),
-      .COL(COL_SA), 
-      .N_SA(N_SA),
-      .NSA_DSP(NSA_DSP),
-      .NSA_LUT(NSA_LUT),
-      .DATA_WIDTH_OB(DATA_WIDTH_OB)
-  ) adder_tree (
-      .clk(i_clk),
-      .rst(rst),
-      .o_psum_ff_array(o_psum_ff_array),
-      .valid_in({COL_SA{valid_psum}}),
-      .valid_out(valid_tree),
-      .result_final(result_tree)
-  );
- 
+  wire [N_SA-1:0] valid_SA;
+  wire [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA;
+  
+  generate
+    if(COL_SA>1) begin
+    top_adder_tree_gen #(
+        .W_PSUM(W_PSUM),
+        .COL(COL_SA), 
+        .N_SA(N_SA),
+        .NSA_DSP(NSA_DSP),
+        .NSA_LUT(NSA_LUT),
+        .DATA_WIDTH_OB(DATA_WIDTH_OB)
+    ) adder_tree (
+        .clk(i_clk),
+        .rst(rst),
+        .i_psum_ff_array(o_psum_ff_array),
+        .valid_in({COL_SA{valid_psum}}),
+        .valid_out(valid_SA),
+        .result_final(dataout_SA)
+    );
+    end
+    else begin
+      assign valid_SA = valid_psum;
+      assign dataout_SA = o_psum_ff_array;
+    end
+  endgenerate
   
   //Modules for FC layer computation starts here
   wire [DATA_WIDTH-1:0] data_flatten_FC;
@@ -445,19 +452,19 @@ endgenerate
 
  
   // FC Computing Engine
-  reg [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  reg [COL_SA-1:0] dv_SA_FC;
+  reg [(DATA_WIDTH_OB*N_SA)-1:0] data_SA_FC;
+  reg [N_SA-1:0] dv_SA_FC;
   wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
   wire valid_out_FC;
   //interconnect of SA and FC
   always @ (*) begin
 	if(CONV_FC) begin 
 		data_SA_FC = op_data_mux_FC;
-		dv_SA_FC = {COL_SA{valid_out_FC}};
+		dv_SA_FC = {N_SA{valid_out_FC}};
 	end 
 	else begin 
-		data_SA_FC = result_tree;
-		dv_SA_FC = valid_tree;
+		data_SA_FC = dataout_SA;
+		dv_SA_FC = valid_SA;
 	end
   end
 // assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
@@ -558,7 +565,7 @@ endgenerate
   endgenerate
  
   
-  wire [(DATA_WIDTH_OB*COL_SA) -1:0] output_block_out; // From here onwards COL_SA or N_SA?:Todo
+  wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; // From here onwards COL_SA or N_SA?:Todo
   wire [N_SA-1:0] vector_valid;
   // Vector addition block for addition of psum accumulants
   top_output_block #(
@@ -568,6 +575,7 @@ endgenerate
       .N(N_SA),
       .COL_SA(COL_SA),
       .FIFO_NO(ACC_FIFO),
+      .TOGGLE(ACC_TOGGLE),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA)
   ) vector_addition (
@@ -590,15 +598,15 @@ endgenerate
   );
 
   
-  wire [(DATA_WIDTH_OB*COL_SA) -1:0] bias_output;
+  wire [(DATA_WIDTH_OB*N_SA) -1:0] bias_output;
   wire [N_SA-1:0] bias_valid;
   //CONV Bias addition block
   top_bias_block #(
       .DATA_WIDTH(DATA_WIDTH_OB),
       .W_ADDR($clog2(BIAS_FIFO_DEPTH)),
-      .N(COL_SA),
+      .N(N_SA),
       .BIAS(1),
-      .TOGGLE(1),
+      .TOGGLE(0),
       .FIFO_NO(BIAS_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_BAC)
@@ -619,38 +627,38 @@ endgenerate
   );
   
   
-  wire [(DATA_WIDTH*COL_SA) -1:0] quantized_output;
-  wire [(DATA_WIDTH_OB*COL_SA) -1:0] unquantized_output;
-  wire [COL_SA -1:0] unquantized_valid;
-  wire [COL_SA-1:0] tail_valid;
+  wire [(DATA_WIDTH*N_SA) -1:0] quantized_output;
+  wire [(DATA_WIDTH_OB*N_SA) -1:0] unquantized_output;
+  wire [N_SA -1:0] unquantized_valid;
+  wire [N_SA-1:0] tail_valid;
   top_quant_gen #(
       .DATA_WIDTH(DATA_WIDTH_OB),
       .SHIFT_WIDTH(QUANT_SHIFT),
       .SCALE_WIDTH(QUANT_SCALE),
       .OUT_DATA_WIDTH(DATA_WIDTH),
-      .N(COL_SA)
+      .N(N_SA)
   ) quant (
       .top_i_clk(i_clk),
       .top_i_data_quant(bias_output),
-      .top_i_data_scale({COL_SA{quant_scale}}), //from tail inst.
+      .top_i_data_scale({N_SA{quant_scale}}), //from tail inst.
       .enable_quant(quant_enable),  //from iteration cnter
       .top_o_data(quantized_output),
       .quantized_passthrough(unquantized_output),
       .top_i_data_valid(bias_valid),
       .unquantized_valid(unquantized_valid),
       .top_o_data_valid(tail_valid),
-      .top_i_bit_shift({COL_SA{shift_value}}) //from tail inst.
+      .top_i_bit_shift({N_SA{shift_value}}) //from tail inst.
   );
   
   
-  wire [(DATA_WIDTH*COL_SA)-1:0] bias_fc_out ;
-  wire [COL_SA-1:0] bias_fc_valid;
+  wire [(DATA_WIDTH*N_SA)-1:0] bias_fc_out ;
+  wire [N_SA-1:0] bias_fc_valid;
 
   top_bias_fc #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH($clog2(BIAS_FIFO_DEPTH)),
     .DRAM_BW(DRAM_BW),
-    .N(COL_SA),    
+    .N(N_SA),    
     .FIFO_NO(BIAS_FIFO_FC),
     .OUT_DATA_WIDTH(DATA_WIDTH),
     .NO_PORT(NO_PORT_BAFC)
@@ -670,7 +678,7 @@ endgenerate
 
   
   top_relu_gen #(
-      .N(COL_SA),
+      .N(N_SA),
       .DATA_WIDTH(DATA_WIDTH),
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .CLIP_WIDTH(RELU_CLIP_WIDTH)
@@ -681,8 +689,8 @@ endgenerate
       .relu_enable(relu_enable), //from iteration cnter
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),
-      .top_i_clip({COL_SA{relu_clip_value}}), //from tail inst.
-      .top_i_acttype({COL_SA{relu_act_type}})
+      .top_i_clip({N_SA{relu_clip_value}}), //from tail inst.
+      .top_i_acttype({N_SA{relu_act_type}})
   );
   
    maxpool_gen #(
@@ -700,11 +708,11 @@ endgenerate
       .datavalid_o(maxpool_valid)
   );
   
-  wire [(DATA_WIDTH_ACC*COL_SA)-1 : 0] zp_unquantized_din;
-  wire [COL_SA-1:0] zp_valid;
-  wire [(COL_SA*DATA_WIDTH) -1:0] zp_data;
-  wire [(DATA_WIDTH_ACC*COL_SA) -1:0] zp_unquant_data;
-  wire [COL_SA -1:0] zp_unquant_dv;
+  wire [(DATA_WIDTH_ACC*N_SA)-1 : 0] zp_unquantized_din;
+  wire [N_SA-1:0] zp_valid;
+  wire [(N_SA*DATA_WIDTH) -1:0] zp_data;
+  wire [(DATA_WIDTH_ACC*N_SA) -1:0] zp_unquant_data;
+  wire [N_SA -1:0] zp_unquant_dv;
 
   //Total data_size of CONV output. This is calculated to determine number of zeros to be generated by zero padder
   (* syn_use_dsp = "no" *) wire [I_ACC_SIZE_WIDTH-1:0] conv_op_img_size;
@@ -720,7 +728,7 @@ endgenerate
   //zero padding circuit
   top_zero # (
     .DW(DATA_WIDTH),
-    .COL(COL_SA),
+    .COL(N_SA),
     .I_SIZE_WIDTH(I_OP_SIZE_WIDTH), //width of image dimension
     .MOD(MOD2)
   )
@@ -738,15 +746,15 @@ endgenerate
   
   genvar j;
   generate
-    for(j=0;j<COL_SA;j=j+1) begin
-      assign zp_unquantized_din[((DATA_WIDTH_ACC*(COL_SA-j))-1) -: DATA_WIDTH_ACC] = 
-      unquantized_output[((DATA_WIDTH_OB*(COL_SA-j)-REMOVE)-1) -: DATA_WIDTH_ACC];
+    for(j=0;j<N_SA;j=j+1) begin
+      assign zp_unquantized_din[((DATA_WIDTH_ACC*(N_SA-j))-1) -: DATA_WIDTH_ACC] = 
+      unquantized_output[((DATA_WIDTH_OB*(N_SA-j)-REMOVE)-1) -: DATA_WIDTH_ACC];
     end
   endgenerate
 
   top_zero # (
     .DW(DATA_WIDTH_ACC),
-    .COL(COL_SA),
+    .COL(N_SA),
     .I_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
     .MOD(MOD1)
   )
@@ -761,10 +769,9 @@ endgenerate
   );
 
   
-
   //Tail_done signal generation logic
   Tail_done_gen #(
-      .N(COL_SA),
+      .N(N_SA),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
       .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH)
   ) tail_done_inst(
@@ -779,34 +786,50 @@ endgenerate
       .Tail_done(Tail_done)
   );
   
-  generate_shift_register #(
-      .N(COL_SA),
+  /*Quantized output write logic - only qunatized output is passed through shift register
+    whereas accumulant output is passed through demux separately
+  */
+  generate_shift_register #( 
+      .N(N_SA),
       .NUM_SHIFT(SHFT_REG_X),
-      .ACC_DATA_WIDTH(DATA_WIDTH_ACC),
       .QUANT_DATA_WIDTH(DATA_WIDTH),
       .DATA_WIDTH(DATA_WIDTH)
   ) shift_register_x (
-      .intermediate_result(zp_unquant_data),
       .quantized_result_in(zp_data),
-      .sel(shift_reg_sel),  //from iteration cnter
-      .valid_intermediate_result(zp_unquant_dv),
       .valid_quantized_result(zp_valid),
       .clk(i_clk),
       .valid_out_final(x_final_valid),
       .data_out(x_final_data)
   );
 
-  // generate
-  //   if(N_DMUX_PORTS>1) begin
+  assign quant_op_write_data = x_final_data;
+  assign quant_op_wren = (&(x_final_valid)) ? {QUANT_OP_FIFO{1'b1}} : 0;
 
-  //   end
-  //   else begin
-  //     assign op_wren = (&(x_final_valid))? {OP_FIFO{1'b1}} : {OP_FIFO{1'b0}};
-  //   end
-  // endgenerate  
-  
-  wire [$clog2(N_DMUX_PORTS)-1 : 0] sel_dmx;
-  wire [(N_DMUX_PORTS)-1 : 0] op_write_dmux_datavalid;
+  // Accumulant output write logic
+  localparam DMUX_SEL_WIDTH = (N_DMUX_PORTS > 1)? $clog2(N_DMUX_PORTS) : 1;
+  wire [DMUX_SEL_WIDTH-1 : 0] sel_dmx;
+  wire [(N_DMUX_PORTS)-1 : 0] acc_op_write_datavalid;
+
+  generate
+    if(N_DMUX_PORTS>1) begin
+      demux_controller_sel_op # (
+        .COL(1),
+        .NUM_PORTS(N_DMUX_PORTS),
+        .OP_FIFO_WRITE(ACC_OP_FIFO)
+      )
+      demux_sel_ctr (
+        .rst(rst&(~iteration_Done)),
+        .clk(i_clk),
+        .data_valid(&(acc_op_write_datavalid)),
+        .op_wren(acc_op_wren),
+        .sel(sel_dmx)
+      );
+    end
+    else begin
+      assign acc_op_wren = (&(acc_op_write_datavalid))? {ACC_OP_FIFO{1'b1}} : {ACC_OP_FIFO{1'b0}};
+      assign sel_dmx     = 0;
+    end
+  endgenerate
 
   Dmux_param #(
     .NUM_PORTS(N_DMUX_PORTS),
@@ -814,27 +837,11 @@ endgenerate
     .COL_SA(1)
   )
   dmux_param_inst(
-    .i_din(x_final_data),
-    .i_datavalid(&(x_final_valid)),
+    .i_din(zp_unquant_data),
+    .i_datavalid(&(zp_unquant_dv)),
     .i_sel(sel_dmx),
-    .o_dout(op_write_dmux_data),
-    .o_datavalid(op_write_dmux_datavalid)
-  );
-
-
-
-
-  demux_controller_sel_op # (
-    .COL(1),
-    .NUM_PORTS(N_DMUX_PORTS),
-    .OP_FIFO_WRITE(OP_FIFO)
-  )
-  demux_sel_ctr (
-    .rst(rst&(~iteration_Done)),
-    .clk(i_clk),
-    .data_valid(&(x_final_valid)),
-    .op_wren(op_wren),
-    .sel(sel_dmx)
+    .o_dout(acc_op_write_data),
+    .o_datavalid(acc_op_write_datavalid)
   );
   
 endmodule

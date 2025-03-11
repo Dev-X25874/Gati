@@ -68,37 +68,49 @@ assign w_empty_flag=empty_flag;
   wire [(DATA_WIDTH*N)-1:0] mux_out;
   wire [$clog2(NO_PORT)-1:0] sel_conv,sel_fc;
   wire [N-1:0] valid_mux;
-  wire [NO_PORT-1:0] sel_mux;
-//   assign sel_mux = 1 << sel_conv;
-  
-  //delay sel_mux to sync with i/p data and bias fifo data - for FC only
-  reg [NO_PORT-1:0] f_sel,s_sel,t_sel;
-  always@(posedge top_clk) begin
-    f_sel <= 1 << sel_fc;
-    s_sel <= f_sel;
-  end
-  assign sel_mux = (CONV_FC)? s_sel : 1 << sel_conv;
-  vector_mux_param #(
-      .PORT_SIZE(N * DATA_WIDTH),
-      .NO_PORT(NO_PORT)
-  ) mux_data (
-      .in (w_data_out),
-      .out(mux_out),
-      .sel(sel_mux)
-  );
 
-  vector_mux_param #(
-      .PORT_SIZE(N),
-      .NO_PORT(NO_PORT)
-  ) mux_valid (
-      .in (w_valid_fifo),
-      .out(valid_mux),
-      .sel(sel_mux)
-  );
+  generate
+    if(TOGGLE) begin
+        wire [NO_PORT-1:0] sel_mux;
+        //   assign sel_mux = 1 << sel_conv;
+  
+        //delay sel_mux to sync with i/p data and bias fifo data - for FC only
+        reg [NO_PORT-1:0] f_sel,s_sel,t_sel;
+        always@(posedge top_clk) begin
+          f_sel <= 1 << sel_fc;
+          s_sel <= f_sel;
+        end
+        assign sel_mux = (CONV_FC)? s_sel : 1 << sel_conv;
+        vector_mux_param #(
+            .PORT_SIZE(N * DATA_WIDTH),
+            .NO_PORT(NO_PORT)
+        ) mux_data (
+            .in (w_data_out),
+            .out(mux_out),
+            .sel(sel_mux)
+        );
+    
+        vector_mux_param #(
+            .PORT_SIZE(N),
+            .NO_PORT(NO_PORT)
+        ) mux_valid (
+            .in (w_valid_fifo),
+            .out(valid_mux),
+            .sel(sel_mux)
+        );
+    end
+    else begin
+        assign mux_out = w_data_out;
+        assign valid_mux = w_valid_fifo;
+    end
+  endgenerate
+  
 
 
   new_controller #(
       .FIFO_NO(FIFO_NO),
+      .NO_PORT(NO_PORT),
+      .COL_SA(N),
       .BIAS(BIAS),
       .TOGGLE(1))
    controller 

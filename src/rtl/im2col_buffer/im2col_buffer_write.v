@@ -22,23 +22,23 @@ module im2col_buffer_write #(
   always @(posedge clk) begin
     if (!rst) begin
       state <= INITIAL;
-      rd <= 8'h00;
+      rd <= {N_SA{1'b0}};
     end else begin
       case (state)
         INITIAL:
         if (((|fifo_empty) == 0) && ~stall_on) begin
-          rd <= 8'hFF;
+          rd <= {N_SA{1'b1}};
           state <= ONGOING;
         end
         else rd <= 0;
         ONGOING: begin
-          rd <= 8'h00;
+          rd <= {N_SA{1'b0}};
           if ((count == POP_THRESHOLD) && (~|fifo_empty) && ~stall_on) begin
-            rd <= 8'hFF;
+            rd <= {N_SA{1'b1}};
             state <= ONGOING;
           end
           else if(count!=0 && (~|fifo_empty) && ~stall_on && im2col_done) begin
-            rd <= 8'hFF;
+            rd <= {N_SA{1'b1}};
             state <= ONGOING;
           end
         end

@@ -2,25 +2,26 @@
 `include "common/portid.vh"
 //`include "instruction.mem"
 module top_gati_module #(
-    
-    // FIFO Depth varies between operators to avoid overflow and underflow 
-    parameter INST_QUEUE_DEPTH    = 512,
+   // FIFO Depth varies between operators to avoid overflow and underflow 
+    parameter INST_QUEUE_DEPTH    = 256,
     parameter DRAM_IMG_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH   = 1024,
     parameter WEIGHT_FIFO_DEPTH   = 512,
-    parameter PSUM_FIFO_DEPTH     = 1024,
+    parameter PSUM_FIFO_DEPTH     = 512,
     parameter ACC_FIFO_DEPTH      = 512,
     parameter BIAS_FIFO_DEPTH     = 512, //For both conv and FC
-    parameter OP_WRITE_FIFO_DEPTH = 1024,
+    parameter ACC_OP_FIFO_DEPTH   = 256,
+    parameter QUANT_OP_FIFO_DEPTH = 256,
+    parameter OP_WRITE_FIFO_DEPTH = 512,
     
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN       = 7,
     parameter IMG_REQ_BLEN          = 15,
     parameter WEIGHT_REQ_BLEN       = 15,
-    parameter FC_WEIGHT_REQ_BLEN    = 64,
+    parameter FC_WEIGHT_REQ_BLEN    = 63,
     parameter ACC_REQ_BLEN          = 15,
     parameter BIAS_REQ_BLEN         = 15,
-    parameter OP_WRITE_REQ_ACC_BLEN = 31, //burst length for writng accumulants (32-bit) into the DRAM
+    parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     
     //parameters related to DRAM controller
@@ -30,7 +31,7 @@ module top_gati_module #(
     parameter AXI_DATA_WIDTH        = 256,
     parameter AXI_DATA_BYTES        = 32,  // Axi Data width = 256 bit
     parameter AXI_ADDR_W            = `CONV_ImageStartAddress_WIDTH,   // Axi Address width
-    parameter BURST_LENGTH_WIDTH    =8,
+    parameter BURST_LENGTH_WIDTH    = 8,
    
     //Config blk param
     parameter NUM_INSTRUCTIONS      = 4,
@@ -56,16 +57,16 @@ module top_gati_module #(
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
-    parameter KERNEL_SIZE     =  3,       //`CONV_KH,   
+    parameter KERNEL_SIZE     =  4,       //`CONV_KH,   
     //SA related param
-    parameter POP_THRESHOLD   = 5,
-    parameter NSA_DSP         = 4, 
-    parameter NSA_LUT         = 0,
+    parameter POP_THRESHOLD   = 3,
+    parameter NSA_DSP         = 8, 
+    parameter NSA_LUT         = 8,
     parameter N_SA            = NSA_DSP + NSA_LUT,
     parameter DATA_WIDTH      = 8,
-    parameter COL_SA          = 4,
+    parameter COL_SA          = 1,
     parameter COL_FC          = 32,
-    parameter ROW             = 9,
+    parameter ROW             = 16,
     parameter W_PSUM          = 20,
     parameter DATA_WIDTH_OB   = 32,
     parameter DATA_WIDTH_ACC  = 32,
@@ -81,12 +82,12 @@ module top_gati_module #(
     parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
     // FC Engine related parameters
     parameter ACC_DW            = 32,
-    parameter N_BANK            = 4,
-    parameter N_BRAM            = 8,
-    parameter FC_BRAM_DEPTH     = 1024,
-    parameter ACC_DATA_REORDER  = 1,
-    parameter N_FC_MUX          = 4, //number of muxes for FC output
-    parameter NO_PORT_FC        = 8, //FC mux size
+    parameter N_BANK            = 2,
+    parameter N_BRAM            = 16,
+    parameter FC_BRAM_DEPTH     = 128,
+    parameter ACC_DATA_REORDER  = 0,
+    parameter N_FC_MUX          = 16, //number of muxes for FC output
+    parameter NO_PORT_FC        = 2, //FC mux size
 
     //Output block inst param
     parameter W_CITER_CNT       = `OutputBlock_ChannelItr_WIDTH,
@@ -97,9 +98,9 @@ module top_gati_module #(
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
-    parameter MOD1 = 2,
-    parameter MOD2 = 8,
-    parameter N_DMUX_PORTS = 2,
+    parameter MOD1 = 1,
+    parameter MOD2 = AXI_DATA_BYTES/N_SA,
+    parameter N_DMUX_PORTS = 1,
 
     //Tail block param
     parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
@@ -120,14 +121,16 @@ module top_gati_module #(
     parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
 
     //Other parameters
-    parameter SHFT_REG_X    = 4, // Number of shift register blocks
-    parameter BIAS_FIFO     = 8, // Number of bias FIFOs
-    parameter OP_FIFO       = 8,  // Number of output write FIFOs
-    parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
+    parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
+    parameter BIAS_FIFO     = 16, // Number of bias FIFOs
+    parameter ACC_OP_FIFO   = 2, // Number of o/p accumulant FIFOs
+    parameter QUANT_OP_FIFO = 1, // Number of quantized output FIFOs
+    parameter OP_FIFO       = 1,  // Number of output write FIFOs
+    parameter ACC_FIFO      = 16, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
-    parameter NO_PORT_VA    = 2,
-    parameter NO_PORT_BAC   = 2,
-    parameter NO_PORT_BAFC  = 8
+    parameter NO_PORT_VA    = 1,
+    parameter NO_PORT_BAC   = 1,
+    parameter NO_PORT_BAFC  = 2
         
 ) (
     ///global
@@ -211,7 +214,7 @@ module top_gati_module #(
     input wready,
     output dv_op_write,
     output o_data_last_op_write,
-    output [(OP_FIFO*N_SA*DATA_WIDTH_OB)-1:0] op_dram_fifo,
+    output [(AXI_DATA_WIDTH)-1:0] op_dram_fifo,
 
     output layer_debug_pin,
     
@@ -232,27 +235,8 @@ module top_gati_module #(
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
     localparam BUS_DATA_OUT = 8;
     localparam CNT = INST_W/BUS_DATA_OUT;
-  assign layer_count = layer_cntr;
-    /*
-    Mem_read_ctrl#(
-        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .N_FIFO(1) // Instruction queue in config blk
-    ) Config_blk_data_write_ctrl(
-        .clk(i_clk),
-        .rst(i_rst),
-        .select(select[`Config]), // select signal of config blk
-        .i_data_valid(dram_rd_datavalid),
-        .i_data_last(dram_rd_data_last),
-        .i_dram_data(dram_rd_data),
-        .o_dram_data(instruction_config), //o-wire: to config blk
-        .o_dram_fifo_wren(valid), //o-wire: to config blk
-        .o_data_last()
-    );
-
-    wire [INST_W-1:0] instruction_config;
-    wire valid_config;
-    */
-  
+    assign layer_count = layer_cntr;
+      
     wire [NUM_INSTRUCTIONS-1:0] ack_signals; //Ack from various operators = number of instructions
     assign ack_signals[`OP_CONV] = Conv_Ack;
     assign ack_signals[`OP_FC] = FC_Ack;
@@ -1102,36 +1086,78 @@ module top_gati_module #(
 
 
   // Data from DRAM
-  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_dram;
+  wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_dram;
   wire [ACC_FIFO-1:0] vector_add_wren_dram;
   // Data from Opwrite_FIFO
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_opfifo;
   wire [OP_FIFO-1:0] vector_add_wren_opfifo;
 
-  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values;
-  wire [ACC_FIFO-1:0] vector_add_wren;
-  // DRAM Data write ctlers for accumulants, bias, fcbias
-  Mem_read_ctrl#(
-        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .N_FIFO(ACC_FIFO) //Accumulant FIFOs
-  )Accumulant_blk_data_write_ctrl(
-        .clk(i_clk),
-        .rst(i_rst),
-        .select(select[`Acc]), // select signal of vector add fifo blk
-        .i_data_valid(dram_rd_datavalid),
-        .i_data_last(dram_rd_data_last),
-        .i_dram_data(dram_rd_data),
-        .o_dram_data(vector_add_values_dram), //o-wire: to vector add fifo blk
-        .o_dram_fifo_wren(vector_add_wren_dram), //o-wire: to vector add fifo blk
-        .o_data_last()
-  ); 
+  wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_opfifo_acc; // accumulant values read from opfifo and write to input accumulant fifo
+  wire [ACC_FIFO-1:0] vector_add_wren_opfifo_acc; // write enable signal for input accumulant fifo
 
-  // Mux to select between dram read output and op_write fifo dataout
+  wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values;
+  wire [ACC_FIFO-1:0] vector_add_wren;
+  
+  // DRAM Data write ctlers for accumulants, bias, fcbias
+
+  /*For writing data to Accumulant FIFOs, there exists two paths:
+    1. Data from DRAM (Acc_OnChip = 0)
+    2. Data from OP_FIFO (Acc_OnChip = 1)
+    The data from DRAM/OP_FIFO are written into input accumulant FIFOs in zig-zag fashion
+    depends on the number of SA engines and AXI_DATA_WIDTH.
+    
+    The data from DRAM/OP_FIFO are selected through a MUX based on the Acc_OnChip signal.
+  */
+
+  wire [AXI_DATA_WIDTH-1:0] acc_dram_data;
+  wire acc_dram_data_dv;
+  Mem_read_ctrl#(
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_FIFO(1) 
+  ) Accumulant_blk_data_write_ctrl (
+    .clk(i_clk),
+    .rst(i_rst),
+    .select(select[`Acc]), // select signal of acc fifo blk
+    .i_data_valid(dram_rd_datavalid),
+    .i_data_last(dram_rd_data_last),
+    .i_dram_data(dram_rd_data),
+    .o_dram_data(acc_dram_data),
+    .o_dram_fifo_wren(acc_dram_data_dv),
+    .o_data_last()
+  );
+
+  operator_fifo_wren_ctrl #(
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_FIFO(ACC_FIFO), //Accumulant FIFOs
+    .DATA_WIDTH(DATA_WIDTH_ACC)
+  ) Write_ctrl_dram_to_ACC_FIFO (
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_dram_data(acc_dram_data),
+    .i_datavalid_dram_data(acc_dram_data_dv),
+    .o_fifo_wren(vector_add_wren_dram), //o-wire: to vector add fifo blk
+    .o_data(vector_add_values_dram) //o-wire: to vector add fifo blk
+  );
+
+  operator_fifo_wren_ctrl #(
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_FIFO(ACC_FIFO), //Accumulant FIFOs
+    .DATA_WIDTH(DATA_WIDTH_ACC)
+  ) Write_ctrl_OP_FIFO_to_ACC_FIFO (
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_dram_data(vector_add_values_opfifo),
+    .i_datavalid_dram_data(&(vector_add_wren_opfifo)),
+    .o_fifo_wren(vector_add_wren_opfifo_acc), //o-wire: to vector add fifo blk
+    .o_data(vector_add_values_opfifo_acc) //o-wire: to vector add fifo blk
+  );
+
+  // Mux to select between DRAM and OP_FIFO data for writing into input accumulant FIFOs
   vector_mux_param#(
     .PORT_SIZE(AXI_DATA_WIDTH),
     .NO_PORT(2)
   ) Acc_FIFO_mux_data(
-    .in({vector_add_values_opfifo,vector_add_values_dram}),
+    .in({vector_add_values_opfifo_acc,vector_add_values_dram}),
     .sel(1<<Acc_onchip),
     .out(vector_add_values)
   );
@@ -1140,16 +1166,19 @@ module top_gati_module #(
     .PORT_SIZE(ACC_FIFO),
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
-    .in({{ACC_FIFO{&(vector_add_wren_opfifo)}},vector_add_wren_dram}),
+    .in({{ACC_FIFO{&(vector_add_wren_opfifo_acc)}},vector_add_wren_dram}),
     .sel(1<<Acc_onchip),
     .out(vector_add_wren)
   );
   
+  wire [AXI_DATA_WIDTH-1:0] bias_dram_data;
+  wire bias_dram_data_dv;
+
   wire [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in;
   wire [BIAS_FIFO -1:0] bias_wren;
   Mem_read_ctrl#(
         .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-        .N_FIFO(BIAS_FIFO) //Bias FIFOs = 8, each 32-bit 
+        .N_FIFO(1) 
   )Bias_blk_data_write_ctrl(
         .clk(i_clk),
         .rst(i_rst),
@@ -1157,12 +1186,25 @@ module top_gati_module #(
         .i_data_valid(dram_rd_datavalid),
         .i_data_last(dram_rd_data_last),
         .i_dram_data(dram_rd_data),
-        .o_dram_data(bias_data_in),   //o-wire: to bias fifo blk
-        .o_dram_fifo_wren(bias_wren), //o-wire: to bias fifo blk
+        .o_dram_data(bias_dram_data),   //o-wire: to bias fifo blk
+        .o_dram_fifo_wren(bias_dram_data_dv), //o-wire: to bias fifo blk
         .o_data_last()
   );
   
   
+  operator_fifo_wren_ctrl #(
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_FIFO(BIAS_FIFO), //Bias FIFOs
+    .DATA_WIDTH(DATA_WIDTH_OB)
+  ) Write_ctrl_bias_FIFO (
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_dram_data(bias_dram_data),
+    .i_datavalid_dram_data(bias_dram_data_dv),
+    .o_fifo_wren(bias_wren), //o-wire: to bias fifo blk
+    .o_data(bias_data_in) //o-wire: to bias fifo blk
+  );
+
   wire [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc;
   wire [BIAS_FIFO_FC -1:0] bias_wren_fc;
   Mem_read_ctrl#(
@@ -1219,11 +1261,16 @@ module top_gati_module #(
   end
   endgenerate
 
-  wire [OP_FIFO-1:0] op_wren;
-  wire [(DATA_WIDTH_ACC*N_SA*OP_FIFO)-1:0] data_op_write_dram_fifo;
+  localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (AXI_DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
+  wire [ACC_OP_FIFO-1:0] acc_op_wren;
+  wire [ACC_OP_DATAWIDTH-1:0] acc_op_write_data;
+
+  wire [(AXI_DATA_WIDTH-1):0] quant_op_write_data;
+  wire [QUANT_OP_FIFO-1:0] quant_op_wren;
+
   wire shift_reg_en;
-  wire [SHFT_REG_X-1:0] shift_reg_sel;
-  assign shift_reg_sel = {SHFT_REG_X{shift_reg_en}};
+  wire [N_SA-1:0] shift_reg_sel;
+  assign shift_reg_sel = {N_SA{shift_reg_en}};
 
   wire bias_enable;
   wire quant_enable;
@@ -1258,7 +1305,8 @@ module top_gati_module #(
       .W_CONV_OP_IMAGE_DIM(CONV_OW_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
-      .OP_FIFO(OP_FIFO),
+      .ACC_OP_FIFO(ACC_OP_FIFO),
+      .QUANT_OP_FIFO(QUANT_OP_FIFO),
       .ACC_FIFO(ACC_FIFO),
       .WEIGHT_FIFO_DEPTH(WEIGHT_FIFO_DEPTH),
       .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
@@ -1363,10 +1411,10 @@ module top_gati_module #(
       .vector_add_enable(vector_add_enable),
       .maxpool_enable(maxpool_enable),
       
-    //   .data_b(data_b),
-    //   .data_c(data_c),
-      .op_write_dmux_data(data_op_write_dram_fifo),
-      .op_wren(op_wren),
+      .acc_op_write_data(acc_op_write_data),
+      .acc_op_wren(acc_op_wren),
+      .quant_op_write_data(quant_op_write_data),
+      .quant_op_wren(quant_op_wren),
 
       .im2col_done(im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),
@@ -1386,9 +1434,6 @@ module top_gati_module #(
 
   );
 
-//   wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_b;
-//   wire [(COL_SA*(SHFT_REG_X*8)) -1:0] data_c;
-//   assign data_op_write_dram_fifo = switch_enable? {data_b, data_c} : data_b;
 
   //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
   wire [OP_FIFO-1:0] op_write_fifo_rden;
@@ -1396,11 +1441,11 @@ module top_gati_module #(
   assign op_write_fifo_rden = (~Acc_onchip)? op_dram_rden : (quant_enable ? op_dram_rden : ((~|(op_dram_fifo_empty)? {OP_FIFO{1'b1}} : 0)));
   
   // Demux for separting the op_write fifo out path to DRAM and local ACC_FIFOs
-  wire [(OP_FIFO*N_SA*DATA_WIDTH_OB)-1:0] op_dram_fifo1;
+  wire [(AXI_DATA_WIDTH)-1:0] op_dram_fifo1;
   wire [OP_FIFO-1:0] op_dram_dv,op_write_fifo_dv;
   Dmux_param #(
     .NUM_PORTS(2),
-    .DATA_WIDTH(OP_FIFO*N_SA*DATA_WIDTH_OB),
+    .DATA_WIDTH(AXI_DATA_WIDTH),
     .COL_SA(1)
   ) Dmux_param_op_fifo_data_inst (
     .i_din(op_dram_fifo1),
@@ -1422,24 +1467,32 @@ module top_gati_module #(
     .o_datavalid()
   );
 
-  //o/p write FIFO to DDR
-  dram_fifo #(
-      .DIMENSION(OP_FIFO),
-      .W_DATA(N_SA*DATA_WIDTH_ACC),
-      .W_ADDR($clog2(OP_WRITE_FIFO_DEPTH)),
-      .OUTPUT_REG(0),
-      .RAM_DEPTH(OP_WRITE_FIFO_DEPTH)
-  ) op_write_dram_fifo (
-      .i_clk(i_clk),
-      .i_rst(i_rst),
-      .i_data(data_op_write_dram_fifo),
-      .i_read_enable(op_write_fifo_rden),
-      .i_write_enable(op_wren),
-      .o_data(op_dram_fifo1),
-      .o_fifo_empty(op_dram_fifo_empty),
-      .o_fifo_full(),
-      .o_fifo_dv(op_write_fifo_dv),
-      .o_occupants(op_write_dram_fifo_occupants) //o-wire: goes to op_write request controller
+  //output block - data write to dram comes from tail blocks (pipelined o/p of mega blocks)
+  dram_data_aligner # (
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_SA(N_SA),
+    .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
+    .ACC_OP_FIFO(ACC_OP_FIFO),
+    .ACC_OP_FIFO_DEPTH(ACC_OP_FIFO_DEPTH),
+    .QUANT_OP_FIFO(QUANT_OP_FIFO),
+    .QUANT_OP_FIFO_DEPTH(QUANT_OP_FIFO_DEPTH),
+    .OP_FIFO_DEPTH(OP_WRITE_FIFO_DEPTH),
+    .OP_FIFO(OP_FIFO),
+    .OUTPUT_REG(0)
+  )
+  dram_data_aligner_inst (
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_acc_quant_enable(quant_enable),
+    .i_acc_data(acc_op_write_data),
+    .i_acc_data_wren(acc_op_wren),
+    .i_quant_data(quant_op_write_data),
+    .i_quant_data_wren(quant_op_wren),   
+    .i_op_write_dram_fifo_rden(op_write_fifo_rden),
+    .o_op_write_dram_fifo_occupants(op_write_dram_fifo_occupants),
+    .o_op_write_dram_fifo_empty(op_dram_fifo_empty),
+    .o_op_write_dram_fifo_data(op_dram_fifo1),
+    .o_op_write_dram_fifo_dv(op_write_fifo_dv)
   );
 
  	always @ (*) begin 

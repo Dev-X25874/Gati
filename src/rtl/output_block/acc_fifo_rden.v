@@ -24,7 +24,7 @@ module acc_fifo_rden #(
     output [NO_PORT-1:0] select
 
 );
-  
+/*  
 reg toggle = TOGGLE;
 reg mux_toggle = 0;
 reg rden_toggle = 0;
@@ -89,4 +89,88 @@ always@(posedge clk) begin
     end
   end
 end
+*/
+
+generate
+  if(TOGGLE) begin
+    assign select = 1<<mux_toggle;
+
+    wire [NO_PORT-1:0] sel_rden;
+    assign sel_rden = 1<<rden_toggle;
+
+    reg [$clog2(NO_PORT)-1:0] mux_toggle = 0;
+    reg [$clog2(NO_PORT)-1:0] rden_toggle = 0;
+
+    integer i;
+    always @(posedge clk) begin
+        if (!rst) begin
+          rden_toggle <= 0;
+          valid_rd_en <= 0;
+        end else begin
+            if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
+              //valid_rd_en <= ~valid_rd_en;
+              for(i=0;i<NO_PORT;i=i+1) begin
+                if(sel_rden[i]==1) begin
+                  valid_rd_en[N*(i) +: N] <= {N{1'b1}};
+                end
+                else begin
+                  valid_rd_en[N*(i) +: N] <= {N{1'b0}};
+                end
+              end
+              if (TOGGLE) begin
+                if(rden_toggle == NO_PORT-1) begin
+                  rden_toggle <= 0;
+                end
+                else begin
+                  rden_toggle <= rden_toggle + 1;
+                end
+              end
+            end else begin
+              valid_rd_en <= 0;
+              rden_toggle <= rden_toggle;
+            end
+        end
+    end
+
+    always@(posedge clk) begin
+      if(!rst) begin
+        mux_toggle <= 0;
+      end
+      else begin
+        if(enable & data_valid_tree) begin
+          if (TOGGLE) begin
+            if(mux_toggle == NO_PORT-1) begin
+              mux_toggle <= 0;
+            end
+            else begin
+              mux_toggle <= mux_toggle + 1;
+            end
+          end
+        end
+        else begin
+          mux_toggle <= 0;
+        end
+      end
+    end
+  end
+
+  else begin
+    assign select = 0;
+    
+    always @(posedge clk) begin
+      if(!rst) begin
+        valid_rd_en <= 0;
+      end
+      else begin
+        if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
+          valid_rd_en <= {FIFO_NO{1'b1}};
+        end
+        else begin
+          valid_rd_en <= 0;
+        end
+      end
+    end
+  end
+endgenerate
+
 endmodule

@@ -61,7 +61,7 @@ module bram_array#(
 genvar i;
 generate
     for (i = 0; i < N_BRAM; i = i + 1) begin
-        sdpram#(
+        simple_dpram #(
             .W_DATA(W_DATA),
             .W_ADDR(W_ADDR)
         )bram_inst(

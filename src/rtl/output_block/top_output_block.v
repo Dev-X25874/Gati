@@ -10,6 +10,7 @@ module top_output_block #(
     parameter N              = 4,
     parameter COL_SA         = 4,
     parameter FIFO_NO        = 8,
+    parameter TOGGLE         = 1,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
     parameter NO_PORT=2
@@ -36,17 +37,16 @@ module top_output_block #(
 );
 
 
+wire [(DATA_WIDTH_ACC*FIFO_NO)-1:0] w_data_out;
+wire [          (DATA_WIDTH*N)-1:0] w_data_in_fifo;
+wire [                 FIFO_NO-1:0] w_rd_en;
 
+wire [                 FIFO_NO-1:0] w_valid_fifo;
 
+reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_in_mux;
 
-  wire [(DATA_WIDTH_ACC*FIFO_NO)-1:0] w_data_out;
-  wire [          (DATA_WIDTH*N)-1:0] w_data_in_fifo;
-  wire [                 FIFO_NO-1:0] w_rd_en;
-  
-  wire [                 FIFO_NO-1:0] w_valid_fifo;
-
- wire [FIFO_NO-1:0] empty_flag;
- wire [FIFO_NO-1:0] almost_empty_flag;
+wire [FIFO_NO-1:0] empty_flag;
+wire [FIFO_NO-1:0] almost_empty_flag;
 
 assign w_empty_flag = empty_flag;
 assign w_almost_empty_flag = almost_empty_flag;
@@ -79,24 +79,32 @@ dram_fifo #(
   wire [NO_PORT-1:0] sel;
   wire [N-1:0] valid_mux;
 
-  vector_mux_param #(
-    .PORT_SIZE(N*DATA_WIDTH_ACC),
-    .NO_PORT(NO_PORT)
-  ) mux_data (
-      .in(data_in_mux),
-      .out(mux_out),
-      .sel(sel)
+  generate
+    if(TOGGLE) begin
+      vector_mux_param #(
+        .PORT_SIZE(N*DATA_WIDTH_ACC),
+        .NO_PORT(NO_PORT)
+      ) mux_data (
+          .in(data_in_mux),
+          .out(mux_out),
+          .sel(sel)
+      );
 
-  );
-
-  vector_mux_param #(
-      .PORT_SIZE(N),
-      .NO_PORT(NO_PORT)
-  ) mux_valid (
-      .in (w_valid_fifo),
-      .out(valid_mux),
-      .sel(sel)
-  );
+      vector_mux_param #(
+        .PORT_SIZE(N),
+        .NO_PORT(NO_PORT)
+      ) mux_valid (
+        .in (w_valid_fifo),
+        .out(valid_mux),
+        .sel(sel)
+      );
+    end
+    else begin
+      assign mux_out = data_in_mux;
+      assign valid_mux = w_valid_fifo;
+    end
+  endgenerate
+  
 
  /*
   bias_controller #(
@@ -147,37 +155,57 @@ dram_fifo #(
   endgenerate
 
   // Pipeline stage for acc_fifo data to synchronize with adder tree output.
-  reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_in_mux;
   genvar j;
   generate
-    for(j=0;j<$clog2(COL_SA);j=j+1) begin:REG
-      reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_reg;
-      if(j==0) begin
-        always@(posedge top_clk) begin
-          data_reg <= (!rst)? 0 : w_data_out;
+    if(COL_SA>1) begin
+      for(j=0;j<$clog2(COL_SA);j=j+1) begin:REG
+        reg [(DATA_WIDTH_ACC*FIFO_NO)-1:0] data_reg;
+        if(j==0) begin
+          always@(posedge top_clk) begin
+            data_reg <= (!rst)? 0 : w_data_out;
+          end
+        end
+
+        else if(j==($clog2(COL_SA)-1)) begin
+          always@(posedge top_clk) begin
+            data_in_mux <= (!rst)? 0 : REG[j-1].data_reg;
+          end
+        end
+
+        else begin
+          always@(posedge top_clk) begin
+            data_reg <= (!rst)? 0 : REG[j-1].data_reg;
+          end
         end
       end
-
-      else if(j==($clog2(COL_SA)-1)) begin
-        always@(posedge top_clk) begin
-          data_in_mux <= (!rst)? 0 : REG[j-1].data_reg;
-        end
-      end
-
-      else begin
-        always@(posedge top_clk) begin
-          data_reg <= (!rst)? 0 : REG[j-1].data_reg;
-        end
+    end
+    else begin
+      always@(posedge top_clk) begin //Todo: check if this is data is arriving on the same clock cycle of adder tree output. If not, then we need to add a pipeline stage or connect the data directly using assign statement.
+        data_in_mux <= (!rst)? 0 : w_data_out;
       end
     end
   endgenerate
 
-  reg [(DATA_WIDTH*N)-1:0] data_in_adder_tree;
-  reg [N-1:0] adder_in_data_valid;
-  always@(posedge top_clk) begin
-    data_in_adder_tree <= top_data_in_adder_tree;
-    adder_in_data_valid <= top_in_data_valid;
-  end
+  wire [(DATA_WIDTH*N)-1:0] data_in_adder_tree;
+  wire [N-1:0] adder_in_data_valid;
+
+  reg [(DATA_WIDTH_ACC*N)-1:0] r_data_in_adder_tree;
+  reg [N-1:0] r_adder_in_data_valid;
+
+  generate
+    if(TOGGLE) begin
+      always@(posedge top_clk) begin
+        r_data_in_adder_tree <= top_data_in_adder_tree;
+        r_adder_in_data_valid <= top_in_data_valid;
+      end
+      assign data_in_adder_tree = r_data_in_adder_tree;
+      assign adder_in_data_valid = r_adder_in_data_valid;
+    end
+    else begin
+      assign data_in_adder_tree = top_data_in_adder_tree;
+      assign adder_in_data_valid = top_in_data_valid;
+    end
+  endgenerate
 
   adder_gen #(
       .DATA_WIDTH(DATA_WIDTH),

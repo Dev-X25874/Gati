@@ -5,10 +5,7 @@ module generate_shift_register #(parameter N = 4,
                                 parameter DATA_WIDTH = 8, 
                                 parameter ACC_DATA_WIDTH = 32,
                                 parameter QUANT_DATA_WIDTH = 8) (
-    input [(N * ACC_DATA_WIDTH)-1 : 0] intermediate_result,
     input [(N * QUANT_DATA_WIDTH)-1 : 0] quantized_result_in,
-    input [(N) - 1 : 0] sel,
-    input [(N) - 1 : 0] valid_intermediate_result,
     input [(N) - 1 : 0] valid_quantized_result,
     input clk,
     output [(N) - 1 : 0] valid_out_final,
@@ -24,10 +21,7 @@ generate
         .QUANT_DATA_WIDTH(QUANT_DATA_WIDTH),
         .DATA_WIDTH(DATA_WIDTH)) 
         top_gen_shift_register(
-            .intermediate_result(intermediate_result[(((N-i) * ACC_DATA_WIDTH) - 1) -: ACC_DATA_WIDTH]),
             .quantized_result_in(quantized_result_in[(((N-i) * QUANT_DATA_WIDTH) - 1) -: QUANT_DATA_WIDTH]),
-            .sel(sel[i]),
-            .valid_intermediate_result(valid_intermediate_result[i]),
             .valid_quantized_result(valid_quantized_result[i]),
             .clk(clk),
             .valid_out_final(valid_out_final[i]),

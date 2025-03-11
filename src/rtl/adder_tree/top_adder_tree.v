@@ -12,7 +12,7 @@ module top_adder_tree_gen #(
 )(
     input clk,
     input rst,
-    input [(COL*W_PSUM)*N_SA-1:0] o_psum_ff_array,  //input from the engines
+    input [(COL*W_PSUM)*N_SA-1:0] i_psum_ff_array,  //input from the engines
     output [COL-1:0] valid_out,
     input [COL*N_SA-1:0] valid_in,
     output [(COL* DATA_WIDTH_OB) -1 : 0] result_final
@@ -21,8 +21,8 @@ module top_adder_tree_gen #(
 genvar j;
   generate
     for (j = 0; j < N_SA / 2; j = j + 1) begin
-      assign inp1[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM]; //the first half of the o_psum_ff_array      
-      assign inp2[COL*W_PSUM*j +:COL*W_PSUM] = o_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM]; //the second half of the o_psum_ff_array
+      assign inp1[COL*W_PSUM*j +:COL*W_PSUM] = i_psum_ff_array[(COL*W_PSUM*(N_SA-2*j)) -1 -:COL*W_PSUM]; //the first half of the o_psum_ff_array      
+      assign inp2[COL*W_PSUM*j +:COL*W_PSUM] = i_psum_ff_array[(COL*W_PSUM*(N_SA-(2*j+1))) -1 -:COL*W_PSUM]; //the second half of the o_psum_ff_array
       assign valid_1[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j)))-1-:COL];    //the valid_in halfs
       assign valid_2[COL*j+:COL] = valid_in[(COL*(N_SA-(2*j+1)))-1-:COL]; //the valid_in halfs
     end

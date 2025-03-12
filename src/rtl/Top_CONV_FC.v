@@ -175,38 +175,56 @@ module Top_CONV_FC #(
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
 
-  // Data buffers between DRAM image FIFO and im2col FIFOs 
-  wire [($clog2(DRAM_BW/N_SA))-1:0] element_poped;
-  // Write buffer controller
-  im2col_buffer_write # (
-    .N_SA(N_SA),
-    .DRAM_BW(DRAM_BW),
-    .POP_THRESHOLD(POP_THRESHOLD)
-  )
-  im2col_buffer_write_inst (
-    .clk(i_clk),
-    .rst(rst&(~channel_done)),
-    .im2col_done(im2col_done),
-    .stall_on(stall_on),
-	  .fifo_empty(image_fifo_empty),
-    .count(element_poped),
-    .rden(image_rden)
-  );
+  // Todo: This logic has to be modified to support Depth-wise convolution and point-wise convolution
+  // Generation of im2col buffers based on DRAM_BW and N_SA
+  /*
+    If number of elements/engine = 1 then read the data directly from the img FIFO,
+    otherwise, use the data buffers between DRAM image FIFO and im2col FIFOs. These
+    data buffers read the data from img FIFO and when im2col requests the data, it
+    will send to SA engines. 
+  */
+  generate
+    if(DRAM_BW/N_SA == 1) begin
+      assign image_rden = im2col_done ? 0 : (~|image_fifo_empty & ~stall_on & read_buf_data);
+      assign buff_out   = fifo_o;
+    end
     
-  //Data buffers
-  top_buffer #(
-      .BUFFER_SIZE(DATA_WIDTH),
-      .N_SA(N_SA),
-      .DRAM_BW(DRAM_BW)
-  ) buffers (
-      .clk(i_clk),
-      .stall_on(stall_on),
-      .rst(rst&(~im2col_done)),              
-      .data_in(fifo_o),
-      .data_signal(read_buf_data),
-      .data_out(buff_out),
-      .elements_poped(element_poped)
-  );
+    else begin
+      // Data buffers between DRAM image FIFO and im2col FIFOs 
+      wire [($clog2(DRAM_BW/N_SA))-1:0] element_poped;
+      // Write buffer controller
+      im2col_buffer_write # (
+        .N_SA(N_SA),
+        .DRAM_BW(DRAM_BW),
+        .POP_THRESHOLD(POP_THRESHOLD)
+      )
+      im2col_buffer_write_inst (
+        .clk(i_clk),
+        .rst(rst&(~channel_done)),
+        .im2col_done(im2col_done),
+        .read_buf_data(read_buf_data),
+        .stall_on(stall_on),
+	      .fifo_empty(image_fifo_empty),
+        .count(element_poped),
+        .rden(image_rden)
+      );
+
+      //Data buffers
+      top_buffer #(
+          .BUFFER_SIZE(DATA_WIDTH),
+          .N_SA(N_SA),
+          .DRAM_BW(DRAM_BW)
+      ) buffers (
+          .clk(i_clk),
+          .stall_on(stall_on),
+          .rst(rst&(~im2col_done)),              
+          .data_in(fifo_o),
+          .data_signal(read_buf_data),
+          .data_out(buff_out),
+          .elements_poped(element_poped)
+      );
+    end
+  endgenerate
 
   wire [(DATA_WIDTH*N_SA) -1:0] mux_out;
   wire [ROW-1:0] o_valid_squares;

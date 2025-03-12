@@ -6,6 +6,7 @@ module im2col_buffer_write #(
     input clk,
 	  input rst,
     input im2col_done,
+    input read_buf_data,
     input stall_on,
 	  input [DRAM_BW-1:0] fifo_empty,
     input [2:0]count,
@@ -33,7 +34,7 @@ module im2col_buffer_write #(
         else rd <= 0;
         ONGOING: begin
           rd <= {N_SA{1'b0}};
-          if ((count == POP_THRESHOLD) && (~|fifo_empty) && ~stall_on) begin
+          if ((count == POP_THRESHOLD) && (~|fifo_empty) && ~stall_on && read_buf_data) begin
             rd <= {N_SA{1'b1}};
             state <= ONGOING;
           end

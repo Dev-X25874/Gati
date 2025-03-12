@@ -60,8 +60,8 @@ module top_gati_module #(
     parameter KERNEL_SIZE     =  4,       //`CONV_KH,   
     //SA related param
     parameter POP_THRESHOLD   = 3,
-    parameter NSA_DSP         = 8, 
-    parameter NSA_LUT         = 8,
+    parameter NSA_DSP         = 15, 
+    parameter NSA_LUT         = 1,
     parameter N_SA            = NSA_DSP + NSA_LUT,
     parameter DATA_WIDTH      = 8,
     parameter COL_SA          = 1,
@@ -910,6 +910,7 @@ module top_gati_module #(
       .DIMENSION(AXI_DATA_BYTES),
       .W_DATA(DATA_WIDTH),
       .W_ADDR($clog2(DRAM_IMG_FIFO_DEPTH)),
+      .OUTPUT_REG(0),
       .RAM_DEPTH(DRAM_IMG_FIFO_DEPTH)
   ) image_ddr_fifo (
       .i_clk(i_clk),
@@ -1352,7 +1353,7 @@ module top_gati_module #(
       .image_fifo_empty(image_fifo_empty),
       .CONV_FC(CONV_FC),
     //   .switch_enable(switch_enable),
-      .fifo_o(img_ip_conv),
+      .fifo_o(fifo_imgo_data),
       //fifo sharing signals
       //.sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),

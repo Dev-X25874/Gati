@@ -480,7 +480,7 @@ module top_gati_module #(
   reg stall_enable=0;
   always@(posedge i_clk) begin 
     // if((image_fifo_empty|psum_full) && stall_enable) begin
-    if((image_fifo_empty && stall_enable) | psum_full) begin
+    if(psum_full) begin
       stall_on<=1;
     end
     else begin 

@@ -25,7 +25,6 @@ reg [I_SIZE_WIDTH : 0] counter;
 reg state;
 reg r_tail_done;
 
-// TODO : write for stride and pad 
 
 always @ (posedge i_clk) begin 
 	if(~CONV_FC) begin	

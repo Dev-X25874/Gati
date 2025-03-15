@@ -19,25 +19,25 @@ module top_im2col_v1 #(
     parameter STRIDE = 3,
     parameter CONV_PAD_WIDTH = 3)
     (
-        input  clk_in,
-        input  rstn,
-        input  valid_mat_size,
-        input  i_start_im2col_index,
-        input  i_valid_data,
-        input  [DATA_WIDTH-1:0] i_data,
-        input  [3:0] zero_pad,
-        input  [$clog2(KERNEL_SIZE):0] ksize,
-        input  [CONV_PAD_WIDTH-1:0] zero_padded,
-        input  [$clog2(UPPER_BOUND)-1:0] i_mat_size,
+        input                                  clk_in,
+        input                                  rstn,
+        input                                  valid_mat_size,
+        input                                  i_start_im2col_index,
+        input                                  i_valid_data,
+        input  [DATA_WIDTH-1:0]                i_data,
+        input  [3:0]                           zero_pad,   // Zero Pad Side
+        input  [$clog2(KERNEL_SIZE):0]         ksize,
+        input  [CONV_PAD_WIDTH-1:0]            zero_padded,
+        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size,
         output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq,           
-        output o_valid,
-        output [DATA_WIDTH-1:0] valid_sq_data_o,
-        input  [$clog2(STRIDE):0] stride,
-        output o_valid_buff,
-        output  o_im2col_done,
-        input   i_stall_on,
-        output [$clog2(UPPER_BOUND)-1:0]        o_row,
-        output [$clog2(UPPER_BOUND)-1:0]        o_col
+        output                                 o_valid,
+        output [DATA_WIDTH-1:0]                valid_sq_data_o,
+        input  [$clog2(STRIDE):0]              stride,
+        output                                 o_valid_buff,
+        output                                 o_im2col_done,
+        input                                  i_stall_on,
+        output [$clog2(UPPER_BOUND)-1:0]       o_row,
+        output [$clog2(UPPER_BOUND)-1:0]       o_col
 
     );
 

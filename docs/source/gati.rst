@@ -14,6 +14,7 @@ Gati
     transpose
     DWP
     dispatcher
+    nms
 
 .. contents:: Table of Contents
    :local:

@@ -25,7 +25,8 @@ generate
     for(i = 0; i < DIMENSION; i = i + 1)begin
         sync_fifo #(
             .W_DATA(W_DATA),
-            .W_ADDR(W_ADDR)
+            .W_ADDR(W_ADDR),
+            .OUTPUT_REG(0)
         ) fifo_inst (
             .full_o(o_fifo_full[i]),
             .empty_o(o_fifo_empty[i]),

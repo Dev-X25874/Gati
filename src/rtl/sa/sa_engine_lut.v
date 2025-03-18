@@ -74,15 +74,27 @@ weight_fifo_array_rden#(
 );
 
 
-wire [ROW-1 : 0] read_rden_ctrl_image_ff_array;
+wire read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
 wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
 
 /*
-    Each fifo in this array stores its corrosponding row's image 
-    before sending it to delay registers
+    Delay the rden signal to FIFOs instead of using delay registers
+    between PE grid and FIFOs. This reduces the number of registers
+    utilized in the design.
 */
+
+wire [ROW-1 : 0] read_rden_ctrl_image_ff_array_delayed;
+
+rden_delay_reg#(
+    .ROW(ROW)
+) rden_delay_reg_image_ff_array (
+    .i_clk(i_clk),
+    .i_rden(read_rden_ctrl_image_ff_array),
+    .o_rden_img_fifo(read_rden_ctrl_image_ff_array_delayed)
+);
+
 image_fifo_array#(
     .DIMENSION(ROW),
     .W_DATA(W_DATA),
@@ -93,7 +105,7 @@ image_fifo_array#(
     .i_rstn(i_rstn),
     .i_data(i_image_fifo_array_data),
     .i_write_enable(i_image_fifo_array_wren),
-    .i_read_enable(read_rden_ctrl_image_ff_array),
+    .i_read_enable(read_rden_ctrl_image_ff_array_delayed),
     .o_data(data_image_ff_array_append_dv),
     .o_fifo_empty(empty_image_ff_array_rden_ctrl),
     .o_fifo_full(),
@@ -141,6 +153,7 @@ begin
     image_cdc_sa <= image_reg;
 end
 
+/*
 wire [(ROW * (W_DATA + 1)) - 1 : 0] image_delay_reg_lut_pe;
 
 //Provides delay to image before loading it into PE grid
@@ -153,6 +166,7 @@ delay_reg #(
     .in_west(image_cdc_sa),
     .pe_grid_image(image_delay_reg_lut_pe)
 );
+*/
 
 wire  [((W_PSUM + 1) * COL)-1 : 0] partial_sums_sa_cdc;
 //PE grid using LUT blocks as multipliers
@@ -165,7 +179,7 @@ lut_pe_grid#(
     .i_clk(s_clk),
     .i_rstn(i_rstn),
     .i_weight(weights_cdc_sa),
-    .in_data(image_delay_reg_lut_pe),
+    .in_data(image_cdc_sa),
     .o_partial_sum(partial_sums_sa_cdc),
     .o_data() 
 );

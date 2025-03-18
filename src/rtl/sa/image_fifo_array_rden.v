@@ -12,10 +12,10 @@ module image_fifo_array_rden#(
     input i_trigger,
     input i_rstn,
     input [ROW-1:0] i_fifo_empty,
-    output [ROW-1:0] o_read_enable
+    output o_read_enable
 );
 
-reg [ROW-1:0] rden = 0;
+reg rden = 0;
 
 assign o_read_enable = rden;
 
@@ -25,9 +25,9 @@ always @(posedge i_clk)begin
     end else begin
         if(i_trigger)begin
             if((i_fifo_empty == 0) &&  (~psum_full))
-                rden <= {ROW{1'b1}};
+                rden <= 1'b1;
             else
-                rden <= {ROW{1'b0}};
+                rden <= 1'b0;
         end
     end
 end

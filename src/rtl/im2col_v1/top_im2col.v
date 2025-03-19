@@ -1,15 +1,3 @@
-//TODO
-//1. Add Stall logic            -- DONE          
-//2. Remove data in and out     -- DONE
-//3. Add Im2col_done signal     -- DONE
-//4. Add row and col out signal -- DONE
-//5. Add Delay for data         -- DONE in Top_CON_FC
-//6. Synthesis RAM              -- DONE 
-//7. Zero Pad Enable signal     -- DONE
-//8. Valid Square for stride1   -- DONE
-//9. Integrate it               --  
-
-
 
 module top_im2col_v1 #(
     parameter KERNEL_SIZE = 4,

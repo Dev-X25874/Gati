@@ -481,3 +481,8 @@ As a result, the dispatcher is flexible in that it can provide the final results
 after computation has ended, or be used for debugging intermidiate layers.
 
 For more Abstract view of Dispatcher, see :ref:`dispatcher`
+
+NMS
+***
+
+For more info see :ref:`nms`

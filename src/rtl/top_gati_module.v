@@ -783,7 +783,7 @@ module top_gati_module #(
   wire im2col_global_start;
   wire vector_add_enable;
   
-  assign acc_stop_address = acc_start_address + (img_dim_Acc*COL_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
+  assign acc_stop_address = acc_start_address + (img_dim_Acc*N_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
 
   request_controller_accumulator #(
       .BURST_LENGTH(ACC_REQ_BLEN),

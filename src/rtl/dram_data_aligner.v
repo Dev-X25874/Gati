@@ -227,7 +227,7 @@ module dram_data_aligner#(
         .o_fifo_empty(o_op_write_dram_fifo_empty),
         .o_fifo_almost_empty(),
         .o_fifo_full(),
-        .o_fifo_almost_full(op_write_dram_fifo_almost_full),
+        .o_fifo_almost_full(),
         .o_fifo_dv(o_op_write_dram_fifo_dv),
         .o_occupants(o_op_write_dram_fifo_occupants)
     );

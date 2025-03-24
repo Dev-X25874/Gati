@@ -110,7 +110,6 @@ assign w_empty_flag=empty_flag;
       .FIFO_NO(FIFO_NO),
       .NO_PORT(NO_PORT),
       .COL_SA(N),
-      .BIAS(BIAS),
       .TOGGLE(TOGGLE))
    controller 
   (

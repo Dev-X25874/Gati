@@ -37,7 +37,7 @@ module top_output_block #(
 
 
 wire [(DATA_WIDTH_ACC*FIFO_NO)-1:0] w_data_out;
-wire [          (DATA_WIDTH*N)-1:0] w_data_in_fifo;
+wire [      (DATA_WIDTH_ACC*N)-1:0] w_data_in_fifo;
 wire [                 FIFO_NO-1:0] w_rd_en;
 
 wire [                 FIFO_NO-1:0] w_valid_fifo;

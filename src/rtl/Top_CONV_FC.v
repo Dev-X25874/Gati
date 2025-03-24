@@ -2,14 +2,14 @@ module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
 	  parameter DATA_WIDTH = 8,
-    parameter COL_SA = 8,
+    parameter COL_SA = 4,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
     parameter QUANT_SCALE = 16,
-    parameter ROW = 16,
+    parameter ROW = 9,
     parameter DRAM_BW = 32,
     parameter W_PSUM = 20,
-    parameter MOD1 = 1,
+    parameter MOD1 = 2,
     parameter MOD2 = DRAM_BW/N_SA,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
     parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
@@ -17,45 +17,44 @@ module Top_CONV_FC #(
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
     parameter SHFT_REG_X = DRAM_BW/N_SA,
-    parameter BIAS_FIFO = 16, // Number of bias fifos
-    parameter ACC_OP_FIFO = 1, // Number of accumulant o/p fifos
+    parameter BIAS_FIFO = 8, // Number of bias fifos
+    parameter ACC_OP_FIFO = 2, // Number of accumulant o/p fifos
     parameter QUANT_OP_FIFO = 1, // Number of quantized o/p fifos
-    parameter ACC_FIFO = 16, // Number of accumulant fifos
+    parameter ACC_FIFO = 8, // Number of accumulant fifos
     parameter WEIGHT_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH = 1024,
-    parameter PSUM_FIFO_DEPTH = 512,
+    parameter PSUM_FIFO_DEPTH = 1024,
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512,
-    parameter NSA_DSP = 8,
-    parameter N_FC_MUX = 16,
-    parameter NO_PORT_FC = 2,
+    parameter NSA_DSP = 4,
+    parameter N_FC_MUX = N_SA,
+    parameter NO_PORT_FC = COL_FC/N_SA,
     parameter RELU_CLIP_WIDTH = 8,
     parameter ACT_TYPE_WIDTH = 4,
-    parameter NSA_LUT = 5,
+    parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
-    parameter ACC_TOGGLE = 0,
-    parameter NO_PORT_VA=1,
-    parameter NO_PORT_BAC=1,
-    parameter NO_PORT_BAFC=4,
-    parameter POP_THRESHOLD=(DRAM_BW/N_SA) - 3,
+    parameter ACC_TOGGLE = 1,
+    parameter NO_PORT_VA=2,
+    parameter NO_PORT_BAC=2,
+    parameter NO_PORT_BAFC=8,
+    parameter POP_THRESHOLD=(DRAM_BW/N_SA) - 2,
     // parameter I_SIZE_WIDTH=20, // input image data width
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
-    parameter N_DMUX_PORTS = 1,
+    parameter N_DMUX_PORTS = DRAM_BW/(N_SA*(ACC_DW/8)),
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
-    parameter N_BANK = 8,
-    parameter N_BRAM = 4,
+    parameter N_BANK = N_SA,
+    parameter N_BRAM = DRAM_BW/N_SA,
     parameter W_FC_RW_COUNTER = 10, // width of r/w address counter
-    parameter FC_BRAM_DEPTH = 128,
+    parameter FC_BRAM_DEPTH = 1024,
     parameter W_KERNEL_CNT = 16,
     parameter W_FC_IMAG_DIM = 20,
-    parameter ACC_DATA_REORDER = 0, //parameter to specify FC o/p data reordering is required or not
 
     // im2col_v1 parameter
 
-    parameter KERNEL_SIZE = 4,  // im2col kernal size
+    parameter KERNEL_SIZE = 3,  // im2col kernal size
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
     parameter CONV_KW_WIDTH = 4,
@@ -595,7 +594,6 @@ endgenerate
       .COL_SA(COL_SA),
       .TOGGLE(ACC_TOGGLE),
       .FIFO_NO(ACC_FIFO),
-      .TOGGLE(ACC_TOGGLE),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA)
   ) vector_addition (
@@ -625,7 +623,6 @@ endgenerate
       .DATA_WIDTH(DATA_WIDTH_OB),
       .W_ADDR($clog2(BIAS_FIFO_DEPTH)),
       .N(N_SA),
-      .BIAS(1),
       .TOGGLE(ACC_TOGGLE),
       .FIFO_NO(BIAS_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),

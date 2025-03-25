@@ -497,6 +497,150 @@ module top_gati_module #(
     end
   end
 
+ // logic for systolic array start and stalling sytolic array for stride more than 1 
+ 
+  reg istolic_array_stall=0;
+  reg stall_flag = 0;
+  reg sa_start_flag = 0;
+  wire sa_image_fifo_almost_empty_flag ;
+  wire sa_image_fifo_almost_full_flag;
+  reg sa_running_flag = 0;
+  reg sa_flag = 0;
+
+
+  reg stage_1_flag = 0;
+  reg stage_2_flag = 0;
+  reg stage_3_flag = 0;
+
+
+
+  always @ (posedge i_clk) begin
+    if(!i_rst) begin
+      istolic_array_stall <= 0;
+      sa_start_flag <= 0;
+      sa_flag <= 0;
+      stage_1_flag <= 0;
+      stage_2_flag <= 0;
+      stage_3_flag <= 0;
+    end
+    else begin
+      if(stride == 1) begin
+        istolic_array_stall <= 0 ;
+        stall_flag <= 0;
+        if(row == 5 && col==1) begin
+          sa_start_flag <=1;
+          end
+        else begin 
+          sa_start_flag <= 0;
+        end 
+      end
+      else if (stride >= 2) begin
+        if (IM2COL_FIFO_DEPTH >= conv_op_width * conv_op_height) begin 
+          istolic_array_stall <= 0;
+          stall_flag <= 0;
+          if(row == (input_img_height + conv_zeropad -1) && col==1) begin
+            sa_start_flag <= 1;
+          end
+          else begin 
+            sa_start_flag <= 0;
+          end 
+
+        end 
+        //// the new logic for stride > 1
+
+        else if (IM2COL_FIFO_DEPTH < conv_op_width * conv_op_height) begin
+
+          if (im2col_global_start)begin
+            stage_1_flag <= 1;
+            stage_2_flag <= 0;
+            stage_3_flag <= 0;
+          end
+          // stage 1 
+          if (stage_1_flag)begin
+            if (sa_image_fifo_almost_full_flag)begin
+              sa_start_flag <= 1;
+              sa_running_flag <= 1;
+              stall_flag <= 0;
+              istolic_array_stall <= 0;
+              stage_1_flag <= 0;
+              stage_2_flag <= 1;
+            end
+          end
+          // stage 2 
+          else if (stage_2_flag)begin
+            sa_start_flag <= 0;
+            stage_1_flag <= 0;
+
+            if (sa_image_fifo_almost_empty_flag)begin 
+              stall_flag <= 1;
+              istolic_array_stall <= 1;
+              sa_start_flag <= 0;
+            end 
+            else if (sa_image_fifo_almost_full_flag)begin 
+              stall_flag <= 0;
+              istolic_array_stall <= 0;
+              sa_start_flag <= 0;
+            end
+          end
+          // stage 3
+          if (im2col_done)begin 
+           stage_1_flag <= 0;
+           stage_2_flag <= 0;
+           stage_3_flag <= 1;
+          end 
+
+          else if (stage_3_flag)begin
+            stall_flag <= 0;
+            istolic_array_stall <= 0;
+            if (sa_running_flag == 0) begin
+              sa_start_flag <= 1;
+              sa_flag <= 1;
+            end 
+            else if (sa_flag) begin 
+              sa_start_flag <= 0;
+            end
+          end
+
+          else if (stage_3_flag && SA_done)begin
+            stage_1_flag <= 0;
+            stage_2_flag <= 0;
+            stage_3_flag <= 0;
+          end
+          
+          end
+          
+            
+        end
+        else begin
+          istolic_array_stall <= 0;
+          stall_flag <= 0;
+          sa_start_flag <= 0;
+        end
+      end
+      
+    end
+
+    // generate stall signal for systolic array for stride > 1
+    // using to flags to genrate to get rid of bit_flip case 
+    reg istolic_stall=0;
+    
+    always @(posedge i_clk) begin
+      if(!i_rst) begin
+        istolic_stall <= 0;
+      end
+      else begin
+        if(stall_flag && istolic_array_stall) begin
+          istolic_stall <= 1;
+        end
+        else begin
+          istolic_stall <= 0;
+        end
+      end
+      
+    end
+
+
+
   /*
   reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
   reg im2col_en = 0;
@@ -517,11 +661,11 @@ module top_gati_module #(
       im2col_flag <= 0;
     end
     else begin
-	  	if(row== 28 && col==1) begin
+	  	if(row== (input_img_height-1) && col==1) begin
 		  im2col_flag<=1;
 	  	end
 
-      if(im2col_flag) begin
+      if(sa_start_flag) begin
 			  systolic_array_trigger <= 1'b1;
 			  im2col_flag<=0;
 		  end
@@ -1387,7 +1531,10 @@ module top_gati_module #(
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
       .stride(stride),
       .kernel_width(kernel_width),
-      .Pad_side(Pad_side)
+      .Pad_side(Pad_side),
+      .o_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
+      .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
+      .istolic_stall(istolic_stall)
 
   );
 

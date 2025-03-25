@@ -15,6 +15,8 @@ module image_fifo_array#(
     input [DIMENSION-1:0] i_write_enable,
     output [(DIMENSION * W_DATA) -1 : 0] o_data,
     output [DIMENSION-1:0] o_fifo_empty,
+    output [DIMENSION-1:0] o_fifo_almost_empty,
+    output [DIMENSION-1:0] o_fifo_almost_full,
     output [DIMENSION-1:0] o_fifo_full,
     output [DIMENSION-1:0] o_fifo_dv,
     output [(((W_ADDR + 1) * DIMENSION) -1): 0] o_occupants
@@ -29,6 +31,10 @@ generate
             .OUTPUT_REG(0)
         ) fifo_inst (
             .full_o(o_fifo_full[i]),
+            .almost_full_o(),
+            .almost_empty_o(),
+            .prog_full_o(o_fifo_almost_full[i]),
+            .prog_empty_o(o_fifo_almost_empty[i]),
             .empty_o(o_fifo_empty[i]),
             .clk_i(i_clk),
             .wr_en_i(i_write_enable[i]),

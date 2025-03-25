@@ -158,7 +158,10 @@ module Top_CONV_FC #(
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
-    output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants
+    output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants,
+    output o_image_fifo_almost_empty_flag,
+    output o_image_fifo_almost_full_flag,
+    input istolic_stall
 
 );
 
@@ -303,6 +306,19 @@ endgenerate
   wire [N_SA-1:0] valid_psum;
 
   wire [(N_SA*COL_SA)-1:0] psum_fifo_almost_full, psum_fifo_almost_empty;
+
+  wire [(N_SA*ROW) -1:0] sa_image_fifo_almost_empty; 
+  // systolic array image fifo almost empty
+  wire [(N_SA*ROW) -1:0] sa_image_fifo_almost_full;
+  // systolic array image fifo almost full
+
+  // generation of sa image fifo almost empty and almost full signals
+  // conversion to one bit flag signal to be passed to top_gati_module 
+
+  assign o_image_fifo_almost_empty_flag = |(sa_image_fifo_almost_empty);
+  assign o_image_fifo_almost_full_flag = |(sa_image_fifo_almost_full);
+
+
   top_sa #(
       .N_SA(N_SA),
       .W_DATA(DATA_WIDTH),
@@ -320,6 +336,7 @@ endgenerate
       .s_clk(s_clk),
       .i_rstn(rst),
       .stall_on(stall_on),
+      .istolic_stall(istolic_stall),
 	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
       .i_data_weight_ff_sharing(weight_data_sa),
       .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
@@ -327,6 +344,9 @@ endgenerate
       .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
       .i_image_ff_array_data(delay_stage[5].delay_reg), //i-wire : from im2col
       .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
+      .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
+      .o_image_ff_array_almost_full(sa_image_fifo_almost_full),
+
       .i_psum_ff_array_read_en(opsum_rden),
       .p_full_output(p_full_output),
 	    .o_psum_ff_array_partial_sums(o_psum_ff_array),

@@ -20,7 +20,7 @@ module top_im2col_v1 #(
         output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq,           
         output                                 o_valid,
         output [DATA_WIDTH-1:0]                valid_sq_data_o,
-        input  [STRIDE-1:0]              stride,
+        input  [STRIDE-1:0]                    stride,
         output                                 o_valid_buff,
         output                                 o_im2col_done,
         input                                  i_stall_on,

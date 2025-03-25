@@ -114,8 +114,6 @@ module Top_CONV_FC #(
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
-    input zero_pad_enable,
-
     input [CONV_PAD_WIDTH-1:0] conv_zeropad,
     
     //im2col signals

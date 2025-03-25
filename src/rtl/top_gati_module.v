@@ -462,18 +462,8 @@ module top_gati_module #(
  wire  [$clog2(IMAGE_DIM)-1:0]      row;    
  wire  [$clog2(IMAGE_DIM)-1:0]      col;
 
-  reg systolic_array_trigger;
+  
   reg Flattening_trigger=0;
-  reg im2col_flag=0;
- // always @ (posedge i_clk) begin
-
- //   	pre_wait_im2col<=row+col;
- //     	if(pre_wait_im2col==900) begin
- //   	  im2col_flag<=1;
- //     	end
-
- // end
-	
 
   // Generate logic for stall_on signal 
   reg stall_on=0;
@@ -499,180 +489,46 @@ module top_gati_module #(
 
  // logic for systolic array start and stalling sytolic array for stride more than 1 
  
-  reg istolic_array_stall=0;
-  reg stall_flag = 0;
-  reg sa_start_flag = 0;
-  wire sa_image_fifo_almost_empty_flag ;
-  wire sa_image_fifo_almost_full_flag;
-  reg sa_running_flag = 0;
-  reg sa_flag = 0;
+  // the almost empty and almost full flags are used to control the start and stall of the systolic array these are genrated 15 and 24 address line before the actual empty and full of the fifo
 
+  // thus the name might be confusing but they arent genrated only one cycle before the actual empty and full of the fifo but 15 and 24 address line before the actual empty and full of the fifo
+  
+    wire sa_image_fifo_almost_empty_flag ;
+    wire sa_image_fifo_almost_full_flag;
+    wire istolic_stall;
+    wire systolic_array_trigger;
 
-  reg stage_1_flag = 0;
-  reg stage_2_flag = 0;
-  reg stage_3_flag = 0;
+  // instantiation of sa_start_stall_ctrler
 
+    sa_start_stall_ctrl #(
+        .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
+        .CONV_IH_WIDTH(CONV_IH_WIDTH),
+        .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
+        .CONV_OW_WIDTH (CONV_OW_WIDTH),
+        .CONV_OH_WIDTH (CONV_OH_WIDTH),
+        .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+        .IMAGE_DIM(IMAGE_DIM)
+        )
+    sa_start_stall (
+        .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
+        .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
+        .im2col_global_start(im2col_global_start),
+        .im2col_done( im2col_done),
+        .SA_done(SA_done),
+        .i_clk(i_clk),
+        .i_rst(i_rst),
+        .input_img_height(input_img_height),  
+        .conv_zeropad(conv_zeropad),
+        .conv_op_width (conv_op_width),
+        .conv_op_height (conv_op_height),
+        .stride (stride),
+        .istolic_stall(istolic_stall),
+        .row(row),
+        .col(col),
+        .systolic_array_trigger(systolic_array_trigger)
+  );
 
-
-  always @ (posedge i_clk) begin
-    if(!i_rst) begin
-      istolic_array_stall <= 0;
-      sa_start_flag <= 0;
-      sa_flag <= 0;
-      stage_1_flag <= 0;
-      stage_2_flag <= 0;
-      stage_3_flag <= 0;
-    end
-    else begin
-      if(stride == 1) begin
-        istolic_array_stall <= 0 ;
-        stall_flag <= 0;
-        if(row == 5 && col==1) begin
-          sa_start_flag <=1;
-          end
-        else begin 
-          sa_start_flag <= 0;
-        end 
-      end
-      else if (stride >= 2) begin
-        if (IM2COL_FIFO_DEPTH >= conv_op_width * conv_op_height) begin 
-          istolic_array_stall <= 0;
-          stall_flag <= 0;
-          if(row == (input_img_height + conv_zeropad -1) && col==1) begin
-            sa_start_flag <= 1;
-          end
-          else begin 
-            sa_start_flag <= 0;
-          end 
-
-        end 
-        //// the new logic for stride > 1
-
-        else if (IM2COL_FIFO_DEPTH < conv_op_width * conv_op_height) begin
-
-          if (im2col_global_start)begin
-            stage_1_flag <= 1;
-            stage_2_flag <= 0;
-            stage_3_flag <= 0;
-          end
-          // stage 1 
-          if (stage_1_flag)begin
-            if (sa_image_fifo_almost_full_flag)begin
-              sa_start_flag <= 1;
-              sa_running_flag <= 1;
-              stall_flag <= 0;
-              istolic_array_stall <= 0;
-              stage_1_flag <= 0;
-              stage_2_flag <= 1;
-            end
-          end
-          // stage 2 
-          else if (stage_2_flag)begin
-            sa_start_flag <= 0;
-            stage_1_flag <= 0;
-
-            if (sa_image_fifo_almost_empty_flag)begin 
-              stall_flag <= 1;
-              istolic_array_stall <= 1;
-              sa_start_flag <= 0;
-            end 
-            else if (sa_image_fifo_almost_full_flag)begin 
-              stall_flag <= 0;
-              istolic_array_stall <= 0;
-              sa_start_flag <= 0;
-            end
-          end
-          // stage 3
-          if (im2col_done)begin 
-           stage_1_flag <= 0;
-           stage_2_flag <= 0;
-           stage_3_flag <= 1;
-          end 
-
-          else if (stage_3_flag)begin
-            stall_flag <= 0;
-            istolic_array_stall <= 0;
-            if (sa_running_flag == 0) begin
-              sa_start_flag <= 1;
-              sa_flag <= 1;
-            end 
-            else if (sa_flag) begin 
-              sa_start_flag <= 0;
-            end
-          end
-
-          else if (stage_3_flag && SA_done)begin
-            stage_1_flag <= 0;
-            stage_2_flag <= 0;
-            stage_3_flag <= 0;
-          end
-          
-          end
-          
-            
-        end
-        else begin
-          istolic_array_stall <= 0;
-          stall_flag <= 0;
-          sa_start_flag <= 0;
-        end
-      end
-      
-    end
-
-    // generate stall signal for systolic array for stride > 1
-    // using to flags to genrate to get rid of bit_flip case 
-    reg istolic_stall=0;
-    
-    always @(posedge i_clk) begin
-      if(!i_rst) begin
-        istolic_stall <= 0;
-      end
-      else begin
-        if(stall_flag && istolic_array_stall) begin
-          istolic_stall <= 1;
-        end
-        else begin
-          istolic_stall <= 0;
-        end
-      end
-      
-    end
-
-
-
-  /*
-  reg [CONV_IW_WIDTH-1:0] im2col_cnt = 0;
-  reg im2col_en = 0;
-
-  always@(posedge i_clk) begin
-    if(!i_rst) im2col_cnt <= 0;
-    else begin
-      if(im2col_en) im2col_cnt <= im2col_cnt + 1;
-      else im2col_cnt <= 0;
-    end 
-  end
-  */
-  // Generation of systolic array start trigger and flattening module triggers
-  // 
-  always@(posedge i_clk) begin
-    if(!i_rst) begin
-      systolic_array_trigger <= 1'b0;
-      im2col_flag <= 0;
-    end
-    else begin
-	  	if(row== (input_img_height-1) && col==1) begin
-		  im2col_flag<=1;
-	  	end
-
-      if(sa_start_flag) begin
-			  systolic_array_trigger <= 1'b1;
-			  im2col_flag<=0;
-		  end
-        else systolic_array_trigger <= 0;
-    end
-  end
-
+  // logic for flattening trigger
   always@(posedge i_clk) begin
     if(!i_rst) Flattening_trigger <= 1'b0;
     else begin
@@ -1245,13 +1101,6 @@ module top_gati_module #(
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
 
 
-  // TODO : Remove the below code after testing as the zero pad enable is no more needed remove from Top_CONV_FC input as well 
-  
-  reg  zero_pad_enable;
-  always @ (posedge i_clk) begin 
-   zero_pad_enable <= |(conv_zeropad);
-  end
-  
   // Data from DRAM
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_dram;
   wire [ACC_FIFO-1:0] vector_add_wren_dram;
@@ -1497,7 +1346,6 @@ module top_gati_module #(
       .bias_enable(bias_enable),
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),
-      .zero_pad_enable(zero_pad_enable),
       .conv_zeropad(conv_zeropad),
       .image_size(input_img_width),
       .valid_img_size_im2col(valid_conv), //valid inst conv

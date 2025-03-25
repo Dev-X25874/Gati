@@ -52,6 +52,7 @@ module top_gati_module #(
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
     parameter CONV_PADSIDES_WIDTH = `CONV_PadSides_WIDTH,
+    parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
@@ -501,11 +502,9 @@ module top_gati_module #(
   // instantiation of sa_start_stall_ctrler
 
     sa_start_stall_ctrl #(
-        .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH),
         .CONV_IH_WIDTH(CONV_IH_WIDTH),
         .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
-        .CONV_OW_WIDTH (CONV_OW_WIDTH),
-        .CONV_OH_WIDTH (CONV_OH_WIDTH),
+        .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
         .IMAGE_DIM(IMAGE_DIM)
         )
@@ -517,10 +516,9 @@ module top_gati_module #(
         .SA_done(SA_done),
         .i_clk(i_clk),
         .i_rst(i_rst),
+        .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
         .input_img_height(input_img_height),  
         .conv_zeropad(conv_zeropad),
-        .conv_op_width (conv_op_width),
-        .conv_op_height (conv_op_height),
         .stride (stride),
         .istolic_stall(istolic_stall),
         .row(row),
@@ -557,6 +555,7 @@ module top_gati_module #(
     .STRIDE_WIDTH(CONV_STRIDE_WIDTH),
     .PAD_WIDTH(CONV_PAD_WIDTH),
     .PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
+    .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
     .WEIGHTROWS_WIDTH(FC_WEIGHTROW_WIDTH),
     .WEIGHTCOLS_WIDTH(FC_WEIGHTCOL_WIDTH),
     .INPUTROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),
@@ -609,6 +608,7 @@ module top_gati_module #(
     .Stride(stride),
     .Pad(conv_zeropad),
     .Pad_side(Pad_side),
+    .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
     .ImageStartAddress_conv(img_start_address),
     .ImageEndAddress_conv(img_stop_address),
     .WeightStartAddress_conv(weight_start_addr_conv),

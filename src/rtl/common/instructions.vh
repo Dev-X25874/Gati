@@ -44,6 +44,10 @@
 `define CONV_WeightStartAddress_WIDTH 32
 `define CONV_WeightEndAddress 210:179
 `define CONV_WeightEndAddress_WIDTH 32
+// Set if the entire image can be fetched in im2col blocks at o
+// nce
+`define CONV_Im2colPrefetch 211:211
+`define CONV_Im2colPrefetch_WIDTH 1
 
 `define OP_TailBlock 'h01
 `define TailBlock_Opcode 3:0
@@ -141,6 +145,10 @@
 // that bit.
 `define OutputBlock_OnChipAcc 158:158
 `define OutputBlock_OnChipAcc_WIDTH 1
+`define OutputBlock_OH 168:159
+`define OutputBlock_OH_WIDTH 10
+`define OutputBlock_OW 178:169
+`define OutputBlock_OW_WIDTH 10
 
 `define OP_FC 'h03
 `define FC_Opcode 3:0
@@ -184,7 +192,64 @@
 `define START_TotalLayers 27:16
 `define START_TotalLayers_WIDTH 12
 
-`define ISA_VERSION 0
+`define OP_NMS 'h04
+// Opcode
+`define NMS_Opcode 3:0
+`define NMS_Opcode_WIDTH 4
+// IOU Threshold
+`define NMS_IOU 19:4
+`define NMS_IOU_WIDTH 16
+// Shift Value for integer IOU
+`define NMS_IOUShift 23:20
+`define NMS_IOUShift_WIDTH 4
+// Score Threshold
+`define NMS_ScoreThresh 39:24
+`define NMS_ScoreThresh_WIDTH 16
+// Total Boxes in Input
+`define NMS_TotalInBoxes 59:40
+`define NMS_TotalInBoxes_WIDTH 20
+// Expected Output Boxes
+`define NMS_MaxOutBoxes 67:60
+`define NMS_MaxOutBoxes_WIDTH 8
+// Whether its ((x1,y1),(x2,y2) or ((h,w),(c1,c2)) (center co-o
+// rdinates)
+`define NMS_CornerCord 68:68
+`define NMS_CornerCord_WIDTH 1
+// Total Classes in the dataset (for eg., COCO has 80)
+`define NMS_TotalClasses 76:69
+`define NMS_TotalClasses_WIDTH 8
+`define NMS_BoxStartAddr 108:77
+`define NMS_BoxStartAddr_WIDTH 32
+`define NMS_BoxEndAddr 140:109
+`define NMS_BoxEndAddr_WIDTH 32
+`define NMS_ScoreStartAddr 172:141
+`define NMS_ScoreStartAddr_WIDTH 32
+`define NMS_ScoreEndAddr 204:173
+`define NMS_ScoreEndAddr_WIDTH 32
+
+`define OP_EltWise 'h05
+// Opcode
+`define EltWise_Opcode 3:0
+`define EltWise_Opcode_WIDTH 4
+// Whether its an Add, Sub, Mult etc.
+`define EltWise_EltType 7:4
+`define EltWise_EltType_WIDTH 4
+`define EltWise_IW 17:8
+`define EltWise_IW_WIDTH 10
+`define EltWise_IH 27:18
+`define EltWise_IH_WIDTH 10
+`define EltWise_IC 37:28
+`define EltWise_IC_WIDTH 10
+`define EltWise_LeftOperandStartAddress 69:38
+`define EltWise_LeftOperandStartAddress_WIDTH 32
+`define EltWise_LeftOperandEndAddress 101:70
+`define EltWise_LeftOperandEndAddress_WIDTH 32
+`define EltWise_RightOperandStartAddress 133:102
+`define EltWise_RightOperandStartAddress_WIDTH 32
+`define EltWise_RightOperandEndAddress 165:134
+`define EltWise_RightOperandEndAddress_WIDTH 32
+
+`define ISA_VERSION 2
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00
@@ -199,7 +264,6 @@
 `define DWP_SOP_INDEX 0
 `define DWP_DS_INDEX 1
 `define DWP_ADDR_INDEX 2
-
 `define META_SOP 'hffffffffffff
 `define META_TYPE_RESET 'h000000000000
 `define META_TYPE_DISPATCH 'h000000000001
@@ -207,10 +271,18 @@
 `define META_TYPE_INST_ORIGIN 'h000000000003
 `define META_CONST_DISPATCH_RAH 'h000000000000
 `define META_CONST_DISPATCH_UART 'h000000000001
+`define ELTWISE_ADD 0
+`define ELTWISE_SUB 1
+`define ELTWISE_MULT 2
+`define INST_SIZE_BITS 256
+`define META_WIDTH_BITS 48
+`define RAH_APP_ID 1
+`define META_APP_ID 2
 
 `define ZerothStartAddress 31:0
 `define ZerothStartAddress_WIDTH 32
 `define ZerothEndAddress 63:32
 `define ZerothEndAddress_WIDTH 32
+
 
 `endif

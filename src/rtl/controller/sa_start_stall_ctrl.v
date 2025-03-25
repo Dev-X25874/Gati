@@ -4,13 +4,11 @@
 
 
 module sa_start_stall_ctrl #(
-    parameter IM2COL_FIFO_DEPTH = 1024,
     parameter CONV_IH_WIDTH = 8,
     parameter CONV_PAD_WIDTH = 3,
-    parameter CONV_OW_WIDTH = 8,
-    parameter CONV_OH_WIDTH = 8,
     parameter CONV_STRIDE_WIDTH = 3,
-    parameter IMAGE_DIM = 32
+    parameter IMAGE_DIM = 32,
+    parameter CONV_Im2colPrefetch_WIDTH = 1
 
     
 ) ( 
@@ -23,8 +21,7 @@ module sa_start_stall_ctrl #(
     input i_rst,
     input [CONV_IH_WIDTH-1 : 0] input_img_height,  
     input [CONV_PAD_WIDTH-1:0] conv_zeropad,
-    input [CONV_OW_WIDTH-1 : 0] conv_op_width,
-    input [CONV_OH_WIDTH-1 : 0] conv_op_height,
+    input [CONV_Im2colPrefetch_WIDTH - 1 : 0] CONV_Im2colPrefetch,
     input [CONV_STRIDE_WIDTH-1:0]  stride,
     input [$clog2(IMAGE_DIM)-1:0]      row,   
     input [$clog2(IMAGE_DIM)-1:0]      col,
@@ -69,7 +66,7 @@ module sa_start_stall_ctrl #(
         end 
       end
       else if (stride >= 2) begin
-        if (IM2COL_FIFO_DEPTH >= conv_op_width * conv_op_height) begin 
+        if (CONV_Im2colPrefetch == 1) begin 
           istolic_array_stall <= 0;
           stall_flag <= 0;
           if(row == (input_img_height + conv_zeropad -1) && col==1) begin
@@ -82,7 +79,7 @@ module sa_start_stall_ctrl #(
         end 
         //// the new logic for stride > 1
 
-        else if (IM2COL_FIFO_DEPTH < conv_op_width * conv_op_height) begin
+        else if (CONV_Im2colPrefetch == 0) begin
 
           if (im2col_global_start)begin
             stage_1_flag <= 1;

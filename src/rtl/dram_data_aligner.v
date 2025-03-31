@@ -20,7 +20,7 @@ module dram_data_aligner#(
     input i_clk,
     input i_rst,
     input i_acc_quant_enable, // 0: acc, 1: quant
-
+    input i_op_full,
     input [ACC_OP_DATAWIDTH-1:0] i_acc_data,
     input [ACC_OP_FIFO-1 : 0] i_acc_data_wren,
     input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_quant_data,
@@ -45,7 +45,7 @@ module dram_data_aligner#(
     // ACC_OP_FIFO
     dram_fifo # (
         .DIMENSION(ACC_OP_FIFO),
-        .W_DATA(AXI_DATA_WIDTH),
+        .W_DATA(ACC_OP_DATAWIDTH/ACC_OP_FIFO),
         .W_ADDR($clog2(ACC_OP_FIFO_DEPTH)),
         .OUTPUT_REG(OUTPUT_REG)
     )
@@ -100,7 +100,7 @@ module dram_data_aligner#(
         end
         else begin
             if(i_acc_quant_enable) begin
-                if(op_write_dram_fifo_almost_full) r_quant_fifo_read_enable <= 0;
+                if(i_op_full) r_quant_fifo_read_enable <= 0;
                 else if(r_quant_fifo_read_enable & quant_op_fifo_almost_empty) r_quant_fifo_read_enable <= 0;
                 else if(~quant_op_fifo_empty) r_quant_fifo_read_enable <= {QUANT_OP_FIFO{1'b1}};
             end
@@ -125,7 +125,7 @@ module dram_data_aligner#(
                 end
                 else begin
                     if(~i_acc_quant_enable) begin
-                        if(op_write_dram_fifo_almost_full) r_acc_fifo_read_enable <= 0;
+                        if(i_op_full) r_acc_fifo_read_enable <= 0;
                         else if(acc_fifo_read_enable & (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
                         else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= {ACC_OP_FIFO{1'b1}};
                     end
@@ -147,11 +147,11 @@ module dram_data_aligner#(
                 else begin
                     if(~i_acc_quant_enable) begin
                         if(r_shift_count == SHIFT_COUNT-1) begin
-                            if(op_write_dram_fifo_almost_full) r_acc_fifo_read_enable <= 0;
+                            if(i_op_full) r_acc_fifo_read_enable <= 0;
                             else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
                         end
                         else begin
-                            if(op_write_dram_fifo_almost_full) r_acc_fifo_read_enable <= 0;
+                            if(i_op_full) r_acc_fifo_read_enable <= 0;
                             else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
                         end
                     end

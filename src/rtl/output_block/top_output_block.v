@@ -124,7 +124,7 @@ dram_fifo #(
   
   acc_fifo_rden #(
       .FIFO_NO(FIFO_NO),
-      .TOGGLE(1),
+      .TOGGLE(TOGGLE),
       .N(N),
       .COL_SA(COL_SA),
       .NO_PORT(NO_PORT))

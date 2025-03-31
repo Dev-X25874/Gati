@@ -33,7 +33,7 @@ module Top_CONV_FC #(
     parameter ACT_TYPE_WIDTH = 4,
     parameter NSA_LUT = 8,
     parameter BIAS_FIFO_FC = 32, // Number of FC_bias fifos
-    parameter ACC_TOGGLE = 0,
+    parameter ACC_TOGGLE = 1,
     parameter NO_PORT_VA = 1,
     parameter NO_PORT_BAC = 1,
     parameter NO_PORT_BAFC = 16,
@@ -624,7 +624,7 @@ endgenerate
       .W_ADDR($clog2(BIAS_FIFO_DEPTH)),
       .N(N_SA),
       .BIAS(1),
-      .TOGGLE(0),
+      .TOGGLE(ACC_TOGGLE),
       .FIFO_NO(BIAS_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_BAC)
@@ -838,13 +838,13 @@ endgenerate
       demux_sel_ctr (
         .rst(rst&(~iteration_Done)),
         .clk(i_clk),
-        .data_valid(&(acc_op_write_datavalid)),
+        .data_valid(&(zp_unquant_dv)),
         .op_wren(acc_op_wren),
         .sel(sel_dmx)
       );
     end
     else begin
-      assign acc_op_wren = (&(acc_op_write_datavalid))? {ACC_OP_FIFO{1'b1}} : {ACC_OP_FIFO{1'b0}};
+      assign acc_op_wren = (&(zp_unquant_dv))? {ACC_OP_FIFO{1'b1}} : {ACC_OP_FIFO{1'b0}};
       assign sel_dmx     = 0;
     end
   endgenerate

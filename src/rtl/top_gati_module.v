@@ -130,6 +130,7 @@ module top_gati_module #(
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter NO_PORT_VA    = 1,
     parameter NO_PORT_BAC   = 1,
+    parameter ACC_TOGGLE    = 1,
     parameter NO_PORT_BAFC  = 2
         
 ) (
@@ -1323,6 +1324,7 @@ module top_gati_module #(
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),
+      .ACC_TOGGLE(ACC_TOGGLE),
       .NO_PORT_BAFC(NO_PORT_BAFC),
       .POP_THRESHOLD(POP_THRESHOLD),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
@@ -1485,6 +1487,7 @@ module top_gati_module #(
     .i_clk(i_clk),
     .i_rst(i_rst),
     .i_acc_quant_enable(quant_enable),
+    .i_op_full(op_full),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_quant_data(quant_op_write_data),

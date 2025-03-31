@@ -8,7 +8,7 @@ module rah_gati #(
 	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000,4'b1001},   // only use for port controller 
-    parameter   POINTER_COUNT = 8,                               // fifo depth
+    parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
     parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
@@ -18,11 +18,11 @@ module rah_gati #(
     parameter   ADW_C               = AXI_DATA_WIDTH    ,
     parameter   ABN_C               = AXI_BYTE_NUMBER ,
     // FIFO Depth varies between operators to avoid overflow and underflow 
-    parameter INST_QUEUE_DEPTH    = 256,
+    parameter INST_QUEUE_DEPTH    = 512,
     parameter DRAM_IMG_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH   = 1024,
     parameter WEIGHT_FIFO_DEPTH   = 512,
-    parameter PSUM_FIFO_DEPTH     = 512,
+    parameter PSUM_FIFO_DEPTH     = 1024,
     parameter ACC_FIFO_DEPTH      = 512,
     parameter BIAS_FIFO_DEPTH     = 512, //For both conv and FC
     parameter ACC_OP_FIFO_DEPTH   = 256,
@@ -78,13 +78,13 @@ module rah_gati #(
     parameter CONV_PAD_WIDTH = `CONV_Pad_WIDTH,
     //SA related param
     parameter POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2,
-    parameter NSA_DSP       = 15, 
-    parameter NSA_LUT       = 1,
+    parameter NSA_DSP       = 4, 
+    parameter NSA_LUT       = 0,
     parameter N_SA          = NSA_DSP + NSA_LUT,
     parameter DATA_WIDTH    = 8,
-    parameter COL_SA        = 1,
+    parameter COL_SA        = 4,
     parameter COL_FC        = 32,
-    parameter ROW           = 16,
+    parameter ROW           = 9,
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
     parameter IMAGE_DIM     = 224,
@@ -99,12 +99,12 @@ module rah_gati #(
     parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
     // FC Engine related parameters
     parameter ACC_DW            = 32,
-    parameter N_BANK            = 2,
-    parameter N_BRAM            = 16,
-    parameter FC_BRAM_DEPTH     = 128,
+    parameter N_BANK            = 4,
+    parameter N_BRAM            = 8,
+    parameter FC_BRAM_DEPTH     = 1024,
     parameter ACC_DATA_REORDER  = 0,
-    parameter N_FC_MUX          = 16, //number of muxes for FC output
-    parameter NO_PORT_FC        = 2, //FC mux size
+    parameter N_FC_MUX          = 4, //number of muxes for FC output
+    parameter NO_PORT_FC        = 8, //FC mux size
 
     //Output block inst param
     parameter W_CITER_CNT       = `OutputBlock_ChannelItr_WIDTH,
@@ -115,9 +115,9 @@ module rah_gati #(
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
-    parameter MOD1 = 1,
+    parameter MOD1 = 2,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
-    parameter N_DMUX_PORTS = 1,
+    parameter N_DMUX_PORTS = 2,
 
     //Tail block param
     parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
@@ -141,16 +141,17 @@ module rah_gati #(
     //Other parameters
     parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
     parameter MIPI_FIFO     = 8, // Number of MIPI DWP FIFOs
-    parameter BIAS_FIFO     = 16, // Number of bias FIFOs
+    parameter BIAS_FIFO     = 8, // Number of bias FIFOs
     parameter ACC_OP_FIFO   = 2, // Number of o/p accumulant FIFOs
     parameter QUANT_OP_FIFO = 1, // Number of quantized output FIFOs
     parameter OP_FIFO       = 1,  // Number of output write FIFOs
-    parameter ACC_FIFO      = 16, // Number of accumulant FIFOs
+    parameter ACC_FIFO      = 8, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
-    parameter NO_PORT_VA    = 1,
-    parameter NO_PORT_BAC   = 1,
-    parameter NO_PORT_BAFC  = 2
+    parameter NO_PORT_VA    = 2,
+    parameter NO_PORT_BAC   = 2,
+    parameter ACC_TOGGLE    = 1,
+    parameter NO_PORT_BAFC  = 8
 
 
 ) (
@@ -712,6 +713,7 @@ module rah_gati #(
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),
+      .ACC_TOGGLE(ACC_TOGGLE),
       .NO_PORT_BAFC(NO_PORT_BAFC)
     ) top_gati_module_inst (
       .i_clk(i_clk),

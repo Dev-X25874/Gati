@@ -112,7 +112,7 @@ assign w_empty_flag=empty_flag;
       .NO_PORT(NO_PORT),
       .COL_SA(N),
       .BIAS(BIAS),
-      .TOGGLE(1))
+      .TOGGLE(TOGGLE))
    controller 
   (
       .clk(top_clk),

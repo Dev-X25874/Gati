@@ -58,8 +58,8 @@ module Top_CONV_FC #(
     parameter KERNEL_SIZE = 4,  // im2col kernal size
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
-    parameter  CONV_KW_WIDTH = 4,
-    parameter CONV_PADSIDES_WIDTH =4,
+    parameter CONV_KW_WIDTH = 4,
+    parameter CONV_PADSIDES_WIDTH = 4,
     parameter CONV_PAD_WIDTH = 3
 
 
@@ -185,7 +185,7 @@ module Top_CONV_FC #(
   */
   generate
     if(DRAM_BW/N_SA == 1) begin
-      assign image_rden = im2col_done ? 0 : (~|image_fifo_empty & ~stall_on & read_buf_data);
+      assign image_rden = im2col_done ? 0 : ((~|image_fifo_empty & ~stall_on & read_buf_data)? {N_SA{1'b1}} : {N_SA{1'b0}}); // Read enable for image FIFO
       assign buff_out   = fifo_o;
     end
     

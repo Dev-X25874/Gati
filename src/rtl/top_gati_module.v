@@ -454,9 +454,13 @@ module top_gati_module #(
   // Generate logic for stall_on signal 
   reg stall_on=0;
   reg stall_enable=0;
+  // wire stall_on; 
+
+  // assign stall_on = ((image_fifo_empty|psum_full) && stall_enable); && (col>=input_img_width-(conv_zeropad + (AXI_DATA_BYTES/N_SA)))
+
   always@(posedge i_clk) begin 
-    // if((image_fifo_empty|psum_full) && stall_enable) begin
-    if(psum_full) begin
+    if((image_fifo_empty|psum_full) && stall_enable) begin
+    // if(psum_full) begin
       stall_on<=1;
     end
     else begin 
@@ -465,7 +469,7 @@ module top_gati_module #(
     if(im2col_global_start) begin
       stall_enable<=1;
     end
-    else if((row==input_img_width+1) && (col>=input_img_width-5)) begin 
+    else if((row==input_img_width + conv_zeropad)) begin 
       stall_enable<=0;
     end
     else begin 
@@ -1326,7 +1330,6 @@ module top_gati_module #(
       .ACC_TOGGLE(ACC_TOGGLE),
       .NO_PORT_VA(NO_PORT_VA),
       .NO_PORT_BAC(NO_PORT_BAC),
-      .ACC_TOGGLE(ACC_TOGGLE),
       .NO_PORT_BAFC(NO_PORT_BAFC),
       .POP_THRESHOLD(POP_THRESHOLD),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),

@@ -59,7 +59,7 @@ module Top_CONV_FC #(
     parameter CONV_STRIDE_WIDTH = 2,
     parameter CONV_KW_WIDTH = 4,
     parameter CONV_PADSIDES_WIDTH = 4,
-    parameter CONV_PAD_WIDTH = 3
+    parameter CONV_PAD_WIDTH = 3,
 
 
     parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not

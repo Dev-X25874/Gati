@@ -32,13 +32,13 @@ module rah_gati #(
     parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
     
     //Default burst lenghts for various memory request controllers
-    parameter MIPI_REQ_BLEN = 15,
-    parameter CONFIG_REQ_BLEN = 7,
-    parameter IMG_REQ_BLEN = 31,
-    parameter WEIGHT_REQ_BLEN = 31,
-    parameter FC_WEIGHT_REQ_BLEN = 63,
-    parameter ACC_REQ_BLEN = 15,
-    parameter BIAS_REQ_BLEN = 15,
+    parameter MIPI_REQ_BLEN         = 15,
+    parameter CONFIG_REQ_BLEN       = 7,
+    parameter IMG_REQ_BLEN          = 31,
+    parameter WEIGHT_REQ_BLEN       = 31,
+    parameter FC_WEIGHT_REQ_BLEN    = 63,
+    parameter ACC_REQ_BLEN          = 15,
+    parameter BIAS_REQ_BLEN         = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,

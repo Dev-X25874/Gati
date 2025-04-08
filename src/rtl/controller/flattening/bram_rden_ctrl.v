@@ -281,6 +281,18 @@ always @(posedge clk) begin
                                                 rden[N_BRAM-1] <= 0;
                                             rden[rden_counter] <= 1;
 
+                                            // If i_img_dim = 1, then bank_en should be generated here also
+                                            bank_en[bank_counter] <= 1;
+
+                                            if(N_BANK > 1)begin
+                                                if(bank_counter == 0)
+                                                    bank_en[N_BANK - 1] <= 0;
+                                                else
+                                                    bank_en[bank_counter - 1] <= 0;
+                                            end else begin
+                                                bank_en <= 0;
+                                            end
+
                                         end else begin
                                             element_counter <= element_counter + 1;
                                             bank_counter <= bank_counter;

@@ -5,6 +5,7 @@ module top_gen_shift_register #(parameter NUM_SHIFT = 4,
     input [QUANT_DATA_WIDTH - 1 : 0] quantized_result_in,
     input valid_quantized_result,
     input clk,
+    input rst,
     output valid_out_final,
     output [(NUM_SHIFT * DATA_WIDTH) - 1 : 0] data_out
 );
@@ -21,6 +22,7 @@ generate
                 .quantized_result(quantized_result_in),
                 .valid_quantized_result(valid_quantized_result),
                 .clk(clk),
+                .rst(rst),
                 .valid_out(valid_out[0]),
                 .data_out(data_out[DATA_WIDTH - 1 : 0])
             );
@@ -32,6 +34,7 @@ generate
             .quantized_result(data_out[i*DATA_WIDTH-1 -: DATA_WIDTH]),
             .valid_quantized_result(valid_quantized_result),
             .clk(clk),
+            .rst(rst),
             .valid_out(valid_out[i]),
             .data_out(data_out[(1+i)*DATA_WIDTH -1 -: DATA_WIDTH])
         );
@@ -48,6 +51,7 @@ module top_shift_register  #(parameter DATA_WIDTH = 8,
     input [DATA_WIDTH - 1 : 0] quantized_result,
     input valid_quantized_result,
     input clk,
+    input rst,
     output valid_out,
     output [DATA_WIDTH - 1 : 0] data_out
 );
@@ -61,7 +65,8 @@ register(
     .valid_quantized_result(valid_quantized_result),
     .dout(data_out),
     .valid_out(valid_out),
-    .clk(clk)
+    .clk(clk),
+    .rst(rst)
 );
 
 endmodule

@@ -15,11 +15,11 @@ module im2col_start_ctrler#(
     output reg start_im2col
 );
 
-reg [2:0] state;
+reg [2:0] state, prev_state;
 reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
 reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
-	reg [CITER_CNT_WIDTH-1:0] r_c_iter;
-    reg [KITER_CNT_WIDTH-1:0] r_k_iter;
+reg [CITER_CNT_WIDTH-1:0] r_c_iter;
+reg [KITER_CNT_WIDTH-1:0] r_k_iter;
 
 always @ (posedge clk) begin 
 	r_c_iter<=c_iter-1;
@@ -33,8 +33,10 @@ always@(posedge clk) begin
         state <= 0;
         c_ctr <= 0;
         k_ctr <= 0;
+        prev_state <= 0;
     end
     else begin
+        prev_state <= state;
         case(state)
             0: begin
                 c_ctr <= 0;
@@ -46,13 +48,19 @@ always@(posedge clk) begin
             end
             
             1: begin
-                if(!image_fifo_empty) begin
+                if(prev_state == 3'd3) begin
                     start_im2col <= 1;
                     state <= 2;
                 end
                 else begin
-                    start_im2col <= 0;
-                    state <= 1;
+                    if(!image_fifo_empty) begin
+                        start_im2col <= 1;
+                        state <= 2;
+                    end
+                    else begin
+                        start_im2col <= 0;
+                        state <= 1;
+                    end
                 end
             end
 

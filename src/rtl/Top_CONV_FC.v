@@ -815,6 +815,7 @@ endgenerate
       .quantized_result_in(zp_data),
       .valid_quantized_result(zp_valid),
       .clk(i_clk),
+      .rst(rst&(~channel_done)),
       .valid_out_final(x_final_valid),
       .data_out(x_final_data)
   );

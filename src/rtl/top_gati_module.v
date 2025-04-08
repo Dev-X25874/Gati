@@ -445,35 +445,43 @@ module top_gati_module #(
   /*This is modified since, CONV_FC gets updated one cycle after recieving 'start' signal
   which causes one cycle delay in generation of 'start_SA' and 'start_FC' signals*/
 
- wire  [$clog2(IMAGE_DIM)-1:0]      row;    
- wire  [$clog2(IMAGE_DIM)-1:0]      col;
+  wire  [$clog2(IMAGE_DIM)-1:0] row;    
+  wire  [$clog2(IMAGE_DIM)-1:0] col;
 
   
   reg Flattening_trigger=0;
 
   // Generate logic for stall_on signal 
+  // stall_on signal is used to stall the systolic array when the image fifo is empty or psum fifo is full
+  
+  wire [AXI_DATA_BYTES-1:0] image_fifo_empty;
   reg stall_on=0;
   reg stall_enable=0;
   // wire stall_on; 
 
-  // assign stall_on = ((image_fifo_empty|psum_full) && stall_enable); && (col>=input_img_width-(conv_zeropad + (AXI_DATA_BYTES/N_SA)))
-
   always@(posedge i_clk) begin 
-    if((image_fifo_empty|psum_full) && stall_enable) begin
+    if((&(image_fifo_empty)|psum_full) && stall_enable) begin
     // if(psum_full) begin
-      stall_on<=1;
+      stall_on <= 1;
     end
     else begin 
-      stall_on<=0;
+      stall_on <= 0;
     end
-    if(im2col_global_start) begin
-      stall_enable<=1;
+
+    if(input_img_height <= (AXI_DATA_BYTES/N_SA)) begin
+      stall_enable <= 0;
     end
-    else if((row==input_img_width + conv_zeropad)) begin 
-      stall_enable<=0;
-    end
-    else begin 
-      stall_enable<=stall_enable;
+    else begin
+      if(im2col_global_start) begin
+        stall_enable <= 1;
+      end
+      else if((row == input_img_width + conv_zeropad)) begin 
+        // && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
+        stall_enable <= 0;
+      end
+      else begin 
+        stall_enable <= stall_enable;
+      end
     end
   end
 
@@ -813,6 +821,7 @@ module top_gati_module #(
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
+  wire op_done;
 
   op_write_req_block#(
     .N(OP_FIFO),
@@ -848,7 +857,8 @@ module top_gati_module #(
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
     .o_burst_len(mc_op_write_bl),
-    .o_last(mc_op_write_last)
+    .o_last(mc_op_write_last),
+    .op_done(op_done) //o-wire: op_done signal to Iteration_ctr
   );
 
   ////////////////////////////////FIFO FOR IMAGE FROM DDR////////////////
@@ -872,7 +882,6 @@ module top_gati_module #(
   );
    
   wire [AXI_DATA_BYTES-1:0] image_rden;
-  wire [AXI_DATA_BYTES-1:0] image_fifo_empty;
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_imgo_data;
   wire [(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*(AXI_DATA_BYTES))-1:0] img_fifo_occupants; 
 
@@ -1000,8 +1009,8 @@ module top_gati_module #(
   wire [(N_FIFOS* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
   always @(*) begin 
-	  limit_c<=(2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
-	  limit_f<=(((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
+	  limit_c = (2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
+	  limit_f = (((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
   end
 
   //Virtual occupant logic for weights
@@ -1555,7 +1564,7 @@ module top_gati_module #(
         .im2col_done(im2col_done), // i-wire : from im2col block
         .SA_psum_fifo_empty(SA_psum_fifo_empty),
         .Tail_done(Tail_done),
-        .op_fifo_empty(op_fifo_empty),
+        .op_fifo_empty(op_done),
         .FC_done(FC_done),
 
         .c_iter(channel_iteration), //channel iteration

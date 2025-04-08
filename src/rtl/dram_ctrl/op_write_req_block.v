@@ -36,6 +36,7 @@ output [7:0] o_burst_len,
 output o_read_write_req,
 output o_valid,
 
+output reg op_done,
 output reg layer_done
 );
 
@@ -151,8 +152,8 @@ always@(posedge clkin) begin
         counter     <=  0;
         count1      <=  0;
         count2      <=  0;
-        
-        layer_done <= 0;
+        op_done     <=  0;
+        layer_done  <=  0;
     end
     
     else begin
@@ -163,6 +164,7 @@ always@(posedge clkin) begin
                 layer_done <= 0;
                 if(i_start) begin
                     layer_done <= 0;
+                    op_done <= 0;
                     state <= 3'd1;
                     r_acc_next_add <= i_acc_address;
                     r_layer_next_add<= i_op_start;
@@ -175,6 +177,7 @@ always@(posedge clkin) begin
             
             3'd1:
             begin
+                op_done <=  0;
                 if(k_ctr==i_kernel_itr) begin
                     state <= 0;
                     layer_done <= 1;
@@ -410,11 +413,13 @@ always@(posedge clkin) begin
                     else r_burst_len1 <= BURST_LENGTH_1;
                 end
                 state <= 1;
+                op_done <= 1;
             end
                         
             default: begin
                 layer_done<=layer_done;
                 wr_req_reg<= wr_req_reg;
+                op_done   <= 0;
                 r_valid   <= 1'b0;
                 r_addr    <= r_addr;
                 r_last    <= r_last;

@@ -8,6 +8,7 @@ module generate_shift_register #(parameter N = 4,
     input [(N * QUANT_DATA_WIDTH)-1 : 0] quantized_result_in,
     input [(N) - 1 : 0] valid_quantized_result,
     input clk,
+    input rst,
     output [(N) - 1 : 0] valid_out_final,
     output [(N * (NUM_SHIFT * DATA_WIDTH)) - 1 : 0] data_out
 );
@@ -24,6 +25,7 @@ generate
             .quantized_result_in(quantized_result_in[(((N-i) * QUANT_DATA_WIDTH) - 1) -: QUANT_DATA_WIDTH]),
             .valid_quantized_result(valid_quantized_result[i]),
             .clk(clk),
+            .rst(rst),
             .valid_out_final(valid_out_final[i]),
             .data_out(data_out[(((N-i) * NUM_SHIFT * DATA_WIDTH) - 1) -: NUM_SHIFT * DATA_WIDTH])
         );

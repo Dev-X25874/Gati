@@ -26,12 +26,13 @@ module im2col_buffer_write #(
       rd <= {DRAM_BW{1'b0}};
     end else begin
       case (state)
-        INITIAL:
-        if (((|fifo_empty) == 0) && ~stall_on) begin
-          rd <= {DRAM_BW{1'b1}};
-          state <= ONGOING;
+        INITIAL: begin
+          if (((|fifo_empty) == 0) && ~stall_on) begin
+            rd <= {DRAM_BW{1'b1}};
+            state <= ONGOING;
+          end
+          else rd <= 0;
         end
-        else rd <= 0;
         ONGOING: begin
           rd <= {DRAM_BW{1'b0}};
           if ((count == POP_THRESHOLD) && (~|fifo_empty) && ~stall_on && read_buf_data) begin

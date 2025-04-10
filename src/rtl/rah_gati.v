@@ -35,7 +35,7 @@ module rah_gati #(
     parameter MIPI_REQ_BLEN         = 15,
     parameter CONFIG_REQ_BLEN       = 7,
     parameter IMG_REQ_BLEN          = 31,
-    parameter WEIGHT_REQ_BLEN       = 31,
+    parameter WEIGHT_REQ_BLEN       = 47,
     parameter FC_WEIGHT_REQ_BLEN    = 63,
     parameter ACC_REQ_BLEN          = 15,
     parameter BIAS_REQ_BLEN         = 15,

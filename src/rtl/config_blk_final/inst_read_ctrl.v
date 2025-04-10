@@ -54,11 +54,20 @@ module inst_read_ctrl#(
 
 
 reg f1,f2;
-always @(*) begin 
 
-	f1=((layer_number==total_layers)&&(opcode==ALL_ONES))?1:0;
-	f2=((status_inst_q && done_status)| (flag&&status_inst_q))?1:0;
+// done_status from bus master is latched since done_status and acknowledgement signal may arrive at the same clock cycle
+reg done_flag;
+always @(posedge clkin) begin
+  if(!rst) done_flag <= 1'b0;
+  else begin
+    if (done_status) done_flag <= 1'b1;
+    else if (valid_inst) done_flag <= 1'b0;
+  end
+end
 
+always @(*) begin
+  f1=((layer_number == total_layers) && (opcode == ALL_ONES))?1:0;
+  f2=((status_inst_q & done_flag) || (flag & status_inst_q))?1:0;
 end
 
   always @(posedge clkin)
@@ -91,6 +100,7 @@ end
           end
         end
         valid_ack_reg<=valid_ack;
+        read_signal_reg<=1'b0;
         if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
         begin
           for(i=0;i<NUM_INSTRUCTIONS;i=i+1)

@@ -140,7 +140,7 @@ module index_coordinate_v1 #(
       0: begin
         r_mat_size_row <= mat_size;
         r_mat_size_col <= mat_size;
-        {r_valid_data,r_data,r_valid_buff} <= {i_valid_data,i_data,1'b1};
+        {r_valid_data,r_data,r_valid_buff} <= ((curr_row == 0)&&(curr_col == 0))? {1'd1,8'd0,1'b0} : {i_valid_data,i_data,1'b1};
       end
 
       1: begin

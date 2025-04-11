@@ -17,37 +17,42 @@
 `define CONV_OH 43:34
 `define CONV_OH_WIDTH 10
 // Channel count for the input
-`define CONV_IC 53:44
-`define CONV_IC_WIDTH 10
+`define CONV_IC 55:44
+`define CONV_IC_WIDTH 12
 // Kernel count for the input
-`define CONV_KN 63:54
-`define CONV_KN_WIDTH 10
+`define CONV_KN 67:56
+`define CONV_KN_WIDTH 12
 // Kernel width
-`define CONV_KW 67:64
+`define CONV_KW 71:68
 `define CONV_KW_WIDTH 4
 // Kernel Height
-`define CONV_KH 71:68
+`define CONV_KH 75:72
 `define CONV_KH_WIDTH 4
-`define CONV_Stride 75:72
+`define CONV_Stride 79:76
 `define CONV_Stride_WIDTH 4
-`define CONV_Pad 78:76
+`define CONV_Pad 82:80
 `define CONV_Pad_WIDTH 3
 // Bit vector where each bit represents a side (left,bottom,rig
 // ht,top) of a feature map that should be padded with 'Pad'
-`define CONV_PadSides 82:79
+`define CONV_PadSides 86:83
 `define CONV_PadSides_WIDTH 4
-`define CONV_ImageStartAddress 114:83
+`define CONV_ImageStartAddress 118:87
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 146:115
+`define CONV_ImageEndAddress 150:119
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 178:147
+`define CONV_WeightStartAddress 182:151
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 210:179
+`define CONV_WeightEndAddress 214:183
 `define CONV_WeightEndAddress_WIDTH 32
 // Set if the entire image can be fetched in im2col blocks at o
 // nce
-`define CONV_Im2colPrefetch 211:211
+`define CONV_Im2colPrefetch 215:215
 `define CONV_Im2colPrefetch_WIDTH 1
+// Channel count for weight
+`define CONV_KC 227:216
+`define CONV_KC_WIDTH 12
+`define CONV_ConvType 229:228
+`define CONV_ConvType_WIDTH 2
 
 `define OP_TailBlock 'h01
 `define TailBlock_Opcode 3:0
@@ -249,7 +254,7 @@
 `define EltWise_RightOperandEndAddress 165:134
 `define EltWise_RightOperandEndAddress_WIDTH 32
 
-`define ISA_VERSION 2
+`define ISA_VERSION 3
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00
@@ -278,6 +283,9 @@
 `define META_WIDTH_BITS 48
 `define RAH_APP_ID 1
 `define META_APP_ID 2
+`define CONV_TYPE_REGULAR 0
+`define CONV_TYPE_DW 1
+`define CONV_TYPE_PW 2
 
 `define ZerothStartAddress 31:0
 `define ZerothStartAddress_WIDTH 32

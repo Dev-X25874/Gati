@@ -12,7 +12,10 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
             parameter ACCEN_WIDTH = 1,
             parameter DISPATCH_ID_WIDTH = 32,
             parameter DISPATCHEN_WIDTH = 1,
-            parameter ACC_ONCHIP_WIDTH = 1)
+            parameter ACC_ONCHIP_WIDTH = 1,
+            parameter OH_WIDTH = 10,
+            parameter OW_WIDTH = 10
+            )
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
                 input sel,
@@ -31,7 +34,9 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [ACCEN_WIDTH -1 : 0] AccEn = 0,
                 output reg [DISPATCHEN_WIDTH-1 : 0] DispatchEn = 0,
                 output reg [DISPATCH_ID_WIDTH-1 :0] DispatchId = 0,
-                output reg [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip = 0
+                output reg [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip = 0,
+                output reg [OH_WIDTH-1 : 0] OB_OH = 0,
+                output reg [OW_WIDTH-1 : 0] OB_OW = 0
             );
 
             `include "../common/instructions.vh"
@@ -92,6 +97,8 @@ always @(posedge clk) begin
             DispatchId <= data_instruction[`OutputBlock_DispatchID];
             DispatchEn <= data_instruction[`OutputBlock_DispatchEn];
             Acc_onchip <= data_instruction[`OutputBlock_OnChipAcc];
+            OB_OH<= data_instruction[`OutputBlock_OH];
+            OB_OW <= data_instruction[`OutputBlock_OW];
             valid <= 1'b1;
             state <= IDLE;
         // end

@@ -10,5 +10,6 @@
 `define Bias 7
 `define FCBias 8
 `define MIPI_Rd 9
-
+`define LeftOperand 10
+`define RightOperand 11
 `endif

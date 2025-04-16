@@ -2,7 +2,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
             parameter INPUT_WIDTH = 256,
             parameter OUTPUT_WIDTH = 8,
-            parameter NO_OF_OPERATOR = 4,
+            parameter NO_OF_OPERATOR = 6,
             parameter ADDRESS_WIDTH = 32,
             parameter IW_WIDTH = 10,
             parameter IH_WIDTH = 10,
@@ -46,7 +46,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter POOLPADDING_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
-            parameter BiasWidth_WIDTH = 8
+            parameter BiasWidth_WIDTH = 8,
+            parameter ELTWISE_TYPE_WIDTH = 4
             ) 
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
@@ -94,6 +95,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [DISPATCH_ID_WIDTH-1 : 0] DispatchId,
                 output [DISPATCHEN_WIDTH-1 : 0] DispatchEn,
                 output [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip,
+                output [OH_WIDTH - 1 : 0] OB_OH,
+                output [OW_WIDTH - 1 : 0] OB_OW,
                 output [OP_CODE_WIDTH - 1 : 0] opcode_TB,
                 output [BNEN_WIDTH - 1 : 0] BNEn,
                 output [BNCHANNELS_WIDTH -1 : 0] BNchannels,
@@ -114,7 +117,16 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [BIASEN_WIDTH - 1 : 0] BiasEn,
                 output [BiasWidth_WIDTH - 1 : 0] BiasWidth,
                 output [ADDRESS_WIDTH - 1 : 0] BiasStartAddress,
-                output [ADDRESS_WIDTH - 1 : 0] BiasEndAddress
+                output [ADDRESS_WIDTH - 1 : 0] BiasEndAddress,
+                output [OP_CODE_WIDTH - 1 : 0] opcode_EltWise,
+                output [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
+                output [IW_WIDTH - 1 : 0] EltWise_IW,
+                output [IH_WIDTH - 1 : 0] EltWise_IH,
+                output [IC_WIDTH - 1 : 0] EltWise_IC,   
+                output [ADDRESS_WIDTH - 1 : 0] LeftOperand_StartAddress,
+                output [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
+                output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
+                output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress
     );
 
     `include "../common/instructions.vh"
@@ -230,7 +242,9 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ACCEN_WIDTH(ACCEN_WIDTH),
 .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
 .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
-.ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH))
+.ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
+.OH_WIDTH(OH_WIDTH),
+.OW_WIDTH(OW_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
     .sel(select_line[`OP_OutputBlock]),
@@ -249,7 +263,9 @@ OP_Outputblock(
     .AccEn(AccEn),
     .DispatchId(DispatchId),
     .DispatchEn(DispatchEn),
-    .Acc_onchip(Acc_onchip)
+    .Acc_onchip(Acc_onchip),
+    .OB_OH(OB_OH),
+    .OB_OW(OB_OW)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -304,6 +320,33 @@ OP_Tailblock(
     .BiasEndAddress(BiasEndAddress)
 );
 
+OP_EltWise #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
+.CNT(CNT),
+.INPUT_WIDTH(OUTPUT_WIDTH),
+.OUTPUT_WIDTH(INPUT_WIDTH),
+.ADDRESS_WIDTH(ADDRESS_WIDTH),
+.ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+.IH_WIDTH(IH_WIDTH),
+.IW_WIDTH(IW_WIDTH),
+.IC_WIDTH(IC_WIDTH))
+OP_EltWise(
+    .din(dout_top_master),
+    .sel(select_line[`OP_EltWise]),
+    .write(wr),
+    .done(done_top_master),
+    .clk(clk),
+    .opcode(opcode_EltWise),
+    .EltWise_type(EltWise_type),
+    .EltWise_IW(EltWise_IW),
+    .EltWise_IH(EltWise_IH),
+    .EltWise_IC(EltWise_IC),
+    .LeftOperand_StartAddress(LeftOperand_StartAddress),
+    .RightOperand_StartAddress(RightOperand_StartAddress),
+    .LeftOperand_EndAddress(LeftOperand_EndAddress),
+    .RightOperand_EndAddress(RightOperand_EndAddress),
+    .valid(valid[`OP_EltWise]),
+    .ready(ready[`OP_EltWise])
+    );
 //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

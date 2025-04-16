@@ -101,7 +101,7 @@ end
         end
         valid_ack_reg<=valid_ack;
         read_signal_reg<=1'b0;
-        if(valid_ack_reg!=4'd0) //acknowledgement signal from Acknowledgement Controller
+        if(valid_ack_reg!=0) //acknowledgement signal from Acknowledgement Controller
         begin
           for(i=0;i<NUM_INSTRUCTIONS;i=i+1)
           begin
@@ -231,7 +231,7 @@ end
                     begin
                       ack_reg<=psedo_ack_reg;
                       prev_reg<=next_reg;
-                      next_reg<=8'd0;
+                      next_reg<=0;
                       state_start<=4'd1;
                     end
                   end
@@ -285,7 +285,7 @@ end
             begin
               ack_reg<=psedo_ack_reg;
               prev_reg<=next_reg;
-              next_reg<=8'd0;
+              next_reg<=0;
               state_start_2<=4'd1;
             end
           end

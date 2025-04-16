@@ -13,7 +13,8 @@ module top_gati_module #(
     parameter ACC_OP_FIFO_DEPTH   = 256,
     parameter QUANT_OP_FIFO_DEPTH = 256,
     parameter OP_WRITE_FIFO_DEPTH = 512,
-    
+    parameter ELTWISE_FIFO_DEPTH  = 512,
+
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN       = 7,
     parameter IMG_REQ_BLEN          = 15,
@@ -23,7 +24,7 @@ module top_gati_module #(
     parameter BIAS_REQ_BLEN         = 15,
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
-    
+    parameter ELEMENT_REQ_BLEN      = 15,
     //parameters related to DRAM controller
     parameter NUM_PORTS = 10, //Number of read and write requestors
 
@@ -34,7 +35,7 @@ module top_gati_module #(
     parameter BURST_LENGTH_WIDTH    = 8,
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS      = 4,
+    parameter NUM_INSTRUCTIONS      = 6,
     parameter INST_W                = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     parameter LAYERCNT_WIDTH        = `START_LayerNumber_WIDTH,
@@ -131,8 +132,18 @@ module top_gati_module #(
     parameter NO_PORT_VA    = 1,
     parameter NO_PORT_BAC   = 1,
     parameter ACC_TOGGLE    = 1,
-    parameter NO_PORT_BAFC  = 2
-        
+    parameter NO_PORT_BAFC  = 2,
+
+    //EltWise param
+    parameter ELTWISE_FIFO = AXI_DATA_BYTES/N_SA, // Number of element wise fifos
+    parameter ELTWISE_TYPE_WIDTH = `EltWise_EltType_WIDTH, // Width of the element wise
+    parameter ELTWISE_ADD = `ELTWISE_ADD, // Addition
+    parameter ELTWISE_SUB = `ELTWISE_SUB, // Subtraction
+    parameter ELTWISE_MULT = `ELTWISE_MULT, // Multiplication
+    parameter ELTWISE_IW_WIDTH = `EltWise_IW_WIDTH, // Width of the input width;
+    parameter ELTWISE_IH_WIDTH = `EltWise_IH_WIDTH, // Width of the input height;
+    parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH // Width of the output width;
+    
 ) (
     ///global
     input i_clk,
@@ -192,6 +203,20 @@ module top_gati_module #(
     output [BURST_LENGTH_WIDTH-1: 0] mc_acc_bl,
     output mc_acc_last,
 
+    ///////////////LeftOperand
+    output [7:0] mc_LeftOperand_addr,
+    output mc_LeftOperand_rdreq,
+    output mc_LeftOperand_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_LeftOperand_bl,
+    output mc_LeftOperand_last,
+
+    ///////////////RightOperand
+    output [7:0] mc_RightOperand_addr,
+    output mc_RightOperand_rdreq, 
+    output mc_RightOperand_valid,   
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_RightOperand_bl,
+    output mc_RightOperand_last,
+    
     /////////////output write ctrl
     output [7:0] mc_op_write_addr,
     output mc_op_writereq,
@@ -243,11 +268,12 @@ module top_gati_module #(
     assign ack_signals[`OP_FC] = FC_Ack;
     assign ack_signals[`OP_OutputBlock] = OpBlock_Ack;
     assign ack_signals[`OP_TailBlock] = Tail_Ack;
-  
+    assign ack_signals[`OP_EltWise] = EltWise_Ack;
+
     wire [INST_W-1 : 0] instruction;
     wire start_bus;   //start signal to bus master to dispatch inst. to the corresponding slave blocks
     wire [OPCODE_WIDTH-1:0] opcode_config; //opcode to bus master to select the appropriate slave
-    wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack; // Acknowledgment signals to config blk to prefetch the inst.
+    wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack, EltWise_Ack; // Acknowledgment signals to config blk to prefetch the inst.
     
     assign opcode_config = instruction[OPCODE_WIDTH-1:0];
 
@@ -363,6 +389,17 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
 
+  //Elementwise inst. signals
+  wire [OPCODE_WIDTH-1:0] ew_opcode;
+  wire [ELTWISE_TYPE_WIDTH-1:0] EltWise_type;
+  wire [CONV_IW_WIDTH-1 : 0]EltWise_IW;
+  wire [CONV_IH_WIDTH-1 : 0]EltWise_IH;
+  wire [CONV_IC_WIDTH-1 : 0]EltWise_IC;
+  wire [AXI_ADDR_W-1:0] LeftOperand_start_address;
+  wire [AXI_ADDR_W-1:0] RightOperand_start_address;
+  wire [AXI_ADDR_W-1:0] LeftOperand_stop_address;
+  wire [AXI_ADDR_W-1:0] RightOperand_stop_address;
+
   // start and end address signals for memory request controllers
 
   wire [AXI_ADDR_W-1:0] img_start_address;
@@ -372,7 +409,7 @@ module top_gati_module #(
 
   wire layer_done;
   wire FC_layerdone;
-  reg valid_conv, valid_fc;
+  reg valid_conv, valid_fc, valid_ew;
 
   // Valid signal genration for CONV
   always@(posedge i_clk) begin
@@ -400,10 +437,23 @@ module top_gati_module #(
     end
   end
 
+  // Valid signal genration for EltWise 
+  always@(posedge i_clk) begin
+    if(!i_rst) begin
+        valid_ew <= 0;
+    end 
+    else begin
+        if(valid_inst[`OP_EltWise])
+            valid_ew <= 1'b1;
+        else if(EltWise_Ack)
+            valid_ew <= 1'b0;
+    end
+  end
+
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  reg start_SA,start_FC;
+  reg start_SA,start_FC,start_EW;
 //   assign valid_conv = valid_inst[`OP_CONV];
 //   assign valid_fc   = valid_inst[`OP_FC];
 
@@ -414,6 +464,7 @@ module top_gati_module #(
         CONV_FC <= 0;
         start_SA <= 0;
         start_FC <= 0;
+        start_EW <= 0;
     end
     else begin
         if(valid_conv & start_out) begin
@@ -428,12 +479,18 @@ module top_gati_module #(
           CONV_FC <= 1;
           start_FC <= 1;
         end
+        else if(valid_ew & start_out) begin
+          valid_inst_CONV_FC <= 0;
+          opcode <= ew_opcode;
+          start_EW <= 1; 
+        end
         else begin
           opcode <= opcode;
           valid_inst_CONV_FC <= valid_inst_CONV_FC;
           CONV_FC <= CONV_FC;
           start_SA <= 0;
           start_FC <= 0;
+          start_EW <= 0; 
         end
     end
   end
@@ -583,7 +640,8 @@ module top_gati_module #(
     .POOLPADDING_WIDTH(W_POOL_PAD),
     .BIASEN_WIDTH(BIASEN_WIDTH),
     .BNCHANNELS_WIDTH(BNCHANNEL_WIDTH),
-    .BiasWidth_WIDTH(BiasWidth_WIDTH)
+    .BiasWidth_WIDTH(BiasWidth_WIDTH),
+    .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH)
   )
   bus_inst(
     .din(instruction), //i-wire : instruction from config blk
@@ -596,8 +654,8 @@ module top_gati_module #(
     .opcode_conv(conv_opcode),
     .IW(input_img_width),
     .IH(input_img_height),
-    .OW(conv_op_width),
-    .OH(conv_op_height),
+    .OW(),
+    .OH(),
     .IC(),
     .KN(n_kernels),
     .KW(kernel_width),
@@ -625,6 +683,17 @@ module top_gati_module #(
     .WeightEndAddress_FC(weight_stop_addr_fc),
     .FC_Vec2MatCols(fc_rw_address_counter), //read/write address cnt goes to flattening
 
+    //Elementwise inst. signals
+    .opcode_EltWise(ew_opcode),
+    .EltWise_type(EltWise_type),
+    .EltWise_IW(EltWise_IW),
+    .EltWise_IH(EltWise_IH),
+    .EltWise_IC(EltWise_IC),
+    .LeftOperand_StartAddress(LeftOperand_start_address),
+    .LeftOperand_EndAddress(LeftOperand_stop_address),
+    .RightOperand_StartAddress(RightOperand_start_address),
+    .RightOperand_EndAddress(RightOperand_stop_address),
+
     //OP block inst. signals
     .opcode_OB(Op_code_OB),
     .accumulantaddr(acc_start_address),
@@ -637,7 +706,8 @@ module top_gati_module #(
     .DispatchId(dispatch_id),
     .DispatchEn(dispatch_cpu_en),
     .Acc_onchip(Acc_onchip),
-
+    .OB_OH(conv_op_height),
+    .OB_OW(conv_op_width),
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
     .BNEn(),
@@ -669,6 +739,8 @@ module top_gati_module #(
   wire bias_fifo_status;
   wire fc_bias_fifo_status;
   wire fc_img_fifo_status;
+  wire LeftOperand_fifo_status;
+  wire RightOperand_fifo_status;
   // wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   
   wire iter_done;
@@ -715,7 +787,7 @@ module top_gati_module #(
   ) weight_req_ctrl (
       .start_addr(start_address_weights),
       .stop_addr(stop_address_weights),
-      .config_start(start),
+      .config_start(start_SA | start_FC),
       .CONV_FC(CONV_FC),
       .fifo_status(weight_fifo_status),
       //.data_last(weight_data_last),
@@ -758,7 +830,7 @@ module top_gati_module #(
   ) bias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start),
+      .config_start(start_SA),
       .fifo_status(bias_fifo_status),
       .Biasen(Bias_En), 
       .clk(i_clk),
@@ -780,7 +852,7 @@ module top_gati_module #(
   ) FCbias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start),
+      .config_start(start_FC),
       .fifo_status(fc_bias_fifo_status),
       .FCbiasen(Bias8_EN), 
       .clk(i_clk),
@@ -816,6 +888,46 @@ module top_gati_module #(
       .valid(mc_acc_valid),
       .burst_length(mc_acc_bl),
       .last(mc_acc_last)
+  );
+
+  request_controller_EltWiseOperand #(
+      .BURST_LENGTH(ELEMENT_REQ_BLEN),
+      .AXI_DATA_BYTES(AXI_DATA_BYTES),
+      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+      .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
+      .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT)
+  ) LeftOperand_req_ctrl (
+      .start_addr(LeftOperand_start_address),
+      .stop_addr(LeftOperand_stop_address),
+      .config_start(start_EW),
+      .fifo_status(LeftOperand_fifo_status),
+      .clk(i_clk),
+
+      .addr_out(mc_LeftOperand_addr),
+      .wr_enable(mc_LeftOperand_rdreq),
+      .valid(mc_LeftOperand_valid),
+      .burst_length(mc_LeftOperand_bl),
+      .last(mc_LeftOperand_last)
+  );
+  
+  request_controller_EltWiseOperand #(
+      .BURST_LENGTH(ELEMENT_REQ_BLEN),
+      .AXI_DATA_BYTES(AXI_DATA_BYTES),
+      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+      .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
+      .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT)
+  ) RightOperand_req_ctrl (
+      .start_addr(RightOperand_start_address),
+      .stop_addr(RightOperand_stop_address),
+      .config_start(start_EW),
+      .fifo_status(RightOperand_fifo_status),
+      .clk(i_clk),
+
+      .addr_out(mc_RightOperand_addr),
+      .wr_enable(mc_RightOperand_rdreq),
+      .valid(mc_RightOperand_valid),
+      .burst_length(mc_RightOperand_bl),
+      .last(mc_RightOperand_last)
   );
 
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
@@ -1072,7 +1184,8 @@ module top_gati_module #(
   wire [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants;
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
-
+  wire [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] LeftOperand_fifo_occupants;
+  wire [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants;
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
   // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
@@ -1093,13 +1206,13 @@ module top_gati_module #(
       end
     end
   end
-
-  assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
-
+  
 //  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
+  assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
   assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
-
+  assign LeftOperand_fifo_status = (LeftOperand_fifo_occupants<={ELTWISE_FIFO{COL_SA[$clog2(ELTWISE_FIFO_DEPTH):0]}})? 1 : 0;
+  assign RightOperand_fifo_status = (RightOperand_fifo_occupants<={ELTWISE_FIFO{COL_SA[$clog2(ELTWISE_FIFO_DEPTH):0]}})? 1 : 0;
 
   // Data from DRAM
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_dram;
@@ -1257,7 +1370,40 @@ module top_gati_module #(
         .o_data_last()
   );
 
+  wire [AXI_DATA_WIDTH -1:0]LeftOperand_in_data;
+  wire [AXI_DATA_WIDTH -1:0]RightOperand_in_data;
+  wire [ELTWISE_FIFO -1:0] dv_LeftOperand_data;
+  wire [ELTWISE_FIFO -1:0] dv_RightOperand_data;
   
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(ELTWISE_FIFO) 
+  )LeftOperand_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`LeftOperand]), 
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        .i_dram_data(dram_rd_data),
+        .o_dram_data(LeftOperand_in_data),
+        .o_dram_fifo_wren(dv_LeftOperand_data), 
+        .o_data_last()
+  );
+
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(ELTWISE_FIFO) 
+  )RightOperand_blk_data_write_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`RightOperand]), 
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        .i_dram_data(dram_rd_data),
+        .o_dram_data(RightOperand_in_data), 
+        .o_dram_fifo_wren(dv_RightOperand_data),
+        .o_data_last()
+  );
   // slicing of img_fifo o/p data to store it in data buffers of im2col
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] img_ip_conv;
 
@@ -1360,7 +1506,17 @@ module top_gati_module #(
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH (CONV_KW_WIDTH),
       .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
-      .CONV_PAD_WIDTH(CONV_PAD_WIDTH)
+      .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
+
+      .ELTWISE_FIFO(ELTWISE_FIFO),
+      .ELTWISE_FIFO_DEPTH(ELTWISE_FIFO_DEPTH),
+      .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
+      .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
+      .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH),
+      .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+      .ELTWISE_ADD(ELTWISE_ADD),
+      .ELTWISE_SUB(ELTWISE_SUB),
+      .ELTWISE_MULT(ELTWISE_MULT)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
@@ -1368,6 +1524,7 @@ module top_gati_module #(
       .i_img_dim_Op(img_dim_Op), // image dimension of quantized o/p
       .image_fifo_empty(image_fifo_empty),
       .CONV_FC(CONV_FC),
+      .opcode(opcode),
     //   .switch_enable(switch_enable),
       .fifo_o(fifo_imgo_data),
       //fifo sharing signals
@@ -1438,7 +1595,7 @@ module top_gati_module #(
       .Tail_done(Tail_done), // Generated in integration block
       .FC_done(FC_done), //accumulator valid signal of FC engine
       .FC_layerdone(FC_layerdone),
-
+      .EW_done(EW_done),
       .acc_fifo_occupants(acc_fifo_occupants),
       .bias_fifo_occupants(bias_fifo_occupants),
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
@@ -1447,8 +1604,20 @@ module top_gati_module #(
       .Pad_side(Pad_side),
       .o_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
       .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
-      .istolic_stall(istolic_stall)
-
+      .istolic_stall(istolic_stall),
+      
+      .op_fifo_empty(op_fifo_empty),
+      .LeftOperand_data_in(LeftOperand_in_data),
+      .RightOperand_data_in(RightOperand_in_data),
+      .LeftOperand_wr_en(dv_LeftOperand_data),
+      .RightOperand_wr_en(dv_RightOperand_data),
+      .EltWise_type(EltWise_type),
+      .EltWise_IW(EltWise_IW),
+      .EltWise_IH(EltWise_IH),
+      .EltWise_IC(EltWise_IC),
+      .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
+      .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
+      .EltWise_op_en(valid_ew)
   );
 
 
@@ -1566,7 +1735,7 @@ module top_gati_module #(
         .Tail_done(Tail_done),
         .op_fifo_empty(op_done),
         .FC_done(FC_done),
-
+        .EW_done(EW_done),
         .c_iter(channel_iteration), //channel iteration
         .k_iter(kernel_iteration), //kernel iteration
 
@@ -1593,6 +1762,7 @@ module top_gati_module #(
         .Conv_Ack(Conv_Ack),
         .OpBlock_Ack(OpBlock_Ack),
         .Tail_Ack(Tail_Ack),
+        .EltWise_Ack(EltWise_Ack),
         //.FC_Ack(FC_Ack)
         
         //for io signals
@@ -1670,7 +1840,7 @@ module top_gati_module #(
     end
   end
 
-  assign layer_debug_pin = (layer_cntr==9)? 1 : 0;
+  assign layer_debug_pin = (layer_cntr==4)? 1 : 0;
 
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
   assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA;

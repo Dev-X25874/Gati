@@ -26,6 +26,7 @@ module Top_CONV_FC #(
     parameter PSUM_FIFO_DEPTH = 1024,
     parameter ACC_FIFO_DEPTH = 512,
     parameter BIAS_FIFO_DEPTH = 512,
+    parameter ELTWISE_FIFO_DEPTH = 512,
     parameter NSA_DSP = 4,
     parameter N_FC_MUX = N_SA,
     parameter NO_PORT_FC = COL_FC/N_SA,
@@ -60,8 +61,15 @@ module Top_CONV_FC #(
     parameter CONV_KW_WIDTH = 4,
     parameter CONV_PADSIDES_WIDTH = 4,
     parameter CONV_PAD_WIDTH = 3,
-
-
+    
+    parameter ELTWISE_FIFO = 8, // Number of element wise fifos
+    parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
+    parameter ELTWISE_ADD = 0, // Addition
+    parameter ELTWISE_SUB = 1, // Subtraction
+    parameter ELTWISE_MULT = 2, // Multiplication
+    parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
+    parameter ELTWISE_IH_WIDTH = 10, // Width of the input height;
+    parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
     parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not
 ) (
 
@@ -71,6 +79,9 @@ module Top_CONV_FC #(
     input rst,
     input [DRAM_BW-1:0] image_fifo_empty,
     input CONV_FC,
+    input [OPCODE_WIDTH-1:0]opcode,
+    // input switch_enable,
+    //	input CONV_FC,
     input op_full,
     input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
     //weight fifo sharing signals
@@ -138,6 +149,17 @@ module Top_CONV_FC #(
     input [CONV_KW_WIDTH-1:0] kernel_width,
     input [CONV_PADSIDES_WIDTH-1 :0] Pad_side,
     
+    //EltWise operation signals
+    input op_fifo_empty,
+    input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] LeftOperand_data_in,
+    input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] RightOperand_data_in,
+    input [(ELTWISE_TYPE_WIDTH-1):0] EltWise_type,
+    input [ELTWISE_IW_WIDTH-1:0]EltWise_IW,
+    input [ELTWISE_IH_WIDTH-1:0]EltWise_IH,
+    input [ELTWISE_IC_WIDTH-1:0]EltWise_IC,
+    input [ELTWISE_FIFO-1:0] LeftOperand_wr_en,
+    input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
+    input EltWise_op_en,
     // accumulant output write signals
     output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
     output [ACC_OP_FIFO-1:0] acc_op_wren,
@@ -154,11 +176,13 @@ module Top_CONV_FC #(
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
 	  output p_full_output,
-	
+  	output EW_done,
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants,
+    output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] LeftOperand_fifo_occupants,
+    output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants,
     output o_image_fifo_almost_empty_flag,
     output o_image_fifo_almost_full_flag,
     input istolic_stall
@@ -470,21 +494,23 @@ endgenerate
 
  
   // FC Computing Engine
-  reg [(DATA_WIDTH_OB*N_SA)-1:0] data_SA_FC;
-  reg [N_SA-1:0] dv_SA_FC;
+  // wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
+  // wire [COL_SA-1:0] dv_SA_FC;
   wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
   wire valid_out_FC;
-  //interconnect of SA and FC
-  always @ (*) begin
-	if(CONV_FC) begin 
-		data_SA_FC = op_data_mux_FC;
-		dv_SA_FC = {N_SA{valid_out_FC}};
-	end 
-	else begin 
-		data_SA_FC = dataout_SA;
-		dv_SA_FC = valid_SA;
-	end
-  end
+
+  // interconnect of SA and FC
+  // always @(*) begin
+	// if(CONV_FC) begin 
+	// 	data_SA_FC = op_data_mux_FC;
+	// 	dv_SA_FC = {COL_SA{valid_out_FC}};
+	// end 
+	// else begin 
+	// 	data_SA_FC = result_tree;
+	// 	dv_SA_FC = valid_tree;
+	// end
+  // end
+
 // assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
  //assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
 
@@ -581,8 +607,61 @@ endgenerate
       );
     end
   endgenerate
- 
-  
+wire [(N_SA*DATA_WIDTH_OB) -1:0] data_tail_blk_in;
+wire [N_SA-1:0] data_tail_blk_vaild;
+  //EltWise Operation
+  wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
+  wire [N_SA-1:0] EltWise_data_out_valid;
+  Top_element_wise  #(
+    .DATA_WIDTH(DATA_WIDTH),   
+    .N(N_SA),          
+    .FIFO_NO(ELTWISE_FIFO),       
+    .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
+    .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+    .DATA_WIDTH_OB(DATA_WIDTH_OB),
+    .ELTWISE_ADD(ELTWISE_ADD),
+    .ELTWISE_SUB(ELTWISE_SUB),
+    .ELTWISE_MULT(ELTWISE_MULT),
+    .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
+    .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
+    .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)
+)top_element_wise(
+    .clkin(i_clk),
+    .rst(rst),
+    .EltWise_op_en(EltWise_op_en), 
+    .LeftOperand_wr_en(LeftOperand_wr_en), //from ddr
+    .RightOperand_wr_en(RightOperand_wr_en), //from ddr
+    .LeftOperand_data_in(LeftOperand_data_in), //from ddr
+    .RightOperand_data_in(RightOperand_data_in), //from ddr
+    .EltWise_type(EltWise_type), //
+    .EltWise_IW(EltWise_IW),
+    .EltWise_IH(EltWise_IH),
+    .EltWise_IC(EltWise_IC),
+    .EltWise_data_out(EltWise_data_out), //output
+    .EltWise_data_out_valid(EltWise_data_out_valid), //output valid
+    .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
+    .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
+    .EW_done(EW_done),
+    .op_fifo_empty(op_fifo_empty)
+);
+
+  interconnect #(
+    .DATA_WIDTH_OB(DATA_WIDTH_OB),
+    .COL_SA(COL_SA),
+    .OPCODE_WIDTH(OPCODE_WIDTH)
+  )
+  SA_FC_EltWise_interconnect(
+    .opcode(opcode),
+    .SA_data(dataout_SA),
+    .SA_data_valid(valid_SA),
+    .FC_data(op_data_mux_FC),
+    .FC_data_valid({COL_SA{valid_out_FC}}),
+    .EltWise_data(EltWise_data_out),
+    .EltWise_data_valid(EltWise_data_out_valid),
+    .data_tail_blk_in(data_tail_blk_in),
+    .data_tail_blk_vaild(data_tail_blk_vaild)
+  );
+
   wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; // From here onwards COL_SA or N_SA?:Todo
   wire [N_SA-1:0] vector_valid;
   // Vector addition block for addition of psum accumulants
@@ -608,9 +687,9 @@ endgenerate
       .almost_empty_sa(almost_empty_sa),
       .op_full(op_full),
       .top_data_out(output_block_out),
-      .top_data_in_adder_tree(data_SA_FC), //interconnect data o/p
+      .top_data_in_adder_tree(data_tail_blk_in), //interconnect data o/p
       .vector_add_enable(vector_add_enable),
-      .top_in_data_valid(dv_SA_FC), //interconnect datavalid
+      .top_in_data_valid(data_tail_blk_vaild), //interconnect datavalid
       .top_out_data_valid(vector_valid),
       .fifo_occupants(acc_fifo_occupants)
   );
@@ -790,11 +869,12 @@ endgenerate
   Tail_done_gen #(
       .N(N_SA),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
-      .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH)
+      .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
+      .OPCODE_WIDTH(OPCODE_WIDTH)
   ) tail_done_inst(
       .i_clk(i_clk),
       .rst(rst),
-      .CONV_FC(CONV_FC),
+      .opcode(opcode),
       .datavalid_acc(zp_unquant_dv),
       .datavalid_pool(zp_valid),
       .quant_en(quant_enable),

@@ -17,7 +17,7 @@ module iteration_cnt #(
     input Tail_done,
     input op_fifo_empty,
     input FC_done,
-    
+    input EW_done,
    // input [15:0] img_w, //width of input image matrix
     input [CITER_CNT_WIDTH-1:0] c_iter,
     input [KITER_CNT_WIDTH-1:0] k_iter,
@@ -43,6 +43,7 @@ module iteration_cnt #(
     output Conv_Ack,
     output OpBlock_Ack,
     output Tail_Ack,
+    output EltWise_Ack,
     
     //io signals
     output [6:0] kernal_count, // represents the current kernal iteration number 
@@ -86,6 +87,7 @@ end
     reg r_Tail_done;
     reg r_op_fifo_empty;
     reg r_FC_done;
+    reg r_EW_done;
 	reg [CITER_CNT_WIDTH-1:0] r_c_iter,sub_iter;
     reg [KITER_CNT_WIDTH-1:0] r_k_iter;
     
@@ -110,6 +112,7 @@ reg r_layer_done;
         r_Tail_done<=Tail_done;
         r_op_fifo_empty<=op_fifo_empty;
         r_FC_done<=FC_done;
+        r_EW_done<=EW_done;
 		// r_c_iter<=c_iter-1;
 		// r_k_iter<=k_iter;
 		r_BIAS_EN<=BIAS_EN;
@@ -160,6 +163,7 @@ always@(posedge i_clk) begin
                     else begin
                         if(r_FC_done) state <= 3'd3;
                     end
+                    if (r_EW_done) state <= 3'd3;
                 end
             end
         end
@@ -336,5 +340,6 @@ assign Conv_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? SA_done : 0;
 //assign OpBlock_Ack  =   ((c_ctr==c_iter-1)&&(k_ctr==k_iter-1))? iter_done : 0;
 assign OpBlock_Ack  =   o_layer_done;
 assign Tail_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? r_Tail_done : 0;
+assign EltWise_Ack       =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? EW_done : 0;
 
 endmodule

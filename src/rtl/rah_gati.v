@@ -7,7 +7,7 @@ module rah_gati #(
     parameter   NO_PORT_WR=2,
 	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
     parameter   IN_ADDR = 8,                                      // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111,4'b1000,4'b1001},   // only use for port controller 
+    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001 , 4'b1010 , 4'b1011},   // only use for port controller 
     parameter   POINTER_COUNT = 10,                               // fifo depth
     parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
     parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
@@ -44,7 +44,7 @@ module rah_gati #(
     parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 10, //Number of read and write requestors
+    parameter NUM_PORTS = 12, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -58,7 +58,7 @@ module rah_gati #(
 
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS = 4,
+    parameter NUM_INSTRUCTIONS = 6,
     parameter INST_W = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     parameter LAYERCNT_WIDTH = `START_LayerNumber_WIDTH,
@@ -137,7 +137,8 @@ module rah_gati #(
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
     parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
     
-
+    //Element wise operations param
+    parameter EltWise_TYPE_WIDTH = 4,
     //Other parameters
     parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
     parameter MIPI_FIFO     = 8, // Number of MIPI DWP FIFOs
@@ -352,6 +353,20 @@ module rah_gati #(
   wire [BURST_LENGTH_WIDTH-1:0] mc_acc_bl;
   wire mc_acc_last;
 
+  /////////////LeftOperand
+  wire [7:0] mc_LeftOperand_addr;
+  wire mc_LeftOperand_rdreq;
+  wire mc_LeftOperand_valid;
+  wire [BURST_LENGTH_WIDTH-1:0] mc_LeftOperand_bl;
+  wire mc_LeftOperand_last;
+
+  /////////////RightOperand
+  wire [7:0] mc_RightOperand_addr;
+  wire mc_RightOperand_rdreq;
+  wire mc_RightOperand_valid;
+  wire [BURST_LENGTH_WIDTH-1:0] mc_RightOperand_bl;
+  wire mc_RightOperand_last;
+
   /////////////wire write ctrl
   wire [7:0] mc_op_write_addr;
   wire mc_op_writereq;
@@ -475,7 +490,9 @@ module rah_gati #(
     mc_op_write_valid,
 	  mc_bias_valid,
     mc_fc_bias_valid,
-    mc_fpga2cpu_valid
+    mc_fpga2cpu_valid,
+    mc_LeftOperand_valid,
+    mc_RightOperand_valid
    };
 
    assign in_address = {
@@ -487,7 +504,9 @@ module rah_gati #(
     mc_op_write_addr,
 	  mc_bias_addr,
     mc_fc_bias_addr,
-    mc_fpga2cpu_addr
+    mc_fpga2cpu_addr,
+    mc_LeftOperand_addr,
+    mc_RightOperand_addr
    };
 
    assign in_BLEN = {
@@ -499,7 +518,9 @@ module rah_gati #(
     mc_op_write_bl,
     mc_bias_bl,
     mc_fc_bias_bl,
-    mc_fpga2cpu_bl
+    mc_fpga2cpu_bl,
+    mc_LeftOperand_bl,
+    mc_RightOperand_bl
    };
 
    assign i_enable = {
@@ -511,7 +532,9 @@ module rah_gati #(
     mc_op_writereq,
     mc_bias_rdreq,
     mc_fc_bias_rdreq,
-    mc_fpga2cpu_readreq
+    mc_fpga2cpu_readreq,
+    mc_LeftOperand_rdreq,
+    mc_RightOperand_rdreq
    };
 
    assign i_last = {
@@ -523,7 +546,9 @@ module rah_gati #(
     mc_op_write_last,
     mc_bias_last,
     mc_fc_bias_last,
-    mc_fpga2cpu_last
+    mc_fpga2cpu_last,
+    mc_LeftOperand_last,
+    mc_RightOperand_last
    };
    
 
@@ -763,6 +788,16 @@ module rah_gati #(
       .mc_op_write_valid(mc_op_write_valid),
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
+      .mc_LeftOperand_addr(mc_LeftOperand_addr),
+      .mc_LeftOperand_rdreq(mc_LeftOperand_rdreq),
+      .mc_LeftOperand_valid(mc_LeftOperand_valid),
+      .mc_LeftOperand_bl(mc_LeftOperand_bl),
+      .mc_LeftOperand_last(mc_LeftOperand_last),
+      .mc_RightOperand_addr(mc_RightOperand_addr),
+      .mc_RightOperand_rdreq(mc_RightOperand_rdreq),
+      .mc_RightOperand_valid(mc_RightOperand_valid),
+      .mc_RightOperand_bl(mc_RightOperand_bl),
+      .mc_RightOperand_last(mc_RightOperand_last),
       .select(select_rd|select_wr),
       .dram_rd_datavalid(dram_rd_datavalid),
       .dram_rd_data_last(dram_rd_data_last),

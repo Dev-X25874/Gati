@@ -1,12 +1,14 @@
+`include "../common/instructions.vh"
 module Tail_done_gen#(
     parameter N = 4,
     parameter I_ACC_SIZE_WIDTH = 16,
-    parameter I_OP_SIZE_WIDTH =16
+    parameter I_OP_SIZE_WIDTH =16,
+    parameter OPCODE_WIDTH = 4
 )
 (
     input i_clk,
     input rst,
-    input CONV_FC,
+    input [OPCODE_WIDTH-1:0]opcode,
     input [N -1:0] datavalid_acc,
     input [N -1:0] datavalid_pool,
     input quant_en, 
@@ -26,20 +28,24 @@ reg state;
 reg r_tail_done;
 
 
-always @ (posedge i_clk) begin 
-	if(~CONV_FC) begin	
-		if (~quant_en) begin
-		    data_count<=img_dim_Acc;
-		end
-		else begin 
-		    data_count<=img_dim_Op;
-		end
-    end
-    else begin
-        data_count<=img_dim_Op;
-    end
+always @(posedge i_clk) begin
+    case (opcode)
+        `OP_CONV: begin
+            if (~quant_en) begin
+        	    data_count<=img_dim_Acc;
+        	end
+        	else begin 
+        	    data_count<=img_dim_Op;
+        	end
+        end
+        `OP_FC: begin
+            data_count<=img_dim_Op;
+        end
+        `OP_EltWise: begin
+            data_count<=img_dim_Op;
+        end
+    endcase
 end
-
 always@(posedge i_clk) begin
     if(!rst) begin
         r_tail_done <= 0;

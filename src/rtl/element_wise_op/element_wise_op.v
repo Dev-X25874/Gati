@@ -1,68 +1,38 @@
-//`include "operation_calc.v"
+
 module element_wise_op#(
-  parameter INPUT_WIDTH=16,
-  parameter NUMBER_OP=3
+  parameter DATA_WIDTH=8,
+  parameter ELTWISE_TYPE_WIDTH=4,
+  parameter ELTWISE_ADD = 0,
+  parameter ELTWISE_SUB = 1,
+  parameter ELTWISE_MULT = 2,
+  parameter DATA_WIDTH_OB = 32
 )
 (
   input clkin,
-  input signed [INPUT_WIDTH-1:0]input_a,
-  input input_a_v,
-  input signed [INPUT_WIDTH-1:0]input_b,
-  input input_b_v,
-  input [$clog2(NUMBER_OP)-1:0]operation_in,
-  input operation_v,
-  output reg signed [(INPUT_WIDTH<<1)-1:0]value_out,
-  output reg value_valid,
-  output reg [STROBE_LENGTH-1:0]value_strobe
+  input signed [DATA_WIDTH-1:0] LeftOperand,
+  input signed [DATA_WIDTH-1:0] RightOperand,
+  input data_out_valid,
+  input [ELTWISE_TYPE_WIDTH-1:0] EltWise_type,
+  output reg signed [DATA_WIDTH_OB-1:0] EltWise_out,  //  32-bit output
+  output reg EltWise_valid
 );
-localparam STROBE_LENGTH =((INPUT_WIDTH<<1)>>3);
 
-reg [INPUT_WIDTH-1:0]input_a_reg;
-reg [INPUT_WIDTH-1:0]input_b_reg;
-reg [$clog2(NUMBER_OP)-1:0]operation_in_reg;
-reg [3:0]state=0;
-reg calculate;
-integer i;
-always @(posedge clkin)
+always @(posedge clkin) 
 begin
-  if(input_a_v && input_b_v && operation_v)
+  if (data_out_valid) 
   begin
-    case(operation_in)  //(op_number)
-      0:
-      begin
-        value_out<=input_a+input_b;
-        for (i = 0; i < (((INPUT_WIDTH+1)>>3)); i = i + 1)
-        begin
-          value_strobe[i] <= 1'b1;
-        end
-      end
-      1:
-      begin
-        value_out<=input_a-input_b;
-        for (i = 0; i < (((INPUT_WIDTH+1)>>3)); i = i + 1)
-        begin
-          value_strobe[i] <= 1'b1;
-        end
-      end
-      2:
-      begin
-        value_out<=input_a*input_b;
-        for (i = 0; i < ((INPUT_WIDTH<<1)>>3); i = i + 1)
-        begin
-          value_strobe[i] <= 1'b1;
-        end
-      end
+    case (EltWise_type)
+      ELTWISE_ADD  : EltWise_out <= LeftOperand + RightOperand;  // Addition
+      ELTWISE_SUB  : EltWise_out <= LeftOperand - RightOperand;  // Subtraction
+      ELTWISE_MULT : EltWise_out <= LeftOperand * RightOperand;  // Multiplication (signed)
+      default: EltWise_out <= 0;  // Default case to handle unexpected values
     endcase
-    value_valid<=1;
-
-  end
-  else
+    EltWise_valid <= 1;
+  end 
+  else 
   begin
-    //calculate<=0;
-    value_out<=0;
-    value_valid<=0;
-    value_strobe<=0;
+    EltWise_valid <= 0;
   end
-
 end
+
 endmodule

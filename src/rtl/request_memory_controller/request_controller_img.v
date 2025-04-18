@@ -1,9 +1,11 @@
+`include "../common/instructions.vh"
 module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8, 
                                 parameter AXI_ADDRESS_WIDTH = 32,
                                 parameter ADDR_OUT_CHUNK_WIDTH = 8,
                                 parameter KERNELITR_WIDTH = 12,
                                 parameter BURST_LENGTH = 10,
-                                parameter AXI_DATA_BYTES = 32)(
+                                parameter AXI_DATA_BYTES = 32,
+                                parameter CONV_TYPE_WIDTH = 2)(
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
     input [KERNELITR_WIDTH - 1 : 0] kernelitr,
     input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
@@ -11,27 +13,34 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     input fifo_status, //occupancy check
     input clk,
     input rst,
+    input iter_done,
     input c_done,
+    input [CONV_TYPE_WIDTH-1 : 0] conv_type,
+    input dup_flag,
+
+    output reg img_rd_done = 0,
     output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
     output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
     output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
 );
-integer i;
-//reg [31:0] r_addr_out = 0;
-reg [4:0] count = 0;
-reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_burst=0;
-reg [2:0] state = 0;
-reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
-reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_add1=0;
-parameter IDLE = 3'b000;
-parameter FIFO_STATUS = 3'b001;
-parameter START_ADDR = 3'b010;
-parameter ADDR_ITR = 3'b011;
-parameter C_DONE = 3'b100;
-parameter KERNEL_ITR = 3'b101;
-assign burst_length = r_burst_length;
+    integer i;
+    //reg [31:0] r_addr_out = 0;
+    reg [4:0] count = 0;
+    reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_burst=0;
+    reg [2:0] state = 0;
+    reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
+    reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_add1=0;
+    
+    parameter IDLE = 3'b000;
+    parameter FIFO_STATUS = 3'b001;
+    parameter START_ADDR = 3'b010;
+    parameter ADDR_ITR = 3'b011;
+    parameter C_DONE = 3'b100;
+    parameter KERNEL_ITR = 3'b101;
+
+    assign burst_length = r_burst_length;
 	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
     reg [KERNELITR_WIDTH - 1 : 0] 	r_kernelitr;
     reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
@@ -40,15 +49,12 @@ assign burst_length = r_burst_length;
     reg r_c_done;
 
 always @ (posedge clk) begin 
-//	rbl_add1<=r_burst_length+1;
-	// nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
-
-	r_start_addr<=start_addr;
-	r_kernelitr<=kernelitr;
-	r_stop_addr<=stop_addr;
-	r_config_start<=config_start;
-	r_fifo_status<=fifo_status;
-	r_c_done<=c_done;
+	r_start_addr    <=  start_addr;
+	r_kernelitr     <=  (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+	r_stop_addr     <=  stop_addr;
+	r_config_start  <=  config_start;
+	r_fifo_status   <=  fifo_status;
+	r_c_done        <=  ((conv_type == `CONV_TYPE_DW) || (conv_type == `CONV_TYPE_REGULAR && dup_flag))? iter_done : c_done;
 end
 
 
@@ -58,6 +64,7 @@ always @(posedge clk) begin
         valid <= 0;
         last <= 0;
         addr_out <= 0;
+        img_rd_done <= 0;
     end
     else begin
         case(state) 
@@ -66,6 +73,7 @@ always @(posedge clk) begin
             wr_enable <= 0;
             valid <= 0;
             last <= 0;
+            img_rd_done <= 0;
             if(r_config_start) begin
                 state <= FIFO_STATUS;
                 nxt_addr <= r_start_addr;
@@ -139,12 +147,15 @@ always @(posedge clk) begin
         C_DONE: begin
             if (r_c_done) begin
                 state <= KERNEL_ITR;
+                img_rd_done <= 1;
             end
             else begin
                 state <= C_DONE;
+                img_rd_done <= 0;
             end
         end
         KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
+            img_rd_done <= 0;
             if (count_kernel < r_kernelitr -1) begin
                 nxt_addr <= r_start_addr;
                 state <= FIFO_STATUS;

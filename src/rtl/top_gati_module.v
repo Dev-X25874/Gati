@@ -51,6 +51,8 @@ module top_gati_module #(
     parameter CONV_KN_WIDTH     = `CONV_KN_WIDTH,
     parameter CONV_KW_WIDTH     = `CONV_KW_WIDTH,
     parameter CONV_KH_WIDTH     = `CONV_KH_WIDTH,
+    parameter CONV_KC_WIDTH     = `CONV_KC_WIDTH,
+    parameter CONV_ConvType_WIDTH = `CONV_ConvType_WIDTH,
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
     parameter CONV_PADSIDES_WIDTH = `CONV_PadSides_WIDTH,
@@ -342,6 +344,8 @@ module top_gati_module #(
   wire [CONV_KN_WIDTH-1:0] n_kernels;
   wire [CONV_KW_WIDTH-1:0] kernel_width;
   wire [CONV_KH_WIDTH-1:0] kernel_height;
+  wire [CONV_KC_WIDTH-1:0] kernel_channels;
+  wire [CONV_ConvType_WIDTH-1:0] conv_type;
   wire [CONV_STRIDE_WIDTH-1:0] stride;
   wire [CONV_PAD_WIDTH-1:0] conv_zeropad;
   wire [CONV_PADSIDES_WIDTH-1 :0] Pad_side; 
@@ -615,6 +619,8 @@ module top_gati_module #(
     .KN_WIDTH(CONV_KN_WIDTH),
     .KH_WIDTH(CONV_KH_WIDTH),
     .KW_WIDTH(CONV_KW_WIDTH),
+    .KC_WIDTH(CONV_KC_WIDTH),
+    .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
     .STRIDE_WIDTH(CONV_STRIDE_WIDTH),
     .PAD_WIDTH(CONV_PAD_WIDTH),
     .PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
@@ -672,6 +678,8 @@ module top_gati_module #(
     .KN(n_kernels),
     .KW(kernel_width),
     .KH(kernel_height),
+    .KC(kernel_channels),
+    .conv_type(conv_type),    
     .Stride(stride),
     .Pad(conv_zeropad),
     .Pad_side(Pad_side),
@@ -760,7 +768,7 @@ module top_gati_module #(
   
   wire iter_done;
   wire channel_done;
-
+  wire img_read_done;
   // Memory request controllers - img, weight, bias etc
   request_controller_img #(
       .BURST_LENGTH(IMG_REQ_BLEN),
@@ -768,7 +776,8 @@ module top_gati_module #(
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
       .KERNELITR_WIDTH(W_KITER_CNT),
       .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
-      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH)
+      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
+      .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
   ) image_req_ctrl (
       .start_addr(img_start_address),
       .kernelitr(kernel_iteration),
@@ -777,8 +786,12 @@ module top_gati_module #(
       .fifo_status(img_fifo_status),
       .clk(i_clk),
       .rst(i_rst),
+      .iter_done(iter_done),
       .c_done(channel_done),
-      
+      .conv_type(conv_type),
+      .dup_flag(1'b1),
+      .img_rd_done(img_read_done),
+
       //signals goes to memory controller
       .addr_out(mc_img_addr),
       .wr_enable(mc_img_rdreq),
@@ -1043,10 +1056,28 @@ module top_gati_module #(
     r_img_fifo_occupants = img_fifo_occupants1+req_occupants_img;
   end
   assign img_fifo_status = ((img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0]+req_occupants_img)<=img_fifo_th)? 1 : 0;
-  // assign img_fifo_status = ((r_img_fifo_occupants)<=img_fifo_th)? 1 : 0;
-  // assign img_fifo_status = ((img_fifo_occupants)<={AXI_DATA_BYTES{img_fifo_th}})? 1 : 0;
-  // assign img_fifo_status = (img_fifo_occupants<={AXI_DATA_BYTES{input_img_width/8}})? 1 : 0;
   
+  wire [AXI_DATA_WIDTH-1:0] image_data_out;
+  wire image_data_out_dv;
+
+  CONV_ip_data_handler # (
+    .AXI_WIDTH(AXI_DATA_WIDTH),
+    .N_FIFO(AXI_DATA_BYTES),
+    .DATA_WIDTH(DATA_WIDTH),
+    .N_SA(N_SA)
+  )
+  CONV_ip_data_handler_inst (
+    .clk(i_clk),
+    .rstn(i_rst),
+    .i_data(image_fifo_in_data),
+    .i_dv(&(image_wren)),
+    .dup_flag(1'b1),
+    .iter_done(iter_done),
+    .c_done(channel_done),
+    .o_data(image_data_out),
+    .o_dv(image_data_out_dv)
+  );
+
   //fifo img
   dram_fifo #(
       .DIMENSION(AXI_DATA_BYTES),
@@ -1057,9 +1088,9 @@ module top_gati_module #(
   ) image_ddr_fifo (
       .i_clk(i_clk),
       .i_rst(i_rst),
-      .i_data(image_fifo_in_data),
+      .i_data(image_data_out),
       .i_read_enable(image_rden),
-      .i_write_enable(image_wren),
+      .i_write_enable({AXI_DATA_BYTES{image_data_out_dv}}),
       .o_data(fifo_imgo_data),
       .o_fifo_empty(image_fifo_empty),
       .o_fifo_full(),
@@ -1422,22 +1453,6 @@ module top_gati_module #(
   // slicing of img_fifo o/p data to store it in data buffers of im2col
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] img_ip_conv;
 
-  localparam OFFSET = N_SA;
-  localparam UPPER_LOOP = N_SA;
-  localparam LOWER_LOOP = (AXI_DATA_BYTES/(SHFT_REG_X*N_SA));
-
-    
-  genvar i,j;
-  generate
-  for(i=0;i<UPPER_LOOP;i=i+1) begin
-    for (j=0;j<LOWER_LOOP;j=j+1) begin
-        localparam k = i * LOWER_LOOP + j;
-        assign img_ip_conv[(((SHFT_REG_X*DATA_WIDTH)*((AXI_DATA_BYTES/SHFT_REG_X)- k))-1) -: SHFT_REG_X*DATA_WIDTH] =
-        fifo_imgo_data[(((SHFT_REG_X*DATA_WIDTH)*(((AXI_DATA_BYTES/SHFT_REG_X)-i)-(j*OFFSET)))-1) -: SHFT_REG_X*DATA_WIDTH];
-    end
-  end
-  endgenerate
-
   localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (AXI_DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
   wire [ACC_OP_FIFO-1:0] acc_op_wren;
   wire [ACC_OP_DATAWIDTH-1:0] acc_op_write_data;
@@ -1554,12 +1569,11 @@ module top_gati_module #(
       .image_fifo_empty(image_fifo_empty),
       .CONV_FC(CONV_FC),
       .opcode(opcode),
-    //   .switch_enable(switch_enable),
       .fifo_o(fifo_imgo_data),
       //fifo sharing signals
       //.sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),
-	    .weight_read_en_fc(weight_read_en_fc),
+      .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
       .weight_empty_fc(weight_empty_fc),
       .weight_almost_empty_fc(weight_almost_empty_fc),
@@ -1571,7 +1585,7 @@ module top_gati_module #(
       .weight_empty_sa(weight_empty_sa),
       .weight_data_sa(weight_data_sa),
       .p_full_output(psum_full),
-	  //Flattening and FC signals
+	    //Flattening and FC signals
       .flatten_enable(flatten_enable), //comes from FC instruction
       .start_FC(Flattening_trigger),
       .start_SA(start_SA),
@@ -1605,6 +1619,7 @@ module top_gati_module #(
       .image_height(input_img_height),
       .valid_img_size_im2col(valid_conv), //valid inst conv
       .im2col_global_start(im2col_global_start),
+      .img_read_done(img_read_done),
       .image_rden(image_rden),
       .row(row),
 	    .col(col),

@@ -65,7 +65,7 @@ module Top_CONV_FC #(
 
     // im2col_v1 parameter
 
-    parameter KERNEL_SIZE = 3,  // im2col kernal size
+    parameter KERNEL_SIZE = 4,  // im2col kernal size
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
     parameter CONV_KW_WIDTH = 4,
@@ -147,6 +147,8 @@ module Top_CONV_FC #(
     input im2col_global_start,
     output [DRAM_BW-1:0] image_rden,
 	  input stall_on,
+    input img_read_done,
+
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -252,7 +254,7 @@ module Top_CONV_FC #(
       )
       im2col_buffer_write_inst (
         .clk(i_clk),
-        .rst(rst&(~channel_done)),
+        .rst(rst&(~img_read_done)),
         .im2col_done(im2col_done),
         .read_buf_data(read_buf_data),
         .stall_on(stall_on),

@@ -647,7 +647,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
 
   interconnect #(
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
-    .COL_SA(COL_SA),
+    .N_SA(N_SA),
     .OPCODE_WIDTH(OPCODE_WIDTH)
   )
   SA_FC_EltWise_interconnect(
@@ -655,7 +655,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
     .SA_data(dataout_SA),
     .SA_data_valid(valid_SA),
     .FC_data(op_data_mux_FC),
-    .FC_data_valid({COL_SA{valid_out_FC}}),
+    .FC_data_valid({N_SA{valid_out_FC}}),
     .EltWise_data(EltWise_data_out),
     .EltWise_data_valid(EltWise_data_out_valid),
     .data_tail_blk_in(data_tail_blk_in),

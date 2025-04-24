@@ -137,9 +137,6 @@ module top_gati_module #(
     //EltWise param
     parameter ELTWISE_FIFO = AXI_DATA_BYTES/N_SA, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = `EltWise_EltType_WIDTH, // Width of the element wise
-    parameter ELTWISE_ADD = `ELTWISE_ADD, // Addition
-    parameter ELTWISE_SUB = `ELTWISE_SUB, // Subtraction
-    parameter ELTWISE_MULT = `ELTWISE_MULT, // Multiplication
     parameter ELTWISE_IW_WIDTH = `EltWise_IW_WIDTH, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = `EltWise_IH_WIDTH, // Width of the input height;
     parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH // Width of the output width;
@@ -830,7 +827,7 @@ module top_gati_module #(
   ) bias_req_ctrl (
       .start_addr(bias_start_address),
       .stop_addr(bias_stop_address),
-      .config_start(start_SA),
+      .config_start(start_SA | start_FC),
       .fifo_status(bias_fifo_status),
       .Biasen(Bias_En), 
       .clk(i_clk),
@@ -1513,10 +1510,7 @@ module top_gati_module #(
       .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
       .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
       .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH),
-      .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
-      .ELTWISE_ADD(ELTWISE_ADD),
-      .ELTWISE_SUB(ELTWISE_SUB),
-      .ELTWISE_MULT(ELTWISE_MULT)
+      .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),

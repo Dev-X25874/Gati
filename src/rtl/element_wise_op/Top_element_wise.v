@@ -6,9 +6,6 @@ module Top_element_wise#(
     parameter W_ADDR                = 9,
     parameter DATA_WIDTH_OB         = 32,
 
-    parameter ELTWISE_ADD           = 0,
-    parameter ELTWISE_SUB           = 1,
-    parameter ELTWISE_MULT          = 2,
     parameter ELTWISE_IW_WIDTH      = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH      = 10, // Width of the input height;
     parameter ELTWISE_IC_WIDTH      = 10 // Width of the output width;
@@ -22,8 +19,8 @@ module Top_element_wise#(
     input [ELTWISE_IW_WIDTH-1:0]EltWise_IW,
     input [ELTWISE_IH_WIDTH-1:0]EltWise_IH,
     input [ELTWISE_IC_WIDTH-1:0]EltWise_IC,
-    input signed [(DATA_WIDTH*FIFO_NO*N)-1:0]LeftOperand_data_in,
-    input signed [(DATA_WIDTH*FIFO_NO*N)-1:0]RightOperand_data_in,
+    input [(DATA_WIDTH*FIFO_NO*N)-1:0]LeftOperand_data_in,
+    input [(DATA_WIDTH*FIFO_NO*N)-1:0]RightOperand_data_in,
     input [ELTWISE_TYPE_WIDTH-1:0]EltWise_type,
     output [(DATA_WIDTH_OB*N)-1:0]EltWise_data_out,
     output [N-1:0]EltWise_data_out_valid,
@@ -39,7 +36,7 @@ wire [FIFO_NO-1:0] LeftOperand_full,RightOperand_full;
 wire [FIFO_NO-1:0] LeftOperand_valid_fifo,RightOperand_valid_fifo;
 wire [(DATA_WIDTH*N)-1:0] LeftOperand_fifo_data_out,RightOperand_fifo_data_out;
 wire [FIFO_NO-1:0] element_rd_en;
-wire data_out_valid;
+wire data_valid;
 
 conv_output_reorder_EW #(
     .W_DATA(DATA_WIDTH),
@@ -121,7 +118,7 @@ EltWise_controller #(
     .LeftOperand_fifo_data_out(LeftOperand_fifo_data_out),
     .RightOperand_fifo_data_out(RightOperand_fifo_data_out),
     .EW_done(EW_done),
-    .data_out_valid(data_out_valid),
+    .data_valid(data_valid),
     .op_fifo_empty(op_fifo_empty)
 );
 genvar i;
@@ -130,15 +127,12 @@ generate
         element_wise_op #(
             .DATA_WIDTH(DATA_WIDTH),
             .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
-            .ELTWISE_ADD(ELTWISE_ADD),
-            .ELTWISE_SUB(ELTWISE_SUB),
-            .ELTWISE_MULT(ELTWISE_MULT),
             .DATA_WIDTH_OB(DATA_WIDTH_OB)
         ) ew_op (
             .clkin(clkin),
             .LeftOperand(LeftOperand_fifo_data_out[((i+1)*DATA_WIDTH)-1 -:DATA_WIDTH]),
             .RightOperand(RightOperand_fifo_data_out[((i+1)*DATA_WIDTH)-1 -:DATA_WIDTH]),
-            .data_out_valid(data_out_valid),
+            .data_valid(data_valid),
             .EltWise_type(EltWise_type),
             .EltWise_out(EltWise_data_out[((i+1)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
             .EltWise_valid(EltWise_data_out_valid[i]) 

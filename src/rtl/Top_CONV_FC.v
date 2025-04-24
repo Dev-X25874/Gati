@@ -64,9 +64,6 @@ module Top_CONV_FC #(
     
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
-    parameter ELTWISE_ADD = 0, // Addition
-    parameter ELTWISE_SUB = 1, // Subtraction
-    parameter ELTWISE_MULT = 2, // Multiplication
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = 10, // Width of the input height;
     parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
@@ -619,9 +616,6 @@ wire [N_SA-1:0] data_tail_blk_vaild;
     .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
-    .ELTWISE_ADD(ELTWISE_ADD),
-    .ELTWISE_SUB(ELTWISE_SUB),
-    .ELTWISE_MULT(ELTWISE_MULT),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
     .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
     .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)

@@ -23,7 +23,7 @@ module EltWise_controller#(
     output reg [(DATA_WIDTH * N) - 1:0] LeftOperand_fifo_data_out,
     output reg [(DATA_WIDTH * N) - 1:0] RightOperand_fifo_data_out,
     output reg EW_done,
-    output reg data_out_valid,
+    output reg data_valid,
     input op_fifo_empty
 );
 
@@ -43,7 +43,7 @@ always @(posedge clkin) begin
         element_rd_en <= 0;
         LeftOperand_fifo_data_out <= 0;
         RightOperand_fifo_data_out <= 0;
-        data_out_valid <= 0;
+        data_valid <= 0;
         EW_done <= 0;
         stop <= 0;
     end 
@@ -74,7 +74,7 @@ always @(posedge clkin) begin
         if (LeftOperand_valid_fifo[cycle_idx1] && RightOperand_valid_fifo[cycle_idx1]) begin
             LeftOperand_fifo_data_out <= LeftOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
             RightOperand_fifo_data_out <= RightOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
-            data_out_valid <= 1'b1;
+            data_valid <= 1'b1;
             cnt1 <= cnt1 + 1;
             cycle_idx1 <= cycle_idx1 + 1;
         end
@@ -82,7 +82,7 @@ always @(posedge clkin) begin
             if (cnt1 == r_img_size)begin
                 cnt1 <= 0;
             end 
-            data_out_valid <= 1'b0;
+            data_valid <= 1'b0;
         end
     end
 end

@@ -43,6 +43,16 @@ module Top_CONV_FC #(
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
     parameter N_DMUX_PORTS = DRAM_BW/(N_SA*(ACC_DW/8)),
+     //Generalized Pool Parameters
+    parameter POOLEN_WIDTH = 1,
+    parameter POOLTYPE_WIDTH = 3,
+    parameter POOLWIDTH_WIDTH = 4,
+    parameter POOLHEIGHT_WIDTH = 4,
+    parameter POOLSTRIDE_WIDTH = 4,
+    parameter POOLPADDING_WIDTH = 4,
+    parameter POOLCEIL_WIDTH = 1,
+    parameter POOLMODCOUNT_WIDTH = 4,
+    parameter POOLPADSIDES_WIDTH = 4,
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
@@ -146,7 +156,7 @@ module Top_CONV_FC #(
     input [(QUANT_SHIFT) -1:0] shift_value,
     input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
-    input maxpool_enable,
+    //input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     input [CONV_STRIDE_WIDTH-1:0] stride, // im2col input stride 
@@ -167,6 +177,17 @@ module Top_CONV_FC #(
     input [ELTWISE_FIFO-1:0] LeftOperand_wr_en,
     input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
     input EltWise_op_en,
+  //Generalized Pool
+    input maxpool_enable,
+    input [POOLTYPE_WIDTH - 1 : 0] PoolType,
+    input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
+    input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
+    input [POOLSTRIDE_WIDTH - 1 : 0] PoolStride,
+    input [POOLPADDING_WIDTH - 1 : 0] PoolPadding,
+    input [POOLCEIL_WIDTH - 1 : 0] PoolCeil,
+    input [POOLMODCOUNT_WIDTH - 1 : 0] PoolModCount,
+    input [POOLPADSIDES_WIDTH - 1 : 0] PoolPadSides,
+
     // accumulant output write signals
     output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
     output [ACC_OP_FIFO-1:0] acc_op_wren,
@@ -798,7 +819,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
       .top_i_acttype({N_SA{relu_act_type}})
   );
   
-   maxpool_gen #(
+  /* maxpool_gen #(
       .N_SA(N_SA),
       .DATA_IN(DATA_WIDTH),
       .IMG_WIDTH(W_CONV_OP_IMAGE_DIM)
@@ -811,6 +832,42 @@ wire [N_SA-1:0] data_tail_blk_vaild;
       .IW(maxpool_threshold), //from conv inst.
       .maxvalue_o(maxpool_output),
       .datavalid_o(maxpool_valid)
+  );*/
+  
+  generalized_pool # (
+    .N_SA(N_SA),
+    .DATA_WIDTH(DATA_WIDTH),
+    .POOL_HEIGHT(POOLHEIGHT_WIDTH), // width of kernal height
+    .POOL_WIDTH(POOLWIDTH_WIDTH), // width of kernal width
+    .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH), //width of Pooling Type
+    .POOLSTRIDE_WIDTH(POOLSTRIDE_WIDTH),
+    .POOLPADDING_WIDTH(POOLPADDING_WIDTH),
+    .POOLCEIL_WIDTH(POOLCEIL_WIDTH),
+    .POOLMODCOUNT_WIDTH(POOLMODCOUNT_WIDTH),
+    .POOLPADSIDES_WIDTH(POOLPADSIDES_WIDTH),
+    .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+    .ADDR_WIDTH(9), //Synchronous Fifo depth
+    .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+  )
+  generalized_pool_inst (
+    .clk(i_clk),
+    .din(relu_output),
+    .rst_n(rst&(~iteration_Done)),
+    .ENABLE(maxpool_enable),
+    .datavalid_in(relu_valid),
+    .PoolType(PoolType), //3'b001
+    .PoolStride(PoolStride),
+    .PoolWidth(PoolWidth), //kernal width
+    .PoolHeight(PoolHeight), //kernal height
+    .PoolPadding(PoolPadding),
+    .PoolCeil(PoolCeil),
+    .PoolModCount(PoolModCount),
+    .PoolPadSides(PoolPadSides),
+    .OH(maxpool_threshold),
+    .OW(maxpool_threshold),
+    .dout(maxpool_output),
+    .done(),
+    .datavalid_out(maxpool_valid)
   );
   
   wire [(DATA_WIDTH_ACC*N_SA)-1 : 0] zp_unquantized_din;
@@ -827,8 +884,13 @@ wire [N_SA-1:0] data_tail_blk_vaild;
   wire [I_ACC_SIZE_WIDTH-1:0] i_img_dim1; // Accumulant data_size
   wire [I_OP_SIZE_WIDTH-1:0] i_img_dim2; // Quantized op data_size
 
+   `include "common/instructions.vh"
+
+   assign intermediate_1 = (maxpool_threshold-1) * (maxpool_threshold-1);
+   wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
+
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : conv_op_img_size;
-  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? conv_op_img_size/4 : conv_op_img_size);
+  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:conv_op_img_size)>>2) : conv_op_img_size);
 
   //zero padding circuit
   top_zero # (

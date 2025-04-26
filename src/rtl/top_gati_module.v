@@ -114,6 +114,9 @@ module top_gati_module #(
     parameter W_POOL_HEIGHT     = `TailBlock_PoolHeight_WIDTH,
     parameter W_POOL_STRIDE     = `TailBlock_PoolStride_WIDTH,
     parameter W_POOL_PAD        = `TailBlock_PoolPadding_WIDTH,
+    parameter W_POOL_CEIL       = `TailBlock_PoolCeil_WIDTH,
+    parameter W_POOL_MODCOUNT   = `TailBlock_PoolModCount_WIDTH,
+    parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
     parameter BNEN_WIDTH        = `TailBlock_BNEn_WIDTH,
     parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
@@ -587,6 +590,15 @@ module top_gati_module #(
     end
   end
 
+  wire [(POOL_TYPE_WIDTH - 1) : 0] pooltype;
+  wire [(W_POOL_WIDTH - 1) : 0] poolwidth;
+  wire [(W_POOL_HEIGHT - 1) : 0] poolheight;
+  wire [(W_POOL_STRIDE - 1) : 0] poolstride;
+  wire [(W_POOL_PAD - 1) : 0] poolpadding;
+  wire [(W_POOL_CEIL - 1) : 0] poolceil;
+  wire [(W_POOL_MODCOUNT - 1) : 0] poolModCount;
+  wire [(W_POOL_PADSIDES - 1) : 0] poolpadsides;
+
   // top_master_slave_integrate
   top_master_slave_integrate#(
     .OP_CODE_WIDTH(OPCODE_WIDTH),
@@ -635,6 +647,9 @@ module top_gati_module #(
     .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
     .POOLSTRIDE_WIDTH(W_POOL_STRIDE),
     .POOLPADDING_WIDTH(W_POOL_PAD),
+    .POOLCEIL_WIDTH(W_POOL_CEIL),
+    .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
+    .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
     .BIASEN_WIDTH(BIASEN_WIDTH),
     .BNCHANNELS_WIDTH(BNCHANNEL_WIDTH),
     .BiasWidth_WIDTH(BiasWidth_WIDTH),
@@ -718,11 +733,14 @@ module top_gati_module #(
     .quantscale(tail_quantscale),
     .quantshift(tail_quantshift),
     .PoolEn(POOL_EN), //goes to iteration cter
-    .pooltype(),
-    .poolwidth(),
-    .poolheight(),
-    .poolstride(),
-    .poolpadding(),
+    .pooltype(pooltype),
+    .poolwidth(poolwidth),
+    .poolheight(poolheight),
+    .poolstride(poolstride),
+    .poolpadding(poolpadding),
+    .poolceil(poolceil),
+    .poolModCount(poolModCount),
+    .poolpadsides(poolpadsides),
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
     .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
@@ -1487,7 +1505,19 @@ module top_gati_module #(
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
       .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
       .N_DMUX_PORTS(N_DMUX_PORTS),
-      //FC realated parameters
+
+      //general pool
+      .POOLEN_WIDTH   (POOLEN_WIDTH),
+      .POOLTYPE_WIDTH (POOL_TYPE_WIDTH),
+      .POOLWIDTH_WIDTH (W_POOL_WIDTH),
+      .POOLHEIGHT_WIDTH (W_POOL_HEIGHT),
+      .POOLSTRIDE_WIDTH (W_POOL_STRIDE),
+      .POOLPADDING_WIDTH (W_POOL_PAD),
+      .POOLCEIL_WIDTH (W_POOL_CEIL),
+      .POOLMODCOUNT_WIDTH (W_POOL_MODCOUNT),
+      .POOLPADSIDES_WIDTH (W_POOL_PADSIDES),
+
+      //FC realated parameters      
       .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH), 
       .ACC_DW(ACC_DW),
       .N_BANK(N_BANK),
@@ -1592,6 +1622,15 @@ module top_gati_module #(
       .acc_op_wren(acc_op_wren),
       .quant_op_write_data(quant_op_write_data),
       .quant_op_wren(quant_op_wren),
+
+      .PoolType(pooltype),
+      .PoolWidth(poolwidth),
+      .PoolHeight(poolheight),
+      .PoolStride(poolstride),
+      .PoolPadding(poolpadding),
+      .PoolCeil(),
+      .PoolModCount(),
+      .PoolPadSides(),
 
       .im2col_done(im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),
@@ -1837,7 +1876,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==16) layer_cntr <= layer_cntr;
+      if(layer_cntr==4) layer_cntr <= 0;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end

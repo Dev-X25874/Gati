@@ -82,8 +82,8 @@ module operator_fifo_wren_ctrl #(
                 .i_sel(r_shift_count),
                 .o_dout(demux_op_data)
             );
-
-            demux_param #(
+            
+            demux_param1 #(
                 .N_PORT(SHIFT_COUNT),
                 .DATA_WIDTH(DATA_VALID_WIDTH)
             ) demux_op_wren_inst (
@@ -91,7 +91,6 @@ module operator_fifo_wren_ctrl #(
                 .i_sel(r_shift_count),
                 .o_dout(demux_op_wren)
             );
-
             assign o_fifo_wren = r_fifo_wren;
             assign o_data = r_data;
         end

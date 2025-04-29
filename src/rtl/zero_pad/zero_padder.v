@@ -41,9 +41,16 @@ assign extra_cycles = (r_i_size%MOD == 0)? 0 : (MOD-(r_i_size%MOD));
 
 localparam S0 = 2'b00, S1 = 2'b01, S2 = 2'b10;
 always @(posedge clk) begin
-    r_i_size<=i_size;
-    r_data_in<=data_in;
-    r_i_dv<=i_dv;
+    if(!rst) begin
+        r_i_size <= 0;
+        r_data_in <= 0;
+        r_i_dv <= 0;
+    end
+    else begin
+        r_i_size <= i_size;
+        r_data_in <= data_in;
+        r_i_dv <= i_dv;
+    end
 end
 always@(posedge clk)
 begin

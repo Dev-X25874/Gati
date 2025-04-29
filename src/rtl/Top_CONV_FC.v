@@ -462,27 +462,32 @@ endgenerate
   wire [N_SA-1:0] valid_SA;
   wire [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA;
   
+  genvar a;
   generate
     if(COL_SA>1) begin
-    top_adder_tree_gen #(
-        .W_PSUM(W_PSUM),
-        .COL(COL_SA), 
-        .N_SA(N_SA),
-        .NSA_DSP(NSA_DSP),
-        .NSA_LUT(NSA_LUT),
-        .DATA_WIDTH_OB(DATA_WIDTH_OB)
-    ) adder_tree (
-        .clk(i_clk),
-        .rst(rst),
-        .i_psum_ff_array(o_psum_ff_array),
-        .valid_in({COL_SA{valid_psum}}),
-        .valid_out(valid_SA),
-        .result_final(dataout_SA)
-    );
+      top_adder_tree_gen #(
+          .W_PSUM(W_PSUM),
+          .COL(COL_SA), 
+          .N_SA(N_SA),
+          .NSA_DSP(NSA_DSP),
+          .NSA_LUT(NSA_LUT),
+          .DATA_WIDTH_OB(DATA_WIDTH_OB)
+      ) adder_tree (
+          .clk(i_clk),
+          .rst(rst),
+          .i_psum_ff_array(o_psum_ff_array),
+          .valid_in({COL_SA{valid_psum}}),
+          .valid_out(valid_SA),
+          .result_final(dataout_SA)
+      );
     end
     else begin
+      localparam EXT = DATA_WIDTH_OB - W_PSUM;
+      for(a=0;a<N_SA;a=a+1) begin
+        assign dataout_SA[(DATA_WIDTH_OB*(N_SA-a))-1 -: DATA_WIDTH_OB] = 
+        {{EXT{o_psum_ff_array[(W_PSUM*(N_SA-a))-1]}}, o_psum_ff_array[(W_PSUM*(N_SA-a))-1 -: W_PSUM]};
+      end
       assign valid_SA = valid_psum;
-      assign dataout_SA = o_psum_ff_array;
     end
   endgenerate
   

@@ -129,7 +129,7 @@ always@(*) begin
             else begin
                 // doutns = doutps;
                 // o_dvns = 1'b0;
-                countns = countps;
+                countns = 0;
                 ns      = S0;
                 flag2   = 0;
             end

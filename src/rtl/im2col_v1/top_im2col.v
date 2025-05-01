@@ -1,10 +1,12 @@
 
 module top_im2col_v1 #(
-    parameter KERNEL_SIZE = 4,
     parameter UPPER_BOUND = 224,
     parameter LOWER_BOUND = 1,
+    parameter CONV_KW_WIDTH = 4,
+    parameter CONV_KH_WIDTH = 4,
     parameter DATA_WIDTH = 8,
     parameter STRIDE = 3,
+    parameter ROW = 9,
     parameter CONV_PAD_WIDTH = 3)
     (
         input                                  clk_in,
@@ -14,15 +16,18 @@ module top_im2col_v1 #(
         input                                  i_valid_data,
         input  [DATA_WIDTH-1:0]                i_data,
         input  [3:0]                           zero_pad,   // Zero Pad Side
-        input  [$clog2(KERNEL_SIZE):0]         ksize,
+        input  [CONV_KW_WIDTH-1:0]             kw,
+        input  [CONV_KH_WIDTH-1:0]             kh,
         input  [CONV_PAD_WIDTH-1:0]            zero_padded,
-        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size,
-        output [(KERNEL_SIZE*KERNEL_SIZE)-1:0] valid_sq,           
+        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_col,
+        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_row,
+        output [ROW-1:0]                       valid_sq,           
         output                                 o_valid,
         output [DATA_WIDTH-1:0]                valid_sq_data_o,
         input  [STRIDE-1:0]                    stride,
         output                                 o_valid_buff,
         output                                 o_im2col_done,
+        input                                  start_SA,
         input                                  i_stall_on,
         output [$clog2(UPPER_BOUND)-1:0]       o_row,
         output [$clog2(UPPER_BOUND)-1:0]       o_col
@@ -36,9 +41,9 @@ module top_im2col_v1 #(
     wire [$clog2(UPPER_BOUND)-1:0] w_row;
     wire [$clog2(UPPER_BOUND)-1:0] w_col;
     wire [DATA_WIDTH-1:0] w_data;
-    wire [KERNEL_SIZE*KERNEL_SIZE-1:0] w_valid_sq;
-    wire [KERNEL_SIZE*KERNEL_SIZE-1:0] d_valid_sq;
-    wire [KERNEL_SIZE*KERNEL_SIZE-1:0] w_valid_stride;
+    wire [ROW-1:0] w_valid_sq;
+    wire [ROW-1:0] d_valid_sq;
+    wire [ROW-1:0] w_valid_stride;
 
     
     assign o_row = w_row;
@@ -54,7 +59,8 @@ module top_im2col_v1 #(
         .valid_mat_size(valid_mat_size),
         .zero_pad(zero_pad),
         .zero_padded(zero_padded),
-        .mat_size(i_mat_size),
+        .mat_size_col(i_mat_size_col),
+        .mat_size_row(i_mat_size_row),
         .o_data(data),
         .row(w_row),
         .col(w_col),
@@ -69,7 +75,7 @@ module top_im2col_v1 #(
 
     wire r_start_im2col;
 
-    bound_generation_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE)) bound_dut(
+    bound_generation_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH)) bound_dut(
         .clk(clk_in),
         .rstn(rstn),
         .i_valid(valid),
@@ -77,20 +83,21 @@ module top_im2col_v1 #(
         .mat_size_row(mat_size_row),
         .valid_sq_data_i(data),
         .curr_col(w_col),
-        .ksize(ksize),
+        .kw(kw),
+        .kh(kh),
         .curr_row(w_row),
         .valid_sq(w_valid_sq),
         .valid_sq_data_o(w_data),
-        //.stride(stride),
         .o_valid(o_valid),
         .i_stall_on(i_stall_on),
         .r_start_im2col(r_start_im2col),
         .im2col_start(i_start_im2col_index),
+        .start_SA(start_SA),
         .im2col_done(o_im2col_done)
     );
     
     // Delay registers to match the initial delay of stride_block
-    delay_reg_v1 #(.DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE)) delay_dut(
+    delay_reg_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW)) delay_dut(
     .clk(clk_in),
     .rst(rstn),
     .i_valid_sq(w_valid_sq),
@@ -99,13 +106,15 @@ module top_im2col_v1 #(
     .o_data(valid_sq_data_o)
     );
     
-    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .KERNEL_SIZE(KERNEL_SIZE), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
+    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
     .clk(clk_in),
     .rst(rstn),
     .stride(stride),
     .curr_col(w_col),
     .curr_row(w_row),
-    .ksize(ksize),
+    .kw(kw),
+    .kh(kh),
+    .start_SA(start_SA),
     .valid_stride(w_valid_stride)
     );
     

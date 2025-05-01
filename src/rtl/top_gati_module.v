@@ -529,7 +529,7 @@ module top_gati_module #(
       if(im2col_global_start) begin
         stall_enable <= 1;
       end
-      else if((row == input_img_width + conv_zeropad)) begin 
+      else if((row == input_img_height + conv_zeropad)) begin 
         // && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
@@ -1501,7 +1501,12 @@ module top_gati_module #(
       .STRIDE(CONV_STRIDE_WIDTH),
       .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-      .CONV_KW_WIDTH (CONV_KW_WIDTH),
+      .CONV_KW_WIDTH(CONV_KW_WIDTH),
+      .CONV_KH_WIDTH(CONV_KH_WIDTH),
+      .CONV_OH_WIDTH(CONV_OH_WIDTH),
+      .CONV_OW_WIDTH(CONV_OW_WIDTH),
+      .CONV_IW_WIDTH(CONV_IW_WIDTH),
+      .CONV_IH_WIDTH(CONV_IH_WIDTH),
       .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
       .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
 
@@ -1539,6 +1544,7 @@ module top_gati_module #(
 	  //Flattening and FC signals
       .flatten_enable(flatten_enable), //comes from FC instruction
       .start_FC(Flattening_trigger),
+      .start_SA(start_SA),
       .i_rw_addr_cnt_flatten(fc_rw_address_counter), //r/w address cnt from FC inst.
       .i_kernel_cnt_FC(fc_kernel_iter), //kernel cnt from FC inst.
       .i_img_dim_flatten(fc_imagedim), //img dim for flattening-comes from FC inst.
@@ -1551,6 +1557,8 @@ module top_gati_module #(
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
       .maxpool_threshold(conv_op_width), //output matrix width of SA engine
+      .conv_op_height(conv_op_height),
+      .conv_op_width(conv_op_width),
       .layer_done(layer_done),
       .iteration_Done(iter_done),
       .channel_done(channel_done),
@@ -1563,7 +1571,8 @@ module top_gati_module #(
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),
       .conv_zeropad(conv_zeropad),
-      .image_size(input_img_width),
+      .image_width(input_img_width),
+      .image_height(input_img_height),
       .valid_img_size_im2col(valid_conv), //valid inst conv
       .im2col_global_start(im2col_global_start),
       .image_rden(image_rden),
@@ -1595,6 +1604,7 @@ module top_gati_module #(
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
       .stride(stride),
       .kernel_width(kernel_width),
+      .kernel_height(kernel_height),
       .Pad_side(Pad_side),
       .o_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
       .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),

@@ -71,7 +71,7 @@ wire[W_ADDR:0] temp_value;
     reg [W_IMG_BRAM_ADDR-1 : 0] r_i_addr_counter;
     reg flag;
 
-assign temp_value = shift_rim + (mod_rim == 0 ? 0 : 1);
+    assign temp_value = shift_rim + (mod_rim == 0 ? 0 : 1);
     wire fc_ff_empty;
     wire fc_ff_almost_empty;
 

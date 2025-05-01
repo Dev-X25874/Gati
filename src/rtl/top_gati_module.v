@@ -57,6 +57,7 @@ module top_gati_module #(
     parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
     parameter CONV_PADSIDES_WIDTH = `CONV_PadSides_WIDTH,
     parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
+    parameter CONV_CHANNELDUPLICATE_WIDTH = `CONV_ChannelDuplicate_WIDTH,
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
@@ -349,6 +350,7 @@ module top_gati_module #(
   wire [CONV_STRIDE_WIDTH-1:0] stride;
   wire [CONV_PAD_WIDTH-1:0] conv_zeropad;
   wire [CONV_PADSIDES_WIDTH-1 :0] Pad_side; 
+  wire [CONV_CHANNELDUPLICATE_WIDTH-1:0] CONV_ChannelDuplicate;
 
   wire [AXI_ADDR_W-1:0] start_address_weights;
   wire [AXI_ADDR_W-1:0] stop_address_weights;
@@ -625,6 +627,7 @@ module top_gati_module #(
     .PAD_WIDTH(CONV_PAD_WIDTH),
     .PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
     .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
+    .CONV_CHANNELDUPLICATE_WIDTH(CONV_CHANNELDUPLICATE_WIDTH),
     .WEIGHTROWS_WIDTH(FC_WEIGHTROW_WIDTH),
     .WEIGHTCOLS_WIDTH(FC_WEIGHTCOL_WIDTH),
     .INPUTROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),
@@ -684,6 +687,7 @@ module top_gati_module #(
     .Pad(conv_zeropad),
     .Pad_side(Pad_side),
     .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
+    .CONV_ChannelDuplicate(CONV_ChannelDuplicate),
     .ImageStartAddress_conv(img_start_address),
     .ImageEndAddress_conv(img_stop_address),
     .WeightStartAddress_conv(weight_start_addr_conv),
@@ -789,7 +793,7 @@ module top_gati_module #(
       .iter_done(iter_done),
       .c_done(channel_done),
       .conv_type(conv_type),
-      .dup_flag(1'b1),
+      .dup_flag(CONV_ChannelDuplicate),
       .img_rd_done(img_read_done),
 
       //signals goes to memory controller
@@ -1071,7 +1075,7 @@ module top_gati_module #(
     .rstn(i_rst),
     .i_data(image_fifo_in_data),
     .i_dv(&(image_wren)),
-    .dup_flag(1'b1),
+    .dup_flag(CONV_ChannelDuplicate),
     .iter_done(iter_done),
     .c_done(channel_done),
     .o_data(image_data_out),
@@ -1891,7 +1895,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==4) layer_cntr <= 0;
+      if(layer_cntr==20) layer_cntr <= 0;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end

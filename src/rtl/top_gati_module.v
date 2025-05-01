@@ -58,7 +58,7 @@ module top_gati_module #(
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
-    parameter KERNEL_SIZE     =  4,       //`CONV_KH,   
+    parameter KERNEL_SIZE     =  3,       //`CONV_KH,   
     //SA related param
     parameter POP_THRESHOLD = (AXI_DATA_BYTES/N_SA) - 3,
     parameter NSA_DSP       = 3, 

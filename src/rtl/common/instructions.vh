@@ -253,8 +253,20 @@
 `define EltWise_RightOperandStartAddress_WIDTH 32
 `define EltWise_RightOperandEndAddress 165:134
 `define EltWise_RightOperandEndAddress_WIDTH 32
+`define EltWise_AScale 181:166
+`define EltWise_AScale_WIDTH 16
+`define EltWise_BScale 197:182
+`define EltWise_BScale_WIDTH 16
+`define EltWise_AShift 202:198
+`define EltWise_AShift_WIDTH 5
+`define EltWise_BShift 207:203
+`define EltWise_BShift_WIDTH 5
+`define EltWise_AZeroPoint 215:208
+`define EltWise_AZeroPoint_WIDTH 8
+`define EltWise_BZeroPoint 223:216
+`define EltWise_BZeroPoint_WIDTH 8
 
-`define ISA_VERSION 3
+`define ISA_VERSION 4
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00

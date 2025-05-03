@@ -17,6 +17,7 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     input c_done,
     input [CONV_TYPE_WIDTH-1 : 0] conv_type,
     input dup_flag,
+    input conv_ack,
 
     output reg img_rd_done = 0,
     output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
@@ -47,14 +48,17 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     reg r_config_start;
     reg r_fifo_status; //occupancy check
     reg r_c_done;
+    reg [CONV_TYPE_WIDTH-1 : 0] r_conv_type;
+    reg r_dup_flag;
 
 always @ (posedge clk) begin 
 	r_start_addr    <=  start_addr;
-	r_kernelitr     <=  (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+	// r_kernelitr     <=  (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
 	r_stop_addr     <=  stop_addr;
 	r_config_start  <=  config_start;
 	r_fifo_status   <=  fifo_status;
-	r_c_done        <=  ((conv_type == `CONV_TYPE_DW) || (conv_type == `CONV_TYPE_REGULAR && dup_flag))? iter_done : c_done;
+	r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : 
+                        ((r_conv_type == `CONV_TYPE_DW)? conv_ack : c_done);
 end
 
 
@@ -75,9 +79,12 @@ always @(posedge clk) begin
             last <= 0;
             img_rd_done <= 0;
             if(r_config_start) begin
-                state <= FIFO_STATUS;
-                nxt_addr <= r_start_addr;
-                r_burst_length <= BURST_LENGTH;
+                r_kernelitr     <= (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+                r_conv_type     <= conv_type;
+                r_dup_flag      <= dup_flag;
+                state           <= FIFO_STATUS;
+                nxt_addr        <= r_start_addr;
+                r_burst_length  <= BURST_LENGTH;
             end
             else begin
                 state <= IDLE;

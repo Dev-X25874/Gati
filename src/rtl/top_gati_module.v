@@ -793,6 +793,7 @@ module top_gati_module #(
       .iter_done(iter_done),
       .c_done(channel_done),
       .conv_type(conv_type),
+      .conv_ack(Conv_Ack),
       .dup_flag(CONV_ChannelDuplicate),
       .img_rd_done(img_read_done),
 

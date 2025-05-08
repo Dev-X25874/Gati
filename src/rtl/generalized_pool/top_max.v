@@ -65,33 +65,6 @@ wire full_o1, full_o2;
 wire datavalid_crc_pfs;
 wire [(POOL_WIDTH - 1) : 0] mod_value; //remainder
 
-// counter_rowwise_columnwise #(.OW_WIDTH(OW_WIDTH),
-//                              .OH_WIDTH(OH_WIDTH))
-// counter_rowwise_columnwise (
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .OW(OW),
-//     .OH(OH),
-//     .ENABLE(ENABLE),
-//     .datavalid_in(datavalid_in),
-//     //.rx_valid(rx_valid),
-//     .dv_demux_counter(dv_demux_counter),
-//     .done(done)  
-// );
-
-gen_mod_op # (
-    .DATA_WIDTH(DATA_WIDTH),
-    .OH_WIDTH(OH_WIDTH),
-    .POOL_WIDTH(POOL_WIDTH)
-  )
-  gen_mod_op_inst (
-    .clk(clk),
-    .rst(rst_n),
-    .diff(OH), //Dividend-OH
-    .pool_width(PoolWidth), //Divisor-Pool_Height
-    .o_partial(mod_value) //Remainder-mod_value
-  );
-
 counter_rowwise_columnwise # (
     .OW_WIDTH(OW_WIDTH),
     .OH_WIDTH(OH_WIDTH),
@@ -106,7 +79,7 @@ counter_rowwise_columnwise # (
     .ENABLE(ENABLE),
     .datavalid_in(datavalid_in),
     .din(din),
-    .mod_value(PoolModCount),//.mod_value(mod_value),
+    .mod_value(PoolModCount),
     .datavalid_out(datavalid_crc_pfs),
     .dout(dout_crc_pfs),
     .done(done),
@@ -189,36 +162,6 @@ sync_fifo_2(
     .o_valid(dv_pooling_second_stage2)
 );
 
-/*fifo_valid #(.DATA_WIDTH(DATA_WIDTH),
-             .ADDR_WIDTH(5))
-fifo_1 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .we(dv),
-    .re(re),
-    .data_in(dout_fifo1),
-    .occupants(),
-    .full(),
-    .empty(empty1),
-    .data_out(din_fifo_1),
-    .data_valid(dv_pooling_second_stage1)
-);
-
-fifo_valid #(.DATA_WIDTH(DATA_WIDTH),
-             .ADDR_WIDTH(5))
-fifo_2 (
-    .clk(clk),
-    .rst_n(rst_n),
-    .we(we_fifo2),
-    .re(re),
-    .data_in(data_in_fifo2),
-    .occupants(),
-    .full(),
-    .empty(empty2),
-    .data_out(din_fifo_2),
-    .data_valid(dv_pooling_second_stage2)
-);*/
-
 pooling_second_stage #(.DATA_WIDTH(DATA_WIDTH),
                        .POOLING_TYPE_WIDTH(POOLING_TYPE_WIDTH))
 pooling_second_stage (
@@ -262,7 +205,6 @@ mux_final_pool (
 );
 
 assign re = (~empty2);
-//assign re = ((~empty1) & (~empty2));
 
 // Combines data valid signals for second-stage pooling
 assign dv_pooling_second_stage = ((dv_pooling_second_stage1) && (dv_pooling_second_stage2));

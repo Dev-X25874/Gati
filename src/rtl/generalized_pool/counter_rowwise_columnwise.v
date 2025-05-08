@@ -16,48 +16,53 @@ module counter_rowwise_columnwise#(parameter OW_WIDTH = 10,     // Bit-width of 
         output reg datavalid_out = 0,
         output reg [(DATA_WIDTH - 1) : 0] dout = 0, // output data from row_col_counter
         output reg done = 0,                    // Done signal, set when counting completes
-        output reg dv_demux_counter = 1         // Data valid signal for the counter_demux stage 
+        output reg dv_demux_counter = 0        // Data valid signal for the counter_demux stage 
 );
 
 reg [(OW_WIDTH - 1) : 0] column_counter = 0;
 reg [(OH_WIDTH - 1) : 0] row_counter = 0;
-//wire even;
-//assign even = (OH[0] == 0)?1:0;
+wire [(OW_WIDTH - 1) : 0] OW_mod;
+wire [(OH_WIDTH - 1) : 0] OH_mod;
+
+assign OW_mod = (OW - mod_value);
+assign OH_mod = (OH - mod_value);
 
 always @(posedge clk) begin
-    //datavalid_out <= 0;
     dout <= din;
     if(~rst_n) begin
         done <= 0;
         column_counter <= 0;
         row_counter <= 0;
-       // dv_demux_counter <= 1;
+        datavalid_out <= 0;
+        dv_demux_counter <= 0;
     end
     else begin
         if(ENABLE) begin
-            dv_demux_counter <= 0;
             if (datavalid_in) begin
-                //datavalid_out <= 1;
                 if(row_counter < (OH - 1)) begin
                     if(column_counter < (OW - 1)) begin
                         column_counter <= column_counter + 1;
                         dv_demux_counter <= 0;
                         done <= 0;
                         row_counter <= row_counter;
-                        //if ((row_counter > (OH-mod_value-1)) && (column_counter > (OW-mod_value-1)))
-                        //    datavalid_out <= 0;
-                        //else
+                        if ((row_counter > (OH_mod - 1)) || (column_counter > (OW_mod - 1))) begin
+                            datavalid_out <= 0;
+                        end
+                        else begin
                             datavalid_out <= 1;
+                        end
                     end
                     else begin //(column_counter == (OW - 1))
                         row_counter <= row_counter + 1;
                         column_counter <= 0;
                         dv_demux_counter <= 1;
                         done <= 0;
-                        //if ((row_counter > (OH-mod_value-1)) && (column_counter > (OW-mod_value-1)))
-                        //    datavalid_out <= 0;
-                        //else
+                        if ((row_counter > (OH_mod - 1)) || (column_counter > (OW_mod - 1))) begin
+                            datavalid_out <= 0;
+                        end
+                        else begin
                             datavalid_out <= 1;
+                        end
                     end
                 end                                 
                 else  begin   //else if (row_counter == (OH-1))
@@ -66,21 +71,24 @@ always @(posedge clk) begin
                         dv_demux_counter <= 0;
                         done <= 0;
                         row_counter <= row_counter;
-                        //if ((row_counter > (OH-mod_value-1)) && (column_counter > (OW-mod_value-1)))
-                        //    datavalid_out <= 0;
-                        //else
+                        if ((row_counter > (OH_mod - 1)) || (column_counter > (OW_mod - 1))) begin
+                            datavalid_out <= 0;
+                        end
+                        else begin
                             datavalid_out <= 1;
+                        end
                     end
                     else begin // row_counter == (OH-1) && column_counter == (OW-1)
-                        //datavalid_out <= 1;
                         row_counter <= 0;
                         column_counter <= 0;
                         dv_demux_counter <= 1;
                         done <= 1;
-                        //if ((row_counter>(OH-mod_value-1))&&(column_counter>(OW-mod_value-1)))
-                        //    datavalid_out <= 0;
-                        //else
+                        if ((row_counter > (OH_mod - 1)) || (column_counter > (OW_mod - 1))) begin
+                            datavalid_out <= 0;
+                        end
+                        else begin
                             datavalid_out <= 1;
+                        end
                     end
                 end
             end
@@ -88,17 +96,11 @@ always @(posedge clk) begin
                 done <= 0;
                 datavalid_out <= 0;
                 dv_demux_counter <= 0;
-            //     dout <= 0;
-            //     row_counter <= 0;
-            //     column_counter <= 0;
-            //     dv_demux_counter <= 0;
-            // end 
             end
         end
         else begin
             done <= 0;
             datavalid_out <= 0;
-            //dout <= 0;
             row_counter <= 0;
             column_counter <= 0;
             dv_demux_counter <= 0;

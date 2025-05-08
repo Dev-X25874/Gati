@@ -21,6 +21,7 @@ always @(posedge clk) begin
         dout_fifo1 <= 0;
         datavalid_out_final <= 0;
         datavalid_out_fifo1 <= 0;
+        counter <= 0;
     end
     else begin
         if(ENABLE) begin

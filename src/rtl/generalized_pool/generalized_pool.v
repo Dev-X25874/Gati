@@ -36,17 +36,6 @@ parameter OW_WIDTH = 10)
   genvar i;
   generate
     for(i=0;i<N_SA;i=i+1)begin
-    // top_design  #(.DATA_IN(DATA_IN),
-    // .IMG_WIDTH(IMG_WIDTH)) t1 ( 
-    //   .clk(clk),
-    //   .data_in(data_in[(DATA_IN*(N_SA -i)) -1 -:DATA_IN]),
-    //   .rst(rst),  
-    //   .enable(maxpool_enable),
-    //   .datavalid(datavalid[i]), //input
-    //   .IW(IW),
-    //   .maxvalue_o(maxvalue_o[(DATA_IN*(N_SA-i)) -1 -:DATA_IN]),
-    //   .datavalid_o(datavalid_o[i]) //output
-    //   );
 
       top_max # (
     .DATA_WIDTH(DATA_WIDTH),

@@ -27,6 +27,8 @@ always @(posedge clk) begin
     if(~rst_n) begin
         r_dout <= 0;
         r_datavalid <= 0;
+        temp <= 0;
+        counter <= 0;
     end
     else begin
         if(ENABLE) begin
@@ -39,7 +41,6 @@ always @(posedge clk) begin
                         counter <= 1;
                     end
                     else if(counter == (pool_width - 1)) begin
-                        //r_dout <= temp;
                         r_dout <= (temp > din) ? temp : din;
                         r_datavalid <= 1;
                         counter <= 0;
@@ -64,7 +65,6 @@ always @(posedge clk) begin
                     end
                     else if(counter == (pool_width - 1)) begin
                         r_dout <= ((temp + din) >> 1);
-                        //temp <= din;
                         r_datavalid <= 1;
                         counter <= 0;
                     end

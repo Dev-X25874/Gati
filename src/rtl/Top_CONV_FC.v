@@ -886,7 +886,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
 
    `include "common/instructions.vh"
 
-   assign intermediate_1 = (maxpool_threshold-1) * (maxpool_threshold-1);
+   assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
    wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : conv_op_img_size;

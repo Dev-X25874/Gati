@@ -1628,9 +1628,9 @@ module top_gati_module #(
       .PoolHeight(poolheight),
       .PoolStride(poolstride),
       .PoolPadding(poolpadding),
-      .PoolCeil(),
-      .PoolModCount(),
-      .PoolPadSides(),
+      .PoolCeil(poolceil),
+      .PoolModCount(poolModCount),
+      .PoolPadSides(poolpadsides),
 
       .im2col_done(im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),

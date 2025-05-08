@@ -28,7 +28,6 @@ always @(posedge clk) begin
         r_dout <= 0;
     end
     else begin 
-        //if(datavalid_in) begin
         case(pooling_type)
         `POOL_AVERAGE, `POOL_GLOBAL_AVG: begin                      // Average Pooling Operation
             if(datavalid_in) begin

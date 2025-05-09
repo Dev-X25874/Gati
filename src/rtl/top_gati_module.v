@@ -969,7 +969,8 @@ module top_gati_module #(
   wire op_done;
 
   op_write_req_block#(
-    .N(OP_FIFO),
+    .N(N_SA),
+    .OP_FIFO(OP_FIFO),
     .DEPTH(OP_WRITE_FIFO_DEPTH),
     .BURST_LENGTH(OP_WRITE_REQ_ACC_BLEN),
     .BURST_LENGTH_1(ACC_REQ_BLEN),
@@ -1334,7 +1335,7 @@ module top_gati_module #(
 
   // Mux to select between DRAM and OP_FIFO data for writing into input accumulant FIFOs
   vector_mux_param#(
-    .PORT_SIZE(AXI_DATA_WIDTH),
+    .PORT_SIZE(ACC_FIFO*DATA_WIDTH_ACC),
     .NO_PORT(2)
   ) Acc_FIFO_mux_data(
     .in({vector_add_values_opfifo_acc,vector_add_values_dram}),
@@ -1346,7 +1347,7 @@ module top_gati_module #(
     .PORT_SIZE(ACC_FIFO),
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
-    .in({{ACC_FIFO{&(vector_add_wren_opfifo_acc)}},vector_add_wren_dram}),
+    .in({vector_add_wren_opfifo_acc,vector_add_wren_dram}),
     .sel(1<<Acc_onchip),
     .out(vector_add_wren)
   );
@@ -1565,7 +1566,8 @@ module top_gati_module #(
       .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
       .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
       .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH),
-      .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH)
+      .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+      .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
@@ -1575,6 +1577,7 @@ module top_gati_module #(
       .CONV_FC(CONV_FC),
       .opcode(opcode),
       .fifo_o(fifo_imgo_data),
+      .conv_type(conv_type),  //conv type from instruction
       //fifo sharing signals
       //.sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),
@@ -1731,7 +1734,7 @@ module top_gati_module #(
   )
   dram_data_aligner_inst (
     .i_clk(i_clk),
-    .i_rst(i_rst),
+    .i_rst(i_rst&(~iter_done)),
     .i_acc_quant_enable(quant_enable),
     .i_op_full(op_full),
     .i_acc_data(acc_op_write_data),

@@ -23,7 +23,7 @@ module sa_engine_lut#(
     input [COL-1 : 0] i_weight_fifo_array_dv,
     input [COL-1 : 0] i_weight_fifo_array_empty,
     input [((WEIGHT_FF_ADDR + 1) * COL)-1 : 0] i_weight_fifo_array_occ,
-    input [W_DATA-1 : 0] i_image_fifo_array_data,
+    input [(ROW * W_DATA)-1 : 0] i_image_fifo_array_data,
     input [ROW-1 : 0] i_image_fifo_array_wren,
     input i_psum_ff_array_read_en,
     output [(W_PSUM * COL)-1 : 0] o_psum_ff_array_partial_sums,

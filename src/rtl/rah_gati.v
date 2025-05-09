@@ -115,7 +115,7 @@ module rah_gati #(
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
-    parameter MOD1 = 2,
+    parameter MOD1 = 1,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
     parameter N_DMUX_PORTS = 1,
 

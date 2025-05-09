@@ -10,7 +10,7 @@ module image_fifo_array#(
 )(
     input i_clk,
     input i_rstn,
-    input [W_DATA-1 : 0]i_data,
+    input [(DIMENSION * W_DATA) -1 : 0]i_data,
     input [DIMENSION-1:0] i_read_enable,
     input [DIMENSION-1:0] i_write_enable,
     output [(DIMENSION * W_DATA) -1 : 0] o_data,
@@ -39,7 +39,7 @@ generate
             .clk_i(i_clk),
             .wr_en_i(i_write_enable[i]),
             .rd_en_i(i_read_enable[i]),
-            .wdata(i_data),
+            .wdata(i_data[((W_DATA * (DIMENSION - i)) -1) -: W_DATA]),
             .datacount_o(o_occupants[((W_ADDR + 1) * (i + 1)) - 1 -: (W_ADDR + 1)]),
             .rst_busy(),
             .rdata(o_data[((W_DATA * (DIMENSION - i)) -1) -: W_DATA]),

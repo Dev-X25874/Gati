@@ -82,6 +82,8 @@ module Top_CONV_FC #(
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = 10, // Width of the input height;
     parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
+    parameter CONV_TYPE_WIDTH = 2, //CONV type width
+
     parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not
 ) (
 
@@ -96,6 +98,8 @@ module Top_CONV_FC #(
     //	input CONV_FC,
     input op_full,
     input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
+    input [CONV_TYPE_WIDTH-1:0] conv_type, //CONV type (regular 2D, depthwise, pointwise)
+    
     //weight fifo sharing signals
     output sel_sa_rden,
     output [(COL_FC/COL_SA)-1 : 0] weight_read_en_fc,
@@ -399,6 +403,7 @@ endgenerate
       .COL(COL_SA),
       .ROW(ROW),
       .W_PSUM(W_PSUM),
+      .CONV_TYPE_WIDTH(CONV_TYPE_WIDTH),
       .N_BRAM_BYTES(DRAM_BW),
       .PSUM_FF_DEPTH(PSUM_FIFO_DEPTH),
       .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
@@ -409,6 +414,7 @@ endgenerate
       .i_clk(i_clk),
       .s_clk(s_clk),
       .i_rstn(rst),
+      .i_conv_type(conv_type), //input: CONV type (regular 2D, depthwise, pointwise)
       .stall_on(stall_on),
       .istolic_stall(istolic_stall),
 	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
@@ -434,7 +440,7 @@ endgenerate
   );
 
   assign SA_psum_fifo_empty = &(empty_sa);
-  assign opsum_rden = (vector_add_enable)? (&(empty_vector)? 0:psum_rden):psum_rden;
+  assign opsum_rden = (vector_add_enable)? (|(empty_vector)? 0:psum_rden):psum_rden;
   //////////////////
   
   op_psum_rden #(

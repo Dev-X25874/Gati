@@ -1,6 +1,7 @@
 /*
     Generates sa engine N_SA times
 */
+`include "../common/instructions.vh"
 module top_sa#(
     parameter N_SA = (NSA_LUT + NSA_DSP),
     parameter W_DATA = 8,
@@ -9,6 +10,7 @@ module top_sa#(
     parameter W_PSUM = 19,
     parameter NSA_LUT = 0,  //number of LUT based multiplier SA engines
     parameter NSA_DSP = 4,  //number of DSP based multiplier SA engines
+    parameter CONV_TYPE_WIDTH = 2,
     parameter N_BRAM_BYTES = 32,
     parameter PSUM_FF_DEPTH = 8192,
     parameter WEIGHT_FF_DEPTH = 512,
@@ -16,6 +18,7 @@ module top_sa#(
 )(
     input i_clk,
     input s_clk,
+    input [CONV_TYPE_WIDTH-1 : 0] i_conv_type,        //0: regular 2D conv, 1: depthwise, 2: pointwise
     input stall_on,
     input istolic_stall,
 	input i_rstn,
@@ -54,6 +57,30 @@ always @ (posedge i_clk) begin
 	else begin 
 		p_full_output<=1;
 	end
+end
+
+/*
+    1.  If PWC (point-wise convolution) is enabled then the 
+        image data from im2col buffers is broadcasted to all 
+        the SA engines. In addition, the additional ROW
+        data is padded with zeros.
+    2.  If PWC is low (either DWC/regular 2D CONV), then the 
+        image data from im2col buffers is distributed to each SA 
+        engine.
+*/
+
+integer k;
+reg [W_DATA*N_SA*ROW-1:0] r_image_fifo_array_data;
+always@(*) begin
+    if(i_conv_type == `CONV_TYPE_PW) begin
+        r_image_fifo_array_data = {N_SA{{i_image_ff_array_data},{(ROW-N_SA){W_DATA{1'b0}}}}};
+    end
+    else begin
+        for(k=0; k<N_SA; k=k+1)begin
+            r_image_fifo_array_data[((ROW*W_DATA)*(N_SA-k)-1) -: (ROW*W_DATA)] = 
+            {ROW{i_image_ff_array_data[(W_DATA*(N_SA-k))-1 -: W_DATA]}}; 
+        end
+    end
 end
 
 genvar i;
@@ -111,7 +138,7 @@ end
                 .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * (N_SA - i))-1 -: COL]),
                 .i_weight_fifo_array_occ(i_occupants_weight_ff_sharing[((COL * (WEIGHT_FF_ADDR + 1)) * (N_SA - i))-1 -: (COL * (WEIGHT_FF_ADDR + 1))]),               
-                .i_image_fifo_array_data(i_image_ff_array_data[(W_DATA * (N_SA - i))-1 -: W_DATA]),
+                .i_image_fifo_array_data(r_image_fifo_array_data[((ROW * W_DATA) * (N_SA - i))-1 -: (ROW * W_DATA)]),
                 .i_image_fifo_array_wren(i_image_fifo_array_wren[(ROW * (N_SA - i))-1 -: ROW]),
 
                 .o_image_ff_array_almost_empty(o_image_ff_array_almost_empty[(ROW * (N_SA - i))-1 -: ROW]),
@@ -189,7 +216,7 @@ generate
                     .i_weight_fifo_array_dv(i_dv_weight_ff_sharing[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL]),
                     .i_weight_fifo_array_empty(i_empty_weight_ff_sharing[(COL * ((N_SA-NSA_DSP) - j))-1 -: COL]),
                     .i_weight_fifo_array_occ(i_occupants_weight_ff_sharing[((COL * (WEIGHT_FF_ADDR + 1)) * ((N_SA-NSA_DSP) - j))-1 -: (COL * (WEIGHT_FF_ADDR + 1))]),
-                    .i_image_fifo_array_data(i_image_ff_array_data[(W_DATA * ((N_SA-NSA_DSP) - j))-1 -: W_DATA]),
+                    .i_image_fifo_array_data(r_image_fifo_array_data[((ROW * W_DATA) * ((N_SA-NSA_DSP) - j))-1 -: (ROW * W_DATA)]),
                     .i_image_fifo_array_wren(i_image_fifo_array_wren[(ROW * ((N_SA-NSA_DSP) - j))-1 -: ROW]),
 
                     .o_image_ff_array_almost_empty(o_image_ff_array_almost_empty[(ROW * ((N_SA-NSA_DSP) - j))-1 -: ROW]),

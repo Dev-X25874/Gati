@@ -115,7 +115,7 @@ module dram_data_aligner#(
     localparam SHIFT_COUNT = ACC_OP_FIFO;
 
     reg [SHIFT_WIDTH-1:0] r_shift_count, r_shift_count_delayed;
-    
+    reg [SHIFT_WIDTH-1:0] r_shift_count_dv;
     generate
         if(SHIFT_WIDTH==0) begin
             reg [ACC_OP_FIFO-1 : 0] r_acc_fifo_read_enable;
@@ -146,14 +146,18 @@ module dram_data_aligner#(
                 end
                 else begin
                     if(~i_acc_quant_enable) begin
-                        if(r_shift_count == SHIFT_COUNT-1) begin
-                            if(i_op_full) r_acc_fifo_read_enable <= 0;
-                            else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
-                        end
-                        else begin
-                            if(i_op_full) r_acc_fifo_read_enable <= 0;
-                            else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
-                        end
+                        if(i_op_full) r_acc_fifo_read_enable <= 0;
+                        else if((&(acc_op_fifo_empty))) r_acc_fifo_read_enable <= 0;
+                        else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
+                        
+                        // if(r_shift_count == SHIFT_COUNT-1) begin
+                        //     if(i_op_full) r_acc_fifo_read_enable <= 0;
+                        //     else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
+                        // end
+                        // else begin
+                        //     if(i_op_full) r_acc_fifo_read_enable <= 0;
+                        //     else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
+                        // end
                     end
                     else begin
                         r_acc_fifo_read_enable <= 0;
@@ -183,7 +187,7 @@ module dram_data_aligner#(
                     
             end
 
-            demux_param #(
+            demux_param1 #(
                 .N_PORT(ACC_OP_FIFO),
                 .DATA_WIDTH(1)
             )
@@ -195,7 +199,12 @@ module dram_data_aligner#(
         end
     endgenerate
 
-
+    /*
+        have another shift counter updating based on the acc_op_fifo_dv signal and use that 
+        to slice the data from acc_op_fifo. This is to be done because the data from acc_op_fifo is not
+        always available at the output of the FIFO. It is only available when the FIFO o/p is valid.
+        So, the shift counter should be updated based on the FIFO o/p valid signal.
+    */
     // Data write into dram FIFO
     wire op_write_dram_fifo_wren;
     wire [AXI_DATA_WIDTH-1:0] op_write_dram_fifo_data;
@@ -206,8 +215,28 @@ module dram_data_aligner#(
             assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data;
         end
         else begin
-            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : acc_op_fifo_dv[(ACC_OP_FIFO-r_shift_count_delayed)-1];
-            assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data[(AXI_DATA_WIDTH*(ACC_OP_FIFO-r_shift_count_delayed)-1) -: AXI_DATA_WIDTH];
+
+            always@(posedge i_clk) begin
+                if(!i_rst) begin
+                    r_shift_count_dv <= 0;
+                end
+                else begin
+                    if(~i_acc_quant_enable) begin
+                        if(r_shift_count_dv == SHIFT_COUNT-1) begin
+                            if(|(acc_op_fifo_dv)) r_shift_count_dv <= 0;
+                        end
+                        else begin
+                            if(|(acc_op_fifo_dv)) r_shift_count_dv <= r_shift_count_dv + 1;
+                        end
+                    end
+                    else begin
+                        r_shift_count_dv <= 0;
+                    end
+                end
+            end
+
+            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : |(acc_op_fifo_dv);
+            assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data[(AXI_DATA_WIDTH*(ACC_OP_FIFO-r_shift_count_dv)-1) -: AXI_DATA_WIDTH];
         end
     endgenerate
 

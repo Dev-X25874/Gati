@@ -124,7 +124,7 @@ generate
     end
   end 
   else begin
-    assign acc_fifo_rd_en = (&empty_sa)? 0 : w_rd_en;
+    assign acc_fifo_rd_en = ((&empty_sa) || (|(empty_flag))) ? 0 : w_rd_en;
   end
 
 endgenerate
@@ -256,8 +256,8 @@ dram_fifo #(
       end
     end
     else begin
-      always@(posedge top_clk) begin //Todo: check if this is data is arriving on the same clock cycle of adder tree output. If not, then we need to add a pipeline stage or connect the data directly using assign statement.
-        data_in_mux <= (!rst)? 0 : w_data_out;
+      always@(*) begin //Todo: check if this is data is arriving on the same clock cycle of adder tree output. If not, then we need to add a pipeline stage or connect the data directly using assign statement.
+        data_in_mux = w_data_out;
       end
     end
   endgenerate

@@ -1,5 +1,6 @@
 module op_write_req_block#(
  parameter N = 8,
+ parameter OP_FIFO = 8,
  parameter DEPTH = 512, 
  parameter BURST_LENGTH = 15,
  parameter BURST_LENGTH_1 = 15,
@@ -11,7 +12,9 @@ module op_write_req_block#(
  parameter W_KERNEL_CNT = 16,
  parameter W_CHANNEL_CNT = 16,
  parameter IMAGE_DIM_WIDTH_ACC = 16,
- parameter IMAGE_DIM_WIDTH_OP = 16
+ parameter IMAGE_DIM_WIDTH_OP = 16,
+ parameter DATA_WIDTH_ACC = 32,
+ parameter DATA_WIDTH = 8
 )
 (
 input clkin,
@@ -24,7 +27,7 @@ input [W_CHANNEL_CNT-1:0]i_channel_itr,
 input [W_KERNEL_CNT-1:0]i_kernel_itr,
 input [IMAGE_DIM_WIDTH_ACC-1:0]i_imag_dim, // image width-input
 input [IMAGE_DIM_WIDTH_OP-1:0]i_imag_dim_2, // image width-output
-input [N*($clog2(DEPTH)+1)-1:0] occupants,
+input [OP_FIFO*($clog2(DEPTH)+1)-1:0] occupants,
 
 input acc_en,               //from iteration counter
 input Tail_done,            //from TOP_CONV_FC
@@ -67,62 +70,20 @@ assign o_valid     = r_valid;
 // updation of fifo status based on fifo occupants
 wire [$clog2(DEPTH) : 0] r_burst_len_1;
 assign r_burst_len_1 = r_burst_len+1;
-// assign result_int = (occupants>=({N{r_burst_len_1}}))? 1 : 0; 
 
 //calculation of burst length
 wire [ADDR_WIDTH-1 : 0] offset1, offset2;
-assign offset1 = (i_imag_dim/NUMBER_ACC)<<$clog2(AXI_DATA_BYTES);
-assign offset2 = (i_imag_dim_2/NUMBER_OP)<<$clog2(AXI_DATA_BYTES);  
+// assign offset1 = (i_imag_dim/NUMBER_ACC)<<$clog2(AXI_DATA_BYTES);
+// assign offset2 = (i_imag_dim_2/NUMBER_OP)<<$clog2(AXI_DATA_BYTES);  
+
+assign offset1 = i_imag_dim * (DATA_WIDTH_ACC/DATA_WIDTH) * N;
+assign offset2 = i_imag_dim_2 * N;
 
 assign r_acc_stop_add = r_acc_next_add + offset1;
 assign r_layer_stop_add = r_layer_next_add + offset2;                    
 
 reg [ADDR_WIDTH-1:0] acc_add_reg1, op_add_reg1;
-/*
-always@(posedge clkin) begin
-    // acc_add_reg1 <= (r_acc_stop_add-((r_burst_len1+1)<<$clog2(AXI_DATA_BYTES)));
-    acc_add_reg1 <= (r_acc_start_add+((r_burst_len1+1)<<$clog2(AXI_DATA_BYTES)));
-    // op_add_reg1 <= (r_layer_stop_add-((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
-    op_add_reg1 <= (r_layer_start_add+((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
-end
-*/
-/*
-always@(posedge clkin) begin
-    if(!i_rstn)
-        r_burst_len1 <= BURST_LENGTH;
-    else begin
-        if(acc_en==0) begin
-            if(acc_add_reg1 > r_acc_stop_add) begin
-                r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
-            end
-            else begin
-                r_burst_len1 <= BURST_LENGTH;
-            end
-        end
-        else begin
-            if(acc_add_reg1 > r_acc_stop_add) begin
-                r_burst_len1 <= ((r_acc_stop_add-r_acc_start_add)>>$clog2(AXI_DATA_BYTES))-1;
-            end
-            else begin
-                r_burst_len1 <= BURST_LENGTH_1;
-            end
-        end
-    end
-end
 
-always@(posedge clkin) begin
-    if(!i_rstn)
-        r_burst_len2 <= BURST_LENGTH_2;
-    else begin
-        if(op_add_reg1 > r_layer_stop_add) begin
-            r_burst_len2 <= ((r_layer_stop_add-r_layer_start_add)>>$clog2(AXI_DATA_BYTES))-1;
-        end
-        else begin
-            r_burst_len2 <= BURST_LENGTH_2;
-        end
-    end
-end
-*/
 reg [W_CHANNEL_CNT-1:0] r_channel_itr;
 reg [IMAGE_DIM_WIDTH_OP-1:0] count2;
 reg [IMAGE_DIM_WIDTH_ACC-1:0] count1;
@@ -134,6 +95,14 @@ always@(posedge clkin) begin
     r_channel_itr <= i_channel_itr;
     result_int <= (occupants[$clog2(DEPTH) : 0]>=(r_burst_len_1));
 end
+
+reg r_Tail_done;
+always@(posedge clkin) begin
+    if(Tail_done) r_Tail_done <= 1'b1;
+    else if(op_done) r_Tail_done <= 1'b0;
+    else r_Tail_done <= r_Tail_done;
+end
+
 
 always@(posedge clkin) begin
     if(!i_rstn) begin
@@ -150,8 +119,8 @@ always@(posedge clkin) begin
         r_valid     <=  0;
         state       <=  0;
         counter     <=  0;
-        count1      <=  0;
-        count2      <=  0;
+        // count1      <=  0;
+        // count2      <=  0;
         op_done     <=  0;
         layer_done  <=  0;
     end
@@ -166,6 +135,8 @@ always@(posedge clkin) begin
                     layer_done <= 0;
                     op_done <= 0;
                     state <= 3'd1;
+                    count1 <=  0;
+                    count2 <=  0;
                     r_acc_next_add <= i_acc_address;
                     r_layer_next_add<= i_op_start;
                     r_acc_start_add <= i_acc_address;
@@ -231,8 +202,10 @@ always@(posedge clkin) begin
                 end
                 else begin
                     if(Acc_onchip) begin            //Added to skip the DRAM requests if Acc_onchip is enabled.
-                        if(Tail_done) state <= 7;   //Wait for Tail_done and go to state 7 to update th c_ctr.
-                        else          state <= 2;   //If c_ctr reaches c_iter-1 then proceed in usual way of DRAM requests.
+                        if(r_Tail_done && occupants == 0) 
+                            state <= 7;   //Wait for Tail_done and go to state 7 to update the c_ctr.
+                        else
+                            state <= 2;   //If c_ctr reaches c_iter-1 then proceed in usual way of DRAM requests.
                     end
                     else begin
                         state <= 3;
@@ -289,7 +262,8 @@ always@(posedge clkin) begin
                     wr_req_reg <= 1'b0;
                     r_addr  <=  r_layer_start_add[7:0];
                     state        <=  3'd6;  
-                    count2 <= count2 + (NUMBER_OP*(r_burst_len+1)); 
+                    count2 <= count2 + ((r_burst_len+1)<<($clog2(AXI_DATA_BYTES)));
+                    // count2 <= count2 + (NUMBER_OP*(r_burst_len+1)); 
                 end
                 else begin
                     for(i=0;i<3;i=i+1) begin
@@ -312,8 +286,9 @@ always@(posedge clkin) begin
                     counter <= 2'd0;
                     wr_req_reg <= 1'b0;
                     r_addr  <=  r_acc_start_add[7:0];
-                    state        <=  3'd6;  
-                    count1 <= count1 + (NUMBER_ACC*(r_burst_len+1)); 
+                    state        <=  3'd6;
+                    count1 <= count1 + ((r_burst_len+1)<<($clog2(AXI_DATA_BYTES)));  
+                    // count1 <= count1 + (NUMBER_ACC*(r_burst_len+1)); 
                 end
                 else begin
                     for(i=0;i<3;i=i+1) begin
@@ -335,7 +310,7 @@ always@(posedge clkin) begin
                 r_valid   <= 0;
                 wr_req_reg <= 0;
                 if(c_ctr < r_channel_itr-1) begin
-                    if(count1==i_imag_dim) begin
+                    if(count1==offset1) begin
                         //count1 <= 0;
                         //r_acc_start_add<=r_acc_start_add+((r_burst_len1+1)<<5);
                         //state <= 4;
@@ -364,7 +339,7 @@ always@(posedge clkin) begin
                     end
                 end
                 else if(c_ctr==r_channel_itr-1) begin
-                    if(count2==i_imag_dim_2) begin
+                    if(count2==offset2) begin
                         //state <= 4;
                         if(data_last) begin 
                             state <= 7;

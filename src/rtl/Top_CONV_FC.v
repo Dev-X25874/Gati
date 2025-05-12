@@ -1,3 +1,4 @@
+`include "common/instructions.vh"
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
@@ -440,7 +441,16 @@ endgenerate
   );
 
   assign SA_psum_fifo_empty = &(empty_sa);
-  assign opsum_rden = (vector_add_enable)? (|(empty_vector)? 0:psum_rden):psum_rden;
+
+  generate
+    if(!ACC_TOGGLE) begin
+      assign opsum_rden = (vector_add_enable)? (|(empty_vector)? 0:psum_rden):psum_rden;
+    end
+    else begin
+      assign opsum_rden = (vector_add_enable)? (&(empty_vector)? 0:psum_rden):psum_rden;
+    end
+  endgenerate
+
   //////////////////
   
   op_psum_rden #(
@@ -653,8 +663,8 @@ endgenerate
       );
     end
   endgenerate
-wire [(N_SA*DATA_WIDTH_OB) -1:0] data_tail_blk_in;
-wire [N_SA-1:0] data_tail_blk_vaild;
+  wire [(N_SA*DATA_WIDTH_OB) -1:0] data_tail_blk_in;
+  wire [N_SA-1:0] data_tail_blk_vaild;
   //EltWise Operation
   wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
   wire [N_SA-1:0] EltWise_data_out_valid;
@@ -668,7 +678,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
     .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
     .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)
-)top_element_wise(
+  )top_element_wise(
     .clkin(i_clk),
     .rst(rst),
     .EltWise_op_en(EltWise_op_en), 
@@ -686,7 +696,7 @@ wire [N_SA-1:0] data_tail_blk_vaild;
     .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
     .EW_done(EW_done),
     .op_fifo_empty(op_fifo_empty)
-);
+  );
 
   interconnect #(
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
@@ -903,10 +913,8 @@ wire [N_SA-1:0] data_tail_blk_vaild;
   wire [I_ACC_SIZE_WIDTH-1:0] i_img_dim1; // Accumulant data_size
   wire [I_OP_SIZE_WIDTH-1:0] i_img_dim2; // Quantized op data_size
 
-   `include "common/instructions.vh"
-
-   wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
-   assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
+  wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
+  assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : conv_op_img_size;
   assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:conv_op_img_size)>>2) : conv_op_img_size);

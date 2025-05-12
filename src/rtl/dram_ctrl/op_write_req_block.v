@@ -85,8 +85,8 @@ assign r_layer_stop_add = r_layer_next_add + offset2;
 reg [ADDR_WIDTH-1:0] acc_add_reg1, op_add_reg1;
 
 reg [W_CHANNEL_CNT-1:0] r_channel_itr;
-reg [IMAGE_DIM_WIDTH_OP-1:0] count2;
-reg [IMAGE_DIM_WIDTH_ACC-1:0] count1;
+reg [ADDR_WIDTH-1:0] count2;
+reg [ADDR_WIDTH-1:0] count1;
 reg [W_CHANNEL_CNT-1:0] c_ctr=0;
 reg [W_KERNEL_CNT-1:0] k_ctr=0;
 integer i;

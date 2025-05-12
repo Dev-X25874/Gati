@@ -281,7 +281,6 @@ always@(posedge i_clk)begin
         end
         else begin
             if(c_ctr==r_c_iter) quant_en <= 1;
-
             else                quant_en <= 0;
         end
     end
@@ -347,6 +346,6 @@ assign Conv_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? SA_done : 0;
 //assign OpBlock_Ack  =   ((c_ctr==c_iter-1)&&(k_ctr==k_iter-1))? iter_done : 0;
 assign OpBlock_Ack  =   o_layer_done;
 assign Tail_Ack     =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? r_Tail_done : 0;
-assign EltWise_Ack       =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? EW_done : 0;
+assign EltWise_Ack  =   ((c_ctr==r_c_iter)&&(k_ctr==r_k_iter-1))? EW_done : 0;
 
 endmodule

@@ -3,12 +3,14 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
                                 parameter AXI_ADDRESS_WIDTH = 32,
                                 parameter ADDR_OUT_CHUNK_WIDTH = 8,
                                 parameter KERNELITR_WIDTH = 12,
+                                parameter CHANNELITR_WIDTH = 12,
                                 parameter BURST_LENGTH = 10,
                                 parameter AXI_DATA_BYTES = 32,
                                 parameter CONV_TYPE_WIDTH = 2)(
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
-    input [KERNELITR_WIDTH - 1 : 0] kernelitr,
     input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
+    input [KERNELITR_WIDTH - 1 : 0] kernelitr,
+    input [CHANNELITR_WIDTH - 1 : 0] channelitr,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
@@ -32,6 +34,7 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_burst=0;
     reg [2:0] state = 0;
     reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
+    reg [CHANNELITR_WIDTH - 1 : 0] count_channel = 0;
     reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_add1=0;
     
     parameter IDLE = 3'b000;
@@ -44,6 +47,7 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     assign burst_length = r_burst_length;
 	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
     reg [KERNELITR_WIDTH - 1 : 0] 	r_kernelitr;
+    reg [CHANNELITR_WIDTH - 1 : 0] r_channelitr;
     reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
     reg r_config_start;
     reg r_fifo_status; //occupancy check
@@ -80,6 +84,7 @@ always @(posedge clk) begin
             img_rd_done <= 0;
             if(r_config_start) begin
                 r_kernelitr     <= (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+                r_channelitr    <= channelitr;
                 r_conv_type     <= conv_type;
                 r_dup_flag      <= dup_flag;
                 state           <= FIFO_STATUS;
@@ -92,6 +97,7 @@ always @(posedge clk) begin
         end
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
             nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
+            img_rd_done <= 0;
             if(r_fifo_status) begin
                 state <= START_ADDR;
             end
@@ -152,13 +158,35 @@ always @(posedge clk) begin
             end
         end
         C_DONE: begin
-            if (r_c_done) begin
-                state <= KERNEL_ITR;
-                img_rd_done <= 1;
+            if(r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag) begin
+                if(r_c_done) begin
+                    img_rd_done <= 1;
+                    if (count_channel < r_channelitr - 1) begin
+                        nxt_addr <= r_start_addr;
+                        state <= FIFO_STATUS;
+                        count_channel <= count_channel + 1;
+                        r_burst_length <= BURST_LENGTH;
+                    end
+                    else begin
+                        nxt_addr <= nxt_addr;
+                        state <= KERNEL_ITR;
+                        count_channel <= 0;
+                    end
+                end
+                else begin
+                    state <= C_DONE;
+                    img_rd_done <= 0;
+                end
             end
             else begin
-                state <= C_DONE;
-                img_rd_done <= 0;
+                if (r_c_done) begin
+                    state <= KERNEL_ITR;
+                    img_rd_done <= 1;
+                end
+                else begin
+                    state <= C_DONE;
+                    img_rd_done <= 0;
+                end
             end
         end
         KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read

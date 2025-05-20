@@ -20,7 +20,9 @@ module dram_data_aligner#(
     input i_clk,
     input i_rst,
     input i_acc_quant_enable, // 0: acc, 1: quant
-    input i_op_full,
+    // input i_op_full,
+    output o_op_full,
+    
     input [ACC_OP_DATAWIDTH-1:0] i_acc_data,
     input [ACC_OP_FIFO-1 : 0] i_acc_data_wren,
     input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_quant_data,
@@ -36,12 +38,14 @@ module dram_data_aligner#(
     localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (AXI_DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
     wire op_write_dram_fifo_full, op_write_dram_fifo_almost_full;
     wire op_write_dram_fifo_empty, op_write_dram_fifo_almost_empty;
+    wire op_write_dram_fifo_prog_full;
 
     wire [ACC_OP_FIFO-1:0] acc_op_fifo_empty, acc_op_fifo_almost_empty;
     wire [ACC_OP_FIFO-1:0] acc_op_fifo_full, acc_op_fifo_almost_full;
     wire [ACC_OP_FIFO-1:0] acc_op_fifo_dv;
     (* syn_keep = "true" *) wire [ACC_OP_FIFO-1 : 0] acc_fifo_read_enable;
     wire [ACC_OP_DATAWIDTH-1:0] acc_op_fifo_data;
+    wire [(($clog2(ACC_OP_FIFO_DEPTH)+1)*ACC_OP_FIFO)-1:0] acc_op_fifo_occupants;
     // ACC_OP_FIFO
     dram_fifo # (
         .DIMENSION(ACC_OP_FIFO),
@@ -61,7 +65,7 @@ module dram_data_aligner#(
         .o_fifo_full(acc_op_fifo_full),
         .o_fifo_almost_full(acc_op_fifo_almost_full),
         .o_fifo_dv(acc_op_fifo_dv),
-        .o_occupants()
+        .o_occupants(acc_op_fifo_occupants)
     );
 
     wire [QUANT_OP_FIFO-1:0] quant_op_fifo_empty, quant_op_fifo_almost_empty;
@@ -89,7 +93,7 @@ module dram_data_aligner#(
         .o_fifo_dv(quant_op_fifo_dv),
         .o_occupants()
     );
-
+    
     // Read signal generation for quant FIFOs 
     reg [QUANT_OP_FIFO-1 : 0] r_quant_fifo_read_enable;
     wire [QUANT_OP_FIFO-1 : 0] quant_fifo_read_enable;
@@ -100,7 +104,7 @@ module dram_data_aligner#(
         end
         else begin
             if(i_acc_quant_enable) begin
-                if(i_op_full) r_quant_fifo_read_enable <= 0;
+                if(o_op_full) r_quant_fifo_read_enable <= 0;
                 else if(r_quant_fifo_read_enable & quant_op_fifo_almost_empty) r_quant_fifo_read_enable <= 0;
                 else if(~quant_op_fifo_empty) r_quant_fifo_read_enable <= {QUANT_OP_FIFO{1'b1}};
             end
@@ -125,7 +129,7 @@ module dram_data_aligner#(
                 end
                 else begin
                     if(~i_acc_quant_enable) begin
-                        if(i_op_full) r_acc_fifo_read_enable <= 0;
+                        if(o_op_full) r_acc_fifo_read_enable <= 0;
                         else if(acc_fifo_read_enable & (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
                         else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= {ACC_OP_FIFO{1'b1}};
                     end
@@ -146,9 +150,10 @@ module dram_data_aligner#(
                 end
                 else begin
                     if(~i_acc_quant_enable) begin
-                        if(i_op_full) r_acc_fifo_read_enable <= 0;
-                        else if((&(acc_op_fifo_empty))) r_acc_fifo_read_enable <= 0;
-                        else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
+                        if(op_write_dram_fifo_prog_full) r_acc_fifo_read_enable <= 0;
+                        else if((r_acc_fifo_read_enable) && (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
+                        else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
+                        else r_acc_fifo_read_enable <= r_acc_fifo_read_enable;
                         
                         // if(r_shift_count == SHIFT_COUNT-1) begin
                         //     if(i_op_full) r_acc_fifo_read_enable <= 0;
@@ -240,6 +245,20 @@ module dram_data_aligner#(
         end
     endgenerate
 
+    //Generate op_full signal
+    generate
+        if(SHIFT_WIDTH==0) begin
+            assign o_op_full = (o_op_write_dram_fifo_occupants >= (OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0;
+        end
+        else begin
+            assign o_op_full = (~i_acc_quant_enable)?
+                ((acc_op_fifo_occupants[$clog2(ACC_OP_FIFO_DEPTH):0] >= (ACC_OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0) :
+                ((o_op_write_dram_fifo_occupants >= (OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0);
+        end
+    endgenerate
+
+    assign op_write_dram_fifo_prog_full = (o_op_write_dram_fifo_occupants >= (OP_FIFO_DEPTH-4)) ? 1'b1 : 1'b0;
+    
     // op_write_dram_fifo
     dram_fifo # (
         .DIMENSION(OP_FIFO),
@@ -260,5 +279,5 @@ module dram_data_aligner#(
         .o_fifo_dv(o_op_write_dram_fifo_dv),
         .o_occupants(o_op_write_dram_fifo_occupants)
     );
-
+    
 endmodule

@@ -22,8 +22,8 @@ module rah_gati #(
     parameter DRAM_IMG_FIFO_DEPTH = 512,
     parameter IM2COL_FIFO_DEPTH   = 512,
     parameter WEIGHT_FIFO_DEPTH   = 512,
-    parameter PSUM_FIFO_DEPTH     = 256,
-    parameter ACC_FIFO_DEPTH      = 256,
+    parameter PSUM_FIFO_DEPTH     = 512,
+    parameter ACC_FIFO_DEPTH      = 1024,
     parameter BIAS_FIFO_DEPTH     = 256, //For both conv and FC
     parameter ACC_OP_FIFO_DEPTH   = 256,
     parameter QUANT_OP_FIFO_DEPTH = 256,
@@ -34,7 +34,7 @@ module rah_gati #(
     //Default burst lenghts for various memory request controllers
     parameter MIPI_REQ_BLEN         = 15,
     parameter CONFIG_REQ_BLEN       = 7,
-    parameter IMG_REQ_BLEN          = 31,
+    parameter IMG_REQ_BLEN          = 15,
     parameter WEIGHT_REQ_BLEN       = 47,
     parameter FC_WEIGHT_REQ_BLEN    = 63,
     parameter ACC_REQ_BLEN          = 15,
@@ -78,8 +78,8 @@ module rah_gati #(
     parameter CONV_PAD_WIDTH = `CONV_Pad_WIDTH,
     //SA related param
     parameter POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2,
-    parameter NSA_DSP       = 15, 
-    parameter NSA_LUT       = 1,
+    parameter NSA_DSP       = 14, 
+    parameter NSA_LUT       = 2,
     parameter N_SA          = NSA_DSP + NSA_LUT,
     parameter DATA_WIDTH    = 8,
     parameter COL_SA        = 1,
@@ -101,7 +101,7 @@ module rah_gati #(
     parameter ACC_DW            = 32,
     parameter N_BANK            = N_SA,
     parameter N_BRAM            = AXI_DATA_BYTES/N_SA,
-    parameter FC_BRAM_DEPTH     = 1024,
+    parameter FC_BRAM_DEPTH     = 512,
     parameter ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0,
     parameter N_FC_MUX          = N_SA, //number of muxes for FC output
     parameter NO_PORT_FC        = COL_FC/N_SA, //FC mux size

@@ -55,7 +55,7 @@ module sa_start_stall_ctrl #(
       stage_3_flag <= 0;
     end
     else begin
-      if(stride == 1) begin
+      if(stride == 0) begin
         istolic_array_stall <= 0 ;
         stall_flag <= 0;
         if(input_img_height < 4) begin
@@ -75,7 +75,7 @@ module sa_start_stall_ctrl #(
           end
         end 
       end
-      else if (stride >= 2) begin
+      else if (stride >= 1) begin
         if (CONV_Im2colPrefetch == 1) begin 
           istolic_array_stall <= 0;
           stall_flag <= 0;

@@ -13,7 +13,7 @@ module top_gati_module #(
     parameter ACC_OP_FIFO_DEPTH   = 256,
     parameter QUANT_OP_FIFO_DEPTH = 256,
     parameter OP_WRITE_FIFO_DEPTH = 512,
-    parameter ELTWISE_FIFO_DEPTH  = 512,
+    parameter ELTWISE_FIFO_DEPTH  = 256,
 
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN       = 7,
@@ -523,8 +523,7 @@ module top_gati_module #(
   // wire stall_on; 
 
   always@(posedge i_clk) begin 
-    if((&(image_fifo_empty)|psum_full) && stall_enable) begin
-    // if(psum_full) begin
+    if((&(image_fifo_empty) && stall_enable) | psum_full) begin
       stall_on <= 1;
     end
     else begin 
@@ -779,12 +778,14 @@ module top_gati_module #(
       .AXI_ADDRESS_WIDTH(AXI_ADDR_W),  
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
       .KERNELITR_WIDTH(W_KITER_CNT),
+      .CHANNELITR_WIDTH(W_CITER_CNT),
       .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
       .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
   ) image_req_ctrl (
       .start_addr(img_start_address),
       .kernelitr(kernel_iteration),
+      .channelitr(channel_iteration),
       .stop_addr(img_stop_address),
       .config_start(start_SA),
       .fifo_status(img_fifo_status),
@@ -1034,7 +1035,7 @@ module top_gati_module #(
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_occupants1 = img_fifo_occupants[$clog2(DRAM_IMG_FIFO_DEPTH):0];
   wire [$clog2(DRAM_IMG_FIFO_DEPTH):0] img_fifo_th;
   // assign img_fifo_th = input_img_width>>1;
-  assign img_fifo_th = (3*(DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0]))/4;
+  assign img_fifo_th = ((DRAM_IMG_FIFO_DEPTH[$clog2(DRAM_IMG_FIFO_DEPTH):0]))/2;
 
   /* Generation of img_fifo_status that controls the img read requests */
   reg [$clog2(DRAM_IMG_FIFO_DEPTH):0] req_occupants_img;
@@ -1482,7 +1483,7 @@ module top_gati_module #(
 
   assign fc_kernel_iter = kernel_iteration;
 	wire psum_full;
-  reg  op_full=0;
+  wire  op_full;
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),
@@ -1736,7 +1737,6 @@ module top_gati_module #(
     .i_clk(i_clk),
     .i_rst(i_rst&(~iter_done)),
     .i_acc_quant_enable(quant_enable),
-    .i_op_full(op_full),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_quant_data(quant_op_write_data),
@@ -1745,17 +1745,19 @@ module top_gati_module #(
     .o_op_write_dram_fifo_occupants(op_write_dram_fifo_occupants),
     .o_op_write_dram_fifo_empty(op_dram_fifo_empty),
     .o_op_write_dram_fifo_data(op_dram_fifo1),
-    .o_op_write_dram_fifo_dv(op_write_fifo_dv)
+    .o_op_write_dram_fifo_dv(op_write_fifo_dv),
+    .o_op_full(op_full)
   );
 
- 	always @ (*) begin 
+  /*
+ 	always @ (posedge i_clk) begin 
 		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
-			op_full=0;
+			op_full<=0;
 		end else begin 
-			op_full=1;
+			op_full<=1;
 		end
 	end
-
+  */
   
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -1847,20 +1849,23 @@ module top_gati_module #(
     kernel counter reaches maximum. 
 */
     im2col_start_ctrler #(
-        .CITER_CNT_WIDTH(W_CITER_CNT),
-        .KITER_CNT_WIDTH(W_KITER_CNT)
+      .CITER_CNT_WIDTH(W_CITER_CNT),
+      .KITER_CNT_WIDTH(W_KITER_CNT),
+      .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
     )
     im2col_start_ctrler_inst
     (
-        .clk(i_clk),
-        .rst(i_rst),
-        .start(start_SA), //start_SA
-        .image_fifo_empty(&(image_fifo_empty)),
-        .iter_done(iter_done),
-        .c_iter(channel_iteration),
-        .k_iter(kernel_iteration),
+      .clk(i_clk),
+      .rst(i_rst),
+      .start(start_SA), //start_SA
+      .image_fifo_empty(&(image_fifo_empty)),
+      .iter_done(iter_done),
+      .c_iter(channel_iteration),
+      .k_iter(kernel_iteration),
+      .conv_type(conv_type),
+      .dup_flag(CONV_ChannelDuplicate),
 
-        .start_im2col(im2col_global_start)
+      .start_im2col(im2col_global_start)
     );
 
   reg [31:0] debug_counter;
@@ -1899,7 +1904,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==20) layer_cntr <= 0;
+      if(layer_cntr==63) layer_cntr <= 0;
       else begin
         if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
       end

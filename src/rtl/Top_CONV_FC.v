@@ -704,9 +704,15 @@ wire [N_SA-1:0] data_tail_blk_vaild;
       .TOGGLE(ACC_TOGGLE),
       .FIFO_NO(ACC_FIFO),
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
-      .NO_PORT(NO_PORT_VA)
+      .NO_PORT(NO_PORT_VA),
+      .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
+      .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+      .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
   ) vector_addition (
       .top_clk(i_clk),
+      .OH(maxpool_threshold),
+      .OW(maxpool_threshold),
+      .i_img_dim_Acc(i_img_dim_Acc),
       .top_wr_en(vector_add_wren), //input: comes from ddr
       .rst(rst),
       .Iteration_Done(iteration_Done), //input: for resetting the acc_fifo_rden_ctrl
@@ -886,8 +892,8 @@ wire [N_SA-1:0] data_tail_blk_vaild;
 
    `include "common/instructions.vh"
 
-   assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
    wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
+   assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : conv_op_img_size;
   assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:conv_op_img_size)>>2) : conv_op_img_size);

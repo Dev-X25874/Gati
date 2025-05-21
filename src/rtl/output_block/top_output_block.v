@@ -12,11 +12,15 @@ module top_output_block #(
     parameter TOGGLE         = 0,
     parameter W_ADDR         = 9,
     parameter OUT_DATA_WIDTH = 32,
-    parameter NO_PORT=1
-
-
+    parameter NO_PORT=1,
+    parameter I_ACC_SIZE_WIDTH = 16,
+    parameter OW_WIDTH = 10,     // Bit-width of the row counter of img
+    parameter OH_WIDTH = 10     // Bit-width of the column counter of img
 ) (
     input                                 top_clk,
+    input [I_ACC_SIZE_WIDTH-1:0]          i_img_dim_Acc,
+    input [(OW_WIDTH - 1) : 0]            OW,          // Total number of rows (width)
+    input [(OH_WIDTH - 1) : 0]            OH,          // Total number of columns (height)
     input  [             FIFO_NO-1:0]     top_wr_en,
     input  [(DATA_WIDTH_ACC*FIFO_NO)-1:0] top_data_in, //previous accumulnats from ddr
     input                                 vector_add_enable,
@@ -51,7 +55,80 @@ assign w_empty_flag = empty_flag;
 assign w_almost_empty_flag = almost_empty_flag;
 
 wire [FIFO_NO-1:0] acc_fifo_rd_en;
-assign acc_fifo_rd_en = (&empty_sa)? 0 : w_rd_en;
+
+generate
+
+  reg [(OW_WIDTH - 1) : 0] count = 0;
+  wire [FIFO_NO-1:0] diff;
+  reg [FIFO_NO-1:0] r_en;
+  reg [FIFO_NO-1:0] count_diff = 0;
+  reg valid_diff = 0;
+  reg [1:0] state = 0;
+  reg sig_en = 0;
+
+  assign diff = (i_img_dim_Acc - (OH * OW));
+
+  if(TOGGLE) begin
+
+    assign acc_fifo_rd_en = ((&empty_sa)? ((sig_en)? r_en : {FIFO_NO{1'b0}}) : (w_rd_en));
+
+    always @(posedge top_clk) begin
+      if((&top_in_data_valid) & vector_add_enable) begin
+        count <= count + 1;
+        valid_diff <= 0;
+      end
+      else begin
+        if(count == (OH * OW)) begin
+          count <= 0;
+          if(count == i_img_dim_Acc) begin
+            valid_diff <= 0;
+          end
+          else  begin
+            valid_diff <= 1;
+          end
+        end
+        else begin
+          valid_diff <= 0;
+        end
+      end
+    end
+
+    always @(posedge top_clk) begin
+      case(state) 
+      0: begin
+        r_en <= 0;
+        count_diff <= 0;
+        sig_en <= 0;
+        if(valid_diff) begin
+            state <= 1;
+        end
+        else begin
+            state <= 0;
+        end
+      end
+      1: begin
+        if(count_diff < diff) begin
+              r_en[((N * NO_PORT) - (count_diff * N) - 1) -: N] <= {N{1'b1}};
+              count_diff <= count_diff + 1;
+              sig_en <= 1;
+              state <= 1;
+          end
+          else begin
+            count_diff <= 0;
+            r_en <= 0;
+            state <= 0;
+            sig_en <= 0;
+          end
+      end
+      endcase
+    end
+  end 
+  else begin
+    assign acc_fifo_rd_en = (&empty_sa)? 0 : w_rd_en;
+  end
+
+endgenerate
+
 dram_fifo #(
       .DIMENSION(FIFO_NO),
       .W_DATA(DATA_WIDTH_ACC),

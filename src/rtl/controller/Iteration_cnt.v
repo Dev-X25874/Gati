@@ -109,7 +109,6 @@ reg r_layer_done;
 		r_CONV_FC<=CONV_FC;
 		r_im2col_done<=im2col_done;       	
         r_SA_psum_fifo_empty<=SA_psum_fifo_empty;
-        r_Tail_done<=Tail_done;
         r_op_fifo_empty<=op_fifo_empty;
         r_FC_done<=FC_done;
         r_EW_done<=EW_done;
@@ -121,8 +120,16 @@ reg r_layer_done;
 		r_POOL_EN<=POOL_EN;
 		r_ACC_EN<=ACC_EN;
 		r_FC_BIAS_EN<=FC_BIAS_EN;
-		
 	end
+
+    always@(posedge i_clk) begin
+        if(!rst) r_Tail_done <= 1'b0;
+        else begin
+            if(Tail_done) r_Tail_done <= 1'b1;
+            else if(state == 3'd4) r_Tail_done <= 1'b0;
+        end
+    end
+
 always@(posedge i_clk) begin
     if(!rst) begin
         c_ctr <= 0;

@@ -125,9 +125,9 @@ module sa_start_stall_ctrl #(
           end
           // stage 3
           if (im2col_done)begin 
-           stage_1_flag <= 0;
-           stage_2_flag <= 0;
-           stage_3_flag <= 1;
+            stage_1_flag <= 0;
+            stage_2_flag <= 0;
+            stage_3_flag <= 1;
           end 
 
           else if (stage_3_flag)begin

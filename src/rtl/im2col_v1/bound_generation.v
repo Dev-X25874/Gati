@@ -46,37 +46,37 @@ module bound_generation_v1 #(
   reg [$clog2(ROW) : 0] i,j,k;
   always@(posedge clk) begin
     if(!rstn) begin
+      i <= 0;
+      j <= 0;
+      k <= 0;
+      bound_gen_done_row <= 0;
+      lower_bound_row <= 0;
+    end
+    else begin
+      if(start_SA) begin 
+        bound_gen_done_row <= 0;
         i <= 0;
         j <= 0;
         k <= 0;
-        bound_gen_done_row <= 0;
         lower_bound_row <= 0;
-    end
-    else begin
-        if(start_SA) begin 
-            bound_gen_done_row <= 0;
-            i <= 0;
+      end
+      else if (!bound_gen_done_row) begin
+        if(i<kw*kh) begin
+          lower_bound_row[(DATA_WIDTH*(ROW-i))-1 -:DATA_WIDTH] <= k+1;
+          i <= i+1;
+          if(j<kw-1) begin
+            j <= j+1;
+            k <= k;
+          end
+          else begin
             j <= 0;
-            k <= 0;
-            lower_bound_row <= 0;
+            k <= k+1;
+          end
         end
-        else if (!bound_gen_done_row) begin
-            if(i<kw*kh) begin
-                lower_bound_row[(DATA_WIDTH*(ROW-i))-1 -:DATA_WIDTH] <= k+1;
-                i <= i+1;
-                if(j<kw-1) begin
-                  j <= j+1;
-                  k <= k;
-                end
-                else begin
-                  j <= 0;
-                  k <= k+1;
-                end
-            end
-            else begin
-                bound_gen_done_row <= 1;
-            end
+        else begin
+          bound_gen_done_row <= 1;
         end
+      end
     end
   end
  

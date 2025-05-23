@@ -537,8 +537,8 @@ module top_gati_module #(
       if(im2col_global_start) begin
         stall_enable <= 1;
       end
-      else if((row == input_img_height + conv_zeropad)) begin 
-        // && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
+      else if((row == input_img_height + conv_zeropad)
+        && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
       else begin 
@@ -1673,7 +1673,7 @@ module top_gati_module #(
       .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
       .istolic_stall(istolic_stall),
       
-      .op_fifo_empty(op_fifo_empty),
+      .op_fifo_empty(op_done),
       .LeftOperand_data_in(LeftOperand_in_data),
       .RightOperand_data_in(RightOperand_in_data),
       .LeftOperand_wr_en(dv_LeftOperand_data),

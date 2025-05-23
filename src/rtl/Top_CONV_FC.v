@@ -340,6 +340,14 @@ generate
     end
 endgenerate
 
+//added for debug kw=1 & kh=1. Remove it after testing
+reg [15:0] valid_sq_cnt = 0;
+always@(posedge i_clk) begin
+  if(kernel_height == 1) begin
+    if(&o_valid_squares) valid_sq_cnt <= valid_sq_cnt + 1;
+    else if(iteration_Done) valid_sq_cnt <= 0;
+  end
+end
 
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(IMAGE_DIM),

@@ -53,6 +53,10 @@
 `define CONV_KC_WIDTH 12
 `define CONV_ConvType 229:228
 `define CONV_ConvType_WIDTH 2
+// If a regular conv is supposed to be performed on a pointwise
+// -optimal architecture, this flag is set
+`define CONV_ChannelDuplicate 230:230
+`define CONV_ChannelDuplicate_WIDTH 1
 
 `define OP_TailBlock 'h01
 `define TailBlock_Opcode 3:0
@@ -98,17 +102,20 @@
 // to be considered.
 `define TailBlock_PoolModCount 150:147
 `define TailBlock_PoolModCount_WIDTH 4
+// Same as above but for cols
+`define TailBlock_PoolModCountCols 154:151
+`define TailBlock_PoolModCountCols_WIDTH 4
 // Same as PadSides for convolution
-`define TailBlock_PoolPadSides 154:151
+`define TailBlock_PoolPadSides 158:155
 `define TailBlock_PoolPadSides_WIDTH 4
-`define TailBlock_BiasEn 155:155
+`define TailBlock_BiasEn 159:159
 `define TailBlock_BiasEn_WIDTH 1
 // There are two known bias widths 8/32. This is that field.
-`define TailBlock_BiasWidth 163:156
+`define TailBlock_BiasWidth 167:160
 `define TailBlock_BiasWidth_WIDTH 8
-`define TailBlock_BiasStartAddress 195:164
+`define TailBlock_BiasStartAddress 199:168
 `define TailBlock_BiasStartAddress_WIDTH 32
-`define TailBlock_BiasEndAddress 227:196
+`define TailBlock_BiasEndAddress 231:200
 `define TailBlock_BiasEndAddress_WIDTH 32
 
 `define OP_OutputBlock 'h02
@@ -243,30 +250,30 @@
 `define EltWise_IW_WIDTH 10
 `define EltWise_IH 27:18
 `define EltWise_IH_WIDTH 10
-`define EltWise_IC 37:28
-`define EltWise_IC_WIDTH 10
-`define EltWise_LeftOperandStartAddress 69:38
+`define EltWise_IC 39:28
+`define EltWise_IC_WIDTH 12
+`define EltWise_LeftOperandStartAddress 71:40
 `define EltWise_LeftOperandStartAddress_WIDTH 32
-`define EltWise_LeftOperandEndAddress 101:70
+`define EltWise_LeftOperandEndAddress 103:72
 `define EltWise_LeftOperandEndAddress_WIDTH 32
-`define EltWise_RightOperandStartAddress 133:102
+`define EltWise_RightOperandStartAddress 135:104
 `define EltWise_RightOperandStartAddress_WIDTH 32
-`define EltWise_RightOperandEndAddress 165:134
+`define EltWise_RightOperandEndAddress 167:136
 `define EltWise_RightOperandEndAddress_WIDTH 32
-`define EltWise_AScale 181:166
+`define EltWise_AScale 183:168
 `define EltWise_AScale_WIDTH 16
-`define EltWise_BScale 197:182
+`define EltWise_BScale 199:184
 `define EltWise_BScale_WIDTH 16
-`define EltWise_AShift 202:198
+`define EltWise_AShift 204:200
 `define EltWise_AShift_WIDTH 5
-`define EltWise_BShift 207:203
+`define EltWise_BShift 209:205
 `define EltWise_BShift_WIDTH 5
-`define EltWise_AZeroPoint 215:208
+`define EltWise_AZeroPoint 217:210
 `define EltWise_AZeroPoint_WIDTH 8
-`define EltWise_BZeroPoint 223:216
+`define EltWise_BZeroPoint 225:218
 `define EltWise_BZeroPoint_WIDTH 8
 
-`define ISA_VERSION 4
+`define ISA_VERSION 6
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00

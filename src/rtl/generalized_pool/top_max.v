@@ -204,7 +204,7 @@ mux_final_pool (
     .dout_fifo1(dout_fifo1)
 );
 
-assign re = (~empty2);
+assign re = (~empty2) & (~empty1); 
 
 // Combines data valid signals for second-stage pooling
 assign dv_pooling_second_stage = ((dv_pooling_second_stage1) && (dv_pooling_second_stage2));

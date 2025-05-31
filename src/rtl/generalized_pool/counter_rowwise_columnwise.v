@@ -105,6 +105,6 @@ always @(posedge clk) begin
             column_counter <= 0;
             dv_demux_counter <= 0;
         end
-end
+    end
 end
 endmodule

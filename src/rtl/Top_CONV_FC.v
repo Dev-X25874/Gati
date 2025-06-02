@@ -76,7 +76,11 @@ module Top_CONV_FC #(
     parameter CONV_IW_WIDTH = 10,
     parameter CONV_IH_WIDTH = 10,
     parameter CONV_PADSIDES_WIDTH = 4,
-    parameter CONV_PAD_WIDTH = 3,
+    //parameter CONV_PAD_WIDTH = 3,
+    parameter CONV_PadLeft_WIDTH = 3, // Left padding width
+    parameter CONV_PadRight_WIDTH = 3, // Right padding width
+    parameter CONV_PadTop_WIDTH = 3, // Top padding width
+    parameter CONV_PadBottom_WIDTH = 3, // Bottom padding width
     
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
@@ -143,7 +147,13 @@ module Top_CONV_FC #(
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
-    input [CONV_PAD_WIDTH-1:0] conv_zeropad,
+    //input [CONV_PAD_WIDTH-1:0] conv_zeropad,
+    input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
+    input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
+    input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
+    input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
+
+  
     
     //im2col signals
     input [CONV_IW_WIDTH-1:0] image_width,
@@ -346,7 +356,11 @@ endgenerate
                 .CONV_KW_WIDTH(CONV_KW_WIDTH),
                 .STRIDE(STRIDE),
                 .ROW(ROW),
-                .CONV_PAD_WIDTH(CONV_PAD_WIDTH))
+                //.CONV_PAD_WIDTH(CONV_PAD_WIDTH),
+                .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+                .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+                .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+                .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH))
 
     im2col_v1 (
       .clk_in(i_clk),
@@ -357,7 +371,13 @@ endgenerate
       .zero_pad(Pad_side),
       .kw(kernel_width),
       .kh(kernel_height),
-      .zero_padded(conv_zeropad), 
+      //.zero_padded(conv_zeropad), 
+
+      .conv_pad_left(conv_pad_left),
+      .conv_pad_right(conv_pad_right),
+      .conv_pad_top(conv_pad_top),
+      .conv_pad_bottom(conv_pad_bottom),
+
       .i_mat_size_col(image_width),
       .i_mat_size_row(image_height),
       .valid_sq(o_valid_squares),

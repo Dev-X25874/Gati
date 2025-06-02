@@ -16,7 +16,13 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
             parameter KC_WIDTH = 10,
             parameter CONV_TYPE_WIDTH = 2,
             parameter STRIDE_WIDTH = 4,
-            parameter PAD_WIDTH = 3,
+            //parameter PAD_WIDTH = 3,
+
+            parameter PAD_LEFT_WIDTH = 3,
+            parameter PAD_RIGHT_WIDTH = 3,
+            parameter PAD_TOP_WIDTH = 3,
+            parameter PAD_BOTTOM_WIDTH = 3,
+
             parameter PADSIDES_WIDTH = 4,
             parameter ADDRESS_WIDTH = 32,
             parameter CONV_Im2colPrefetch_WIDTH = 1,
@@ -40,7 +46,13 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [KC_WIDTH - 1 : 0] KC = 0,
                 output reg [CONV_TYPE_WIDTH - 1 : 0] conv_type = 0,
                 output reg [STRIDE_WIDTH - 1 : 0] Stride = 0,
-                output reg [PAD_WIDTH - 1 : 0] Pad = 0,
+                //output reg [PAD_WIDTH - 1 : 0] Pad = 0,
+                
+                output reg [PAD_LEFT_WIDTH - 1 : 0] Pad_left = 0,
+                output reg [PAD_RIGHT_WIDTH - 1 : 0] Pad_right = 0,
+                output reg [PAD_TOP_WIDTH - 1 : 0] Pad_top = 0,
+                output reg [PAD_BOTTOM_WIDTH - 1 : 0] Pad_bottom = 0,
+
                 output reg [PADSIDES_WIDTH -1 :0]Pad_side = 0,
                 output reg [CONV_Im2colPrefetch_WIDTH - 1 : 0] CONV_Im2colPrefetch = 0,
                 output reg [CONV_CHANNELDUPLICATE_WIDTH - 1 : 0] CONV_ChannelDuplicate = 0,
@@ -116,7 +128,14 @@ always @(posedge clk) begin
             KC <= data_instruction[`CONV_KC];
             conv_type <= data_instruction[`CONV_ConvType];
             Stride <= data_instruction[`CONV_Stride];
-            Pad <= data_instruction[`CONV_Pad];
+            //Pad <= data_instruction[`CONV_Pad];
+
+            Pad_left <= data_instruction[`CONV_PadLeft];
+            Pad_right <= data_instruction[`CONV_PadRight];
+            Pad_top <= data_instruction[`CONV_PadTop];
+            Pad_bottom <= data_instruction[`CONV_PadBottom];
+            
+
             Pad_side <= data_instruction[`CONV_PadSides];
             CONV_Im2colPrefetch <= data_instruction[`CONV_Im2colPrefetch];
             CONV_ChannelDuplicate <= data_instruction[`CONV_ChannelDuplicate];

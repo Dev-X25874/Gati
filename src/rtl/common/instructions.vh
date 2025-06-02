@@ -1,5 +1,3 @@
-`ifndef instruction_vh
-
 `define OP_CONV 'h00
 // Opcode
 `define CONV_Opcode 3:0
@@ -30,32 +28,42 @@
 `define CONV_KH_WIDTH 4
 `define CONV_Stride 79:76
 `define CONV_Stride_WIDTH 4
-`define CONV_Pad 82:80
-`define CONV_Pad_WIDTH 3
+`define CONV_PadLeft 82:80
+`define CONV_PadLeft_WIDTH 3
+`define CONV_PadBottom 85:83
+`define CONV_PadBottom_WIDTH 3
+`define CONV_PadRight 88:86
+`define CONV_PadRight_WIDTH 3
+`define CONV_PadTop 91:89
+`define CONV_PadTop_WIDTH 3
+`define CONV_StartRowSkip 95:92
+`define CONV_StartRowSkip_WIDTH 4
+`define CONV_EndRowSkip 99:96
+`define CONV_EndRowSkip_WIDTH 4
 // Bit vector where each bit represents a side (left,bottom,rig
 // ht,top) of a feature map that should be padded with 'Pad'
-`define CONV_PadSides 86:83
+`define CONV_PadSides 103:100
 `define CONV_PadSides_WIDTH 4
-`define CONV_ImageStartAddress 118:87
+`define CONV_ImageStartAddress 135:104
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 150:119
+`define CONV_ImageEndAddress 167:136
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 182:151
+`define CONV_WeightStartAddress 199:168
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 214:183
+`define CONV_WeightEndAddress 231:200
 `define CONV_WeightEndAddress_WIDTH 32
 // Set if the entire image can be fetched in im2col blocks at o
 // nce
-`define CONV_Im2colPrefetch 215:215
+`define CONV_Im2colPrefetch 232:232
 `define CONV_Im2colPrefetch_WIDTH 1
 // Channel count for weight
-`define CONV_KC 227:216
+`define CONV_KC 244:233
 `define CONV_KC_WIDTH 12
-`define CONV_ConvType 229:228
+`define CONV_ConvType 246:245
 `define CONV_ConvType_WIDTH 2
 // If a regular conv is supposed to be performed on a pointwise
 // -optimal architecture, this flag is set
-`define CONV_ChannelDuplicate 230:230
+`define CONV_ChannelDuplicate 247:247
 `define CONV_ChannelDuplicate_WIDTH 1
 
 `define OP_TailBlock 'h01
@@ -310,6 +318,3 @@
 `define ZerothStartAddress_WIDTH 32
 `define ZerothEndAddress 63:32
 `define ZerothEndAddress_WIDTH 32
-
-
-`endif

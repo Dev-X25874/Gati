@@ -7,7 +7,10 @@ module top_im2col_v1 #(
     parameter DATA_WIDTH = 8,
     parameter STRIDE = 3,
     parameter ROW = 9,
-    parameter CONV_PAD_WIDTH = 3)
+    parameter CONV_PadLeft_WIDTH = 3, // Left padding width
+    parameter CONV_PadRight_WIDTH = 3, // Right padding width
+    parameter CONV_PadTop_WIDTH = 3, // Top padding width
+    parameter CONV_PadBottom_WIDTH = 3)
     (
         input                                  clk_in,
         input                                  rstn,
@@ -18,7 +21,12 @@ module top_im2col_v1 #(
         input  [3:0]                           zero_pad,   // Zero Pad Side
         input  [CONV_KW_WIDTH-1:0]             kw,
         input  [CONV_KH_WIDTH-1:0]             kh,
-        input  [CONV_PAD_WIDTH-1:0]            zero_padded,
+        //input  [CONV_PAD_WIDTH-1:0]            zero_padded,
+        input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
+        input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
+        input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
+        input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
+        
         input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_col,
         input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_row,
         output [ROW-1:0]                       valid_sq,           
@@ -50,7 +58,12 @@ module top_im2col_v1 #(
     assign o_col = w_col;
 
 
-    index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .CONV_PAD_WIDTH(CONV_PAD_WIDTH)) index_dut(
+    index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), 
+    .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+    .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+    .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+    .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH)) 
+    index_dut(
         .clk(clk_in),
         .rstn(rstn),
         .i_data(i_data),
@@ -58,7 +71,13 @@ module top_im2col_v1 #(
         .i_valid_data(i_valid_data),
         .valid_mat_size(valid_mat_size),
         .zero_pad(zero_pad),
-        .zero_padded(zero_padded),
+        //.zero_padded(zero_padded),
+
+        .pad_left(conv_pad_left),
+        .pad_right(conv_pad_right),
+        .pad_top(conv_pad_top),
+        .pad_bottom(conv_pad_bottom),
+
         .mat_size_col(i_mat_size_col),
         .mat_size_row(i_mat_size_row),
         .o_data(data),

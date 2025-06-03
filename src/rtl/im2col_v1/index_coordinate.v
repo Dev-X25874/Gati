@@ -47,7 +47,7 @@ module index_coordinate_v1 #(
     reg                                     r_valid_buff;
     reg                                     r_valid_data;
    // reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size;
-    reg                                     r_start_im2col = 0;
+   // reg                                     r_start_im2col = 0;
    /* reg [2:0]                               p_state = 0;
     wire                                    w_valid_data;
     wire                                    w_start_im2col;*/

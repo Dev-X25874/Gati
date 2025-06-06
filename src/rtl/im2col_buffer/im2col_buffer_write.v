@@ -79,10 +79,10 @@ module im2col_buffer_write #(
                 rd <= {DRAM_BW{1'b1}};
                 state <= ONGOING;
               end
-              else if((count!=0) && (~|fifo_empty) && ~stall_on && im2col_done) begin
-                rd <= {DRAM_BW{1'b1}};
-                state <= ONGOING;
-              end
+              // else if((count!=0) && (~|fifo_empty) && ~stall_on && im2col_done) begin
+              //   rd <= {DRAM_BW{1'b1}};
+              //   state <= ONGOING;
+              // end
             end
           endcase
         end

@@ -91,7 +91,7 @@ module Top_CONV_FC #(
    
     input i_clk,
     input s_clk,
-    input rst,
+    input i_rst,
     input [DRAM_BW-1:0] image_fifo_empty,
     input CONV_FC,
     input [OPCODE_WIDTH-1:0]opcode,
@@ -227,6 +227,15 @@ module Top_CONV_FC #(
   localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
   localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
   localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (DRAM_BW*DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
+
+  // Generation of local 'rst' signal
+  wire rst;
+  reg [1:0] r_rst = 0;
+  always @(posedge i_clk) begin
+    r_rst [0] <= i_rst;
+    r_rst [1] <= r_rst [0];
+  end
+  assign rst = r_rst[1];
 
  	wire [N_SA -1:0] relu_valid;
 	wire [(N_SA*DATA_WIDTH) -1:0] relu_output;
@@ -683,13 +692,15 @@ end
     .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
+    .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
     .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
     .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)
   )top_element_wise(
     .clkin(i_clk),
-    .rst(rst),
+    .rst(rst&(~layer_done)),
     .EltWise_op_en(EltWise_op_en), 
+    .img_dim_Op(i_img_dim_Op), //input: image dimension of the output
     .LeftOperand_wr_en(LeftOperand_wr_en), //from ddr
     .RightOperand_wr_en(RightOperand_wr_en), //from ddr
     .LeftOperand_data_in(LeftOperand_data_in), //from ddr

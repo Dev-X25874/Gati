@@ -5,6 +5,7 @@ module Top_element_wise#(
     parameter FIFO_NO               = 8,
     parameter W_ADDR                = 9,
     parameter DATA_WIDTH_OB         = 32,
+    parameter I_OP_SIZE_WIDTH       = 16,
 
     parameter ELTWISE_IW_WIDTH      = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH      = 10, // Width of the input height;
@@ -14,6 +15,7 @@ module Top_element_wise#(
     input clkin,
     input rst,
     input EltWise_op_en,
+    input [I_OP_SIZE_WIDTH-1:0] img_dim_Op,
     input [FIFO_NO-1:0]LeftOperand_wr_en,
     input [FIFO_NO-1:0]RightOperand_wr_en,
     input [ELTWISE_IW_WIDTH-1:0]EltWise_IW,
@@ -98,6 +100,7 @@ EltWise_controller #(
     .DATA_WIDTH(DATA_WIDTH),  
     .N(N),           
     .FIFO_NO(FIFO_NO),
+    .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
     .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
     .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)       
@@ -105,6 +108,7 @@ EltWise_controller #(
     .clkin(clkin),
     .rst(rst),
     .EltWise_op_en(EltWise_op_en),
+    .img_dim_Op(img_dim_Op),
     .LeftOperand_data_out(LeftOperand_data_out),
     .RightOperand_data_out(RightOperand_data_out),
     .LeftOperand_valid_fifo(LeftOperand_valid_fifo),

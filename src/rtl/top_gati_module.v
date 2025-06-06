@@ -1241,18 +1241,26 @@ module top_gati_module #(
   wire [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants;
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
-  // assign acc_fifo_th = (ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0]-(3*ACC_REQ_BLEN[$clog2(ACC_FIFO_DEPTH):0]));
+  wire [$clog2(BIAS_FIFO_DEPTH):0] bias_fifo_th;
+  wire [$clog2(ELTWISE_FIFO_DEPTH):0] eltwise_fifo_th;
+
   assign acc_fifo_th = ((ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0])/2);
-  // assign acc_fifo_th = input_img_width*2;
+  assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
+  assign eltwise_fifo_th = ((3*(ELTWISE_FIFO_DEPTH[$clog2(ELTWISE_FIFO_DEPTH):0]))/4);
+  
 	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
+  reg [$clog2(BIAS_FIFO_DEPTH):0] virtual_occ_bias;
+  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_LeftOperand;
+  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_RightOperand;
+
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ <= 0;
     else begin
       if(start_en) begin
-        if(mc_acc_last && select[`Acc])             virtual_occ <= virtual_occ + mc_acc_bl;
-        else if(mc_acc_last)                        virtual_occ <= virtual_occ + (mc_acc_bl+1);
-        else if(select[`Acc])                       virtual_occ <= virtual_occ-1;
-        else                                        virtual_occ <= virtual_occ;
+        if(mc_acc_last && select[`Acc]) virtual_occ <= virtual_occ + mc_acc_bl;
+        else if(mc_acc_last)            virtual_occ <= virtual_occ + (mc_acc_bl+1);
+        else if(select[`Acc])           virtual_occ <= virtual_occ-1;
+        else                            virtual_occ <= virtual_occ;
       end
       else begin
         virtual_occ <= 0;
@@ -1260,12 +1268,57 @@ module top_gati_module #(
     end
   end
   
+  always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ_bias <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_bias_last && select[`Bias]) virtual_occ_bias <= virtual_occ_bias + mc_bias_bl;
+        else if(mc_bias_last)             virtual_occ_bias <= virtual_occ_bias + (mc_bias_bl+1);
+        else if(select[`Bias])            virtual_occ_bias <= virtual_occ_bias-1;
+        else                              virtual_occ_bias <= virtual_occ_bias;
+      end
+      else begin
+        virtual_occ_bias <= 0;
+      end
+    end
+  end
+
+  always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ_LeftOperand <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_LeftOperand_last && select[`LeftOperand]) virtual_occ_LeftOperand <= virtual_occ_LeftOperand + mc_LeftOperand_bl;
+        else if(mc_LeftOperand_last)                    virtual_occ_LeftOperand <= virtual_occ_LeftOperand + (mc_LeftOperand_bl+1);
+        else if(select[`LeftOperand])                   virtual_occ_LeftOperand <= virtual_occ_LeftOperand-1;
+        else                                            virtual_occ_LeftOperand <= virtual_occ_LeftOperand;
+      end
+      else begin
+        virtual_occ_LeftOperand <= 0;
+      end
+    end
+  end
+
+  always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ_RightOperand <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_RightOperand_last && select[`RightOperand]) virtual_occ_RightOperand <= virtual_occ_RightOperand + mc_RightOperand_bl;
+        else if(mc_RightOperand_last)                     virtual_occ_RightOperand <= virtual_occ_RightOperand + (mc_RightOperand_bl+1);
+        else if(select[`RightOperand])                    virtual_occ_RightOperand <= virtual_occ_RightOperand-1;
+        else                                              virtual_occ_RightOperand <= virtual_occ_RightOperand;
+      end
+      else begin
+        virtual_occ_RightOperand <= 0;
+      end
+    end
+  end
+
 //  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
   assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
-  assign bias_fifo_status = (bias_fifo_occupants<={BIAS_FIFO{COL_SA[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
+  assign bias_fifo_status = ((bias_fifo_occupants[$clog2(BIAS_FIFO_DEPTH):0]+virtual_occ_bias)<=bias_fifo_th)? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
-  assign LeftOperand_fifo_status = (LeftOperand_fifo_occupants<={ELTWISE_FIFO{COL_SA[$clog2(ELTWISE_FIFO_DEPTH):0]}})? 1 : 0;
-  assign RightOperand_fifo_status = (RightOperand_fifo_occupants<={ELTWISE_FIFO{COL_SA[$clog2(ELTWISE_FIFO_DEPTH):0]}})? 1 : 0;
+  assign LeftOperand_fifo_status = ((LeftOperand_fifo_occupants[$clog2(ELTWISE_FIFO_DEPTH):0]+virtual_occ_LeftOperand)<=eltwise_fifo_th)? 1 : 0;
+  assign RightOperand_fifo_status = ((RightOperand_fifo_occupants[$clog2(ELTWISE_FIFO_DEPTH):0]+virtual_occ_RightOperand)<=eltwise_fifo_th)? 1 : 0;
 
   // Data from DRAM
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_dram;
@@ -1617,7 +1670,7 @@ module top_gati_module #(
       .channel_done(channel_done),
       .shift_reg_sel(shift_reg_sel),
       .systolic_array_trigger(systolic_array_trigger),
-      .rst(i_rst),
+      .i_rst(i_rst),
       .relu_clip_value(relu_clip_value),
       .relu_act_type(relu_act_type),
       .bias_enable(bias_enable),

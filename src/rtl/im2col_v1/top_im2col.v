@@ -18,10 +18,8 @@ module top_im2col_v1 #(
         input                                  i_start_im2col_index,
         input                                  i_valid_data,
         input  [DATA_WIDTH-1:0]                i_data,
-        input  [3:0]                           zero_pad,   // Zero Pad Side
         input  [CONV_KW_WIDTH-1:0]             kw,
         input  [CONV_KH_WIDTH-1:0]             kh,
-        //input  [CONV_PAD_WIDTH-1:0]            zero_padded,
         input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
         input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
         input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
@@ -70,8 +68,8 @@ module top_im2col_v1 #(
         .i_start_im2col_index(i_start_im2col_index),
         .i_valid_data(i_valid_data),
         .valid_mat_size(valid_mat_size),
-        .zero_pad(zero_pad),
-        //.zero_padded(zero_padded),
+
+
 
         .pad_left(conv_pad_left),
         .pad_right(conv_pad_right),

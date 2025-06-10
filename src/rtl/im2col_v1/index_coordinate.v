@@ -2,7 +2,6 @@ module index_coordinate_v1 #(
     parameter UPPER_BOUND = 28,
     parameter DATA_WIDTH = 8,
     parameter LOWER_BOUND = 1,
-    //parameter CONV_PAD_WIDTH = 3,
     parameter CONV_PadLeft_WIDTH = 3, // Left padding width
     parameter CONV_PadRight_WIDTH = 3, // Right padding width
     parameter CONV_PadTop_WIDTH = 3, // Top padding width
@@ -10,7 +9,6 @@ module index_coordinate_v1 #(
      ) 
 (
     input                                   valid_mat_size,
-//    output                                o_start_im2col_ctrl,
     input                                   i_start_im2col_index,
     input                                   i_valid_data,
     input                                   clk,
@@ -23,12 +21,8 @@ module index_coordinate_v1 #(
     input  [$clog2(UPPER_BOUND)-1:0]        mat_size_row,
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_col,
     output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_row,
-    input  [3:0]                            zero_pad, //Each bit represents one side of the image,i.e., [3]=top
-    //input  [CONV_PAD_WIDTH-1:0]             zero_padded,
-    
-    //No. of 0's to be padded                                              [2]=right
-    output         o_valid_buff,                                         //    [1]=bottom
-    output                     o_valid_data ,                                         //    [0]=left
+    output         o_valid_buff,                                        
+    output         o_valid_data ,                                        
     output    reg o_im2col_done,
     input         i_stall_on,
     output    reg r_start_im2col,
@@ -46,11 +40,6 @@ module index_coordinate_v1 #(
     reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size_row;
     reg                                     r_valid_buff;
     reg                                     r_valid_data;
-   // reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size;
-   // reg                                     r_start_im2col = 0;
-   /* reg [2:0]                               p_state = 0;
-    wire                                    w_valid_data;
-    wire                                    w_start_im2col;*/
 
     assign row = curr_row;
     assign col = curr_col;

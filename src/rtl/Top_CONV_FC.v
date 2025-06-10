@@ -75,8 +75,6 @@ module Top_CONV_FC #(
     parameter CONV_OH_WIDTH = 10,
     parameter CONV_IW_WIDTH = 10,
     parameter CONV_IH_WIDTH = 10,
-    parameter CONV_PADSIDES_WIDTH = 4,
-    //parameter CONV_PAD_WIDTH = 3,
     parameter CONV_PadLeft_WIDTH = 3, // Left padding width
     parameter CONV_PadRight_WIDTH = 3, // Right padding width
     parameter CONV_PadTop_WIDTH = 3, // Top padding width
@@ -147,7 +145,6 @@ module Top_CONV_FC #(
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
-    //input [CONV_PAD_WIDTH-1:0] conv_zeropad,
     input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
     input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
     input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
@@ -181,8 +178,7 @@ module Top_CONV_FC #(
     input [CONV_KH_WIDTH-1:0] kernel_height,
     input [CONV_OW_WIDTH-1 : 0] conv_op_width,
     input [CONV_OH_WIDTH-1 : 0] conv_op_height,
-    input [CONV_PADSIDES_WIDTH-1 :0] Pad_side,
-    
+   
     //EltWise operation signals
     input op_fifo_empty,
     input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] LeftOperand_data_in,
@@ -356,7 +352,6 @@ endgenerate
                 .CONV_KW_WIDTH(CONV_KW_WIDTH),
                 .STRIDE(STRIDE),
                 .ROW(ROW),
-                //.CONV_PAD_WIDTH(CONV_PAD_WIDTH),
                 .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
                 .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
                 .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
@@ -368,10 +363,9 @@ endgenerate
       .valid_mat_size(valid_img_size_im2col),
       .i_data(0), // the data does not go throught the Im2col so it does not matter what you give here but zero should be prefered  
       .i_start_im2col_index(im2col_global_start),
-      .zero_pad(Pad_side),
       .kw(kernel_width),
       .kh(kernel_height),
-      //.zero_padded(conv_zeropad), 
+
 
       .conv_pad_left(conv_pad_left),
       .conv_pad_right(conv_pad_right),

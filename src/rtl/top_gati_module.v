@@ -55,14 +55,13 @@ module top_gati_module #(
     parameter CONV_ConvType_WIDTH = `CONV_ConvType_WIDTH,
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     
-    //parameter CONV_PAD_WIDTH    = `CONV_Pad_WIDTH,
     
     parameter CONV_PadLeft_WIDTH = `CONV_PadLeft_WIDTH,
     parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
     parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
     parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
 
-    parameter CONV_PADSIDES_WIDTH = `CONV_PadSides_WIDTH,
+   
     parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
     parameter CONV_CHANNELDUPLICATE_WIDTH = `CONV_ChannelDuplicate_WIDTH,
 
@@ -355,16 +354,13 @@ module top_gati_module #(
   wire [CONV_KC_WIDTH-1:0] kernel_channels;
   wire [CONV_ConvType_WIDTH-1:0] conv_type;
   wire [CONV_STRIDE_WIDTH-1:0] stride;
-  //wire [CONV_PAD_WIDTH-1:0] conv_zeropad;
   
   wire [CONV_PadLeft_WIDTH-1:0] conv_pad_left;
   wire [CONV_PadRight_WIDTH-1:0] conv_pad_right;
   wire [CONV_PadTop_WIDTH-1:0] conv_pad_top;
   wire [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom;
 
-  wire [CONV_PADSIDES_WIDTH-1 :0] Pad_side; 
   wire [CONV_CHANNELDUPLICATE_WIDTH-1:0] CONV_ChannelDuplicate;
-
   wire [AXI_ADDR_W-1:0] start_address_weights;
   wire [AXI_ADDR_W-1:0] stop_address_weights;
   wire [AXI_ADDR_W-1:0] weight_start_addr_conv;
@@ -637,14 +633,10 @@ module top_gati_module #(
     .KC_WIDTH(CONV_KC_WIDTH),
     .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
     .STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-    //.PAD_WIDTH(CONV_PAD_WIDTH),
-
     .PAD_LEFT_WIDTH(CONV_PadLeft_WIDTH),
     .PAD_RIGHT_WIDTH(CONV_PadRight_WIDTH),
     .PAD_TOP_WIDTH(CONV_PadTop_WIDTH),
     .PAD_BOTTOM_WIDTH(CONV_PadBottom_WIDTH),
-
-    .PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
     .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
     .CONV_CHANNELDUPLICATE_WIDTH(CONV_CHANNELDUPLICATE_WIDTH),
     .WEIGHTROWS_WIDTH(FC_WEIGHTROW_WIDTH),
@@ -703,15 +695,11 @@ module top_gati_module #(
     .KC(kernel_channels),
     .conv_type(conv_type),    
     .Stride(stride),
-    //.Pad(conv_zeropad),
 
     .Pad_left(conv_pad_left),
     .Pad_right(conv_pad_right),
     .Pad_top(conv_pad_top),
     .Pad_bottom(conv_pad_bottom),
-
-
-    .Pad_side(Pad_side),
     .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
     .CONV_ChannelDuplicate(CONV_ChannelDuplicate),
     .ImageStartAddress_conv(img_start_address),
@@ -1624,8 +1612,7 @@ module top_gati_module #(
       .CONV_OW_WIDTH(CONV_OW_WIDTH),
       .CONV_IW_WIDTH(CONV_IW_WIDTH),
       .CONV_IH_WIDTH(CONV_IH_WIDTH),
-      .CONV_PADSIDES_WIDTH(CONV_PADSIDES_WIDTH),
-      //.CONV_PAD_WIDTH(CONV_PAD_WIDTH),
+      
       
       .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
       .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
@@ -1693,9 +1680,6 @@ module top_gati_module #(
       .bias_enable(bias_enable),
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),
-      //.conv_zeropad(conv_zeropad),
-
-
       .conv_pad_left(conv_pad_left),
       .conv_pad_right(conv_pad_right),
       .conv_pad_top(conv_pad_top),
@@ -1746,7 +1730,6 @@ module top_gati_module #(
       .stride(stride),
       .kernel_width(kernel_width),
       .kernel_height(kernel_height),
-      .Pad_side(Pad_side),
       .o_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
       .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
       .istolic_stall(istolic_stall),

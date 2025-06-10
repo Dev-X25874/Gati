@@ -750,12 +750,12 @@ endgenerate
       .OUT_DATA_WIDTH(DATA_WIDTH_OB),
       .NO_PORT(NO_PORT_VA),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
-      .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
-      .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+      .OH_WIDTH(CONV_OH_WIDTH),
+      .OW_WIDTH(CONV_OW_WIDTH)
   ) vector_addition (
       .top_clk(i_clk),
-      .OH(maxpool_threshold),
-      .OW(maxpool_threshold),
+      .OH(conv_op_height),
+      .OW(conv_op_width),
       .i_img_dim_Acc(i_img_dim_Acc),
       .top_wr_en(vector_add_wren), //input: comes from ddr
       .rst(rst),
@@ -913,8 +913,8 @@ endgenerate
     .PoolCeil(PoolCeil),
     .PoolModCount(PoolModCount),
     .PoolPadSides(PoolPadSides),
-    .OH(maxpool_threshold),
-    .OW(maxpool_threshold),
+    .OH(conv_op_height),
+    .OW(conv_op_width),
     .dout(maxpool_output),
     .done(),
     .datavalid_out(maxpool_valid)

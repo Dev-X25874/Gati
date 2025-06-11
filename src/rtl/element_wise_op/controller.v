@@ -77,7 +77,7 @@ always @(posedge clkin) begin
         0: begin
             sig_en <= 0;
             count_diff <= 0;
-            if(rd_counter == r_img_size) begin
+            if((rd_counter == r_img_size) && (rd_counter!=0)) begin
                 fifo_rden <= 0;
                 cycle_idx <= cycle_idx;
                 rd_counter <= rd_counter;

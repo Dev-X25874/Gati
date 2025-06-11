@@ -133,51 +133,42 @@ module sa_start_stall_ctrl #(
           else if (stage_3_flag)begin
             stall_flag <= 0;
             istolic_array_stall <= 0;
-            if (sa_running_flag == 0) begin
-              sa_start_flag <= 1;
-              sa_flag <= 1;
-            end 
-            else if (sa_flag) begin 
-              sa_start_flag <= 0;
+            if(SA_done) begin
+              stage_1_flag <= 0;
+              stage_2_flag <= 0;
+              stage_3_flag <= 0;
             end
           end
 
-          else if (stage_3_flag && SA_done)begin
-            stage_1_flag <= 0;
-            stage_2_flag <= 0;
-            stage_3_flag <= 0;
-          end
-          
-          end
-          
-            
         end
-        else begin
-          istolic_array_stall <= 0;
-          stall_flag <= 0;
-          sa_start_flag <= 0;
-        end
-      end
-      
-    end
 
-
-   // genrating the final stall trigger from the flags 
-
-    always @(posedge i_clk) begin
-      if(!i_rst) begin
-        istolic_stall <= 0;
       end
       else begin
-        if(stall_flag && istolic_array_stall) begin
-          istolic_stall <= 1;
-        end
-        else begin
-          istolic_stall <= 0;
-        end
+        istolic_array_stall <= 0;
+        stall_flag <= 0;
+        sa_start_flag <= 0;
       end
-      
     end
+      
+  end
+
+
+  // genrating the final stall trigger from the flags 
+
+  always @(posedge i_clk) begin
+    if(!i_rst) begin
+      istolic_stall <= 0;
+    end
+    else begin
+      if(stall_flag && istolic_array_stall) begin
+        istolic_stall <= 1;
+      end
+      else begin
+        istolic_stall <= 0;
+      end
+    end
+    
+  end
 
   // genrating the start trigger for the systolic array
 

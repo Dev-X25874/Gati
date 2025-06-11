@@ -538,7 +538,7 @@ module top_gati_module #(
         stall_enable <= 1;
       end
       else if((row == input_img_height + conv_zeropad)
-        && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
+        && (col >= ((input_img_width + conv_zeropad) - (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
       else begin 
@@ -1863,6 +1863,7 @@ module top_gati_module #(
         .o_iter_done(iter_done),
         .o_c_done(channel_done),
         .o_layer_done(layer_done),
+        .o_SA_done(SA_done), 
 
         .BIAS_EN(Bias_En),
         .RELU_EN(ACT_EN),

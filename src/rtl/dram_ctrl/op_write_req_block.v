@@ -92,8 +92,8 @@ reg [W_KERNEL_CNT-1:0] k_ctr=0;
 integer i;
 
 always@(posedge clkin) begin
-    r_channel_itr <= i_channel_itr;
-    result_int <= (occupants[$clog2(DEPTH) : 0]>=(r_burst_len_1));
+    if(op_done) result_int <= 0;
+    else        result_int <= (occupants >= (r_burst_len + 1))? 1 : 0;
 end
 
 reg r_Tail_done;
@@ -137,6 +137,9 @@ always@(posedge clkin) begin
                     state <= 3'd1;
                     count1 <=  0;
                     count2 <=  0;
+                    c_ctr <= 0;
+                    k_ctr <= 0;
+                    r_channel_itr <= i_channel_itr;
                     r_acc_next_add <= i_acc_address;
                     r_layer_next_add<= i_op_start;
                     r_acc_start_add <= i_acc_address;

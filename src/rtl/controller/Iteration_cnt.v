@@ -11,6 +11,7 @@ module iteration_cnt #(
     output o_layer_done,
     output o_iter_done,
     output o_c_done,
+    output o_SA_done,
     
     input im2col_done,
     input SA_psum_fifo_empty,
@@ -62,6 +63,7 @@ reg [2:0] state = 0;
 assign o_iter_done = iter_done;
 assign o_layer_done = r_layer_done;
 assign o_c_done = c_done;
+assign o_SA_done = SA_done;
 
 assign kernal_count =  k_ctr [6:0]; // represents the current kernal iteration number
 assign channel_count =  c_ctr [6:0]; // represents the current channel iteration number
@@ -166,11 +168,11 @@ always@(posedge i_clk) begin
                 else begin
                     if(r_CONV_FC==0)begin
                         if(r_im2col_done) state <= 3'd2;
+                        else if(r_EW_done) state <= 3'd3;
                     end
                     else begin
                         if(r_FC_done) state <= 3'd3;
                     end
-                    if (r_EW_done) state <= 3'd3;
                 end
             end
         end

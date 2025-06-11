@@ -272,7 +272,8 @@ module Top_CONV_FC #(
         .im2col_done(im2col_done),
         .read_buf_data(read_buf_data),
         .stall_on(stall_on),
-	      .fifo_empty(image_fifo_empty),
+        .psum_full(p_full_output),
+        .fifo_empty(image_fifo_empty),
         .count(element_poped),
         .rden(image_rden)
       );
@@ -314,18 +315,6 @@ module Top_CONV_FC #(
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}}; 
 
-  /*
-  top_mux #(
-      .N_SA(N_SA),
-      .INPUT_SIZE(DATA_WIDTH)
-  ) mux (
-      .clk(i_clk),
-      .sel(sel_mux),
-      .data_a(buff_out),
-      .out_mux(mux_out)  // mux out should be delayed by 6 cycles going to the SA buffer 
-  );
-  */
-  
 
 //im2col block
 // generate block for 7 cycle dealay in the input reg mux_out
@@ -335,28 +324,19 @@ generate
     for (f = 0; f < 7; f = f + 1) begin : delay_stage
     reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
         
-        if (f == 0) begin
+      if (f == 0) begin
+      always @(posedge i_clk ) begin
+        delay_reg <= buff_out;
+      end 
+      end 
+      else begin
         always @(posedge i_clk ) begin
-          delay_reg <= buff_out;
-        end 
-        end 
-        else begin
-          always @(posedge i_clk ) begin
-
-            delay_reg <= delay_stage[f-1].delay_reg;
-        end
-        end
+         delay_reg <= delay_stage[f-1].delay_reg;
+      end
+      end
     end
 endgenerate
 
-//added for debug kw=1 & kh=1. Remove it after testing
-reg [15:0] valid_sq_cnt = 0;
-always@(posedge i_clk) begin
-  if(kernel_height == 1) begin
-    if(&o_valid_squares) valid_sq_cnt <= valid_sq_cnt + 1;
-    else if(iteration_Done) valid_sq_cnt <= 0;
-  end
-end
 
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(IMAGE_DIM),
@@ -698,7 +678,7 @@ end
     .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)
   )top_element_wise(
     .clkin(i_clk),
-    .rst(rst&(~layer_done)),
+    .rst(rst),
     .EltWise_op_en(EltWise_op_en), 
     .img_dim_Op(i_img_dim_Op), //input: image dimension of the output
     .LeftOperand_wr_en(LeftOperand_wr_en), //from ddr

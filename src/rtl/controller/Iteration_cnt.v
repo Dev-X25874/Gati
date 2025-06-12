@@ -1,6 +1,7 @@
 module iteration_cnt #(
     parameter CITER_CNT_WIDTH = 12,
-    parameter KITER_CNT_WIDTH = 12
+    parameter KITER_CNT_WIDTH = 12,
+    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1
 )
 (
     input i_clk,
@@ -48,7 +49,8 @@ module iteration_cnt #(
     
     //io signals
     output [6:0] kernal_count, // represents the current kernal iteration number 
-    output [6:0] channel_count // represents the current channel iteration number 
+    output [6:0] channel_count, // represents the current channel iteration number 
+    input [OutputBlock_AccumulantReadFirst_WIDTH-1:0] OutputBlock_AccumulantReadFirst
 );
 
 reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
@@ -252,7 +254,7 @@ always@(posedge i_clk) begin
             acc_en <= 0;
         end
         else begin
-            if(c_ctr==0) acc_en <= 0;
+            if(c_ctr==0 && OutputBlock_AccumulantReadFirst == 0 ) acc_en <= 0;
             else         acc_en <= 1;
         end
     end

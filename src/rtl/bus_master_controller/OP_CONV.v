@@ -16,7 +16,8 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
             parameter KC_WIDTH = 10,
             parameter CONV_TYPE_WIDTH = 2,
             parameter STRIDE_WIDTH = 4,
-            //parameter PAD_WIDTH = 3,
+            parameter CONV_StartRowSkip_WIDTH = 4,
+            parameter CONV_EndRowSkip_WIDTH = 4,
 
             parameter PAD_LEFT_WIDTH = 3,
             parameter PAD_RIGHT_WIDTH = 3,
@@ -51,6 +52,8 @@ module OP_CONV #(parameter OP_CODE_WIDTH = 4,
                 output reg [PAD_RIGHT_WIDTH - 1 : 0] Pad_right = 0,
                 output reg [PAD_TOP_WIDTH - 1 : 0] Pad_top = 0,
                 output reg [PAD_BOTTOM_WIDTH - 1 : 0] Pad_bottom = 0,
+                output reg [CONV_StartRowSkip_WIDTH-1:0] start_row_skip =0,
+                output reg [CONV_EndRowSkip_WIDTH-1:0] end_row_skip = 0,
 
                 output reg [PADSIDES_WIDTH -1 :0]Pad_side = 0,
                 output reg [CONV_Im2colPrefetch_WIDTH - 1 : 0] CONV_Im2colPrefetch = 0,
@@ -132,6 +135,8 @@ always @(posedge clk) begin
             Pad_right <= data_instruction[`CONV_PadRight];
             Pad_top <= data_instruction[`CONV_PadTop];
             Pad_bottom <= data_instruction[`CONV_PadBottom];
+            start_row_skip <= data_instruction[`CONV_StartRowSkip];
+            end_row_skip <= data_instruction[`CONV_EndRowSkip];
             
 
             CONV_Im2colPrefetch <= data_instruction[`CONV_Im2colPrefetch];

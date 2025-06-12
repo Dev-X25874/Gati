@@ -35,7 +35,7 @@ module top_gati_module #(
     parameter BURST_LENGTH_WIDTH    = 8,
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS      = 6,
+    parameter NUM_INSTRUCTIONS      = 6,                    //FGH
     parameter INST_W                = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     parameter LAYERCNT_WIDTH        = `START_LayerNumber_WIDTH,
@@ -45,14 +45,14 @@ module top_gati_module #(
     parameter OPCODE_WIDTH      = `CONV_Opcode_WIDTH,
     parameter CONV_IW_WIDTH     = `CONV_IW_WIDTH,
     parameter CONV_IH_WIDTH     = `CONV_IH_WIDTH,
-    parameter CONV_OW_WIDTH     = `CONV_OW_WIDTH,
-    parameter CONV_OH_WIDTH     = `CONV_OH_WIDTH,
     parameter CONV_IC_WIDTH     = `CONV_IC_WIDTH,
     parameter CONV_KN_WIDTH     = `CONV_KN_WIDTH,
     parameter CONV_KW_WIDTH     = `CONV_KW_WIDTH,
     parameter CONV_KH_WIDTH     = `CONV_KH_WIDTH,
     parameter CONV_KC_WIDTH     = `CONV_KC_WIDTH,
     parameter CONV_ConvType_WIDTH = `CONV_ConvType_WIDTH,
+    parameter CONV_OW_WIDTH     = `CONV_OW_WIDTH,
+    parameter CONV_OH_WIDTH     = `CONV_OH_WIDTH,
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     
     
@@ -60,6 +60,8 @@ module top_gati_module #(
     parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
     parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
     parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
+    parameter CONV_StartRowSkip_WIDTH = `CONV_StartRowSkip_WIDTH, // Start row skip for im2col
+    parameter CONV_EndRowSkip_WIDTH = `CONV_EndRowSkip_WIDTH, // End row skip for im2col
 
    
     parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
@@ -108,6 +110,8 @@ module top_gati_module #(
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
+
+    parameter OutputBlock_AccumulantReadFirst_WIDTH = `OutputBlock_AccumulantReadFirst_WIDTH, // Output block accumulant read first
     parameter MOD1 = 1,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
     parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
@@ -286,7 +290,7 @@ module top_gati_module #(
     
     assign opcode_config = instruction[OPCODE_WIDTH-1:0];
 
-    wire [NUM_INSTRUCTIONS-1:0] start_command;
+    wire [NUM_INSTRUCTIONS-1:0] start_command;    // FGH 
 
     wire start_out;
     reg start;
@@ -519,6 +523,8 @@ module top_gati_module #(
 
   wire  [$clog2(IMAGE_DIM)-1:0] row;    
   wire  [$clog2(IMAGE_DIM)-1:0] col;
+  wire  [$clog2(IMAGE_DIM)-1:0] real_row;    
+  wire  [$clog2(IMAGE_DIM)-1:0] real_col;
 
   
   reg Flattening_trigger=0;
@@ -546,7 +552,7 @@ module top_gati_module #(
       if(im2col_global_start) begin
         stall_enable <= 1;
       end
-      else if((row == input_img_height + conv_pad_top)) begin 
+      else if((real_row == input_img_height + conv_pad_top)) begin 
         // && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
@@ -637,6 +643,8 @@ module top_gati_module #(
     .PAD_RIGHT_WIDTH(CONV_PadRight_WIDTH),
     .PAD_TOP_WIDTH(CONV_PadTop_WIDTH),
     .PAD_BOTTOM_WIDTH(CONV_PadBottom_WIDTH),
+    .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+    .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH),
     .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
     .CONV_CHANNELDUPLICATE_WIDTH(CONV_CHANNELDUPLICATE_WIDTH),
     .WEIGHTROWS_WIDTH(FC_WEIGHTROW_WIDTH),
@@ -700,6 +708,8 @@ module top_gati_module #(
     .Pad_right(conv_pad_right),
     .Pad_top(conv_pad_top),
     .Pad_bottom(conv_pad_bottom),
+    .start_row_skip(start_row_skip),
+    .end_row_skip(end_row_skip),
     .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
     .CONV_ChannelDuplicate(CONV_ChannelDuplicate),
     .ImageStartAddress_conv(img_start_address),
@@ -746,6 +756,8 @@ module top_gati_module #(
     .Acc_onchip(Acc_onchip),
     .OB_OH(conv_op_height),
     .OB_OW(conv_op_width),
+    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
+
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
     .BNEn(),
@@ -1536,7 +1548,16 @@ module top_gati_module #(
 
   assign fc_kernel_iter = kernel_iteration;
 	wire psum_full;
+<<<<<<< HEAD
   wire  op_full;
+=======
+  reg  op_full=0;
+  wire  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip;
+  wire  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip;
+
+
+
+>>>>>>> 3be3498 ( create a psuedo signal to mask row count for accomodating row skip)
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),
@@ -1618,6 +1639,8 @@ module top_gati_module #(
       .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
       .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
       .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+      .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+      .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH),
 
       .ELTWISE_FIFO(ELTWISE_FIFO),
       .ELTWISE_FIFO_DEPTH(ELTWISE_FIFO_DEPTH),
@@ -1694,6 +1717,8 @@ module top_gati_module #(
       .image_rden(image_rden),
       .row(row),
 	    .col(col),
+      .real_col(real_col),
+      .real_row(real_row),
       .relu_enable(relu_enable),
       .bias_data_in(bias_data_in),
       .bias_wren(bias_wren),
@@ -1745,7 +1770,9 @@ module top_gati_module #(
       .EltWise_IC(EltWise_IC),
       .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
       .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
-      .EltWise_op_en(valid_ew)
+      .EltWise_op_en(valid_ew),
+      .start_row_skip(start_row_skip),
+      .end_row_skip(end_row_skip)
   );
 
   wire [OP_FIFO-1:0] op_write_fifo_rden;
@@ -1811,12 +1838,14 @@ module top_gati_module #(
   // Iteration counter module
     wire SA_done;
     wire op_fifo_empty;
-    
+    wire [OutputBlock_AccumulantReadFirst_WIDTH-1:0] OutputBlock_AccumulantReadFirst;
+
     assign op_fifo_empty = &(op_dram_fifo_empty);
     
     iteration_cnt #(
         .CITER_CNT_WIDTH(W_CITER_CNT), 
-        .KITER_CNT_WIDTH(W_KITER_CNT)
+        .KITER_CNT_WIDTH(W_KITER_CNT),
+        .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH)
     )
     iteration_counter_inst
     (
@@ -1862,7 +1891,8 @@ module top_gati_module #(
         
         //for io signals
         .kernal_count(kernal_count), // represents the current kernal iteration number 
-        .channel_count(channel_count) // represents the current channel iteration number 
+        .channel_count(channel_count), // represents the current channel iteration number 
+        .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
     );
 
     // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;

@@ -79,6 +79,8 @@ module Top_CONV_FC #(
     parameter CONV_PadRight_WIDTH = 3, // Right padding width
     parameter CONV_PadTop_WIDTH = 3, // Top padding width
     parameter CONV_PadBottom_WIDTH = 3, // Bottom padding width
+    parameter CONV_StartRowSkip_WIDTH = 4, // Start row skip for im2col
+    parameter CONV_EndRowSkip_WIDTH = 4, // End row skip for im2col
     
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
@@ -211,6 +213,8 @@ module Top_CONV_FC #(
     //operator status signals
     output  [$clog2(IMAGE_DIM)-1:0]      row,    
     output  [$clog2(IMAGE_DIM)-1:0]      col,
+    output  [$clog2(IMAGE_DIM)-1:0]      real_row,    
+    output  [$clog2(IMAGE_DIM)-1:0]      real_col,
     output im2col_done,
     output SA_psum_fifo_empty,
     output Tail_done,
@@ -226,7 +230,9 @@ module Top_CONV_FC #(
     output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants,
     output o_image_fifo_almost_empty_flag,
     output o_image_fifo_almost_full_flag,
-    input istolic_stall
+    input istolic_stall ,
+    input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
+    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
 
 );
 
@@ -344,6 +350,8 @@ generate
 endgenerate
 
 
+
+
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(IMAGE_DIM),
                 .LOWER_BOUND(1),
@@ -355,7 +363,9 @@ endgenerate
                 .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
                 .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
                 .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
-                .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH))
+                .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+                .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+                .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH))
 
     im2col_v1 (
       .clk_in(i_clk),
@@ -382,8 +392,11 @@ endgenerate
       .start_SA(start_SA),
       .i_stall_on (stall_on),
       .o_row(row), 
-      .o_col(col)
-
+      .o_col(col),
+      .start_row_skip(start_row_skip),
+      .end_row_skip(end_row_skip),
+      .real_col(real_col),
+      .real_row(real_row)
     ); 
 
 

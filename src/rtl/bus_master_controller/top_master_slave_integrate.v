@@ -55,7 +55,10 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
             parameter BiasWidth_WIDTH = 8,
-            parameter ELTWISE_TYPE_WIDTH = 4
+            parameter ELTWISE_TYPE_WIDTH = 4,
+            parameter CONV_StartRowSkip_WIDTH = 4,
+            parameter CONV_EndRowSkip_WIDTH = 4 ,
+            parameter OutputBlock_AccumulantReadFirst_WIDTH = 1        
             ) 
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
@@ -79,6 +82,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [PAD_RIGHT_WIDTH - 1 : 0] Pad_right,
                 output [PAD_TOP_WIDTH - 1 : 0] Pad_top,
                 output [PAD_BOTTOM_WIDTH - 1 : 0] Pad_bottom,
+                output [CONV_StartRowSkip_WIDTH-1:0] start_row_skip,
+                output [CONV_EndRowSkip_WIDTH-1:0] end_row_skip ,
                 output [CONV_Im2colPrefetch_WIDTH - 1 : 0] CONV_Im2colPrefetch,
                 output [CONV_CHANNELDUPLICATE_WIDTH - 1 : 0] CONV_ChannelDuplicate,
                 output [ADDRESS_WIDTH - 1 : 0] ImageStartAddress_conv,
@@ -142,7 +147,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
                 output [ADDRESS_WIDTH - 1 : 0] LeftOperand_StartAddress,
                 output [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
                 output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
-                output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress
+                output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
+                output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst
     );
 
     `include "../common/instructions.vh"
@@ -186,6 +192,8 @@ OP_CONV #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .PAD_RIGHT_WIDTH(PAD_RIGHT_WIDTH),
 .PAD_TOP_WIDTH(PAD_TOP_WIDTH),
 .PAD_BOTTOM_WIDTH(PAD_BOTTOM_WIDTH),
+.CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+.CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH),
 .ADDRESS_WIDTH(ADDRESS_WIDTH),
 .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
 .CONV_CHANNELDUPLICATE_WIDTH(CONV_CHANNELDUPLICATE_WIDTH)
@@ -212,6 +220,8 @@ OP_CONV(
     .Pad_right(Pad_right),
     .Pad_top(Pad_top),
     .Pad_bottom(Pad_bottom),
+    .start_row_skip(start_row_skip),
+    .end_row_skip(end_row_skip),
     .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
     .CONV_ChannelDuplicate(CONV_ChannelDuplicate),
     .ImageStartAddress(ImageStartAddress_conv),
@@ -270,7 +280,8 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
 .ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
 .OH_WIDTH(OH_WIDTH),
-.OW_WIDTH(OW_WIDTH))
+.OW_WIDTH(OW_WIDTH),
+.OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
     .sel(select_line[`OP_OutputBlock]),
@@ -291,7 +302,8 @@ OP_Outputblock(
     .DispatchEn(DispatchEn),
     .Acc_onchip(Acc_onchip),
     .OB_OH(OB_OH),
-    .OB_OW(OB_OW)
+    .OB_OW(OB_OW),
+    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 

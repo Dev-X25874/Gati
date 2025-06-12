@@ -10,7 +10,9 @@ module top_im2col_v1 #(
     parameter CONV_PadLeft_WIDTH = 3, // Left padding width
     parameter CONV_PadRight_WIDTH = 3, // Right padding width
     parameter CONV_PadTop_WIDTH = 3, // Top padding width
-    parameter CONV_PadBottom_WIDTH = 3)
+    parameter CONV_PadBottom_WIDTH = 3,
+    parameter CONV_StartRowSkip_WIDTH = 4, // Start row skip for im2col
+    parameter CONV_EndRowSkip_WIDTH = 4 ) // End row skip for im2col)
     (
         input                                  clk_in,
         input                                  rstn,
@@ -36,7 +38,12 @@ module top_im2col_v1 #(
         input                                  start_SA,
         input                                  i_stall_on,
         output [$clog2(UPPER_BOUND)-1:0]       o_row,
-        output [$clog2(UPPER_BOUND)-1:0]       o_col
+        output [$clog2(UPPER_BOUND)-1:0]       o_col,
+        output [$clog2(UPPER_BOUND)-1:0]       real_row,
+        output [$clog2(UPPER_BOUND)-1:0]       real_col,
+        input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
+        input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
+            
 
     );
 
@@ -56,6 +63,11 @@ module top_im2col_v1 #(
     assign o_col = w_col;
 
 
+
+
+    wire w_valid_buff;  // this one is pseudo valid buffer signal
+    wire w_im2col_done; // this one is pseudo im2col done signal
+
     index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), 
     .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
     .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
@@ -65,32 +77,66 @@ module top_im2col_v1 #(
         .clk(clk_in),
         .rstn(rstn),
         .i_data(i_data),
-        .i_start_im2col_index(i_start_im2col_index),
+        .i_start_im2col_index(pseudo_im2col_start),
         .i_valid_data(i_valid_data),
         .valid_mat_size(valid_mat_size),
-
-
-
         .pad_left(conv_pad_left),
         .pad_right(conv_pad_right),
         .pad_top(conv_pad_top),
         .pad_bottom(conv_pad_bottom),
 
-        .mat_size_col(i_mat_size_col),
-        .mat_size_row(i_mat_size_row),
+        .mat_size_col(mat_size_col),
+        .mat_size_row(mat_size_row),  // TODO 
         .o_data(data),
         .row(w_row),
         .col(w_col),
-        .o_mat_size_col(mat_size_col),
-        .o_mat_size_row(mat_size_row),
+        .o_mat_size_col(),
+        .o_mat_size_row(),
         .o_valid_data(valid),
-        .o_valid_buff(o_valid_buff),
-        .o_im2col_done(o_im2col_done),
+        .o_valid_buff(w_valid_buff),
+        .o_im2col_done(w_im2col_done),
         .i_stall_on   (i_stall_on),
         .r_start_im2col (r_start_im2col)
     );
 
+
+
+
+
+    wire pseudo_im2col_start;
+        psuedo_index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND),.CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+    .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+    .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+    .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+    .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+    .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH)) 
+    psuedo_dut(
+        .clk(clk_in),
+        .rstn(rstn),
+        .i_start_im2col_index(i_start_im2col_index), 
+        .i_valid_data(i_valid_data),
+        .valid_mat_size(valid_mat_size),
+        .pad_left(conv_pad_left),
+        .pad_right(conv_pad_right),
+        .pad_top(conv_pad_top),
+        .pad_bottom(conv_pad_bottom),
+        .mat_size_col(i_mat_size_col),
+        .mat_size_row(i_mat_size_row),  // TODO 
+        .row(real_row),
+        .col(real_col),
+        .pseudo_mat_size_col(mat_size_col), // 
+        .pseudo_mat_size_row(mat_size_row),  // the row value with the row skip 
+        .o_valid_data(),
+        .o_valid_buff(o_valid_buff),
+        .real_im2col_done(o_im2col_done),
+        .i_stall_on   (i_stall_on),
+        .r_start_im2col (real_start_im2col),
+        .pseudo_im2col_start(pseudo_im2col_start)
+    );
+
+
     wire r_start_im2col;
+    wire real_start_im2col;
 
     bound_generation_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH)) bound_dut(
         .clk(clk_in),
@@ -108,9 +154,9 @@ module top_im2col_v1 #(
         .o_valid(o_valid),
         .i_stall_on(i_stall_on),
         .r_start_im2col(r_start_im2col),
-        .im2col_start(i_start_im2col_index),
+        .im2col_start(pseudo_im2col_start),
         .start_SA(start_SA),
-        .im2col_done(o_im2col_done)
+        .im2col_done(w_im2col_done)
     );
     
     // Delay registers to match the initial delay of stride_block

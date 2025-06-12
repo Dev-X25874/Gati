@@ -40,30 +40,26 @@
 `define CONV_StartRowSkip_WIDTH 4
 `define CONV_EndRowSkip 99:96
 `define CONV_EndRowSkip_WIDTH 4
-// Bit vector where each bit represents a side (left,bottom,rig
-// ht,top) of a feature map that should be padded with 'Pad'
-`define CONV_PadSides 103:100
-`define CONV_PadSides_WIDTH 4
-`define CONV_ImageStartAddress 135:104
+`define CONV_ImageStartAddress 131:100
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 167:136
+`define CONV_ImageEndAddress 163:132
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 199:168
+`define CONV_WeightStartAddress 195:164
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 231:200
+`define CONV_WeightEndAddress 227:196
 `define CONV_WeightEndAddress_WIDTH 32
 // Set if the entire image can be fetched in im2col blocks at o
 // nce
-`define CONV_Im2colPrefetch 232:232
+`define CONV_Im2colPrefetch 228:228
 `define CONV_Im2colPrefetch_WIDTH 1
 // Channel count for weight
-`define CONV_KC 244:233
+`define CONV_KC 240:229
 `define CONV_KC_WIDTH 12
-`define CONV_ConvType 246:245
+`define CONV_ConvType 242:241
 `define CONV_ConvType_WIDTH 2
 // If a regular conv is supposed to be performed on a pointwise
 // -optimal architecture, this flag is set
-`define CONV_ChannelDuplicate 247:247
+`define CONV_ChannelDuplicate 243:243
 `define CONV_ChannelDuplicate_WIDTH 1
 
 `define OP_TailBlock 'h01
@@ -131,43 +127,45 @@
 `define OutputBlock_Opcode_WIDTH 4
 `define OutputBlock_AccumulantAddr 35:4
 `define OutputBlock_AccumulantAddr_WIDTH 32
-`define OutputBlock_OutputAddr 67:36
+`define OutputBlock_AccumulantReadFirst 36:36
+`define OutputBlock_AccumulantReadFirst_WIDTH 1
+`define OutputBlock_OutputAddr 68:37
 `define OutputBlock_OutputAddr_WIDTH 32
-`define OutputBlock_ChannelItr 79:68
+`define OutputBlock_ChannelItr 80:69
 `define OutputBlock_ChannelItr_WIDTH 12
-`define OutputBlock_KernelItr 91:80
+`define OutputBlock_KernelItr 92:81
 `define OutputBlock_KernelItr_WIDTH 12
 // Following the SA, there are tail blocks. Some of the tail bl
 // ocks like maxpool modify the shape of the output, this field
 //  accounts for that. In cases, when shape is not modified, th
 // is field is equal to ImageDimAcc
-`define OutputBlock_ImageDimOutput 107:92
+`define OutputBlock_ImageDimOutput 108:93
 `define OutputBlock_ImageDimOutput_WIDTH 16
 // Output of the conv operation (HxW)
-`define OutputBlock_ImageDimAcc 123:108
+`define OutputBlock_ImageDimAcc 124:109
 `define OutputBlock_ImageDimAcc_WIDTH 16
 // For layer with fewer channels than number of columns in the 
 // systolic array, accumulation of partial sums across iteratio
 // ns is disabled
-`define OutputBlock_AccEn 124:124
+`define OutputBlock_AccEn 125:125
 `define OutputBlock_AccEn_WIDTH 1
 // If this layer's output is supposed to be sent back to the CP
 // U, this flag is set
-`define OutputBlock_DispatchEn 125:125
+`define OutputBlock_DispatchEn 126:126
 `define OutputBlock_DispatchEn_WIDTH 1
 // This is a integrity id that the FPGA should attach to the Ad
 // dr part of the receiving DWP packet.
-`define OutputBlock_DispatchID 157:126
+`define OutputBlock_DispatchID 158:127
 `define OutputBlock_DispatchID_WIDTH 32
 // If output dimensions of a conv operation can fit on the FPGA
 //  output buffers, they should not be sent to the DRAM, all of
 //  the conv can happen on chip saving latency. This flag sets 
 // that bit.
-`define OutputBlock_OnChipAcc 158:158
+`define OutputBlock_OnChipAcc 159:159
 `define OutputBlock_OnChipAcc_WIDTH 1
-`define OutputBlock_OH 168:159
+`define OutputBlock_OH 169:160
 `define OutputBlock_OH_WIDTH 10
-`define OutputBlock_OW 178:169
+`define OutputBlock_OW 179:170
 `define OutputBlock_OW_WIDTH 10
 
 `define OP_FC 'h03

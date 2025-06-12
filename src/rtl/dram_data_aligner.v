@@ -27,8 +27,8 @@ module dram_data_aligner#(
     
     input [ACC_OP_DATAWIDTH-1:0] i_acc_data,
     input [ACC_OP_FIFO-1 : 0] i_acc_data_wren,
-    input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_quant_data,
-    input [QUANT_OP_FIFO-1 : 0] i_quant_data_wren,
+    input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_op_fifo_data,
+    input [QUANT_OP_FIFO-1 : 0] i_op_fifo_wren,
     
     input  [OP_FIFO-1 : 0] i_op_write_dram_fifo_rden,
     input  [OutputBlock_OpWidth_WIDTH-1:0] i_OB_OpWidth,
@@ -101,9 +101,9 @@ module dram_data_aligner#(
     quant_op_fifo_inst (
         .i_clk(i_clk),
         .i_rst(i_rst),
-        .i_data(i_quant_data),
+        .i_data(i_op_fifo_data),
         .i_read_enable(quant_fifo_read_enable),
-        .i_write_enable(i_quant_data_wren),
+        .i_write_enable(i_op_fifo_wren),
         .o_data(quant_op_fifo_data),
         .o_fifo_empty(quant_op_fifo_empty),
         .o_fifo_almost_empty(quant_op_fifo_almost_empty),

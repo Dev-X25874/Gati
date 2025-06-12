@@ -141,6 +141,17 @@ module top_gati_module #(
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
     parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
 
+    //EltWise param
+    parameter ELTWISE_FIFO = AXI_DATA_BYTES/N_SA, // Number of element wise fifos
+    parameter ELTWISE_TYPE_WIDTH = `EltWise_EltType_WIDTH, // Width of the element wise
+    parameter ELTWISE_IW_WIDTH = `EltWise_IW_WIDTH, // Width of the input width
+    parameter ELTWISE_IH_WIDTH = `EltWise_IH_WIDTH, // Width of the input height
+    parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH, // Width of the output width
+
+    //Reshape Transpose parameters
+    parameter RT_BRAM_DEPTH = 512,
+    parameter RT_FIFO_DEPTH = 128,
+
     //Other parameters
     parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
     parameter BIAS_FIFO     = 16, // Number of bias FIFOs
@@ -234,6 +245,13 @@ module top_gati_module #(
     output mc_RightOperand_valid,   
     output [BURST_LENGTH_WIDTH-1 : 0] mc_RightOperand_bl,
     output mc_RightOperand_last,
+
+    ///////////////ReshapeTranspose
+    output [7:0] mc_ReshapeTranspose_addr,
+    output mc_ReshapeTranspose_rdreq, 
+    output mc_ReshapeTranspose_valid,   
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_ReshapeTranspose_bl,
+    output mc_ReshapeTranspose_last,
     
     /////////////output write ctrl
     output [7:0] mc_op_write_addr,
@@ -414,6 +432,14 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] RightOperand_start_address;
   wire [AXI_ADDR_W-1:0] LeftOperand_stop_address;
   wire [AXI_ADDR_W-1:0] RightOperand_stop_address;
+
+  //Reshape Transpose inst. signals
+  wire [OPCODE_WIDTH-1:0] rt_opcode;
+  wire [AXI_ADDR_W-1:0] ReshapeTranspose_start_address;
+  wire [CONV_IH_WIDTH-1:0] ReshapeTranspose_IH;
+  wire [CONV_IW_WIDTH-1:0] ReshapeTranspose_IW;
+  wire [CONV_IC_WIDTH-1:0] ReshapeTranspose_IC;
+  wire
 
   // start and end address signals for memory request controllers
 
@@ -735,6 +761,13 @@ module top_gati_module #(
     .LeftOperand_EndAddress(LeftOperand_stop_address),
     .RightOperand_StartAddress(RightOperand_start_address),
     .RightOperand_EndAddress(RightOperand_stop_address),
+
+    //Reshape Transpose inst. signals
+    .rt_opcode(rt_opcode),
+    .ReshapeTranspose_start_address(ReshapeTranspose_start_address),
+    .ReshapeTranspose_IH(ReshapeTranspose_IH),
+    .ReshapeTranspose_IW(ReshapeTranspose_IW),
+    .ReshapeTranspose_IC(ReshapeTranspose_IC),
 
     //OP block inst. signals
     .opcode_OB(Op_code_OB),
@@ -1804,9 +1837,71 @@ module top_gati_module #(
       .end_row_skip(end_row_skip)
   );
 
+  wire RT_done;
+  wire [QUANT_OP_FIFO-1:0] rt_op_fifo_wren;
+  wire [AXI_DATA_WIDTH-1:0] reshape_transpose_data;
+
+  top_reshape_transpose # (
+    .W_ADDR($clog2(RT_BRAM_DEPTH)),
+    .DATA_WIDTH(DATA_WIDTH),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+    .N_SA(N_SA),
+    .FIFO_DEPTH(RT_FIFO_DEPTH),
+    .W_CITER_CNT(W_CITER_CNT),
+    .BURST_LEN(BURST_LENGTH_WIDTH),
+    .AXI_DATA_BYTES(AXI_DATA_BYTES),
+    .IMG_WIDTH(CONV_IW_WIDTH),
+    .IMG_HEIGHT(CONV_IH_WIDTH),
+    .IMG_CHANNELS(CONV_IC_WIDTH)
+  )
+  top_reshape_transpose_inst (
+    .clk(i_clk),
+    .rst(i_rst),
+    .image_height(ReshapeTranspose_IH),
+    .image_width(ReshapeTranspose_IW),
+    .input_channels(ReshapeTranspose_IC),
+    .channel_iter(channel_iteration),
+    .rd_start(start_RT),
+    .i_select(select[`ReshapeTranspose]),
+    .i_data_last(dram_rd_data_last),
+    .i_data_valid(dram_rd_datavalid),
+    .start_addr_rd_req(ReshapeTranspose_start_address),
+    .i_dram_data_read_requestor(dram_rd_data),
+    .burst_length_read_requestor(mc_ReshapeTranspose_bl),
+    .addr_out_read_requestor(mc_ReshapeTranspose_addr),
+    .op_fifo_data(reshape_transpose_data),
+    .reshape_transpose_done(RT_done),
+    .op_fifo_wr_en(rt_op_fifo_wren),
+    .rw_enable_rd_req(mc_ReshapeTranspose_rdreq),
+    .last_read_requestor(mc_ReshapeTranspose_last),
+    .valid_read_requestor(mc_ReshapeTranspose_valid)
+  );
+
+
+  //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
   wire [OP_FIFO-1:0] op_write_fifo_rden;
   wire [OP_FIFO-1:0] op_dram_rden;
   assign op_write_fifo_rden = op_dram_rden;
+
+  interconnect_dram_data_aligner # (
+    .QUANT_OP_FIFO(QUANT_OP_FIFO),
+    .OPCODE_WIDTH(OPCODE_WIDTH),
+    .AXI_DATA_WIDTH(AXI_DATA_WIDTH)
+  )
+  interconnect_dram_data_aligner_inst (
+    .opcode(opcode),
+    .i_quant_fifo_data(quant_op_write_data),
+    .i_quant_fifo_wren(quant_op_wren),
+    .i_nms_fifo_data(),
+    .i_nms_fifo_wren(),
+    .i_rt_fifo_data(reshape_transpose_data),
+    .i_rt_fifo_wren(rt_op_fifo_wren),
+    .o_op_fifo_data(i_op_fifo_data),
+    .o_op_fifo_wren(i_op_fifo_wren)
+  );
+
+  wire [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_op_fifo_data;
+  wire [QUANT_OP_FIFO-1 : 0] i_op_fifo_wren;
 
   //output block - data write to dram comes from tail blocks (pipelined o/p of mega blocks)
   dram_data_aligner # (
@@ -1830,8 +1925,8 @@ module top_gati_module #(
     .i_Acc_Onchip(Acc_onchip_masked),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
-    .i_quant_data(quant_op_write_data),
-    .i_quant_data_wren(quant_op_wren),   
+    .i_op_fifo_data(i_op_fifo_data),
+    .i_op_fifo_wren(i_op_fifo_wren),   
     .i_op_write_dram_fifo_rden(op_write_fifo_rden),
     .i_last_c_itr(last_c_itr),
     .i_OB_OpWidth(OB_OpWidth),
@@ -1885,18 +1980,19 @@ module top_gati_module #(
     )
     iteration_counter_new_inst
     (
-      .i_clk(i_clk),
-      .rst(i_rst),
-      .i_start(start),
-      .CONV_FC(CONV_FC),
-      .im2col_done(im2col_done), // i-wire : from im2col block
-      .SA_psum_fifo_empty(SA_psum_fifo_empty),
-      .Tail_done(Tail_done),
-      .op_fifo_empty(op_done),
-      .FC_done(FC_done),
-      .EW_done(EW_done),
-      .c_iter(channel_iteration), //channel iteration
-      .k_iter(kernel_iteration), //kernel iteration
+        .i_clk(i_clk),
+        .rst(i_rst),
+        .i_start(start),
+        .CONV_FC(CONV_FC),
+        .im2col_done(im2col_done), // i-wire : from im2col block
+        .SA_psum_fifo_empty(SA_psum_fifo_empty),
+        .Tail_done(Tail_done),
+        .op_fifo_empty(op_done),
+        .FC_done(FC_done),
+        .EW_done(EW_done),
+        .RT_done(RT_done),
+        .c_iter(channel_iteration), //channel iteration
+        .k_iter(kernel_iteration), //kernel iteration
 
       .o_iter_done(iter_done),
       .o_c_done(channel_done),

@@ -12,4 +12,5 @@
 `define MIPI_Rd 9
 `define LeftOperand 10
 `define RightOperand 11
+`define ReshapeTranspose 12
 `endif

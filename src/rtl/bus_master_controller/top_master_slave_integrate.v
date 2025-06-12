@@ -161,7 +161,12 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
     output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst,
-    output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth
+    output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth,
+    output [OPCODE_WIDTH-1:0] rt_opcode,
+    output [AXI_ADDR_W-1:0] ReshapeTranspose_start_address,
+    output [CONV_IH_WIDTH-1:0] ReshapeTranspose_IH,
+    output [CONV_IW_WIDTH-1:0] ReshapeTranspose_IW,
+    output [CONV_IC_WIDTH-1:0] ReshapeTranspose_IC
 );
 
     `include "../common/instructions.vh"
@@ -411,9 +416,31 @@ OP_EltWise(
     .valid(valid[`OP_EltWise]),
     .ready(ready[`OP_EltWise])
     );
-    
 
- 
-    //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
+OP_EltWise # (
+    .OP_CODE_WIDTH(OP_CODE_WIDTH),
+    .CNT(CNT),
+    .INPUT_WIDTH(INPUT_WIDTH),
+    .OUTPUT_WIDTH(OUTPUT_WIDTH),
+    .ADDRESS_WIDTH(ADDRESS_WIDTH),
+    .IW_WIDTH(IW_WIDTH),
+    .IH_WIDTH(IH_WIDTH),
+    .IC_WIDTH(IC_WIDTH)
+  )
+  OP_EltWise_inst (
+    .din(dout_top_master),
+    .sel(select_line[`OP_]),
+    .write(wr),
+    .done(done_top_master),
+    .clk(clk),
+    .opcode(rt_opcode),
+    .ReshapeTranspose_IW(ReshapeTranspose_IW),
+    .ReshapeTranspose_IH(ReshapeTranspose_IH),
+    .ReshapeTranspose_IC(ReshapeTranspose_IC),
+    .ReshapeTranspose_StartAddress(ReshapeTranspose_start_address),
+    .valid(valid[`OP_]),
+    .ready(ready[`OP_])
+  );
+//assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

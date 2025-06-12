@@ -1323,12 +1323,9 @@ module top_gati_module #(
   // Data from DRAM
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_dram;
   wire [ACC_FIFO-1:0] vector_add_wren_dram;
-  // Data from Opwrite_FIFO
-  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] vector_add_values_opfifo;
-  wire [OP_FIFO-1:0] vector_add_wren_opfifo;
-
+  // Data from DRAM_data_aligner
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_opfifo_acc; // accumulant values read from opfifo and write to input accumulant fifo
-  wire [ACC_FIFO-1:0] vector_add_wren_opfifo_acc; // write enable signal for input accumulant fifo
+  wire [ACC_OP_FIFO-1:0] vector_add_wren_opfifo_acc; // write enable signal for input accumulant fifo
 
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values;
   wire [ACC_FIFO-1:0] vector_add_wren;
@@ -1337,11 +1334,12 @@ module top_gati_module #(
 
   /*For writing data to Accumulant FIFOs, there exists two paths:
     1. Data from DRAM (Acc_OnChip = 0)
-    2. Data from OP_FIFO (Acc_OnChip = 1)
-    The data from DRAM/OP_FIFO are written into input accumulant FIFOs in zig-zag fashion
-    depends on the number of SA engines and AXI_DATA_WIDTH.
+    2. Data from DRAM_data_aligner has separate data path (Acc_OnChip = 1)
+    The data from DRAM are written into input accumulant FIFOs in zig-zag fashion
+    depends on the number of SA engines and AXI_DATA_WIDTH when Acc_OnChip = 0.
+    Otherwise, the data from DRAM_data_aligner are written into input accumulant FIFOs continuously.
     
-    The data from DRAM/OP_FIFO are selected through a MUX based on the Acc_OnChip signal.
+    The data from DRAM/DRAM_data_aligner are selected through a MUX based on the Acc_OnChip signal.
   */
 
   wire [AXI_DATA_WIDTH-1:0] acc_dram_data;
@@ -1374,19 +1372,6 @@ module top_gati_module #(
     .o_data(vector_add_values_dram) //o-wire: to vector add fifo blk
   );
 
-  operator_fifo_wren_ctrl #(
-    .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
-    .N_FIFO(ACC_FIFO), //Accumulant FIFOs
-    .DATA_WIDTH(DATA_WIDTH_ACC)
-  ) Write_ctrl_OP_FIFO_to_ACC_FIFO (
-    .i_clk(i_clk),
-    .i_rst(i_rst),
-    .i_dram_data(vector_add_values_opfifo),
-    .i_datavalid_dram_data(&(vector_add_wren_opfifo)),
-    .o_fifo_wren(vector_add_wren_opfifo_acc), //o-wire: to vector add fifo blk
-    .o_data(vector_add_values_opfifo_acc) //o-wire: to vector add fifo blk
-  );
-
   // Mux to select between DRAM and OP_FIFO data for writing into input accumulant FIFOs
   vector_mux_param#(
     .PORT_SIZE(ACC_FIFO*DATA_WIDTH_ACC),
@@ -1401,7 +1386,7 @@ module top_gati_module #(
     .PORT_SIZE(ACC_FIFO),
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
-    .in({vector_add_wren_opfifo_acc,vector_add_wren_dram}),
+    .in({{ACC_FIFO{&vector_add_wren_opfifo_acc}},vector_add_wren_dram}),
     .sel(1<<Acc_onchip),
     .out(vector_add_wren)
   );
@@ -1740,38 +1725,9 @@ module top_gati_module #(
       .EltWise_op_en(valid_ew)
   );
 
-
-  //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
   wire [OP_FIFO-1:0] op_write_fifo_rden;
   wire [OP_FIFO-1:0] op_dram_rden;
-  assign op_write_fifo_rden = (~Acc_onchip)? op_dram_rden : (quant_enable ? op_dram_rden : ((~|(op_dram_fifo_empty)? {OP_FIFO{1'b1}} : 0)));
-  
-  // Demux for separting the op_write fifo out path to DRAM and local ACC_FIFOs
-  wire [(AXI_DATA_WIDTH)-1:0] op_dram_fifo1;
-  wire [OP_FIFO-1:0] op_dram_dv,op_write_fifo_dv;
-  Dmux_param #(
-    .NUM_PORTS(2),
-    .DATA_WIDTH(AXI_DATA_WIDTH),
-    .COL_SA(1)
-  ) Dmux_param_op_fifo_data_inst (
-    .i_din(op_dram_fifo1),
-    .i_datavalid(),
-    .i_sel(Acc_onchip & ~quant_enable),
-    .o_dout({op_dram_fifo,vector_add_values_opfifo}),
-    .o_datavalid()
-  );
-
-  Dmux_param #(
-    .NUM_PORTS(2),
-    .DATA_WIDTH(OP_FIFO),
-    .COL_SA(1)
-  ) Dmux_param_op_fifo_dv_inst (
-    .i_din(op_write_fifo_dv),
-    .i_datavalid(),
-    .i_sel(Acc_onchip & ~quant_enable),
-    .o_dout({op_dram_dv,vector_add_wren_opfifo}),
-    .o_datavalid()
-  );
+  assign op_write_fifo_rden = op_dram_rden;
 
   //output block - data write to dram comes from tail blocks (pipelined o/p of mega blocks)
   dram_data_aligner # (
@@ -1790,6 +1746,7 @@ module top_gati_module #(
     .i_clk(i_clk),
     .i_rst(i_rst&(~iter_done)),
     .i_acc_quant_enable(quant_enable),
+    .i_Acc_Onchip(Acc_onchip),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_quant_data(quant_op_write_data),
@@ -1797,21 +1754,14 @@ module top_gati_module #(
     .i_op_write_dram_fifo_rden(op_write_fifo_rden),
     .o_op_write_dram_fifo_occupants(op_write_dram_fifo_occupants),
     .o_op_write_dram_fifo_empty(op_dram_fifo_empty),
-    .o_op_write_dram_fifo_data(op_dram_fifo1),
+    .o_op_write_dram_fifo_data(op_dram_fifo),
     .o_op_write_dram_fifo_dv(op_write_fifo_dv),
-    .o_op_full(op_full)
+    .o_op_full(op_full),
+    .o_acc_onchip_data(vector_add_values_opfifo_acc),
+    .o_acc_onchip_data_dv(vector_add_wren_opfifo_acc)
   );
 
-  /*
- 	always @ (posedge i_clk) begin 
-		if(op_write_dram_fifo_occupants[$clog2(OP_WRITE_FIFO_DEPTH):0]<(OP_WRITE_FIFO_DEPTH-(16))) begin 
-			op_full<=0;
-		end else begin 
-			op_full<=1;
-		end
-	end
-  */
-  
+  // DRAM write control for OP_FIFO  
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -1827,7 +1777,7 @@ module top_gati_module #(
     .fifo_rd_en(op_dram_rden)
   );
 
-  // assign o_data_last_op_write = data_last_op_write;
+  
  /* Iteration counter module that generates iteration 'done' signals based on the status
     of various operators. Also generates 'enable'signals to various tail blocks
     based on the instruction fields. Also generates 'acc_en' signal that specifies

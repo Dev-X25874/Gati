@@ -20,19 +20,22 @@ module dram_data_aligner#(
     input i_clk,
     input i_rst,
     input i_acc_quant_enable, // 0: acc, 1: quant
-    // input i_op_full,
+    input i_Acc_Onchip,
     output o_op_full,
     
     input [ACC_OP_DATAWIDTH-1:0] i_acc_data,
     input [ACC_OP_FIFO-1 : 0] i_acc_data_wren,
     input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_quant_data,
     input [QUANT_OP_FIFO-1 : 0] i_quant_data_wren,
-
+    
     input [OP_FIFO-1 : 0] i_op_write_dram_fifo_rden,
     output [(($clog2(OP_FIFO_DEPTH)+1)*OP_FIFO)-1:0] o_op_write_dram_fifo_occupants,
     output [OP_FIFO-1 : 0] o_op_write_dram_fifo_empty,
     output [AXI_DATA_WIDTH-1:0] o_op_write_dram_fifo_data,
-    output [OP_FIFO-1 : 0] o_op_write_dram_fifo_dv
+    output [OP_FIFO-1 : 0] o_op_write_dram_fifo_dv,
+
+    output [ACC_OP_DATAWIDTH-1:0] o_acc_onchip_data,
+    output [ACC_OP_FIFO-1:0] o_acc_onchip_data_dv
 );
     
     localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (AXI_DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
@@ -143,6 +146,7 @@ module dram_data_aligner#(
 
         else begin
             reg r_acc_fifo_read_enable;
+            wire [ACC_OP_FIFO-1:0] acc_fifo_read_enable_demux_out;
 
             always@(posedge i_clk) begin
                 if(!i_rst) begin
@@ -154,15 +158,6 @@ module dram_data_aligner#(
                         else if((r_acc_fifo_read_enable) && (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
                         else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
                         else r_acc_fifo_read_enable <= r_acc_fifo_read_enable;
-                        
-                        // if(r_shift_count == SHIFT_COUNT-1) begin
-                        //     if(i_op_full) r_acc_fifo_read_enable <= 0;
-                        //     else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
-                        // end
-                        // else begin
-                        //     if(i_op_full) r_acc_fifo_read_enable <= 0;
-                        //     else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
-                        // end
                     end
                     else begin
                         r_acc_fifo_read_enable <= 0;
@@ -199,8 +194,16 @@ module dram_data_aligner#(
             acc_fifo_read_enable_demux (
                 .i_din(r_acc_fifo_read_enable),
                 .i_sel(r_shift_count),
-                .o_dout(acc_fifo_read_enable)
+                .o_dout(acc_fifo_read_enable_demux_out)
             );
+
+            /*  
+                If i_Acc_Onchip is high, then read all the ACC_OP_FIFOs in same cycle
+                else read only the one which is selected by r_shift_count.
+            */
+            assign acc_fifo_read_enable = (i_Acc_Onchip) ? 
+                                            ((r_acc_fifo_read_enable)? {ACC_OP_FIFO{1'b1}} : {ACC_OP_FIFO{1'b0}}) : 
+                                            acc_fifo_read_enable_demux_out;
         end
     endgenerate
 
@@ -216,8 +219,11 @@ module dram_data_aligner#(
 
     generate
         if(SHIFT_WIDTH==0) begin
-            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : acc_op_fifo_dv;
+            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : ((i_Acc_Onchip)? 0 : (acc_op_fifo_dv));
             assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data;
+
+            assign o_acc_onchip_data = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_data : {ACC_OP_DATAWIDTH{1'b0}};
+            assign o_acc_onchip_data_dv = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_dv : {ACC_OP_FIFO{1'b0}};
         end
         else begin
 
@@ -226,7 +232,7 @@ module dram_data_aligner#(
                     r_shift_count_dv <= 0;
                 end
                 else begin
-                    if(~i_acc_quant_enable) begin
+                    if(~i_acc_quant_enable & ~i_Acc_Onchip) begin
                         if(r_shift_count_dv == SHIFT_COUNT-1) begin
                             if(|(acc_op_fifo_dv)) r_shift_count_dv <= 0;
                         end
@@ -240,8 +246,11 @@ module dram_data_aligner#(
                 end
             end
 
-            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : |(acc_op_fifo_dv);
+            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : ((i_Acc_Onchip)? 0 : |(acc_op_fifo_dv));
             assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data[(AXI_DATA_WIDTH*(ACC_OP_FIFO-r_shift_count_dv)-1) -: AXI_DATA_WIDTH];
+
+            assign o_acc_onchip_data = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_data : {ACC_OP_DATAWIDTH{1'b0}};
+            assign o_acc_onchip_data_dv = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_dv : {ACC_OP_FIFO{1'b0}};
         end
     endgenerate
 

@@ -17,6 +17,7 @@ module sa_engine_dsp#(
 	input stall_on,
 	input psum_full,
     input i_rstn,
+    input i_im2col_start,
     input i_trigger_1,      //trigger from flattening controller, to load weights into PE blocks
     input i_done,           //indicates iteration done flag
     input i_layer_done,     //indicates layer done flag
@@ -66,6 +67,7 @@ weight_fifo_array_rden#(
 )weight_fifo_array_rden_ctrl(
     .i_clk(i_clk),
     .i_rstn(i_rstn),
+    .i_im2col_start(i_im2col_start),
     .i_start(i_trigger_1),
     .i_done(i_done),
     .i_layer_done(i_layer_done),

@@ -415,6 +415,7 @@ endgenerate
       .i_conv_type(conv_type), //input: CONV type (regular 2D, depthwise, pointwise)
       .stall_on(stall_on),
       .istolic_stall(istolic_stall),
+      .i_im2col_start(im2col_global_start),
 	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
       .i_data_weight_ff_sharing(weight_data_sa),
       .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),

@@ -571,7 +571,7 @@ module top_gati_module #(
         .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
         .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
         .im2col_global_start(im2col_global_start),
-        .im2col_done( im2col_done),
+        .im2col_done(im2col_done),
         .SA_done(SA_done),
         .i_clk(i_clk),
         .i_rst(i_rst),

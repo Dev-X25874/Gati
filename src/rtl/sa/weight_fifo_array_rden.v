@@ -16,6 +16,7 @@ module weight_fifo_array_rden#(
 )(
     input i_clk,
     input i_rstn,
+    input i_im2col_start,
     input i_start,
     input i_done,
     input i_layer_done,
@@ -34,14 +35,15 @@ module weight_fifo_array_rden#(
 */
 localparam S_ROW = ROW[W_ADDR:0];
 
-//wire w_start;
-//Generates one pulse from trigger sent externally
-//pulse_gen start_pulse (
-//    .a(i_start),
-//    .i_rstn(i_rstn),
-//    .clk(i_clk),
-//    .b(w_start)
-//);
+reg r_start;
+always @(posedge i_clk) begin
+    if(!i_rstn) r_start <= 0;
+    else begin
+        if(i_start) r_start <= 1;
+        else if(i_done || i_layer_done) r_start <= 0;
+        else r_start <= r_start;
+    end
+end
 
 reg [2:0] state = 0;
 reg [4:0] counter = 0;
@@ -57,14 +59,16 @@ always @(posedge i_clk) begin
     if(~i_rstn)begin
         state <= 0;
         rden <= 0;
+        read_img <= 0;
         sel <= 1;
     end else begin
         case (state)
             0: begin
+                read_img <= 0;
                 if(i_layer_done)begin
                     sel <= 1'b1;
                 end
-				else if (i_start) begin
+				else if (i_im2col_start) begin
 					state<=1;
 				end
 				else begin 
@@ -75,7 +79,7 @@ always @(posedge i_clk) begin
             1: begin
                 //Checking for number of occupants in each fifo in array to be atleast equal to ROW
                 if((i_fifo_empty == 0))begin            //(i_fifo_occupants >= {COL{S_ROW}})
-                    rden <= {{1'b1}};
+                    rden <= 1'b1;
                     state <= 2;
                 end
             end
@@ -86,16 +90,28 @@ always @(posedge i_clk) begin
                     counter <= 0;
                     rden <= 0;
                     sel <= sel;
-                    read_img <= 1'b1;
+                    read_img <= 1'b0;
                 end else begin
                     counter <= counter + 1;
                 end
             end
 
             3: begin
+                if(r_start) begin
+                    read_img <= 1'b1;
+                    rden <= 1'b0;
+                    state <= 4;
+                end else begin
+                    read_img <= 1'b0;
+                    rden <= 1'b0;
+                    state <= 3;
+                end
+            end
+
+            4: begin
                 if(i_done)begin
                     read_img <= 1'b0;
-                   if((COL * N_SA) < N_BRAM_BYTES)
+                    if((COL * N_SA) < N_BRAM_BYTES)
                         sel <= ~sel;
                     else
                         sel <= sel;
@@ -103,17 +119,7 @@ always @(posedge i_clk) begin
                 end
             end
 
-           // 4: begin
-           //     if(i_layer_done)begin
-           //         state <= 0;
-           //         sel <= 1'b1;
-           //     end else begin
-           //         state <= 1;
-           //         sel <= sel;
-           //     end
-           // end
-
-            default: state <= 0;
+           default: state <= 0;
         endcase
     end
 end

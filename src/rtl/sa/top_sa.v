@@ -21,6 +21,7 @@ module top_sa#(
     input [CONV_TYPE_WIDTH-1 : 0] i_conv_type,        //0: regular 2D conv, 1: depthwise, 2: pointwise
     input stall_on,
     input istolic_stall,
+    input i_im2col_start,
 	input i_rstn,
     input i_trigger_1,      //start signal coming from config block
     input i_done,           //indicates completion of an iteration
@@ -90,6 +91,7 @@ if(NSA_DSP == 0)begin
             .i_clk(),
             .s_clk(),
             .i_rstn(),
+            .i_im2col_start(),
             .i_trigger_1(),
             .i_done(),
             .i_layer_done(),
@@ -129,6 +131,7 @@ end
                 .i_clk(i_clk),
                 .s_clk(s_clk),
                 .i_rstn(i_rstn),
+                .i_im2col_start(i_im2col_start),
                 .i_trigger_1(i_trigger_1),
 				.psum_full(p_full_output | istolic_stall),
 				.i_done(i_done),
@@ -170,6 +173,7 @@ generate
                 .s_clk(),
                 .i_rstn(),
                 .i_trigger_1(),
+                .i_im2col_start(),
 				.i_done(),
                 .i_layer_done(),
                 .o_mux_sel(),
@@ -207,6 +211,7 @@ generate
                     .i_clk(i_clk),
                     .s_clk(s_clk),
                     .i_rstn(i_rstn),
+                    .i_im2col_start(i_im2col_start),
                     .i_trigger_1(i_trigger_1),
 					.psum_full( p_full_output | istolic_stall),
 					.i_done(i_done),

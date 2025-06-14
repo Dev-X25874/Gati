@@ -45,7 +45,7 @@ output reg layer_done
 
 //read request controller
 
-reg [2:0] state;
+reg [3:0] state;
 reg [7:0] r_addr;
 reg [ADDR_WIDTH-1:0] r_acc_start_add,r_layer_start_add;
 wire [ADDR_WIDTH-1:0] r_layer_stop_add,r_acc_stop_add;
@@ -58,7 +58,7 @@ reg [1:0] counter;
 
 //reg state1;
 wire data_last;
-reg result_int;
+wire result_int;
 
 assign data_last = i_data_last;
 assign o_address   = r_addr;
@@ -91,10 +91,14 @@ reg [W_CHANNEL_CNT-1:0] c_ctr=0;
 reg [W_KERNEL_CNT-1:0] k_ctr=0;
 integer i;
 
-always@(posedge clkin) begin
-    if(op_done) result_int <= 0;
-    else        result_int <= (occupants >= (r_burst_len + 1))? 1 : 0;
-end
+// always@(posedge clkin) begin
+//     if(op_done) result_int <= 0;
+//     else        result_int <= (occupants >= (r_burst_len + 1))? 1 : 0;
+// end
+
+reg [$clog2(DEPTH) : 0] occupants_reg;
+always@(posedge clkin) occupants_reg <= occupants;
+assign result_int = (occupants_reg >= (r_burst_len + 1))? 1 : 0;
 
 reg r_Tail_done;
 always@(posedge clkin) begin
@@ -128,13 +132,13 @@ always@(posedge clkin) begin
     else begin
         
         case(state)
-            3'd0:begin
+            4'd0:begin
                 //idle state
                 layer_done <= 0;
                 if(i_start) begin
                     layer_done <= 0;
                     op_done <= 0;
-                    state <= 3'd1;
+                    state <= 4'd1;
                     count1 <=  0;
                     count2 <=  0;
                     c_ctr <= 0;
@@ -149,7 +153,7 @@ always@(posedge clkin) begin
                 end
             end
             
-            3'd1:
+            4'd1:
             begin
                 op_done <=  0;
                 if(k_ctr==i_kernel_itr) begin
@@ -192,7 +196,7 @@ always@(posedge clkin) begin
            end
            */ 
            
-            3'd2: begin
+            4'd2: begin
                 
                 if(c_ctr==r_channel_itr-1) begin
                     state <= 3;
@@ -206,7 +210,7 @@ always@(posedge clkin) begin
                 else begin
                     if(Acc_onchip) begin            //Added to skip the DRAM requests if Acc_onchip is enabled.
                         if(r_Tail_done && occupants == 0) 
-                            state <= 7;   //Wait for Tail_done and go to state 7 to update the c_ctr.
+                            state <= 8;   //Wait for Tail_done and go to state 7 to update the c_ctr.
                         else
                             state <= 2;   //If c_ctr reaches c_iter-1 then proceed in usual way of DRAM requests.
                     end
@@ -232,27 +236,31 @@ always@(posedge clkin) begin
                 end
             end
 
-            3'd3: begin
+            4'd3: begin
                 if(c_ctr==r_channel_itr-1) r_burst_len<= r_burst_len2;
                 else r_burst_len <= r_burst_len1;
                 state <= 4;
             end
 
-            3'd4: begin
+            4'd4: begin
+                state <= 5; // wait state to avoid race and settling of result_int
+            end
+
+            4'd5: begin
                 if(result_int)
                 begin
-                  state <= 3'd5;
+                  state <= 4'd6;
                 end
                 else begin
                   wr_req_reg<= 1'b0;
                   r_valid   <= 1'b0;
                   r_addr    <= r_addr;
                   r_last    <= r_last;
-                  state     <= 3'd4;
+                  state     <= 4'd5;
                 end
             end
             
-            3'd5:
+            4'd6:
             begin
             layer_done<=0;
             if(c_ctr==r_channel_itr-1) begin
@@ -264,7 +272,7 @@ always@(posedge clkin) begin
                     counter <= 2'd0;
                     wr_req_reg <= 1'b0;
                     r_addr  <=  r_layer_start_add[7:0];
-                    state        <=  3'd6;  
+                    state        <=  4'd7;  
                     count2 <= count2 + ((r_burst_len+1)<<($clog2(AXI_DATA_BYTES)));
                     // count2 <= count2 + (NUMBER_OP*(r_burst_len+1)); 
                 end
@@ -276,7 +284,7 @@ always@(posedge clkin) begin
                     end
                     counter      <=  counter+1;
                     r_last       <=  0;
-                    state        <=  3'd5;
+                    state        <=  4'd6;
                 end
             end
             
@@ -289,7 +297,7 @@ always@(posedge clkin) begin
                     counter <= 2'd0;
                     wr_req_reg <= 1'b0;
                     r_addr  <=  r_acc_start_add[7:0];
-                    state        <=  3'd6;
+                    state        <=  4'd7;
                     count1 <= count1 + ((r_burst_len+1)<<($clog2(AXI_DATA_BYTES)));  
                     // count1 <= count1 + (NUMBER_ACC*(r_burst_len+1)); 
                 end
@@ -301,12 +309,12 @@ always@(posedge clkin) begin
                     end
                     counter      <=  counter+1;
                     r_last        <=  0;
-                    state        <=  3'd5;
+                    state        <=  4'd6;
                 end
             end
             end
             
-            3'd6:
+            4'd7:
             begin
                 layer_done <= 0;
                 r_last <= 0;
@@ -318,7 +326,7 @@ always@(posedge clkin) begin
                         //r_acc_start_add<=r_acc_start_add+((r_burst_len1+1)<<5);
                         //state <= 4;
                         if(data_last) begin 
-                            state <= 7;
+                            state <= 8;
                             count1 <= 0;
                             // r_acc_start_add<=r_acc_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                         end
@@ -345,7 +353,7 @@ always@(posedge clkin) begin
                     if(count2==offset2) begin
                         //state <= 4;
                         if(data_last) begin 
-                            state <= 7;
+                            state <= 8;
                             r_layer_start_add<=r_layer_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                             count2 <= 0;
                         end
@@ -371,7 +379,7 @@ always@(posedge clkin) begin
                   
             end
             
-            3'd7: begin
+            4'd8: begin
                 r_layer_start_add<=r_layer_start_add;
                 r_layer_next_add <= r_layer_start_add;
                 layer_done <= 0;
@@ -402,7 +410,7 @@ always@(posedge clkin) begin
                 r_addr    <= r_addr;
                 r_last    <= r_last;
                 r_burst_len<= r_burst_len;
-                state     <= 3'd0;
+                state     <= 4'd0;
             end
             
         endcase       

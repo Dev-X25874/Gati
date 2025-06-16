@@ -65,6 +65,16 @@ always @(posedge clkin) begin
   end
 end
 
+// valid_inst from Inst. Queue is latched since valid_inst and acknowledgement signal may arrive at the same clock cycle
+reg valid_inst_flag;
+always @(posedge clkin) begin
+  if(!rst) valid_inst_flag <= 1'b0;
+  else begin
+    if (valid_inst) valid_inst_flag <= 1'b1;
+    else if (valid_inst_flag & (top_state==4'd3) & (valid_ack_reg==0)) valid_inst_flag <= 1'b0;
+  end
+end
+
 always @(*) begin
   f1=((layer_number == total_layers) && (opcode == ALL_ONES))?1:0;
   f2=((status_inst_q & done_flag) || (flag & status_inst_q))?1:0;
@@ -150,14 +160,14 @@ end
             end
             4'd3:
             begin
-              if(valid_inst & f1) begin
-                flag_2 <= flag_2;
+              if(valid_inst_flag & f1) begin
+                flag_2    <= flag_2;
                 top_state <= 4'd0;
               end
-              else if(valid_inst) begin
-                r_opcode<=opcode; //store opcode
-                top_state<=4'd4;
-                flag_2<=1;
+              else if(valid_inst_flag) begin
+                r_opcode  <=  opcode; //store opcode
+                top_state <=  4'd4;
+                flag_2    <=  1;
               end
             end
             4'd4:
@@ -242,7 +252,6 @@ end
                     read_signal_reg<=1'b1;
                     state_start<=4'd2;
                     bus_master_valid<=1'b0;
-
                   end
                   4'd2:
                   begin
@@ -253,6 +262,17 @@ end
                     top_state<=4'd3;
                     psedo_ack_reg<=0;
                     bus_master_valid<=1'b0;
+                    /*
+                    Uncomment this logic if start signal and Inst.queue empty is high in same clock cycle 
+                    if(status_inst_q) begin
+                      read_signal_reg <=  1'b1;
+                      top_state       <=  4'd2;
+                    end
+                    else begin
+                      read_signal_reg <=  1'b0;
+                      top_state       <=  top_state;
+                    end
+                    */
                   end
                 endcase
               end

@@ -13,7 +13,7 @@ module top_gati_module #(
     parameter ACC_OP_FIFO_DEPTH   = 256,
     parameter QUANT_OP_FIFO_DEPTH = 256,
     parameter OP_WRITE_FIFO_DEPTH = 512,
-    parameter ELTWISE_FIFO_DEPTH  = 256,
+    parameter ELTWISE_FIFO_DEPTH  = 512,
 
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN       = 7,
@@ -561,28 +561,29 @@ module top_gati_module #(
   // instantiation of sa_start_stall_ctrler
 
     sa_start_stall_ctrl #(
-        .CONV_IH_WIDTH(CONV_IH_WIDTH),
-        .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
-        .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
-        .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-        .IMAGE_DIM(IMAGE_DIM)
-        )
+      .CONV_IH_WIDTH(CONV_IH_WIDTH),
+      .CONV_PAD_WIDTH(CONV_PAD_WIDTH),
+      .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
+      .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+      .IMAGE_DIM(IMAGE_DIM),
+      .COL_SA(COL_SA)
+    )
     sa_start_stall (
-        .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
-        .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
-        .im2col_global_start(im2col_global_start),
-        .im2col_done(im2col_done),
-        .SA_done(SA_done),
-        .i_clk(i_clk),
-        .i_rst(i_rst),
-        .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
-        .input_img_height(input_img_height),  
-        .conv_zeropad(conv_zeropad),
-        .stride (stride),
-        .istolic_stall(istolic_stall),
-        .row(row),
-        .col(col),
-        .systolic_array_trigger(systolic_array_trigger)
+      .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
+      .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
+      .im2col_global_start(im2col_global_start),
+      .im2col_done(im2col_done),
+      .SA_done(SA_done),
+      .i_clk(i_clk),
+      .i_rst(i_rst),
+      .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
+      .input_img_height(input_img_height),  
+      .conv_zeropad(conv_zeropad),
+      .stride (stride),
+      .istolic_stall(istolic_stall),
+      .row(row),
+      .col(col),
+      .systolic_array_trigger(systolic_array_trigger)
   );
 
   // logic for flattening trigger

@@ -104,9 +104,7 @@ always @(posedge i_clk)begin
             end
             3: begin 
                 o_ack_dram_ctrl <= 0;
-                if(&(occ_threshold)) begin
-                	state <= 4;
-                end
+                state <= 4;
 				if(data_size<(BURST_LEN<<$clog2(AXI_BYTES)) && data_size!=0) begin 
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
@@ -114,7 +112,16 @@ always @(posedge i_clk)begin
 					r_burst_len<=BURST_LEN;
 				end
 			end
-            4: begin 
+            4: begin
+                state <= 5;
+                o_ack_dram_ctrl <= 0;
+            end
+            5: begin
+                if(&(occ_threshold)) begin
+                	state <= 6;
+                end
+            end
+            6: begin 
                 o_ack_dram_ctrl <= 0;
                 burst_len <= r_burst_len;
                 offset <=((burst_len+1)<<$clog2(AXI_BYTES));
@@ -137,10 +144,10 @@ always @(posedge i_clk)begin
                     last <= 1'b0;
                     valid <= 1'b0;
                     req <= 1'b0;
-                    state <= 5;
+                    state <= 7;
                 end
             end
-            5: begin 
+            7: begin 
                 if(data_size != 0 )begin
                     if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1) && (data_size[31]!=1))) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;

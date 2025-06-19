@@ -326,7 +326,7 @@ always@(posedge clkin) begin
                         //r_acc_start_add<=r_acc_start_add+((r_burst_len1+1)<<5);
                         //state <= 4;
                         if(data_last) begin 
-                            state <= 8;
+                            state <= 4'd8;
                             count1 <= 0;
                             // r_acc_start_add<=r_acc_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                         end
@@ -340,7 +340,7 @@ always@(posedge clkin) begin
                         //r_acc_start_add<=r_acc_start_add+((r_burst_len1+1)<<5);
                         //state <= 1;
                         if(data_last) begin 
-                            state <= 1;
+                            state <= 4'd1;
                             r_acc_start_add<=r_acc_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                         end
                         else begin
@@ -353,7 +353,7 @@ always@(posedge clkin) begin
                     if(count2==offset2) begin
                         //state <= 4;
                         if(data_last) begin 
-                            state <= 8;
+                            state <= 4'd8;
                             r_layer_start_add<=r_layer_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                             count2 <= 0;
                         end
@@ -367,7 +367,7 @@ always@(posedge clkin) begin
                         
                         //state <= 1;
                         if(data_last) begin
-                            state <= 1;
+                            state <= 4'd1;
                             r_layer_start_add<=r_layer_start_add+((r_burst_len+1)<<$clog2(AXI_DATA_BYTES));
                         end
                         else begin 
@@ -410,7 +410,7 @@ always@(posedge clkin) begin
                 r_addr    <= r_addr;
                 r_last    <= r_last;
                 r_burst_len<= r_burst_len;
-                state     <= 4'd0;
+                state     <= state;
             end
             
         endcase       

@@ -669,6 +669,7 @@ endgenerate
   Top_element_wise  #(
     .DATA_WIDTH(DATA_WIDTH),   
     .N(N_SA),          
+    .MOD(MOD2),
     .FIFO_NO(ELTWISE_FIFO),       
     .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),

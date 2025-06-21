@@ -28,6 +28,7 @@ module rah_gati #(
     parameter ACC_OP_FIFO_DEPTH   = 256,
     parameter QUANT_OP_FIFO_DEPTH = 256,
     parameter OP_WRITE_FIFO_DEPTH = 512,
+    parameter ELTWISE_FIFO_DEPTH  = 256,
     parameter FPGA2CPU_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
     parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
     
@@ -637,6 +638,7 @@ module rah_gati #(
       .ACC_OP_FIFO_DEPTH(ACC_OP_FIFO_DEPTH),
       .QUANT_OP_FIFO_DEPTH(QUANT_OP_FIFO_DEPTH),
       .OP_WRITE_FIFO_DEPTH(OP_WRITE_FIFO_DEPTH),
+      .ELTWISE_FIFO_DEPTH(ELTWISE_FIFO_DEPTH),
       .CONFIG_REQ_BLEN(CONFIG_REQ_BLEN),
       .IMG_REQ_BLEN(IMG_REQ_BLEN),
       .WEIGHT_REQ_BLEN(WEIGHT_REQ_BLEN),

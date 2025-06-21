@@ -1,6 +1,7 @@
 module EltWise_controller#(
     parameter DATA_WIDTH = 8,
-    parameter N = 4,  
+    parameter N = 4,
+    parameter MOD = 4,
     parameter FIFO_NO = 8,
     parameter I_OP_SIZE_WIDTH = 16,
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
@@ -45,7 +46,8 @@ end
 wire [FIFO_NO-1:0] diff;
 reg [FIFO_NO-1:0] count_diff = 0;
 
-assign diff = (img_dim_Op - r_img_size);
+// assign diff = (img_dim_Op - r_img_size);
+assign diff = (r_img_size % MOD == 0)? 0 : (MOD-(r_img_size % MOD));
 
 wire valid_diff;
 assign valid_diff = (EltWise_op_en && (|(diff)));

@@ -1548,16 +1548,13 @@ module top_gati_module #(
 
   assign fc_kernel_iter = kernel_iteration;
 	wire psum_full;
-<<<<<<< HEAD
   wire  op_full;
-=======
-  reg  op_full=0;
+
   wire  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip;
   wire  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip;
 
 
 
->>>>>>> 3be3498 ( create a psuedo signal to mask row count for accomodating row skip)
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
       .OPCODE_WIDTH(OPCODE_WIDTH),

@@ -266,20 +266,46 @@
 `define EltWise_RightOperandStartAddress_WIDTH 32
 `define EltWise_RightOperandEndAddress 167:136
 `define EltWise_RightOperandEndAddress_WIDTH 32
-`define EltWise_AScale 183:168
-`define EltWise_AScale_WIDTH 16
-`define EltWise_BScale 199:184
-`define EltWise_BScale_WIDTH 16
-`define EltWise_AShift 204:200
+// FixedPoint32 value of a_scale
+`define EltWise_AScale 199:168
+`define EltWise_AScale_WIDTH 32
+// FixedPoint32 value of b_scale
+`define EltWise_BScale 231:200
+`define EltWise_BScale_WIDTH 32
+`define EltWise_AShift 236:232
 `define EltWise_AShift_WIDTH 5
-`define EltWise_BShift 209:205
+`define EltWise_BShift 241:237
 `define EltWise_BShift_WIDTH 5
-`define EltWise_AZeroPoint 217:210
+`define EltWise_AZeroPoint 249:242
 `define EltWise_AZeroPoint_WIDTH 8
-`define EltWise_BZeroPoint 225:218
+`define EltWise_BZeroPoint 257:250
 `define EltWise_BZeroPoint_WIDTH 8
 
-`define ISA_VERSION 6
+`define OP_TRANSPOSE 'h07
+`define TRANSPOSE_Opcode 3:0
+`define TRANSPOSE_Opcode_WIDTH 4
+`define TRANSPOSE_IC 15:4
+`define TRANSPOSE_IC_WIDTH 12
+`define TRANSPOSE_IH 25:16
+`define TRANSPOSE_IH_WIDTH 10
+`define TRANSPOSE_IW 35:26
+`define TRANSPOSE_IW_WIDTH 10
+`define TRANSPOSE_ImageStartAddress 67:36
+`define TRANSPOSE_ImageStartAddress_WIDTH 32
+
+`define OP_RESHAPE 'h06
+`define RESHAPE_Opcode 3:0
+`define RESHAPE_Opcode_WIDTH 4
+`define RESHAPE_IC 15:4
+`define RESHAPE_IC_WIDTH 12
+`define RESHAPE_IH 25:16
+`define RESHAPE_IH_WIDTH 10
+`define RESHAPE_IW 35:26
+`define RESHAPE_IW_WIDTH 10
+`define RESHAPE_ImageStartAddress 67:36
+`define RESHAPE_ImageStartAddress_WIDTH 32
+
+`define ISA_VERSION 7
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00

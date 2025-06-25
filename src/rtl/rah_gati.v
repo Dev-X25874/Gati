@@ -93,7 +93,6 @@ module rah_gati #(
     parameter ROW           = 9,
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
-    parameter IMAGE_DIM     = 2**CONV_IW_WIDTH,
 
     // FC inst. related params
     parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
@@ -687,7 +686,6 @@ module rah_gati #(
       .ROW(ROW),
       .W_PSUM(W_PSUM),
       .DATA_WIDTH_OB(DATA_WIDTH_OB),
-      .IMAGE_DIM(IMAGE_DIM),
       .FC_WEIGHTROW_WIDTH(FC_WEIGHTROW_WIDTH),
       .FC_WEIGHTCOL_WIDTH(FC_WEIGHTCOL_WIDTH),
       .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),

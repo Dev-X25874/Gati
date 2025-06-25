@@ -82,7 +82,6 @@ module top_gati_module #(
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
     parameter DATA_WIDTH_ACC = 32,
-    parameter IMAGE_DIM     = 2**CONV_IW_WIDTH,
 
     // FC inst. related params
     parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
@@ -521,10 +520,12 @@ module top_gati_module #(
   /*This is modified since, CONV_FC gets updated one cycle after recieving 'start' signal
   which causes one cycle delay in generation of 'start_SA' and 'start_FC' signals*/
 
-  wire  [$clog2(IMAGE_DIM)-1:0] row;    
-  wire  [$clog2(IMAGE_DIM)-1:0] col;
-  wire  [$clog2(IMAGE_DIM)-1:0] real_row;    
-  wire  [$clog2(IMAGE_DIM)-1:0] real_col;
+
+   // the real_row and real_col are the counters that are used to calculate full image dimension instead of the row skip one for example if image is 224*224 the real_row and real_col will be till 224 where the row will be 224 - row_skips 
+  wire  [CONV_IH_WIDTH-1:0] row;    
+  wire  [CONV_IW_WIDTH-1:0] col;
+  wire  [CONV_IH_WIDTH-1:0] real_row;  
+  wire  [CONV_IW_WIDTH-1:0] real_col;
 
   
   reg Flattening_trigger=0;
@@ -553,7 +554,7 @@ module top_gati_module #(
         stall_enable <= 1;
       end
       else if((real_row == input_img_height + conv_pad_top)  
-        && (col >= input_img_width + (conv_pad_left - (AXI_DATA_BYTES/N_SA)))) begin 
+        && (real_col >= ((input_img_width + conv_pad_left) - (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
       else begin 
@@ -581,7 +582,7 @@ module top_gati_module #(
 
         .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-        .IMAGE_DIM(IMAGE_DIM)
+        .IMAGE_DIM(CONV_IW_WIDTH)
         )
     sa_start_stall (
         .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),

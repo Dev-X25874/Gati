@@ -35,7 +35,7 @@ module top_gati_module #(
     parameter BURST_LENGTH_WIDTH    = 8,
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS      = 6,                    //FGH
+    parameter NUM_INSTRUCTIONS      = 6,                   
     parameter INST_W                = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     parameter LAYERCNT_WIDTH        = `START_LayerNumber_WIDTH,
@@ -290,7 +290,7 @@ module top_gati_module #(
     
     assign opcode_config = instruction[OPCODE_WIDTH-1:0];
 
-    wire [NUM_INSTRUCTIONS-1:0] start_command;    // FGH 
+    wire [NUM_INSTRUCTIONS-1:0] start_command;    
 
     wire start_out;
     reg start;
@@ -552,8 +552,8 @@ module top_gati_module #(
       if(im2col_global_start) begin
         stall_enable <= 1;
       end
-      else if((real_row == input_img_height + conv_pad_top)) begin 
-        // && (col >= input_img_width - (conv_zeropad + (AXI_DATA_BYTES/N_SA)))) begin 
+      else if((real_row == input_img_height + conv_pad_top)  
+        && (col >= input_img_width + (conv_pad_left - (AXI_DATA_BYTES/N_SA)))) begin 
         stall_enable <= 0;
       end
       else begin 
@@ -577,7 +577,7 @@ module top_gati_module #(
 
     sa_start_stall_ctrl #(
         .CONV_IH_WIDTH(CONV_IH_WIDTH),
-        .CONV_PAD_WIDTH(CONV_PadRight_WIDTH), // temporary
+        .CONV_PAD_WIDTH(CONV_PadRight_WIDTH), 
 
         .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),

@@ -51,8 +51,8 @@ module top_gati_module #(
     parameter CONV_KH_WIDTH     = `CONV_KH_WIDTH,
     parameter CONV_KC_WIDTH     = `CONV_KC_WIDTH,
     parameter CONV_ConvType_WIDTH = `CONV_ConvType_WIDTH,
-    parameter CONV_OW_WIDTH     = `CONV_OW_WIDTH,
-    parameter CONV_OH_WIDTH     = `CONV_OH_WIDTH,
+    parameter OutputBlock_OH_WIDTH = `OutputBlock_OH_WIDTH, // Output block output height
+    parameter OutputBlock_OW_WIDTH = `OutputBlock_OW_WIDTH, // Output block output width
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     
     
@@ -348,8 +348,8 @@ module top_gati_module #(
   wire [OPCODE_WIDTH-1:0] conv_opcode;
   wire [CONV_IW_WIDTH-1 : 0] input_img_width; 
   wire [CONV_IH_WIDTH-1 : 0] input_img_height;
-  wire [CONV_OW_WIDTH-1 : 0] conv_op_width;
-  wire [CONV_OH_WIDTH-1 : 0] conv_op_height; 
+  wire [OutputBlock_OW_WIDTH-1 : 0] op_width;
+  wire [OutputBlock_OH_WIDTH-1 : 0] op_height; 
 
   wire [CONV_KN_WIDTH-1:0] n_kernels;
   wire [CONV_KW_WIDTH-1:0] kernel_width;
@@ -631,8 +631,8 @@ module top_gati_module #(
     .ADDRESS_WIDTH(AXI_ADDR_W),
     .IW_WIDTH(CONV_IW_WIDTH),
     .IH_WIDTH(CONV_IH_WIDTH),
-    .OW_WIDTH(CONV_OW_WIDTH),
-    .OH_WIDTH(CONV_OH_WIDTH),
+    .OW_WIDTH(OutputBlock_OW_WIDTH),
+    .OH_WIDTH(OutputBlock_OH_WIDTH),
     .IC_WIDTH(CONV_IC_WIDTH),
     .KN_WIDTH(CONV_KN_WIDTH),
     .KH_WIDTH(CONV_KH_WIDTH),
@@ -695,8 +695,7 @@ module top_gati_module #(
     .opcode_conv(conv_opcode),
     .IW(input_img_width),
     .IH(input_img_height),
-    .OW(),
-    .OH(),
+
     .IC(),
     .KN(n_kernels),
     .KW(kernel_width),
@@ -755,8 +754,8 @@ module top_gati_module #(
     .DispatchId(dispatch_id),
     .DispatchEn(dispatch_cpu_en),
     .Acc_onchip(Acc_onchip),
-    .OB_OH(conv_op_height),
-    .OB_OW(conv_op_width),
+    .OB_OH(op_height),
+    .OB_OW(op_width),
     .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
 
     //Tail inst. signals
@@ -1573,7 +1572,7 @@ module top_gati_module #(
       .DATA_WIDTH_OB(DATA_WIDTH_OB),
       .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_CONV_IMAGE_DIM(CONV_IW_WIDTH),
-      .W_CONV_OP_IMAGE_DIM(CONV_OW_WIDTH),
+      .W_CONV_OP_IMAGE_DIM(OutputBlock_OW_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .ACC_OP_FIFO(ACC_OP_FIFO),
@@ -1627,8 +1626,8 @@ module top_gati_module #(
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH(CONV_KW_WIDTH),
       .CONV_KH_WIDTH(CONV_KH_WIDTH),
-      .CONV_OH_WIDTH(CONV_OH_WIDTH),
-      .CONV_OW_WIDTH(CONV_OW_WIDTH),
+      .OutputBlock_OH_WIDTH(OutputBlock_OH_WIDTH),
+      .OutputBlock_OW_WIDTH(OutputBlock_OW_WIDTH),
       .CONV_IW_WIDTH(CONV_IW_WIDTH),
       .CONV_IH_WIDTH(CONV_IH_WIDTH),
       
@@ -1687,9 +1686,9 @@ module top_gati_module #(
       //vector addition and tail block signals    
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
-      .maxpool_threshold(conv_op_width), //output matrix width of SA engine
-      .conv_op_height(conv_op_height),
-      .conv_op_width(conv_op_width),
+      .maxpool_threshold(op_width), //output matrix width of SA engine
+      .op_height(op_height),
+      .op_width(op_width),
       .layer_done(layer_done),
       .iteration_Done(iter_done),
       .channel_done(channel_done),

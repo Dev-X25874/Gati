@@ -14,7 +14,6 @@ module Top_CONV_FC #(
     parameter MOD2 = DRAM_BW/N_SA,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
     parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
-    // parameter IMAGE_DIM = 224,
     parameter W_CONV_IMAGE_DIM = 10,
     parameter W_CONV_OP_IMAGE_DIM = 10,
     parameter SHFT_REG_X = DRAM_BW/N_SA,
@@ -211,10 +210,10 @@ module Top_CONV_FC #(
     output [QUANT_OP_FIFO-1:0] quant_op_wren,
     
     //operator status signals
-    output  [$clog2(IMAGE_DIM)-1:0]      row,    
-    output  [$clog2(IMAGE_DIM)-1:0]      col,
-    output  [$clog2(IMAGE_DIM)-1:0]      real_row,    
-    output  [$clog2(IMAGE_DIM)-1:0]      real_col,
+    output  [W_CONV_IMAGE_DIM-1:0]      row,    
+    output  [W_CONV_IMAGE_DIM-1:0]      col,
+    output  [W_CONV_IMAGE_DIM-1:0]      real_row,    
+    output  [W_CONV_IMAGE_DIM-1:0]      real_col,
     output im2col_done,
     output SA_psum_fifo_empty,
     output Tail_done,
@@ -237,7 +236,6 @@ module Top_CONV_FC #(
 );
 
   localparam COL = ((N_SA * COL_SA) > COL_FC) ? (N_SA * COL_SA) : COL_FC;
-  localparam IMAGE_DIM = (2**W_CONV_IMAGE_DIM);
   localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (DRAM_BW*DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
 
   // Generation of local 'rst' signal
@@ -353,7 +351,7 @@ endgenerate
 
 
 // im2col version 1 instance 
-  top_im2col_v1 # (.UPPER_BOUND(IMAGE_DIM),
+  top_im2col_v1 # (.UPPER_BOUND(W_CONV_IMAGE_DIM),
                 .LOWER_BOUND(1),
                 .DATA_WIDTH(DATA_WIDTH),
                 .CONV_KH_WIDTH(CONV_KH_WIDTH),

@@ -12,15 +12,15 @@ module index_coordinate_v1 #(
     input                                   i_start_im2col_index,
     input                                   i_valid_data,
     input                                   clk,
-    output [$clog2(UPPER_BOUND)-1:0]        row,
-    output [$clog2(UPPER_BOUND)-1:0]        col,
+    output [(UPPER_BOUND)-1:0]        row,
+    output [(UPPER_BOUND)-1:0]        col,
     input  [DATA_WIDTH-1:0]                 i_data,
     input                                   rstn,
     output [DATA_WIDTH-1:0]                 o_data,
-    input  [$clog2(UPPER_BOUND)-1:0]        mat_size_col,
-    input  [$clog2(UPPER_BOUND)-1:0]        mat_size_row,
-    output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_col,
-    output [$clog2(UPPER_BOUND)-1:0]        o_mat_size_row,
+    input  [(UPPER_BOUND)-1:0]        mat_size_col,
+    input  [(UPPER_BOUND)-1:0]        mat_size_row,
+    output [(UPPER_BOUND)-1:0]        o_mat_size_col,
+    output [(UPPER_BOUND)-1:0]        o_mat_size_row,
     output         o_valid_buff,                                        
     output         o_valid_data ,                                        
     output    reg o_im2col_done,
@@ -33,11 +33,11 @@ module index_coordinate_v1 #(
 
 );
 
-    reg [$clog2(UPPER_BOUND)-1:0]           curr_row = LOWER_BOUND;
-    reg [$clog2(UPPER_BOUND)-1:0]           curr_col = LOWER_BOUND;
+    reg [(UPPER_BOUND)-1:0]           curr_row = LOWER_BOUND;
+    reg [(UPPER_BOUND)-1:0]           curr_col = LOWER_BOUND;
     reg [DATA_WIDTH-1:0]                    r_data;
-    reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size_col;
-    reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size_row;
+    reg [(UPPER_BOUND)-1:0]           r_mat_size_col;
+    reg [(UPPER_BOUND)-1:0]           r_mat_size_row;
     reg                                     r_valid_buff;
     reg                                     r_valid_data;
 

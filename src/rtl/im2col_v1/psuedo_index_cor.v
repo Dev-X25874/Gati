@@ -14,15 +14,15 @@ module psuedo_index_coordinate_v1 #(
     input                                   i_start_im2col_index,
     input                                   i_valid_data,
     input                                   clk,
-    output [$clog2(UPPER_BOUND)-1:0]        row,
-    output [$clog2(UPPER_BOUND)-1:0]        col,
+    output [(UPPER_BOUND)-1:0]        row,
+    output [(UPPER_BOUND)-1:0]        col,
     input  [CONV_StartRowSkip_WIDTH-1:0]     start_row_skip,
     input  [CONV_EndRowSkip_WIDTH-1:0]     end_row_skip,
     input                                   rstn,
-    input  [$clog2(UPPER_BOUND)-1:0]        mat_size_col,
-    input  [$clog2(UPPER_BOUND)-1:0]        mat_size_row,
-    output [$clog2(UPPER_BOUND)-1:0]        pseudo_mat_size_row,
-    output [$clog2(UPPER_BOUND)-1:0]        pseudo_mat_size_col,
+    input  [(UPPER_BOUND)-1:0]        mat_size_col,
+    input  [(UPPER_BOUND)-1:0]        mat_size_row,
+    output [(UPPER_BOUND)-1:0]        pseudo_mat_size_row,
+    output [(UPPER_BOUND)-1:0]        pseudo_mat_size_col,
 
     output         o_valid_buff,                                        
     output         o_valid_data ,                                        
@@ -37,10 +37,10 @@ module psuedo_index_coordinate_v1 #(
 
 );
 
-    reg [$clog2(UPPER_BOUND)-1:0]           curr_row = LOWER_BOUND;
-    reg [$clog2(UPPER_BOUND)-1:0]           curr_col = LOWER_BOUND;
-    reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size_col;
-    reg [$clog2(UPPER_BOUND)-1:0]           r_mat_size_row;
+    reg [(UPPER_BOUND)-1:0]           curr_row = LOWER_BOUND;
+    reg [(UPPER_BOUND)-1:0]           curr_col = LOWER_BOUND;
+    reg [(UPPER_BOUND)-1:0]           r_mat_size_col;
+    reg [(UPPER_BOUND)-1:0]           r_mat_size_row;
     reg                                     r_valid_buff;
     reg                                     r_valid_data;
 

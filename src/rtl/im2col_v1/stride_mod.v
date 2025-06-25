@@ -5,10 +5,10 @@ module stride_mod_v1 #(
     (
         input clk,
         input rst,
-        input [$clog2(UPPER_BOUND)-1:0] row,
-        input [$clog2(UPPER_BOUND)-1:0] lower_bound_row,
-        input [$clog2(UPPER_BOUND)-1:0] lower_bound_col,
-        input [$clog2(UPPER_BOUND)-1:0] col,
+        input [(UPPER_BOUND)-1:0] row,
+        input [(UPPER_BOUND)-1:0] lower_bound_row,
+        input [(UPPER_BOUND)-1:0] lower_bound_col,
+        input [(UPPER_BOUND)-1:0] col,
         input [STRIDE-1:0] stride,
         output o_mod
     );

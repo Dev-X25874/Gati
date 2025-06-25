@@ -8,8 +8,8 @@ module stride_block_v1 #(
     (
         input clk,
         input rst,
-        input  [$clog2(UPPER_BOUND)-1:0] curr_row,
-        input  [$clog2(UPPER_BOUND)-1:0] curr_col,
+        input  [(UPPER_BOUND)-1:0] curr_row,
+        input  [(UPPER_BOUND)-1:0] curr_col,
         input  [STRIDE-1:0]        stride, 
         input  [CONV_KH_WIDTH-1:0]   kh,
         input  [CONV_KW_WIDTH-1:0]   kw,
@@ -17,8 +17,8 @@ module stride_block_v1 #(
         output [ROW-1:0] valid_stride
     );
 
-    wire [$clog2(UPPER_BOUND)-1:0] row;
-    wire [$clog2(UPPER_BOUND)-1:0] col;
+    wire [(UPPER_BOUND)-1:0] row;
+    wire [(UPPER_BOUND)-1:0] col;
     reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_row = 0;
     reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_col = 0;
     reg                                  bound_gen_done_row = 0; 

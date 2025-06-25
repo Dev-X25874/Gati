@@ -27,8 +27,8 @@ module top_im2col_v1 #(
         input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
         input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
         
-        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_col,
-        input  [$clog2(UPPER_BOUND)-1:0]       i_mat_size_row,
+        input  [(UPPER_BOUND)-1:0]       i_mat_size_col,
+        input  [(UPPER_BOUND)-1:0]       i_mat_size_row,
         output [ROW-1:0]                       valid_sq,           
         output                                 o_valid,
         output [DATA_WIDTH-1:0]                valid_sq_data_o,
@@ -37,10 +37,10 @@ module top_im2col_v1 #(
         output                                 o_im2col_done,
         input                                  start_SA,
         input                                  i_stall_on,
-        output [$clog2(UPPER_BOUND)-1:0]       o_row,
-        output [$clog2(UPPER_BOUND)-1:0]       o_col,
-        output [$clog2(UPPER_BOUND)-1:0]       real_row,
-        output [$clog2(UPPER_BOUND)-1:0]       real_col,
+        output [(UPPER_BOUND)-1:0]       o_row,
+        output [(UPPER_BOUND)-1:0]       o_col,
+        output [(UPPER_BOUND)-1:0]       real_row,
+        output [(UPPER_BOUND)-1:0]       real_col,
         input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
         input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
             
@@ -48,11 +48,11 @@ module top_im2col_v1 #(
     );
 
     wire valid;
-    wire [$clog2(UPPER_BOUND)-1:0] mat_size_col;
-    wire [$clog2(UPPER_BOUND)-1:0] mat_size_row;
+    wire [(UPPER_BOUND)-1:0] mat_size_col;
+    wire [(UPPER_BOUND)-1:0] mat_size_row;
     wire [DATA_WIDTH-1:0] data;
-    wire [$clog2(UPPER_BOUND)-1:0] w_row;
-    wire [$clog2(UPPER_BOUND)-1:0] w_col;
+    wire [(UPPER_BOUND)-1:0] w_row;
+    wire [(UPPER_BOUND)-1:0] w_col;
     wire [DATA_WIDTH-1:0] w_data;
     wire [ROW-1:0] w_valid_sq;
     wire [ROW-1:0] d_valid_sq;

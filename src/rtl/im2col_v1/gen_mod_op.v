@@ -3,8 +3,8 @@ module gen_mod_op_v1 #(
     parameter UPPER_BOUND = 224,
     parameter STRIDE = 3)
     (
-        input [$clog2(UPPER_BOUND)-1:0] crd,
-        input [$clog2(UPPER_BOUND)-1:0] lower_bound,
+        input [(UPPER_BOUND)-1:0] crd,
+        input [(UPPER_BOUND)-1:0] lower_bound,
         input clk,
         input rst,
         input  [$clog2(STRIDE*64):0] theta,
@@ -14,7 +14,7 @@ module gen_mod_op_v1 #(
        
     // wire [DATA_WIDTH-1:0] partial [5:0];
     // wire [9:0]            shift   [5:0];
-    wire [$clog2(UPPER_BOUND)-1:0] diff;
+    wire [(UPPER_BOUND)-1:0] diff;
 
     assign diff = crd - lower_bound;
     

@@ -22,8 +22,8 @@ module sa_start_stall_ctrl #(
   input [CONV_PAD_WIDTH-1:0] conv_zeropad,
   input [CONV_Im2colPrefetch_WIDTH - 1 : 0] CONV_Im2colPrefetch,
   input [CONV_STRIDE_WIDTH-1:0]  stride,
-  input [$clog2(IMAGE_DIM)-1:0]      row,   
-  input [$clog2(IMAGE_DIM)-1:0]      col,
+  input [(IMAGE_DIM)-1:0]      row,   
+  input [(IMAGE_DIM)-1:0]      col,
   
   output reg istolic_stall,
   output reg systolic_array_trigger

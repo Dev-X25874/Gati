@@ -7,14 +7,14 @@ module bound_generation_v1 #(
   parameter ROW = 9)
   (
   input                               i_valid,
-  input  [$clog2(UPPER_BOUND)-1:0]    mat_size_col,
-  input  [$clog2(UPPER_BOUND)-1:0]    mat_size_row,     
+  input  [(UPPER_BOUND)-1:0]    mat_size_col,
+  input  [(UPPER_BOUND)-1:0]    mat_size_row,     
   input                               clk,
   input  [CONV_KH_WIDTH-1:0]          kh,  // Size of the kernel requied for convolution
   input  [CONV_KW_WIDTH-1:0]          kw,
   input                               rstn,
-  input  [$clog2(UPPER_BOUND)-1:0]    curr_row,
-  input  [$clog2(UPPER_BOUND)-1:0]    curr_col,
+  input  [(UPPER_BOUND)-1:0]    curr_row,
+  input  [(UPPER_BOUND)-1:0]    curr_col,
   output [ROW-1:0]                    valid_sq,           
   input  [DATA_WIDTH-1:0]             valid_sq_data_i,   //Input data from the previous block 
   output [DATA_WIDTH-1:0]             valid_sq_data_o,    //Output data
@@ -36,8 +36,8 @@ module bound_generation_v1 #(
   reg                                  bound_gen_done_col = 0;
 
 
-  wire [$clog2(UPPER_BOUND)-1:0]          row ;
-  wire [$clog2(UPPER_BOUND)-1:0]          col ;
+  wire [(UPPER_BOUND)-1:0]          row ;
+  wire [(UPPER_BOUND)-1:0]          col ;
   
   assign row = curr_row;
   assign col = curr_col; 

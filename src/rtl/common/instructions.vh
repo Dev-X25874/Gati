@@ -8,58 +8,52 @@
 // Height of the input image
 `define CONV_IH 23:14
 `define CONV_IH_WIDTH 10
-// Width of the output feature map
-`define CONV_OW 33:24
-`define CONV_OW_WIDTH 10
-// Height of the output feature map
-`define CONV_OH 43:34
-`define CONV_OH_WIDTH 10
 // Channel count for the input
-`define CONV_IC 55:44
+`define CONV_IC 35:24
 `define CONV_IC_WIDTH 12
 // Kernel count for the input
-`define CONV_KN 67:56
+`define CONV_KN 47:36
 `define CONV_KN_WIDTH 12
 // Kernel width
-`define CONV_KW 71:68
+`define CONV_KW 51:48
 `define CONV_KW_WIDTH 4
 // Kernel Height
-`define CONV_KH 75:72
+`define CONV_KH 55:52
 `define CONV_KH_WIDTH 4
-`define CONV_Stride 79:76
+`define CONV_Stride 59:56
 `define CONV_Stride_WIDTH 4
-`define CONV_PadLeft 82:80
+`define CONV_PadLeft 62:60
 `define CONV_PadLeft_WIDTH 3
-`define CONV_PadBottom 85:83
+`define CONV_PadBottom 65:63
 `define CONV_PadBottom_WIDTH 3
-`define CONV_PadRight 88:86
+`define CONV_PadRight 68:66
 `define CONV_PadRight_WIDTH 3
-`define CONV_PadTop 91:89
+`define CONV_PadTop 71:69
 `define CONV_PadTop_WIDTH 3
-`define CONV_StartRowSkip 95:92
+`define CONV_StartRowSkip 75:72
 `define CONV_StartRowSkip_WIDTH 4
-`define CONV_EndRowSkip 99:96
+`define CONV_EndRowSkip 79:76
 `define CONV_EndRowSkip_WIDTH 4
-`define CONV_ImageStartAddress 131:100
+`define CONV_ImageStartAddress 111:80
 `define CONV_ImageStartAddress_WIDTH 32
-`define CONV_ImageEndAddress 163:132
+`define CONV_ImageEndAddress 143:112
 `define CONV_ImageEndAddress_WIDTH 32
-`define CONV_WeightStartAddress 195:164
+`define CONV_WeightStartAddress 175:144
 `define CONV_WeightStartAddress_WIDTH 32
-`define CONV_WeightEndAddress 227:196
+`define CONV_WeightEndAddress 207:176
 `define CONV_WeightEndAddress_WIDTH 32
 // Set if the entire image can be fetched in im2col blocks at o
 // nce
-`define CONV_Im2colPrefetch 228:228
+`define CONV_Im2colPrefetch 208:208
 `define CONV_Im2colPrefetch_WIDTH 1
 // Channel count for weight
-`define CONV_KC 240:229
+`define CONV_KC 220:209
 `define CONV_KC_WIDTH 12
-`define CONV_ConvType 242:241
+`define CONV_ConvType 222:221
 `define CONV_ConvType_WIDTH 2
 // If a regular conv is supposed to be performed on a pointwise
 // -optimal architecture, this flag is set
-`define CONV_ChannelDuplicate 243:243
+`define CONV_ChannelDuplicate 223:223
 `define CONV_ChannelDuplicate_WIDTH 1
 
 `define OP_TailBlock 'h01
@@ -138,7 +132,9 @@
 // Following the SA, there are tail blocks. Some of the tail bl
 // ocks like maxpool modify the shape of the output, this field
 //  accounts for that. In cases, when shape is not modified, th
-// is field is equal to ImageDimAcc
+// is field is equal to ImageDimAcc. Additionally, if FlatContr
+// oller flag is set to 1, this field is the product of ceil_mo
+// d(OC*OH*OW, AXI_WIDTH).
 `define OutputBlock_ImageDimOutput 108:93
 `define OutputBlock_ImageDimOutput_WIDTH 16
 // Output of the conv operation (HxW)
@@ -167,6 +163,10 @@
 `define OutputBlock_OH_WIDTH 10
 `define OutputBlock_OW 179:170
 `define OutputBlock_OW_WIDTH 10
+// If 1, treat outputs from the megablock as flat bytes, not as
+//  aligned bytes with zeros in it
+`define OutputBlock_FlatController 180:180
+`define OutputBlock_FlatController_WIDTH 1
 
 `define OP_FC 'h03
 `define FC_Opcode 3:0
@@ -272,13 +272,9 @@
 // FixedPoint32 value of b_scale
 `define EltWise_BScale 231:200
 `define EltWise_BScale_WIDTH 32
-`define EltWise_AShift 236:232
-`define EltWise_AShift_WIDTH 5
-`define EltWise_BShift 241:237
-`define EltWise_BShift_WIDTH 5
-`define EltWise_AZeroPoint 249:242
+`define EltWise_AZeroPoint 239:232
 `define EltWise_AZeroPoint_WIDTH 8
-`define EltWise_BZeroPoint 257:250
+`define EltWise_BZeroPoint 247:240
 `define EltWise_BZeroPoint_WIDTH 8
 
 `define OP_TRANSPOSE 'h07
@@ -305,7 +301,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 7
+`define ISA_VERSION 8
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define POOL_MAX 'h00

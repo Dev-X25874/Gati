@@ -1,22 +1,20 @@
 `include "common/portid.vh"
 `include "common/instructions.vh"
 module rah_gati #(
-    parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
-   // parameter   NUM_PORTS = 4,                                    // number of ports
-   // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
-    parameter   NO_PORT_WR=2,
-	  parameter   ADDRESS_WIDTH = 32,                               // address width                 
-    parameter   IN_ADDR = 8,                                      // input address width of port controller
+    parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,  //System Clock Period
+    parameter   NO_PORT_WR        = 2,
+	  parameter   ADDRESS_WIDTH     = 32,        // address width                 
+    parameter   IN_ADDR           = 8, // input address width of port controller
     parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001 , 4'b1010 , 4'b1011},   // only use for port controller 
-    parameter   POINTER_COUNT = 10,                               // fifo depth
-    parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
-    parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
-    parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
-    parameter   AXI_ID_BLEN_CON = 8 ,                             // burst length width for AXI
-  //  parameter   AXI_DATA_WIDTH      = 256 ,                       // Axi data width 
-    parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8  ,                                  
-    parameter   ADW_C               = AXI_DATA_WIDTH    ,
+    parameter   POINTER_COUNT      = 10,          // fifo depth
+    parameter   RAM_DEPTH          = (1 << POINTER_COUNT),    // fifo depth
+    parameter   PORT_ID_WIDTH      = 4,    // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
+    parameter   ID_WIDTH            = 8,// ID width after the arbiter module
+    parameter   AXI_ID_BLEN_CON     = 8 ,  // burst length width for AXI
+    parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8,
+    parameter   ADW_C               = AXI_DATA_WIDTH ,
     parameter   ABN_C               = AXI_BYTE_NUMBER ,
+    
     // FIFO Depth varies between operators to avoid overflow and underflow 
     parameter INST_QUEUE_DEPTH    = 512,
     parameter DRAM_IMG_FIFO_DEPTH = 512,
@@ -62,26 +60,7 @@ module rah_gati #(
     parameter NUM_INSTRUCTIONS = 6,
     parameter INST_W = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
-    parameter LAYERCNT_WIDTH = `START_LayerNumber_WIDTH,
-    parameter TOTAL_LAYERCNT_WIDTH = `START_TotalLayers_WIDTH,
-    
-    //CONV Parameters(inst related)
-    parameter OPCODE_WIDTH  = `CONV_Opcode_WIDTH,
-    parameter CONV_IW_WIDTH = `CONV_IW_WIDTH,
-    parameter CONV_IH_WIDTH = `CONV_IH_WIDTH,
-    parameter CONV_IC_WIDTH = `CONV_IC_WIDTH,
-    parameter CONV_KN_WIDTH = `CONV_KN_WIDTH,
-    parameter CONV_KW_WIDTH = `CONV_KW_WIDTH,
-    parameter CONV_KH_WIDTH = `CONV_KH_WIDTH,
-    parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
-    parameter OutputBlock_OW_WIDTH = `OutputBlock_OW_WIDTH,
-    parameter OutputBlock_OH_WIDTH = `OutputBlock_OH_WIDTH,
-    
-    //parameter CONV_PAD_WIDTH = `CONV_Pad_WIDTH,
-    parameter CONV_PadLeft_WIDTH = `CONV_PadLeft_WIDTH,
-    parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
-    parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
-    parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
+
     //SA related param
     parameter POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2,
     parameter NSA_DSP       = 4, 
@@ -94,14 +73,7 @@ module rah_gati #(
     parameter W_PSUM        = 20,
     parameter DATA_WIDTH_OB = 32,
 
-    // FC inst. related params
-    parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
-    parameter FC_WEIGHTCOL_WIDTH    = `FC_WeightCols_WIDTH,
-    parameter FC_IMAGE_ROWS_WIDTH   = `FC_InputRows_WIDTH,
-    parameter FC_DROPOUT_WIDTH      = `FC_DropoutConstant_WIDTH,
-    parameter W_FC_IMAG_DIM         = `FC_ImageDim_WIDTH,
-    parameter W_FC_RW_COUNTER       = `FC_Vec2MatCols_WIDTH, //width of fc r/w address counter
-    parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
+
     // FC Engine related parameters
     parameter ACC_DW            = 32,
     parameter N_BANK            = N_SA,
@@ -124,26 +96,6 @@ module rah_gati #(
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
     parameter N_DMUX_PORTS = 2,
 
-    //Tail block param
-    parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
-    parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
-    parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH,   
-    parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
-    parameter W_QUANT_SCALE     = `TailBlock_QuantScale_WIDTH, 
-    parameter POOL_TYPE_WIDTH   = `TailBlock_PoolType_WIDTH,
-    parameter W_POOL_WIDTH      = `TailBlock_PoolWidth_WIDTH,
-    parameter W_POOL_HEIGHT     = `TailBlock_PoolHeight_WIDTH,
-    parameter W_POOL_STRIDE     = `TailBlock_PoolStride_WIDTH,
-    parameter W_POOL_PAD        = `TailBlock_PoolPadding_WIDTH,
-    parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
-    parameter W_POOL_CEIL       = `TailBlock_PoolCeil_WIDTH,
-    parameter W_POOL_MODCOUNT   = `TailBlock_PoolModCount_WIDTH,
-    parameter BNEN_WIDTH        = `TailBlock_BNEn_WIDTH,
-    parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
-    parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
-    parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
-    parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
-    parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
     
     //Element wise operations param
     parameter EltWise_TYPE_WIDTH = 4,
@@ -659,23 +611,6 @@ module rah_gati #(
       .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
       .INST_W(INST_W),
       .CONFIG_FIFO_OCCUPANCY(CONFIG_FIFO_OCCUPANCY),
-      .LAYERCNT_WIDTH(LAYERCNT_WIDTH),
-      .TOTAL_LAYERCNT_WIDTH(TOTAL_LAYERCNT_WIDTH),
-      .OPCODE_WIDTH(OPCODE_WIDTH),
-      .CONV_IW_WIDTH(CONV_IW_WIDTH),
-      .CONV_IH_WIDTH(CONV_IH_WIDTH),
-      .OutputBlock_OH_WIDTH(OutputBlock_OH_WIDTH),
-      .OutputBlock_OW_WIDTH(OutputBlock_OW_WIDTH),
-      .CONV_IC_WIDTH(CONV_IC_WIDTH),
-      .CONV_KN_WIDTH(CONV_KN_WIDTH),
-      .CONV_KW_WIDTH(CONV_KW_WIDTH),
-      .CONV_KH_WIDTH(CONV_KH_WIDTH),
-      .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-      //.CONV_PAD_WIDTH(CONV_PAD_WIDTH),
-      .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
-      .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
-      .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
-      .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
       .POP_THRESHOLD(POP_THRESHOLD),
       .NSA_DSP(NSA_DSP),
       .NSA_LUT(NSA_LUT),
@@ -685,14 +620,7 @@ module rah_gati #(
       .COL_FC(COL_FC),
       .ROW(ROW),
       .W_PSUM(W_PSUM),
-      .DATA_WIDTH_OB(DATA_WIDTH_OB),
-      .FC_WEIGHTROW_WIDTH(FC_WEIGHTROW_WIDTH),
-      .FC_WEIGHTCOL_WIDTH(FC_WEIGHTCOL_WIDTH),
-      .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),
-      .FC_DROPOUT_WIDTH(FC_DROPOUT_WIDTH),
-      .W_FC_IMAG_DIM(W_FC_IMAG_DIM),
-      .W_FC_RW_COUNTER(W_FC_RW_COUNTER),
-      .FLATTEN_EN_WIDTH(FLATTEN_EN_WIDTH),
+      .DATA_WIDTH_OB(DATA_WIDTH_OB),    
       .ACC_DW(ACC_DW),
       .N_BANK(N_BANK),
       .N_BRAM(N_BRAM),
@@ -711,25 +639,6 @@ module rah_gati #(
       .MOD1(MOD1),
       .MOD2(MOD2),
       .N_DMUX_PORTS(N_DMUX_PORTS),
-      .BNCHANNEL_WIDTH(BNCHANNEL_WIDTH),
-      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
-      .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
-      .W_QUANT_SHIFT(W_QUANT_SHIFT),
-      .W_QUANT_SCALE(W_QUANT_SCALE),
-      .POOL_TYPE_WIDTH(POOL_TYPE_WIDTH),
-      .W_POOL_WIDTH(W_POOL_WIDTH),
-      .W_POOL_HEIGHT(W_POOL_HEIGHT),
-      .W_POOL_STRIDE(W_POOL_STRIDE),
-      .W_POOL_PAD(W_POOL_PAD),
-      .W_POOL_CEIL(W_POOL_CEIL),
-      .W_POOL_MODCOUNT(W_POOL_MODCOUNT),
-      .W_POOL_PADSIDES(W_POOL_PADSIDES),
-      .BNEN_WIDTH(BNEN_WIDTH),
-      .ACTEN_WIDTH(ACTEN_WIDTH),
-      .QUANTEN_WIDTH(QUANTEN_WIDTH),
-      .POOLEN_WIDTH(POOLEN_WIDTH),
-      .BIASEN_WIDTH(BIASEN_WIDTH),
-      .BiasWidth_WIDTH(BiasWidth_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .ACC_OP_FIFO(ACC_OP_FIFO),

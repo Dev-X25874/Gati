@@ -17,7 +17,7 @@ endfunction
 
 function integer get_inst_queue_depth(input integer nsa, input integer col, input integer row);
     if (nsa == 4 && col == 4 && row == 9)      get_inst_queue_depth = 512;
-  else if (nsa == 8 && col == 8 && row == 9)   get_inst_queue_depth = 512;
+  else if (nsa == 8 && col == 8 && row == 9)   get_inst_queue_depth = 256;
   else if (nsa == 16 && col == 1 && row == 16) get_inst_queue_depth = 256;
   else get_inst_queue_depth = 0;
 endfunction
@@ -52,7 +52,7 @@ endfunction
 
 function integer get_eltwise_fifo_depth(input integer nsa, input integer col, input integer row);
   if (nsa == 4 && col == 4 && row == 9)        get_eltwise_fifo_depth = 512;
-  else if (nsa == 8 && col == 8 && row == 9)   get_eltwise_fifo_depth = 512;
+  else if (nsa == 8 && col == 8 && row == 9)   get_eltwise_fifo_depth = 256;
   else if (nsa == 16 && col == 1 && row == 16) get_eltwise_fifo_depth = 256;
   else get_eltwise_fifo_depth = 0;
 endfunction

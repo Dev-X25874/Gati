@@ -3,14 +3,12 @@
 `include "common/arch_functions.vh"
 `include "common/arch_param.vh"
 module rah_gati #(
-    parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,  //System Clock Period
-    parameter   NO_PORT_WR        = 2,
-	  parameter   ADDRESS_WIDTH     = 32,        // address width                 
-    parameter   IN_ADDR           = 8, // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001 , 4'b1010 , 4'b1011},   // only use for port controller 
-    parameter   PORT_ID_WIDTH      = 4,    // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
+    parameter   SYS_CLK_PERIOD      = 32'd85_000_000 ,  //System Clock Period
+    parameter   NO_PORT_WR          = 2,
+	  parameter   ADDRESS_WIDTH       = 32, // address width                 
+    parameter   IN_ADDR             = 8, // input address width of port controller
     parameter   ID_WIDTH            = 8,// ID width after the arbiter module
-    parameter   AXI_ID_BLEN_CON     = 8 ,  // burst length width for AXI
+    parameter   AXI_ID_BLEN_CON     = 8,  // burst length width for AXI
     parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8,
     parameter   ADW_C               = AXI_DATA_WIDTH ,
     parameter   ABN_C               = AXI_BYTE_NUMBER ,
@@ -94,10 +92,9 @@ module rah_gati #(
 	//input start_gpio,	
 
     input [1:0] PllLocked,
-    output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
-    output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output      DdrCtrl_CFG_RST_N , //(O)[Control]DDR Cntrl Reset(Low Active)     
+    output      DdrCtrl_CFG_SEQ_RST, //(O)[Control]DDR Cntrl Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
-  //  output      DdrInitDone           ,
 
     output d_done,
     output  [      7:0] aid     ,
@@ -126,18 +123,19 @@ module rah_gati #(
     input               bvalid  , 
     output              bready  ,
      
-    //io signals
-    output [6:0] kernal_count, // represents the current kernal iteration number 
-    output [6:0] channel_count, // represents the current channel iteration number
-    output soft_start, //user_start from top_gati_module
+    //io signals to board gpio
+    output [6:0] kernal_count,  // current kernal iteration number 
+    output [6:0] channel_count, // current channel iteration number
+    output       soft_start,    //user_start from top_gati_module
     output [3:0] layer_count,
-    output layer_done,
-    output eop
+    output       layer_done,
+    output       eop
 
 );
 
 
-/* ------------------------------------------------------------------*/ 
+/* --------------------- ARCH Related Parameter ----------------------------*/ 
+
 // these parameter are fetched based on the current architecture from arch_param
 // arch realated parametere 
 
@@ -146,6 +144,7 @@ module rah_gati #(
   localparam integer ROW     = `ROW;
 
   // Derived parameters via functions 
+  // TODO : these parameters needs to be formulated based on the architecture and the functions defined in arch_functions.vh for the param be removed
 
   localparam IMG_REQ_BLEN        = get_img_req_blen(N_SA, COL_SA, ROW);
   localparam POINTER_COUNT       = get_pointer_count(N_SA, COL_SA, ROW);
@@ -167,8 +166,7 @@ module rah_gati #(
   localparam NO_PORT_BAC         = get_no_port_bac(N_SA, COL_SA, ROW);
   localparam ACC_TOGGLE          = get_acc_toggle(N_SA, COL_SA, ROW);
 
-  /*-----------------------------------------------------------------*/
-
+  
   // formuled parameters 
   localparam SHFT_REG_X    = AXI_DATA_BYTES/N_SA; // Number of shift register
   localparam MOD2          = AXI_DATA_BYTES/N_SA;
@@ -184,7 +182,39 @@ module rah_gati #(
   localparam NO_PORT_FC        = COL_FC/N_SA; //FC mux size
   localparam NO_PORT_BAFC      = AXI_DATA_BYTES/N_SA ;
 
- 
+  /*-----------------------------------------------------------------*/
+
+
+
+  /*------------------- generate port_ ID ----------------------------*/
+
+  // this logic will generate port ID based on the number of ports using NUM_PORTS parameter and the PORT_ID_WIDTH
+
+  localparam PORT_ID_WIDTH                  = ($clog2(NUM_PORTS));   
+  localparam TOTAL_PORT_WIDTH               = PORT_ID_WIDTH * NUM_PORTS;
+  localparam [TOTAL_PORT_WIDTH-1:0] PORT_ID = generate_port_id(NUM_PORTS, PORT_ID_WIDTH);
+
+  /* --------------- function to generate port ID ------------- */
+
+    function [(TOTAL_PORT_WIDTH)-1:0] generate_port_id;
+    input integer num_port;
+    input integer id_width;
+    integer i;
+    reg [(TOTAL_PORT_WIDTH)-1:0] result;
+    reg [31:0] mask;
+    begin
+      result = 0;
+      mask = (1 << id_width) - 1;  // Create mask based on id_width
+      for (i = 0; i < num_port; i = i + 1) begin
+        result = (result << id_width) | (i & mask);
+      end
+      generate_port_id = result;
+    end
+  endfunction
+
+  /*----------------------------------------------------------*/
+
+  /*------------------------------------------------------------------------*/
 
   wire  [31:0] o_data ;
   assign o_data=data; 
@@ -505,7 +535,8 @@ module rah_gati #(
   //////////////////////////////
 
 
-  ///////////////////////////////Memory Controller /////////////////////////////////
+  /* --------- Memory Controller --------------*/
+
   Top_DRAM_controller # (
     .SYS_CLK_PERIOD(SYS_CLK_PERIOD),
     .NUM_PORTS(NUM_PORTS),
@@ -724,9 +755,9 @@ module rah_gati #(
       .datasize_fpga2cpu(datasize_fpga2cpu),
       .fpga2cpu_start_address(fpga2cpu_start_address),
        
-       //for io signals
-      .kernal_count(kernal_count), // represents the current kernal iteration number 
-      .channel_count(channel_count), // represents the current channel iteration number
+       // io signals to the board gpio 
+      .kernal_count(kernal_count), // current kernal iteration number 
+      .channel_count(channel_count), //current channel iteration number
       .layer_count(layer_count) 
   );
  
@@ -737,7 +768,6 @@ module rah_gati #(
     .ADDR_W(AXI_ADDR_W),
     .DATA_SIZE(2*I_OP_SIZE_WIDTH),
     .ID(DISPATCH_ID_WIDTH),
-    // .W_DATA(W_DATA),
     .W_ADDR($clog2(FPGA2CPU_FIFO_DEPTH)),
     .BURST_LEN(CPU_DISPATCH_REQ_BLEN),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -767,7 +797,6 @@ module rah_gati #(
     .i_data_in(dram_rd_data), 
     .i_data_last(dram_rd_data_last),
     .i_data_valid(dram_rd_datavalid),
-    // .config_done(config_done), // unused
     .mipi_rd_en(mipi_fifo_rd_en), 
     .o_mipi_ready(),
     .mipi_fifo_empty(mipi_fifo_empty),
@@ -775,7 +804,6 @@ module rah_gati #(
     .mipi_rd_fifo_occupants(mipi_rd_fifo_occupants),
     .mipi_fifo_data_out(mipi_fifo_data_out),
     .mipi_fifo_data_valid(mipi_fifo_data_valid),
-
     .o_data_size_rah(data_size_rah),
     .o_valid_data_size_rah(valid_data_size_rah)
   );

@@ -49,24 +49,21 @@ module iteration_cnt_new #(
     input [NUM_INSTRUCTIONS-1:0] valid_opcode
 );
 
-reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
-reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
-reg iter_done;
-reg c_done;
-reg SA_done;
-wire layer_done;
+    reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
+    reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
+    reg iter_done;
+    reg c_done;
+    reg SA_done;
+    wire layer_done;
 
-reg [2:0] state = 0;
+    reg [2:0] state = 0;
 
-reg [NUM_INSTRUCTIONS-1:0] done_reg;
-wire [NUM_INSTRUCTIONS-1:0] done_input;
-
-
+    reg [NUM_INSTRUCTIONS-1:0] done_reg;
+    wire [NUM_INSTRUCTIONS-1:0] done_input;
 
 
-
-
-// assigging hte done_input signals
+// assigging hte done_input signals\
+// To Add new Mega Block, add the corresponding done_input signal here
 
     assign done_input[`OP_CONV] = conv_done;
     assign done_input[`OP_FC] = r_FC_done;
@@ -76,12 +73,12 @@ wire [NUM_INSTRUCTIONS-1:0] done_input;
 
 
  
-assign o_iter_done = iter_done;
-assign o_layer_done = r_layer_done;
-assign o_c_done = c_done;
+    assign o_iter_done = iter_done;
+    assign o_layer_done = r_layer_done;
+    assign o_c_done = c_done;
 
-assign kernal_count =  k_ctr [6:0]; // represents the current kernal iteration number
-assign channel_count =  c_ctr [6:0]; // represents the current channel iteration number
+    assign kernal_count =  k_ctr [6:0]; // represents the current kernal iteration number
+    assign channel_count =  c_ctr [6:0]; // represents the current channel iteration number
 
     reg r_i_start;
     reg r_CONV_FC;
@@ -103,38 +100,12 @@ assign channel_count =  c_ctr [6:0]; // represents the current channel iteration
     reg r_FC_BIAS_EN;
     reg [NUM_INSTRUCTIONS-1:0] r_valid_opcode;
 
-
-
-    // generation of conv DONE signal using SA_done and im2col_done
-/*
-    reg [1:0] conv_done_seen;   
-    wire [1:0] conv_done_in;
-    assign conv_done_in = {r_SA_psum_fifo_empty, r_im2col_done};
-
-    reg conv_done;
-
-    always @(posedge i_clk) begin
-      if (!rst) begin
-        conv_done_seen <= 2'b00;
-        conv_done  <= 1'b0;
-      end
-    else if () begin
-        conv_done_seen <= 2'b00;
-        conv_done  <= 1'b0;
-      end 
-      else begin
-        conv_done_seen <= conv_done_seen | conv_done_in;
-        conv_done  <= &conv_done_seen | (&(conv_done_seen | conv_done_in) & ~&conv_done_seen);
-        if (&conv_done_seen)
-          conv_done_seen <= 2'b00;
-      end
-    end */
-
-
-
     reg conv_done = 0; // conv_done signal to be used in the state machine
     reg [1:0] state_conv_done = 2'b0 ; // state machine to generate conv_done signal usages one cycle after im2col_done and SA_psum_fifo_empty are both high
         // usage gray code to avoid glitches
+
+    // State machine to generate conv_done signal
+    // This state machine waits for im2col_done and SA_psum_fifo_empty to be high Once both are high, it sets conv_done to 1 for one cycle
 
     always @(posedge i_clk) begin
         if(!rst) begin
@@ -173,11 +144,10 @@ assign channel_count =  c_ctr [6:0]; // represents the current channel iteration
     end
 
 
-//reg r_iter_done;
-reg r_layer_done;
-//always@(posedge i_clk) r_iter_done <= iter_done;
+    //reg r_iter_done;
+    reg r_layer_done;
+    //always@(posedge i_clk) r_iter_done <= iter_done;
 	always@(posedge i_clk) begin 
-	//	r_layer_done <= layer_done;
 		r_i_start<=i_start;
 		r_CONV_FC<=CONV_FC;
 		r_im2col_done<=im2col_done;       	
@@ -196,218 +166,211 @@ reg r_layer_done;
 
 
     integer i;
-always@(posedge i_clk) begin
-    if(!rst) begin
-        c_ctr <= 0;
-        k_ctr <= 0;
-        state <= 0;
-		iter_done <= 0;
-        c_done <= 0;
-        SA_done <= 0;
-        r_layer_done <= 0;
-        r_valid_opcode <= 0;
-    end
-    else begin
-        case(state)
-        3'd0:begin
-            if(r_i_start) begin
-                state <= 3'd1;
-                r_c_iter<=c_iter-1;
-		        r_k_iter<=k_iter;
-                r_valid_opcode <= valid_opcode;
-
-            end
-			c_ctr <= 0;
+    always@(posedge i_clk) begin
+        if(!rst) begin
+            c_ctr <= 0;
             k_ctr <= 0;
-			r_layer_done <= 1'b0;
-            done_reg <= 0; //reset done_reg
-        end
-
-        3'd1: begin
+            state <= 0;
+    		iter_done <= 0;
             c_done <= 0;
-            if(r_k_iter==0) state <= 0;
-            else begin
-                if(k_ctr==r_k_iter) begin
-                    k_ctr <= 0;
-                    c_ctr <= 0;
-                    state <= 3'd0;
-                    r_layer_done <= 1'b1;
-                    done_reg <= 0; //reset done_reg
-                    r_valid_opcode <= 0; //reset valid_opcode
-                end 
-
+            SA_done <= 0;
+            r_layer_done <= 0;
+            r_valid_opcode <= 0;
+        end
+        else begin
+            case(state)
+            3'd0:begin
+                if(r_i_start) begin
+                    state <= 3'd1;
+                    r_c_iter<=c_iter-1;
+    		        r_k_iter<=k_iter;
+                    r_valid_opcode <= valid_opcode;
+                
+                end
+    			c_ctr <= 0;
+                k_ctr <= 0;
+    			r_layer_done <= 1'b0;
+                done_reg <= 0; //reset done_reg
+            end
+        
+            3'd1: begin
+                c_done <= 0;
+                if(r_k_iter==0) state <= 0;
                 else begin
-                    if (r_valid_opcode == done_reg) begin 
-                    state <= 3'd2;
-                    iter_done <= 1;
-                    done_reg <= 0; //reset done_reg
+                    if(k_ctr==r_k_iter) begin
+                        k_ctr <= 0;
+                        c_ctr <= 0;
+                        state <= 3'd0;
+                        r_layer_done <= 1'b1;
+                        done_reg <= 0; //reset done_reg
+                        r_valid_opcode <= 0; //reset valid_opcode
                     end 
+                
                     else begin
-                        for (i = 0 ; i < NUM_INSTRUCTIONS ; i = i+1) begin
-                            if (valid_opcode[i]) begin 
-                                if (done_input[i]) done_reg[i] <= 1'b1;
-                                else done_reg[i] <= done_reg[i]; //this should be done reg
-                            end 
+                        if (r_valid_opcode == done_reg) begin 
+                        state <= 3'd2;
+                        iter_done <= 1;
+                        done_reg <= 0; //reset done_reg
                         end 
+                        else begin
+                            for (i = 0 ; i < NUM_INSTRUCTIONS ; i = i+1) begin
+                                if (valid_opcode[i]) begin 
+                                    if (done_input[i]) done_reg[i] <= 1'b1;
+                                    else done_reg[i] <= done_reg[i]; //this should be done reg
+                                end 
+                            end 
+                        end
                     end
                 end
             end
-        end
-           
-        3'd2:begin
-            iter_done <= 0;
-            if(c_ctr==r_c_iter) begin
-                c_done <= 1;
-                k_ctr <= k_ctr + 1;
-                c_ctr <= 0;
+               
+            3'd2:begin
+                iter_done <= 0;
+                if(c_ctr==r_c_iter) begin
+                    c_done <= 1;
+                    k_ctr <= k_ctr + 1;
+                    c_ctr <= 0;
+                end
+                else begin
+                    c_done <= 0;
+                    k_ctr <= k_ctr;
+                    c_ctr <= c_ctr + 1;
+                end
+                state <= 3'd1;
             end
-            else begin
-                c_done <= 0;
-                k_ctr <= k_ctr;
-                c_ctr <= c_ctr + 1;
+        
+            default: begin
+                state <= 3'd0;
             end
-            state <= 3'd1;
+            endcase
         end
-
-        default: begin
-            state <= 3'd0;
-        end
-        endcase
+    
     end
-
-end
- 
+    
 
 
-always@(posedge i_clk) begin
-    if(!rst) begin
-        acc_en  <=  0;
-    end
-    else begin
-        if(r_ACC_EN==0) begin
-            acc_en <= 0;
+    always@(posedge i_clk) begin
+        if(!rst) begin
+            acc_en  <=  0;
         end
         else begin
-            if(c_ctr==0 && OutputBlock_AccumulantReadFirst == 0 ) acc_en <= 0;
-            else         acc_en <= 1;
+            if(r_ACC_EN==0) begin
+                acc_en <= 0;
+            end
+            else begin
+                if(c_ctr==0 && OutputBlock_AccumulantReadFirst == 0 ) acc_en <= 0;
+                else         acc_en <= 1;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        relu_en <= 0;
-    end
-    else begin
-        if(r_RELU_EN==0) begin
+    always@(posedge i_clk)begin
+        if(!rst) begin
             relu_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter) relu_en <= 1;
-            else                relu_en <= 0;
+            if(r_RELU_EN==0) begin
+                relu_en <= 0;
+            end
+            else begin
+                if(c_ctr==r_c_iter) relu_en <= 1;
+                else                relu_en <= 0;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        quant_en <= 0;
-    end
-    else begin
-        if(r_QUANT_EN==0) begin
+    always@(posedge i_clk)begin
+        if(!rst) begin
             quant_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter) quant_en <= 1;
+            if(r_QUANT_EN==0) begin
+                quant_en <= 0;
+            end
+            else begin
+                if(c_ctr==r_c_iter) quant_en <= 1;
 
-            else                quant_en <= 0;
+                else                quant_en <= 0;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        bias_en <= 0;
-    end
-    else begin
-        if(r_BIAS_EN==0) begin
+    always@(posedge i_clk)begin
+        if(!rst) begin
             bias_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter) bias_en <= 1;
-            else                bias_en <= 0;
+            if(r_BIAS_EN==0) begin
+                bias_en <= 0;
+            end
+            else begin
+                if(c_ctr==r_c_iter) bias_en <= 1;
+                else                bias_en <= 0;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        fc_bias_en <= 0;
-    end
-    else begin
-        if(r_FC_BIAS_EN==0) begin
+    always@(posedge i_clk)begin
+        if(!rst) begin
             fc_bias_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter) fc_bias_en <= 1;
-            else                fc_bias_en <= 0;
+            if(r_FC_BIAS_EN==0) begin
+                fc_bias_en <= 0;
+            end
+            else begin
+                if(c_ctr==r_c_iter) fc_bias_en <= 1;
+                else                fc_bias_en <= 0;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        pool_en <= 0;
-    end
-    else begin
-        if(r_POOL_EN==0) begin
+    always@(posedge i_clk)begin
+        if(!rst) begin
             pool_en <= 0;
         end
         else begin
-            if(c_ctr==r_c_iter) pool_en <= 1;
-            else                pool_en <= 0;
+            if(r_POOL_EN==0) begin
+                pool_en <= 0;
+            end
+            else begin
+                if(c_ctr==r_c_iter) pool_en <= 1;
+                else                pool_en <= 0;
+            end
         end
     end
-end
 
-always@(posedge i_clk)begin
-    if(!rst) begin
-        en <= 0;
+    always@(posedge i_clk)begin
+        if(!rst) begin
+            en <= 0;
+        end
+        else begin
+            if(c_ctr==r_c_iter) en <= 1;
+            else                en <= 0;
+        end
     end
-    else begin
-        if(c_ctr==r_c_iter) en <= 1;
-        else                en <= 0;
-    end
-end
 
 
-/*
-generate
-  for (j = 0; j < NUM_INSTRUCTIONS; j = j + 1) begin : gen_ack_assign
-    assign ack_opcode[j] = ((c_ctr == r_c_iter) && (k_ctr == r_k_iter -1)) ? done_reg[j] : 1'b0;
-  end
-endgenerate
-*/
-integer j;
-reg [NUM_INSTRUCTIONS-1:0] prev_done;
+    integer j;
+    reg [NUM_INSTRUCTIONS-1:0] prev_done;
 
-always @(posedge i_clk ) begin
-  if (!rst) begin
-    prev_done   <= 0;
-    ack_opcode  <= 0;
-  end else begin
-    for (j = 0; j < NUM_INSTRUCTIONS; j = j+1) begin
-      prev_done[j]  <= done_reg[j];
-      
-      // generate one-cycle ack only on rising edge
-      if ((c_ctr == r_c_iter) && (k_ctr == r_k_iter - 1)) begin
-        ack_opcode[j] <= done_reg[j] & ~prev_done[j];
+    always @(posedge i_clk ) begin
+      if (!rst) begin
+        prev_done   <= 0;
+        ack_opcode  <= 0;
       end else begin
-        ack_opcode[j] <= 0;
+        for (j = 0; j < NUM_INSTRUCTIONS; j = j+1) begin
+          prev_done[j]  <= done_reg[j];
+        
+          // generate one-cycle ack only on rising edge
+          if ((c_ctr == r_c_iter) && (k_ctr == r_k_iter - 1)) begin
+            ack_opcode[j] <= done_reg[j] & ~prev_done[j];
+          end else begin
+            ack_opcode[j] <= 0;
+          end
+        end
       end
     end
-  end
-end
 
 
 endmodule

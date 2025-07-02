@@ -1,7 +1,5 @@
 `include "../common/instructions.vh"
 
-
-
 module mega_block_start_ctrl #(
     parameter NUM_INSTRUCTIONS = 4
 ) (
@@ -29,6 +27,8 @@ module mega_block_start_ctrl #(
         end
     end 
 
+    /* delayed version of start_command to snch the start signal*/ 
+    
     always @(posedge i_clk)begin
         if (!i_rst) begin
             start_block <= 0;
@@ -37,10 +37,5 @@ module mega_block_start_ctrl #(
             start_block <= start_command;
         end
     end 
-
-
-
-
-
 
 endmodule

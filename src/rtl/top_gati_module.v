@@ -332,7 +332,7 @@ module top_gati_module #(
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),
       .mem_burst_len(mc_config_bl),
-      .ack_signals(ack_signals),
+      .ack_signals(ack_opcode),
       .start_command(start_command),
       .start_out(start_out), //o-wire: start signal to the operators 
       .done(|(valid_inst)), //i-wire: from bus master
@@ -430,85 +430,44 @@ module top_gati_module #(
   reg valid_conv, valid_fc, valid_ew;
 
   // Valid signal genration for CONV
-  always@(posedge i_clk) begin
-    if(!i_rst) begin
-        valid_conv <= 0;
-    end 
-    else begin
-        if(valid_inst[`OP_CONV])
-            valid_conv <= 1'b1;
-        else if(Conv_Ack)
-            valid_conv <= 1'b0;
-    end
-  end
   
-  // Valid signal genration for FC 
-  always@(posedge i_clk) begin
-    if(!i_rst) begin
-        valid_fc <= 0;
-    end 
-    else begin
-        if(valid_inst[`OP_FC])
-            valid_fc <= 1'b1;
-        else if(FC_Ack)
-            valid_fc <= 1'b0;
-    end
-  end
-
-  // Valid signal genration for EltWise 
-  always@(posedge i_clk) begin
-    if(!i_rst) begin
-        valid_ew <= 0;
-    end 
-    else begin
-        if(valid_inst[`OP_EltWise])
-            valid_ew <= 1'b1;
-        else if(EltWise_Ack)
-            valid_ew <= 1'b0;
-    end
-  end
 
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  reg start_SA,start_FC,start_EW;
-//   assign valid_conv = valid_inst[`OP_CONV];
-//   assign valid_fc   = valid_inst[`OP_FC];
+  wire start_SA,start_FC,start_EW;
+  wire [NUM_INSTRUCTIONS-1:0] start_block; 
+
+  assign start_SA = start_block[`OP_CONV];
+  assign start_FC = start_block[`OP_FC];
+  assign start_EW = start_block[`OP_EltWise];
 
   //Generation of CONV_FC signal
   always@(posedge i_clk) begin
     if(!i_rst) begin
         valid_inst_CONV_FC <= 0;
         CONV_FC <= 0;
-        start_SA <= 0;
-        start_FC <= 0;
-        start_EW <= 0;
     end
     else begin
-        if(valid_conv & start_out) begin
+        if(start_command[`OP_CONV]) begin
           opcode <= conv_opcode;
           valid_inst_CONV_FC <= 1;
           CONV_FC <= 0;
-          start_SA <= 1;
         end
-        else if(valid_fc & start_out) begin
+        else if(start_command[`OP_FC]) begin
           opcode <= fc_opcode;
           valid_inst_CONV_FC <= 1;
           CONV_FC <= 1;
-          start_FC <= 1;
         end
-        else if(valid_ew & start_out) begin
+        else if(start_command[`OP_EltWise]) begin
           valid_inst_CONV_FC <= 0;
           opcode <= ew_opcode;
-          start_EW <= 1; 
+
         end
         else begin
           opcode <= opcode;
           valid_inst_CONV_FC <= valid_inst_CONV_FC;
           CONV_FC <= CONV_FC;
-          start_SA <= 0;
-          start_FC <= 0;
-          start_EW <= 0; 
         end
     end
   end
@@ -821,7 +780,7 @@ module top_gati_module #(
       .iter_done(iter_done),
       .c_done(channel_done),
       .conv_type(conv_type),
-      .conv_ack(Conv_Ack),
+      .conv_ack(ack_opcode[`OP_CONV]),
       .dup_flag(CONV_ChannelDuplicate),
       .img_rd_done(img_read_done),
 
@@ -1708,7 +1667,7 @@ module top_gati_module #(
 
       .image_width(input_img_width),
       .image_height(input_img_height),
-      .valid_img_size_im2col(valid_conv), //valid inst conv
+      .valid_img_size_im2col(valid_opcode[`OP_CONV]), //valid inst conv
       .im2col_global_start(im2col_global_start),
       .img_read_done(img_read_done),
       .image_rden(image_rden),
@@ -1767,7 +1726,7 @@ module top_gati_module #(
       .EltWise_IC(EltWise_IC),
       .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
       .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
-      .EltWise_op_en(valid_ew),
+      .EltWise_op_en(valid_opcode[`OP_EltWise]),
       .start_row_skip(start_row_skip),
       .end_row_skip(end_row_skip)
   );
@@ -1839,12 +1798,18 @@ module top_gati_module #(
 
     assign op_fifo_empty = &(op_dram_fifo_empty);
     
-    iteration_cnt #(
+    // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;
+    //o_done_rden_ctrl from flattening indicates data read from BRAM for k_iter times
+    assign FC_Ack = FC_layerdone;  
+
+  // iteration counter new 
+    iteration_cnt_new #(
         .CITER_CNT_WIDTH(W_CITER_CNT), 
         .KITER_CNT_WIDTH(W_KITER_CNT),
-        .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH)
+        .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
+        .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS)
     )
-    iteration_counter_inst
+    iteration_counter_new_inst
     (
         .i_clk(i_clk),
         .rst(i_rst),
@@ -1862,7 +1827,6 @@ module top_gati_module #(
         .o_iter_done(iter_done),
         .o_c_done(channel_done),
         .o_layer_done(layer_done),
-        .o_SA_done(SA_done), 
 
         .BIAS_EN(Bias_En),
         .RELU_EN(ACT_EN),
@@ -1878,23 +1842,30 @@ module top_gati_module #(
         .fc_bias_en(bias_fc_enable), 
         .pool_en(maxpool_enable),
         .en(shift_reg_en),
-
-        //Ack signals to config blk.
-        .Conv_Ack(Conv_Ack),
-        .OpBlock_Ack(OpBlock_Ack),
-        .Tail_Ack(Tail_Ack),
-        .EltWise_Ack(EltWise_Ack),
-        //.FC_Ack(FC_Ack)
-        
         //for io signals
         .kernal_count(kernal_count), // represents the current kernal iteration number 
         .channel_count(channel_count), // represents the current channel iteration number 
-        .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
+        .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
+        .ack_opcode(ack_opcode),
+        .valid_opcode(valid_opcode)
     );
+   
+  wire [NUM_INSTRUCTIONS-1:0] ack_opcode;
+  wire [NUM_INSTRUCTIONS-1:0] valid_opcode;
 
-    // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;
-    //o_done_rden_ctrl from flattening indicates data read from BRAM for k_iter times
-    assign FC_Ack = FC_layerdone;  
+  mega_block_start_ctrl # (.NUM_INSTRUCTIONS(NUM_INSTRUCTIONS))
+  mega_block_start_ctrl_duu (.start_command(start_command),
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .start_out(start),
+    .ack_opcode(ack_opcode),
+    .valid_opcode(valid_opcode),
+    .start_block(start_block));
+
+
+
+
+
 
 /* 
     im2col needs start in each iteration.
@@ -1927,7 +1898,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) debug_counter <= 0;
     else begin
-      if(OpBlock_Ack) debug_counter <= 0;
+      if(layer_done) debug_counter <= 0;
       else if(start_en) debug_counter <= debug_counter + 1;
       else debug_counter <= debug_counter;
     end
@@ -1949,7 +1920,7 @@ module top_gati_module #(
     if(!i_rst) start_en <= 0;
     else begin
       if(start) start_en <= 1;
-      else if(OpBlock_Ack) start_en <= 0;
+      else if(layer_done) start_en <= 0;
       else start_en <= start_en;
     end
   end
@@ -1960,7 +1931,7 @@ module top_gati_module #(
     else begin
       if(layer_cntr==63) layer_cntr <= 0;
       else begin
-        if(OpBlock_Ack) layer_cntr <= layer_cntr + 1;
+        if(layer_done) layer_cntr <= layer_cntr + 1;
       end
     end
   end

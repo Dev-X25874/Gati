@@ -27,7 +27,7 @@ module top_gati_module #(
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter ELEMENT_REQ_BLEN      = 15,
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 10, //Number of read and write requestors
+    parameter NUM_PORTS = 13, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH        = 256,
@@ -36,7 +36,7 @@ module top_gati_module #(
     parameter BURST_LENGTH_WIDTH    = 8,
    
     //Config blk param
-    parameter NUM_INSTRUCTIONS      = 6,                   
+    parameter NUM_INSTRUCTIONS      = 8,                   
     parameter INST_W                = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     parameter LAYERCNT_WIDTH        = `START_LayerNumber_WIDTH,
@@ -114,6 +114,7 @@ module top_gati_module #(
 
     parameter OutputBlock_AccumulantReadFirst_WIDTH = `OutputBlock_AccumulantReadFirst_WIDTH, // Output block accumulant read first
     parameter OutputBlock_OpWidth_WIDTH = `OutputBlock_OpWidth_WIDTH,
+    parameter OutputBlock_FlatController_WIDTH = `OutputBlock_FlatController_WIDTH,
     parameter MOD1 = 1,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
     parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
@@ -151,6 +152,9 @@ module top_gati_module #(
     //Reshape Transpose parameters
     parameter RT_BRAM_DEPTH = 512,
     parameter RT_FIFO_DEPTH = 128,
+    parameter TRANSPOSE_IC_WIDTH = `TRANSPOSE_IC_WIDTH,
+    parameter TRANSPOSE_IH_WIDTH = `TRANSPOSE_IH_WIDTH,
+    parameter TRANSPOSE_IW_WIDTH = `TRANSPOSE_IW_WIDTH,
 
     //Other parameters
     parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
@@ -400,6 +404,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] acc_stop_address;
   wire [AXI_ADDR_W-1:0] op_start_address;
   wire [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip;
+  wire [OutputBlock_FlatController_WIDTH-1:0] OutputBlock_FlatController;
 
   //Tail inst. signals
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
@@ -436,10 +441,9 @@ module top_gati_module #(
   //Reshape Transpose inst. signals
   wire [OPCODE_WIDTH-1:0] rt_opcode;
   wire [AXI_ADDR_W-1:0] ReshapeTranspose_start_address;
-  wire [CONV_IH_WIDTH-1:0] ReshapeTranspose_IH;
-  wire [CONV_IW_WIDTH-1:0] ReshapeTranspose_IW;
-  wire [CONV_IC_WIDTH-1:0] ReshapeTranspose_IC;
-  wire
+  wire [TRANSPOSE_IH_WIDTH-1:0] ReshapeTranspose_IH;
+  wire [TRANSPOSE_IW_WIDTH-1:0] ReshapeTranspose_IW;
+  wire [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC;
 
   // start and end address signals for memory request controllers
 
@@ -696,7 +700,11 @@ module top_gati_module #(
     .BiasWidth_WIDTH(BiasWidth_WIDTH),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
-    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
+    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH)
+    .TRANSPOSE_IC_WIDTH(TRANSPOSE_IC_WIDTH),
+    .TRANSPOSE_IH_WIDTH(TRANSPOSE_IH_WIDTH),
+    .TRANSPOSE_IW_WIDTH(TRANSPOSE_IW_WIDTH),
+    .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
     .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
     .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
   )
@@ -784,6 +792,7 @@ module top_gati_module #(
     .OB_OH(op_height),
     .OB_OW(op_width),
     .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
+    .OutputBlock_FlatController(OutputBlock_FlatController),
 
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
@@ -1055,6 +1064,7 @@ module top_gati_module #(
     .ADDR_WIDTH(AXI_ADDR_W),
     .W_KERNEL_CNT(W_KITER_CNT),
     .W_CHANNEL_CNT(W_CITER_CNT),
+    .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
     .IMAGE_DIM_WIDTH_ACC(I_ACC_SIZE_WIDTH),
     .IMAGE_DIM_WIDTH_OP(I_OP_SIZE_WIDTH),
     .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH) 
@@ -1070,6 +1080,7 @@ module top_gati_module #(
     .i_kernel_itr(kernel_iteration),
     .i_imag_dim(img_dim_Acc),
     .i_imag_dim_2(img_dim_Op), //i-wire: above four from inst.
+    .OutputBlock_FlatController(OutputBlock_FlatController),
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
     .acc_en(vector_add_enable),
     .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
@@ -1850,9 +1861,9 @@ module top_gati_module #(
     .W_CITER_CNT(W_CITER_CNT),
     .BURST_LEN(BURST_LENGTH_WIDTH),
     .AXI_DATA_BYTES(AXI_DATA_BYTES),
-    .IMG_WIDTH(CONV_IW_WIDTH),
-    .IMG_HEIGHT(CONV_IH_WIDTH),
-    .IMG_CHANNELS(CONV_IC_WIDTH)
+    .IMG_WIDTH(TRANSPOSE_IW_WIDTH),
+    .IMG_HEIGHT(TRANSPOSE_IH_WIDTH),
+    .IMG_CHANNELS(TRANSPOSE_IC_WIDTH)
   )
   top_reshape_transpose_inst (
     .clk(i_clk),
@@ -1860,7 +1871,6 @@ module top_gati_module #(
     .image_height(ReshapeTranspose_IH),
     .image_width(ReshapeTranspose_IW),
     .input_channels(ReshapeTranspose_IC),
-    .channel_iter(channel_iteration),
     .rd_start(start_RT),
     .i_select(select[`ReshapeTranspose]),
     .i_data_last(dram_rd_data_last),
@@ -1892,16 +1902,20 @@ module top_gati_module #(
     .opcode(opcode),
     .i_quant_fifo_data(quant_op_write_data),
     .i_quant_fifo_wren(quant_op_wren),
-    .i_nms_fifo_data(),
-    .i_nms_fifo_wren(),
+    .i_nms_fifo_data(0),
+    .i_nms_fifo_wren(0),
+    .i_shift_reg_enable(shift_reg_en),
+    .i_acc_quant_enable(quant_enable),
     .i_rt_fifo_data(reshape_transpose_data),
     .i_rt_fifo_wren(rt_op_fifo_wren),
+    .o_op_fifo_enable(i_op_fifo_enable),
     .o_op_fifo_data(i_op_fifo_data),
     .o_op_fifo_wren(i_op_fifo_wren)
   );
 
   wire [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_op_fifo_data;
   wire [QUANT_OP_FIFO-1 : 0] i_op_fifo_wren;
+  wire i_op_fifo_enable;
 
   //output block - data write to dram comes from tail blocks (pipelined o/p of mega blocks)
   dram_data_aligner # (
@@ -1921,8 +1935,8 @@ module top_gati_module #(
     .i_clk(i_clk),
     .i_rst(i_rst&(~iter_done)),
     .i_start(start),
-    .i_acc_quant_enable(quant_enable),
     .i_Acc_Onchip(Acc_onchip_masked),
+    .i_acc_quant_enable(i_op_fifo_enable),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_op_fifo_data(i_op_fifo_data),
@@ -2104,7 +2118,7 @@ module top_gati_module #(
   assign layer_debug_pin = (layer_cntr==4)? 1 : 0;
 
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
-  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA*OB_OpWidth;
+  assign datasize_fpga2cpu = (OutputBlock_FlatController)? img_dim_Op : ((CONV_FC)? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA*OB_OpWidth);
   assign fpga2cpu_start_address = op_start_address;
 
   

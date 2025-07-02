@@ -65,11 +65,15 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter ELTWISE_SCALE_WIDTH = 32,
     parameter ELTWISE_ZEROPOINT_WIDTH = 8,
     parameter CONV_StartRowSkip_WIDTH = 4,
-    parameter CONV_EndRowSkip_WIDTH = 4 ,
-    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,        
-    parameter OutputBlock_OpWidth_WIDTH = 3  
-)      
-    (
+    parameter CONV_EndRowSkip_WIDTH = 4,
+    parameter TRANSPOSE_IC_WIDTH = 12,
+    parameter TRANSPOSE_IH_WIDTH = 12,
+    parameter TRANSPOSE_IW_WIDTH = 12,
+    parameter OutputBlock_FlatController_WIDTH = 1,
+    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,
+    parameter OutputBlock_OpWidth_WIDTH = 3      
+) 
+(
     input [(INPUT_WIDTH)-1 : 0] din,
     input start,
     input clk,
@@ -161,12 +165,13 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
     output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst,
+    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController,
     output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth,
-    output [OPCODE_WIDTH-1:0] rt_opcode,
-    output [AXI_ADDR_W-1:0] ReshapeTranspose_start_address,
-    output [CONV_IH_WIDTH-1:0] ReshapeTranspose_IH,
-    output [CONV_IW_WIDTH-1:0] ReshapeTranspose_IW,
-    output [CONV_IC_WIDTH-1:0] ReshapeTranspose_IC
+    output [OP_CODE_WIDTH-1:0] rt_opcode,
+    output [ADDRESS_WIDTH-1:0] ReshapeTranspose_start_address,
+    output [TRANSPOSE_IH_WIDTH-1:0] ReshapeTranspose_IH,
+    output [TRANSPOSE_IW_WIDTH-1:0] ReshapeTranspose_IW,
+    output [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC
 );
 
     `include "../common/instructions.vh"
@@ -296,6 +301,7 @@ OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
 .OH_WIDTH(OH_WIDTH),
 .OW_WIDTH(OW_WIDTH),
+.OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
 .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH))
 OP_Outputblock(
     .din(dout_top_master),
@@ -318,8 +324,9 @@ OP_Outputblock(
     .Acc_onchip(Acc_onchip),
     .OB_OH(OB_OH),
     .OB_OW(OB_OW),
-    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
-    .OB_OpWidth(OB_OpWidth)
+    .OB_OpWidth(OB_OpWidth),
+    .OutputBlock_FlatController(OutputBlock_FlatController),
+    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -417,19 +424,19 @@ OP_EltWise(
     .ready(ready[`OP_EltWise])
     );
 
-OP_EltWise # (
+OP_ReshapeTranspose # (
     .OP_CODE_WIDTH(OP_CODE_WIDTH),
     .CNT(CNT),
-    .INPUT_WIDTH(INPUT_WIDTH),
-    .OUTPUT_WIDTH(OUTPUT_WIDTH),
+    .INPUT_WIDTH(OUTPUT_WIDTH),
+    .OUTPUT_WIDTH(INPUT_WIDTH),
     .ADDRESS_WIDTH(ADDRESS_WIDTH),
-    .IW_WIDTH(IW_WIDTH),
-    .IH_WIDTH(IH_WIDTH),
-    .IC_WIDTH(IC_WIDTH)
+    .IW_WIDTH(TRANSPOSE_IW_WIDTH),
+    .IH_WIDTH(TRANSPOSE_IH_WIDTH),
+    .IC_WIDTH(TRANSPOSE_IC_WIDTH)
   )
-  OP_EltWise_inst (
+  OP_ReshapeTranspose_inst (
     .din(dout_top_master),
-    .sel(select_line[`OP_]),
+    .sel(select_line[`OP_TRANSPOSE]),
     .write(wr),
     .done(done_top_master),
     .clk(clk),
@@ -438,8 +445,8 @@ OP_EltWise # (
     .ReshapeTranspose_IH(ReshapeTranspose_IH),
     .ReshapeTranspose_IC(ReshapeTranspose_IC),
     .ReshapeTranspose_StartAddress(ReshapeTranspose_start_address),
-    .valid(valid[`OP_]),
-    .ready(ready[`OP_])
+    .valid(valid[`OP_TRANSPOSE]),
+    .ready(ready[`OP_TRANSPOSE])
   );
 //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 

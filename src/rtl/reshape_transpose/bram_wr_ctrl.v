@@ -3,7 +3,6 @@ module bram_wr_ctrl #(
     parameter N_BRAM = 32,
     parameter W_DATA = 8,
     parameter W_ADDR = 8,
-    parameter ELEMENTS = 2,
     parameter SHFT_REG_X = 2,
     parameter COL_SA = 1,
     parameter W_CITER_CNT = 10,

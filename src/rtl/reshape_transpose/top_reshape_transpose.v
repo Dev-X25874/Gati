@@ -6,6 +6,7 @@ module top_reshape_transpose #(
     parameter IMG_CHANNELS = 16,
     parameter AXI_DATA_WIDTH = 256,
     parameter N_SA = 16,
+    parameter COL_SA = 1,
     parameter W_CITER_CNT = 12,
     parameter BURST_LEN = 10,
     parameter FIFO_DEPTH = 128,
@@ -41,28 +42,34 @@ module top_reshape_transpose #(
     wire [AXI_DATA_BYTES-1:0] d_bram_rd_en;
     wire fifo_wr_en;
     wire d_fifo_wr_en;
-    wire [DATA_WIDTH-1:0] fifo_in;
+    reg  [DATA_WIDTH-1:0] fifo_in;
+    wire [DATA_WIDTH-1:0] d_bram_out;
     wire w_bram_rd_start;
     wire w_next_req;
-    wire f_wen;
-    wire [$clog2(AXI_DATA_BYTES)-1:0] fifo_counter,
+    wire [AXI_DATA_BYTES-1:0] f_wen;
+    wire [$clog2(AXI_DATA_BYTES)-1:0] fifo_counter;
     wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] rt_data_byte;
     wire [AXI_DATA_WIDTH-1:0] fifo_wr_data;
     wire [AXI_DATA_BYTES-1:0] rd_rq_offset;
     wire [AXI_DATA_BYTES-1:0] fifo_dv;
     wire [AXI_DATA_BYTES-1:0] fifo_rd_en;
     wire [AXI_DATA_BYTES-1:0] empty_flag;
-    wire [(2*IMG_HEIGHT)-1:0] img_dim;
+    (*syn_use_dsp = "no"*) wire [(2*IMG_HEIGHT)-1:0] img_dim;
     wire [W_CITER_CNT - 1 : 0] channel_iter;
 
     assign rt_data_byte = {AXI_DATA_BYTES{fifo_in}};
     assign img_dim = image_height*image_width;
     assign op_fifo_wr_en = (&fifo_dv);
     assign rd_rq_offset = (img_dim % ELEMENTS == 0)? (img_dim/ELEMENTS):((img_dim/ELEMENTS) + 1);
-    assign fifo_rd_en = (&empty_flag)? 0:{AXI_DATA_BYTES{1'b1}};
+    assign fifo_rd_en = (|empty_flag)? 0:{AXI_DATA_BYTES{1'b1}};
     assign channel_iter = input_channels/N_SA;
 
-    TOP_W_BRAM #(.AXI_DATA_BYTES(AXI_DATA_BYTES), .AXI_DATA_WIDTH(AXI_DATA_WIDTH), .BURST_LENGTH_WIDTH(BURST_LEN), .IMG_HEIGHT(IMG_HEIGHT), .W_CITER_CNT(W_CITER_CNT), .DATA_WIDTH(DATA_WIDTH), .N_BRAM(AXI_DATA_BYTES), .W_ADDR(W_ADDR), .ELEMENTS(ELEMENTS), .ADDR_OUT_CHUNCK_WIDTH(ADDR_OUT_CHUNCK_WIDTH)) dut1(
+    always @(posedge clk) begin
+        if (!rst) fifo_in <= 0;
+        else fifo_in <= d_bram_out;
+    end
+
+    TOP_W_BRAM #(.AXI_DATA_BYTES(AXI_DATA_BYTES), .AXI_DATA_WIDTH(AXI_DATA_WIDTH), .BURST_LENGTH_WIDTH(BURST_LEN), .IMG_HEIGHT(IMG_HEIGHT), .W_CITER_CNT(W_CITER_CNT), .DATA_WIDTH(DATA_WIDTH), .N_BRAM(AXI_DATA_BYTES), .W_ADDR(W_ADDR), .ELEMENTS(ELEMENTS), .COL_SA(COL_SA), .N_SA(N_SA), .ADDR_OUT_CHUNCK_WIDTH(ADDR_OUT_CHUNCK_WIDTH)) dut1(
         .clk(clk),
         .rst_n(rst),
         .rd_start(rd_start),
@@ -72,8 +79,8 @@ module top_reshape_transpose #(
         .i_data_valid(i_data_valid),
         .rd_addr(bram_rd_addr),
         .n_bram_rden(bram_rd_en),
-        .rd_rq_offset(),
-        .img_dimension(image_dim),
+        .rd_rq_offset(rd_rq_offset),
+        .img_dimension(img_dim),
         .channel_itr_count(channel_iter),
         .start_addr_rd_req(start_addr_rd_req),
         .i_dram_data(i_dram_data_read_requestor),
@@ -89,7 +96,7 @@ module top_reshape_transpose #(
     bram_rd_ctrl #(.W_ADDR(W_ADDR), .W_DATA(DATA_WIDTH), .ELEMENTS(ELEMENTS), .N_BRAM(AXI_DATA_BYTES), .IMG_CHANNELS(IMG_CHANNELS), .IMG_HEIGHT(IMG_HEIGHT)) dut5(
         .clk(clk),
         .rst(rst),
-        .image_size(image_dim),
+        .image_size(img_dim),
         .next_req(w_next_req),
         .done(reshape_transpose_done),
         .input_channels(input_channels),
@@ -99,7 +106,7 @@ module top_reshape_transpose #(
         .valid(fifo_wr_en)
     );
 
-    delay_reg #(.N_BRAM(AXI_DATA_BYTES)) dut6(
+    delay_reg_rt #(.N_BRAM(AXI_DATA_BYTES)) dut6(
         .clk(clk),
         .rst(rst),
         .i_rd_en(bram_rd_en),
@@ -108,18 +115,18 @@ module top_reshape_transpose #(
         .o_valid(d_fifo_wr_en)
     );
 
-    mux_param #(.NO_PORT(AXI_DATA_BYTES), .PORT_SIZE(DATA_WIDTH)) dut7(      //writing the selected data read from brams into fifios
+    vector_mux_param #(.NO_PORT(AXI_DATA_BYTES), .PORT_SIZE(DATA_WIDTH)) dut7(      //writing the selected data read from brams into fifios
         .in(bram_out),
-        .clk(clk),
-        .out(fifo_in),
+        .out(d_bram_out),
         .sel(d_bram_rd_en)
     );
 
-    fifo_wr_ctrl #(.N_FIFO(AXI_DATA_BYTES), .IMG_CHANNELS(IMG_CHANNELS), .IMG_HEIGHT(IMG_HEIGHT)) dut8(
+    fifo_wr_ctrl_rt #(.N_FIFO(AXI_DATA_BYTES), .IMG_CHANNELS(IMG_CHANNELS), .IMG_HEIGHT(IMG_HEIGHT)) dut8(
         .clk(clk),
         .rst(rst),
         .img_dimension(img_dim),
         .input_channels(input_channels),
+        .fifo_counter(fifo_counter),
         .valid(d_fifo_wr_en),
         .wr_en(f_wen)
     );
@@ -131,7 +138,7 @@ module top_reshape_transpose #(
     vector_mux_param_inst (
       .in({256'd0,rt_data_byte}),
       .out(fifo_wr_data),
-      .sel(((~valid) && (fifo_counter != 0)))
+      .sel(1<<((~d_fifo_wr_en) && (fifo_counter != 0)))
     );
 
     gen_fifo #(.W_ADDR($clog2(FIFO_DEPTH)), .W_DATA(DATA_WIDTH), .N_FIFO(AXI_DATA_BYTES)) dut9( //dram fifo array
@@ -139,9 +146,8 @@ module top_reshape_transpose #(
         .rst(~rst),
         .wen(f_wen),
         .ren(fifo_rd_en),
-        .fifo_counter(fifo_counter),
         .wdata(fifo_wr_data),
-        .empty_o(empty_flag)
+        .empty_o(empty_flag),
         .rdata(op_fifo_data),
         .valid_o(fifo_dv)
     );

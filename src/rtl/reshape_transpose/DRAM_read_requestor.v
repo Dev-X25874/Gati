@@ -2,8 +2,7 @@ module DRAM_read_requestor #(parameter AXI_BYTES = 32,
                              parameter BURST_LENGTH_WIDTH = 8,
                              parameter W_CITER_CNT = 10,
                              parameter IMG_HEIGHT = 16,
-                             parameter ADDR_OUT_CHUNCK_WIDTH = 8,
-                             parameter L_FIFOS = 2)
+                             parameter ADDR_OUT_CHUNCK_WIDTH = 8)
 (
     input clk,
     input rst_n,

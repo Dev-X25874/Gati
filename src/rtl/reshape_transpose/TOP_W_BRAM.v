@@ -6,6 +6,8 @@ module TOP_W_BRAM #(parameter AXI_DATA_WIDTH = 256,
              parameter DATA_WIDTH = 8,
              parameter W_ADDR = 9,
              parameter N_BRAM = 32,
+             parameter N_SA = 16,
+             parameter COL_SA = 1,
              parameter ELEMENTS = 2, 
              parameter ADDR_OUT_CHUNCK_WIDTH = 8)
 (
@@ -61,7 +63,7 @@ DRAM_read_requestor(
 );
 
 always@(posedge clk) begin
-    if(!rst) begin
+    if(!rst_n) begin
         data_in_slice_controller <= 0;
         valid_in_slice_controller <= 0;
     end
@@ -73,12 +75,12 @@ always@(posedge clk) begin
             end
             else begin
                 valid_in_slice_controller <= 1'b0;
-                data_in_slice_controller <= o_dram_data;
+                data_in_slice_controller <= data_in_slice_controller;
             end
         end
         else begin
             valid_in_slice_controller <= 1'b0;
-            data_in_slice_controller <= o_dram_data;
+            data_in_slice_controller <= data_in_slice_controller;
         end
     end
 end
@@ -92,6 +94,9 @@ bram_wr_ctrl #(.AXI_DATA_BYTES(AXI_DATA_BYTES),
                .N_BRAM(N_BRAM),
                .W_DATA(DATA_WIDTH),
                .W_ADDR(W_ADDR),
+               .SHFT_REG_X(ELEMENTS),
+               .COL_SA(COL_SA),
+               .SA(N_SA),
                .W_CITER_CNT(W_CITER_CNT))
 bram_wr_ctrl(
     .clk(clk),

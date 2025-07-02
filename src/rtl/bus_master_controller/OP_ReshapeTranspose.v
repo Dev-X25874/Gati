@@ -1,7 +1,7 @@
 //this module is the slave block, it handles the operations for convolution block
 //when this module will be selected it will receive data from the master block and gives output for further convolution operation processing 
 
-module OP_EltWise #(parameter OP_CODE_WIDTH = 4, 
+module OP_ReshapeTranspose #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
             parameter INPUT_WIDTH = 8,
             parameter OUTPUT_WIDTH = 256,
@@ -62,11 +62,11 @@ always @(posedge clk) begin
     end
     CONCAT: begin
         // if(done) begin
-            opcode <= data_instruction[`];
-            ReshapeTranspose_IW <= data_instruction[`];
-            ReshapeTranspose_IH <= data_instruction[`];
-            ReshapeTranspose_IC <= data_instruction[`];
-            ReshapeTranspose_StartAddress <= data_instruction[`];
+            opcode <= data_instruction[`TRANSPOSE_Opcode];
+            ReshapeTranspose_IW <= data_instruction[`TRANSPOSE_IW];
+            ReshapeTranspose_IH <= data_instruction[`TRANSPOSE_IH];
+            ReshapeTranspose_IC <= data_instruction[`TRANSPOSE_IC];
+            ReshapeTranspose_StartAddress <= data_instruction[`TRANSPOSE_ImageStartAddress];
             valid <= 1'b1;
             state <= IDLE;
         // end

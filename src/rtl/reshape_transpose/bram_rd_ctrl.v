@@ -68,7 +68,7 @@ always @ (posedge clk) begin
         end
 
         1: begin
-            if(class_counter == (input_channels + 3)) begin //to manage the delay of brams
+            if(class_counter == (input_channels + 2)) begin //to manage the delay of brams
                 class_counter <= 0;
                 bram_counter <= 0;
                 r_addr <= r_addr;
@@ -111,6 +111,7 @@ always @ (posedge clk) begin
                 r_en <= 0;
                 valid <= 0;
                 element_counter <= 0;
+                shift_counter <= 0;
                 bram_counter <= 0;
                 class_counter <= 0;
                 done <= 1;

@@ -1,4 +1,4 @@
-module delay_reg #(
+module delay_reg_rt #(
 parameter N_BRAM = 32)
 (
 input clk,
@@ -23,7 +23,7 @@ r_valid <= (!rst)? 0:i_valid;
 end
 end
 
-else if (i == 2) begin
+else if (i == 1) begin
 always @ (posedge clk) begin
 o_rd_en <= (!rst)? 0:delay[i-1].r_rd_en;
 o_valid <= (!rst)? 0:delay[i-1].r_valid;

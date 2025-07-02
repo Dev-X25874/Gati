@@ -24,7 +24,8 @@ module rah_gati #(
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,
     //parameters related to DRAM controller
-    parameter NUM_PORTS = 12, //Number of read and write requestors
+    parameter NUM_PORTS = 13, //Number of read and write requestors
+
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
     parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
@@ -35,7 +36,7 @@ module rah_gati #(
     parameter MIPI_DATA_WIDTH = 32,
     parameter MIPI_FIFO_DEPTH = 512,
     //Config blk param
-    parameter NUM_INSTRUCTIONS = 6,
+    parameter NUM_INSTRUCTIONS = 8,
     parameter INST_W = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     //Output block inst param
@@ -349,6 +350,13 @@ module rah_gati #(
   wire [BURST_LENGTH_WIDTH-1:0] mc_RightOperand_bl;
   wire mc_RightOperand_last;
 
+  ///////////////ReshapeTranspose
+  wire [7:0] mc_ReshapeTranspose_addr;
+  wire mc_ReshapeTranspose_rdreq;
+  wire mc_ReshapeTranspose_valid;   
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_ReshapeTranspose_bl;
+  wire mc_ReshapeTranspose_last;
+
   /////////////wire write ctrl
   wire [7:0] mc_op_write_addr;
   wire mc_op_writereq;
@@ -466,7 +474,8 @@ module rah_gati #(
     mc_fc_bias_valid,
     mc_fpga2cpu_valid,
     mc_LeftOperand_valid,
-    mc_RightOperand_valid
+    mc_RightOperand_valid,
+    mc_ReshapeTranspose_valid
    };
 
    assign in_address = {
@@ -480,7 +489,8 @@ module rah_gati #(
     mc_fc_bias_addr,
     mc_fpga2cpu_addr,
     mc_LeftOperand_addr,
-    mc_RightOperand_addr
+    mc_RightOperand_addr,
+    mc_ReshapeTranspose_addr
    };
 
    assign in_BLEN = {
@@ -494,7 +504,8 @@ module rah_gati #(
     mc_fc_bias_bl,
     mc_fpga2cpu_bl,
     mc_LeftOperand_bl,
-    mc_RightOperand_bl
+    mc_RightOperand_bl,
+    mc_ReshapeTranspose_bl
    };
 
    assign i_enable = {
@@ -508,7 +519,8 @@ module rah_gati #(
     mc_fc_bias_rdreq,
     mc_fpga2cpu_readreq,
     mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq
+    mc_RightOperand_rdreq,
+    mc_ReshapeTranspose_rdreq
    };
 
    assign i_last = {
@@ -522,7 +534,8 @@ module rah_gati #(
     mc_fc_bias_last,
     mc_fpga2cpu_last,
     mc_LeftOperand_last,
-    mc_RightOperand_last
+    mc_RightOperand_last,
+    mc_ReshapeTranspose_last
    };
    
 
@@ -736,6 +749,11 @@ module rah_gati #(
       .mc_RightOperand_valid(mc_RightOperand_valid),
       .mc_RightOperand_bl(mc_RightOperand_bl),
       .mc_RightOperand_last(mc_RightOperand_last),
+      .mc_ReshapeTranspose_addr(mc_ReshapeTranspose_addr),
+      .mc_ReshapeTranspose_bl(mc_ReshapeTranspose_bl),
+      .mc_ReshapeTranspose_last(mc_ReshapeTranspose_last),
+      .mc_ReshapeTranspose_rdreq(mc_ReshapeTranspose_rdreq),
+      .mc_ReshapeTranspose_valid(mc_ReshapeTranspose_valid),
       .select(select_rd|select_wr),
       .dram_rd_datavalid(dram_rd_datavalid),
       .dram_rd_data_last(dram_rd_data_last),

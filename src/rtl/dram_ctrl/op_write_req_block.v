@@ -14,8 +14,9 @@ module op_write_req_block#(
  parameter IMAGE_DIM_WIDTH_ACC = 16,
  parameter IMAGE_DIM_WIDTH_OP = 16,
  parameter DATA_WIDTH_ACC = 32,
- parameter DATA_WIDTH = 8,
- parameter OutputBlock_OpWidth_WIDTH =3
+ parameter OutputBlock_OpWidth_WIDTH =3,
+ parameter OutputBlock_FlatController_WIDTH = 1,
+ parameter DATA_WIDTH = 8
 )
 (
 input clkin,
@@ -28,6 +29,7 @@ input [W_CHANNEL_CNT-1:0]i_channel_itr,
 input [W_KERNEL_CNT-1:0]i_kernel_itr,
 input [IMAGE_DIM_WIDTH_ACC-1:0]i_imag_dim, // image width-input
 input [IMAGE_DIM_WIDTH_OP-1:0]i_imag_dim_2, // image width-output
+input [OutputBlock_FlatController_WIDTH-1:0] OutputBlock_FlatController,
 input [OP_FIFO*($clog2(DEPTH)+1)-1:0] occupants,
 
 input acc_en,               //from iteration counter
@@ -82,7 +84,7 @@ assign r_burst_len_1 = r_burst_len+1;
 wire [ADDR_WIDTH-1 : 0] offset1, offset2;
 
 assign offset1 = i_imag_dim * (DATA_WIDTH_ACC/DATA_WIDTH) * N;
-assign offset2 = (i_imag_dim_2 * N) * OB_OpWidth ;
+assign offset2 = (OutputBlock_FlatController)? i_imag_dim_2 : (i_imag_dim_2 * N) * OB_OpWidth;
 
 assign r_acc_stop_add = r_acc_next_add + offset1;
 assign r_layer_stop_add = r_layer_next_add + offset2;                    

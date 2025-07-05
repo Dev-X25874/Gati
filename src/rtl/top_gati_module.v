@@ -459,7 +459,7 @@ module top_gati_module #(
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  wire start_SA,start_FC,start_EW;
+  wire start_SA,start_FC,start_EW,start_RT;
   wire [NUM_INSTRUCTIONS-1:0] start_block; 
 
   /* start signal for mega blocks can create new start from here using the mega block macro , the start_block signal is one cycle delayed signal of start commond to match with the start and conv_fc*/ 
@@ -467,6 +467,7 @@ module top_gati_module #(
   assign start_SA = start_block[`OP_CONV];
   assign start_FC = start_block[`OP_FC];
   assign start_EW = start_block[`OP_EltWise];
+  assign start_RT = start_block[`OP_TRANSPOSE];
 
 
   /* always block for the generation of the CONV_FC */
@@ -489,6 +490,10 @@ module top_gati_module #(
     else if (start_command[`OP_EltWise]) begin
       valid_inst_CONV_FC <= 0;
       CONV_FC <= 0; //EltWise operation
+    end
+    else if (start_command[`OP_TRANSPOSE]) begin
+      valid_inst_CONV_FC <= 0;
+      CONV_FC <= 0; //Transpose operation
     end 
     else begin
       valid_inst_CONV_FC <= valid_inst_CONV_FC;
@@ -507,6 +512,7 @@ module top_gati_module #(
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = fc_opcode;
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
+  assign opcode_hold[(`OP_TRANSPOSE*OPCODE_WIDTH) +:OPCODE_WIDTH] = rt_opcode;
 
   integer i;
   
@@ -1896,10 +1902,12 @@ module top_gati_module #(
   interconnect_dram_data_aligner # (
     .QUANT_OP_FIFO(QUANT_OP_FIFO),
     .OPCODE_WIDTH(OPCODE_WIDTH),
+    .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH)
   )
   interconnect_dram_data_aligner_inst (
-    .opcode(opcode),
+    .clk(i_clk),
+    .valid_opcode(valid_opcode),
     .i_quant_fifo_data(quant_op_write_data),
     .i_quant_fifo_wren(quant_op_wren),
     .i_nms_fifo_data(0),

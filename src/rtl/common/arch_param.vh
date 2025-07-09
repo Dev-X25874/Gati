@@ -13,6 +13,9 @@
 `define N_SA 16
 `define COL_SA 1
 `define ROW 16
+// `define FC
+// `define POOL
+// `define BIAS_FC
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care

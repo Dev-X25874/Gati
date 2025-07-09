@@ -21,7 +21,6 @@ module dram_data_aligner#(
     input i_clk,
     input i_rst,
     input i_start,
-    input i_acc_quant_enable, // 0: acc, 1: quant
     input i_Acc_Onchip,
     output o_op_full,
     

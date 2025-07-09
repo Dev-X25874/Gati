@@ -1,4 +1,5 @@
 `include "common/instructions.vh"
+`include "common/arch_param.vh"
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
@@ -113,24 +114,26 @@ module Top_CONV_FC #(
     input [CONV_TYPE_WIDTH-1:0] conv_type, //CONV type (regular 2D, depthwise, pointwise)
     
     //weight fifo sharing signals
-    output sel_sa_rden,
+    `ifdef FC
     output [(COL_FC/COL_SA)-1 : 0] weight_read_en_fc,
     input [((COL_FC/COL_SA) * ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_occupants_fc,
     input weight_empty_fc,
     input weight_almost_empty_fc,
     input [(COL_FC/COL_SA)-1 : 0] weight_dv_fc,
     input [(COL_FC * DATA_WIDTH)-1 : 0] weight_data_fc,
+    `endif //FC
     
+    input start_SA,
     output [(N_SA)-1 : 0] weight_read_en_sa,
     input [(N_SA)-1 : 0] weight_dv_sa,
     input [(N_SA * (($clog2(WEIGHT_FIFO_DEPTH) + 1)))-1 : 0] weight_occupants_sa,
     input [(N_SA)-1 : 0] weight_empty_sa,
     input [(N_SA * COL_SA * DATA_WIDTH)-1 : 0] weight_data_sa,
     
+    `ifdef FC
     //Flattening and FC signals
     input flatten_enable,
     input start_FC,
-    input start_SA,
     input [W_FC_RW_COUNTER-1:0] i_rw_addr_cnt_flatten,
     input [W_KERNEL_CNT-1:0] i_kernel_cnt_FC,
     input [(N_BANK*N_BRAM)-1:0] i_data_valid_flatten,
@@ -138,6 +141,9 @@ module Top_CONV_FC #(
     input [(N_BANK*N_BRAM*DATA_WIDTH)-1:0] i_data_FC, //feature map input for FC (from DDR)
     input [FC_IMAGE_ROWS_WIDTH-1:0] i_img_dim_fc,
     input i_sel_fc_fifosharing,
+    output FC_done, //accumulator valid signal of FC computing engine
+    output FC_layerdone,
+    `endif //FC
 
     //vector addition signals
     input [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values,
@@ -155,11 +161,18 @@ module Top_CONV_FC #(
     input [LR_POS_ALPHA_WIDTH-1:0] lr_pos_alpha,
     input bias_enable,
     input quant_enable,
-    input bias_fc_enable,
     input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
     input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
     input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
     input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
+
+    `ifdef BIAS_FC
+    //bias_fc signals
+    input bias_fc_enable,
+    input [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc,
+    input [BIAS_FIFO_FC -1:0] bias_wren_fc,
+    output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants,
+    `endif //BIAS_FC
 
     //im2col signals
     input [CONV_IW_WIDTH-1:0] image_width,
@@ -174,8 +187,6 @@ module Top_CONV_FC #(
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
     input [BIAS_FIFO -1:0] bias_wren,
-    input [(BIAS_FIFO_FC*DATA_WIDTH)-1:0] bias_data_in_fc,
-    input [BIAS_FIFO_FC -1:0] bias_wren_fc,
     input [(QUANT_SHIFT) -1:0] shift_value,
     input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
@@ -203,7 +214,9 @@ module Top_CONV_FC #(
     input [ELTWISE_FIFO-1:0] LeftOperand_wr_en,
     input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
     input EltWise_op_en,
-  //Generalized Pool
+
+    `ifdef POOL
+    //Generalized Pool
     input maxpool_enable,
     input [POOLTYPE_WIDTH - 1 : 0] PoolType,
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
@@ -215,6 +228,7 @@ module Top_CONV_FC #(
     input [POOLPADSIDES_WIDTH - 1 : 0] PoolPadSides,
     input [POOL_SCALE_WIDTH - 1 : 0] PoolScale,
     input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift,
+    `endif //POOL
 
     // accumulant output write signals
     output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
@@ -232,14 +246,11 @@ module Top_CONV_FC #(
     output pseudo_im2col_done, // output: pseudo im2col done signal
     output SA_psum_fifo_empty,
     output Tail_done,
-    output FC_done, //accumulator valid signal of FC computing engine
-    output FC_layerdone,
-	output p_full_output,
+	  output p_full_output,
   	output EW_done,
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
     output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
-    output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants,
     output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] LeftOperand_fifo_occupants,
     output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants,
     output o_image_fifo_almost_empty_flag,
@@ -480,7 +491,7 @@ endgenerate
     .o_psum_ff_array_dv(valid_psum),
     .i_done(iteration_Done),
     .i_layer_done(layer_done),
-    .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
+    .o_mux_sel(), // goes to select sa rden in fifo sharing
     .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
   );
 
@@ -547,6 +558,7 @@ endgenerate
     end
   endgenerate
   
+  `ifdef FC
   //Modules for FC layer computation starts here
   wire [DATA_WIDTH-1:0] data_flatten_FC;
   wire dv_flatten_FC;
@@ -677,6 +689,14 @@ endgenerate
       );
     end
   endgenerate
+  `else
+  wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
+  wire valid_out_FC;
+
+  assign op_data_mux_FC = 0;
+  assign valid_out_FC = 0;
+  `endif //FC
+  
   wire [(N_SA*DATA_WIDTH_OB) -1:0] data_tail_blk_in;
   wire [N_SA-1:0] data_tail_blk_vaild;
   //EltWise Operation
@@ -851,6 +871,7 @@ endgenerate
   wire [(DATA_WIDTH*N_SA)-1:0] bias_fc_out ;
   wire [N_SA-1:0] bias_fc_valid;
 
+  `ifdef BIAS_FC
   top_bias_fc #(
     .DATA_WIDTH(DATA_WIDTH),
     .ADDR_WIDTH($clog2(BIAS_FIFO_DEPTH)),
@@ -871,9 +892,12 @@ endgenerate
     .w_empty_flag(),
     .top_out_data_valid(bias_fc_valid),
     .fifo_occupants(fc_bias_fifo_occupants)
-);
+  );
+  `else
+  assign bias_fc_out = quantized_output;
+  assign bias_fc_valid = tail_valid;
+  `endif //BIAS_FC
 
-  
   top_relu_gen #(
       .N(N_SA),
       .DATA_WIDTH(DATA_WIDTH),
@@ -913,6 +937,7 @@ endgenerate
   (* syn_use_dsp = "no" *) wire [I_ACC_SIZE_WIDTH-1:0] op_img_size;
   assign op_img_size = op_height * op_width;
 
+  `ifdef POOL
   generalized_pool # (
     .N_SA(N_SA),
     .DATA_WIDTH(DATA_WIDTH),
@@ -953,6 +978,16 @@ endgenerate
     .done(),
     .datavalid_out(maxpool_valid)
   );
+
+  wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
+  
+  assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
+  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:op_img_size)>>2) : op_img_size);
+  `else
+  assign maxpool_output = relu_output;
+  assign maxpool_valid = relu_valid;
+  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : op_img_size;
+  `endif //POOL
   
   wire [(DATA_WIDTH_ACC*N_SA)-1 : 0] zp_unquantized_din;
   wire [N_SA-1:0] zp_valid;
@@ -964,11 +999,8 @@ endgenerate
   wire [I_ACC_SIZE_WIDTH-1:0] i_img_dim1; // Accumulant data_size
   wire [I_OP_SIZE_WIDTH-1:0] i_img_dim2; // Quantized op data_size
 
-  wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
-  assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : op_img_size;
-  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:op_img_size)>>2) : op_img_size);
 
   //zero padding circuit
   top_zero # (

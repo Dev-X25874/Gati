@@ -101,6 +101,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] ImageEndAddress_conv,
     output [ADDRESS_WIDTH - 1 : 0] WeightStartAddress_conv,
     output [ADDRESS_WIDTH - 1 : 0] WeightEndAddress_conv,
+
+    `ifdef FC
     output [OP_CODE_WIDTH - 1 : 0] opcode_FC,
     output [WEIGHTROWS_WIDTH - 1 : 0] weightrows,
     output [WEIGHTCOLS_WIDTH - 1 : 0] weightcols,
@@ -113,6 +115,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] WeightStartAddress_FC,
     output [ADDRESS_WIDTH - 1 : 0] WeightEndAddress_FC,
     output [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols,
+    `endif //FC
+    
     output [OP_CODE_WIDTH -1 : 0] opcode_OB,
     output [ADDRESS_WIDTH - 1 : 0] accumulantaddr,
     output [ADDRESS_WIDTH - 1 : 0] outputaddr,
@@ -252,6 +256,7 @@ OP_CONV(
     .ready(ready[`OP_CONV])
 );
 
+`ifdef FC
 OP_FC #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
 .CNT(CNT),
 .INPUT_WIDTH(OUTPUT_WIDTH),
@@ -285,6 +290,7 @@ OP_FC(
     .WeightEndAddress(WeightEndAddress_FC),
     .FC_Vec2MatCols(FC_Vec2MatCols)
 );
+`endif //FC
 
 OP_Outputblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
 .CNT(CNT),

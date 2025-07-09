@@ -14,10 +14,13 @@ module fifo_wr_ctrl_rt #(
 
     reg [N_FIFO-1:0] wen = 0;
     reg [(2*IMG_HEIGHT)-1:0] data_counter = 0;
-    (*syn_use_dsp = "no"*) wire [(2*IMG_HEIGHT)-1:0] data_count;
+    (*syn_use_dsp = "no"*) reg [(2*IMG_HEIGHT)-1:0] data_count;
 
     assign wr_en = wen;
-    assign data_count = img_dimension*input_channels;
+
+    always @(posedge clk) begin
+        data_count = img_dimension*input_channels;
+    end 
 
     always @ (posedge clk) begin
         if(!rst) begin

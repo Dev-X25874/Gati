@@ -225,6 +225,7 @@ module Top_CONV_FC #(
     output  [W_CONV_IMAGE_DIM-1:0]      real_row,    
     output  [W_CONV_IMAGE_DIM-1:0]      real_col,
     output im2col_done,
+    output pseudo_im2col_done, // output: pseudo im2col done signal
     output SA_psum_fifo_empty,
     output Tail_done,
     output FC_done, //accumulator valid signal of FC computing engine
@@ -407,8 +408,11 @@ endgenerate
       .start_row_skip(start_row_skip),
       .end_row_skip(end_row_skip),
       .real_col(real_col),
-      .real_row(real_row)
+      .real_row(real_row),
+      .pseudo_im2col_done(pseudo_im2col_done) // output: pseudo im2col done signal
     ); 
+
+    
 
 
   //parameters will change for top_SA (for CONV opeartion)

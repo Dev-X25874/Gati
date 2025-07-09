@@ -155,7 +155,7 @@ module sa_start_stall_ctrl #(
       
     end
   end
-
+//// for the case of 944 and 988 
   else begin
     always @ (posedge i_clk) begin
       if(!i_rst) begin
@@ -170,7 +170,7 @@ module sa_start_stall_ctrl #(
         if(stride == 1) begin
           istolic_array_stall <= 0;
           stall_flag <= 0;
-          if(input_img_height <= 4) begin
+          if(input_img_height < 7) begin
             if (row == (input_img_height + conv_zeropad -1) && col==1) begin
               sa_start_flag <= 1;
             end
@@ -179,7 +179,7 @@ module sa_start_stall_ctrl #(
             end 
           end
           else begin
-            if(row == 5 && col==1) begin
+            if(row == 7 && col==1) begin
               sa_start_flag <=1;
               end
             else begin 

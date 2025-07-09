@@ -43,10 +43,13 @@ module top_im2col_v1 #(
         output [(UPPER_BOUND)-1:0]       real_row,
         output [(UPPER_BOUND)-1:0]       real_col,
         input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
-        input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
+        input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
+        output                              pseudo_im2col_done
             
 
     );
+
+    assign pseudo_im2col_done = w_im2col_done;
 
     wire valid;
     wire [(UPPER_BOUND)-1:0] mat_size_col;
@@ -133,7 +136,9 @@ module top_im2col_v1 #(
         .real_im2col_done(o_im2col_done),
         .i_stall_on   (i_stall_on),
         .r_start_im2col (real_start_im2col),
-        .pseudo_im2col_start(pseudo_im2col_start)
+        .pseudo_im2col_start(pseudo_im2col_start),
+        .start_row_skip(start_row_skip),
+        .end_row_skip(end_row_skip)
     );
 
 

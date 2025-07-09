@@ -168,33 +168,6 @@ always@(posedge clkin) begin
                     op_add_reg1 <= (r_layer_start_add+((r_burst_len2+1)<<$clog2(AXI_DATA_BYTES)));
                 end
             end
-
-            /*
-            3'd1:
-            begin
-            if(k_ctr==i_kernel_itr) begin
-                state <= 0;
-                layer_done <= 1;
-                k_ctr <= 0;
-            end
-            else begin
-                layer_done <= 0;
-                if(c_ctr==r_channel_itr-1) r_burst_len<= r_burst_len2;
-                else r_burst_len <= r_burst_len1;
-                if(result_int)
-                begin
-                  state <= 3'd2;
-                end
-                else begin
-                  wr_req_reg<= 1'b0;
-                  r_valid   <= 1'b0;
-                  r_addr    <= r_addr;
-                  r_last    <= r_last;
-                  state     <= 3'd1;
-                end
-           end
-           end
-           */ 
            
             4'd2: begin
                 

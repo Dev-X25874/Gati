@@ -560,7 +560,7 @@ module top_gati_module #(
     sa_start_stall_ctrl #(
         .CONV_IH_WIDTH(CONV_IH_WIDTH),
         .CONV_PAD_WIDTH(CONV_PadRight_WIDTH), 
-
+        .COL_SA(COL_SA),
         .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
         .IMAGE_DIM(CONV_IW_WIDTH)
@@ -569,7 +569,7 @@ module top_gati_module #(
         .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
         .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
         .im2col_global_start(im2col_global_start),
-        .im2col_done( im2col_done),
+        .im2col_done(im2col_done),
         .SA_done(SA_done),
         .i_clk(i_clk),
         .i_rst(i_rst),
@@ -989,6 +989,9 @@ module top_gati_module #(
   wire data_last_op_write;
   wire op_done;
 
+  
+  
+
   op_write_req_block#(
     .N(N_SA),
     .OP_FIFO(OP_FIFO),
@@ -1026,7 +1029,7 @@ module top_gati_module #(
     .o_burst_len(mc_op_write_bl),
     .o_last(mc_op_write_last),
     .op_done(op_done) //o-wire: op_done signal to Iteration_ctr
-  );
+    );
 
   ////////////////////////////////FIFO FOR IMAGE FROM DDR////////////////
   
@@ -1534,6 +1537,7 @@ module top_gati_module #(
   wire bias_fc_enable;
   wire maxpool_enable;
   wire im2col_done;
+  wire pseudo_im2col_done;
   wire SA_psum_fifo_empty;
   wire relu_enable;
   wire Tail_done;
@@ -1741,6 +1745,7 @@ module top_gati_module #(
       .PoolShift(poolshift),
 
       .im2col_done(im2col_done),
+      .pseudo_im2col_done(pseudo_im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),
       .Tail_done(Tail_done), // Generated in integration block
       .FC_done(FC_done), //accumulator valid signal of FC engine

@@ -1,6 +1,8 @@
 module Top_element_wise#(
     parameter DATA_WIDTH            = 8,
     parameter ELTWISE_TYPE_WIDTH    = 4,
+    parameter ELTWISE_SCALE_WIDTH   = 32,
+    parameter ELTWISE_ZEROPOINT_WIDTH = 8,
     parameter N                     = 4,
     parameter MOD                   = 4,
     parameter FIFO_NO               = 8,
@@ -25,6 +27,10 @@ module Top_element_wise#(
     input [(DATA_WIDTH*FIFO_NO*N)-1:0]LeftOperand_data_in,
     input [(DATA_WIDTH*FIFO_NO*N)-1:0]RightOperand_data_in,
     input [ELTWISE_TYPE_WIDTH-1:0]EltWise_type,
+    input [ELTWISE_SCALE_WIDTH-1:0]LeftOperand_Scale,
+    input [ELTWISE_SCALE_WIDTH-1:0]RightOperand_Scale,
+    input [ELTWISE_ZEROPOINT_WIDTH-1:0]LeftOperand_zero_point,
+    input [ELTWISE_ZEROPOINT_WIDTH-1:0]RightOperand_zero_point,
     output [(DATA_WIDTH_OB*N)-1:0]EltWise_data_out,
     output [N-1:0]EltWise_data_out_valid,
     output [((W_ADDR+1)*FIFO_NO)-1:0]LeftOperand_fifo_occupants,
@@ -133,14 +139,20 @@ generate
         element_wise_op #(
             .DATA_WIDTH(DATA_WIDTH),
             .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+            .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+            .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
             .DATA_WIDTH_OB(DATA_WIDTH_OB)
         ) ew_op (
             .clkin(clkin),
-            .LeftOperand(LeftOperand_fifo_data_out[((i+1)*DATA_WIDTH)-1 -:DATA_WIDTH]),
-            .RightOperand(RightOperand_fifo_data_out[((i+1)*DATA_WIDTH)-1 -:DATA_WIDTH]),
+            .LeftOperand(LeftOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
+            .RightOperand(RightOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
             .data_valid(data_valid),
+            .LeftOperand_Scale(LeftOperand_Scale),
+            .RightOperand_Scale(RightOperand_Scale),
+            .LeftOperand_zero_point(LeftOperand_zero_point),
+            .RightOperand_zero_point(RightOperand_zero_point),
             .EltWise_type(EltWise_type),
-            .EltWise_out(EltWise_data_out[((i+1)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
+            .EltWise_out(EltWise_data_out[((N-i)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
             .EltWise_valid(EltWise_data_out_valid[i]) 
         );
     end

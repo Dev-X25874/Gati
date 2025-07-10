@@ -2,35 +2,41 @@
 //when this module will be selected it will receive data from the master block and gives output for further convolution operation processing 
 
 module OP_EltWise #(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256,
-            parameter ADDRESS_WIDTH = 32,
-            parameter ELTWISE_TYPE_WIDTH = 4,
-            parameter IW_WIDTH = 10,
-            parameter IH_WIDTH = 10,
-            parameter IC_WIDTH = 10
-            )
-            (
-                input [(INPUT_WIDTH)-1 : 0] din,
-                input sel,
-                input write,
-                input done,
-                input clk,
-                output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
-                output reg [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
-                output reg [IW_WIDTH - 1 : 0] EltWise_IW,
-                output reg [IH_WIDTH - 1 : 0] EltWise_IH,
-                output reg [IC_WIDTH - 1 : 0] EltWise_IC,   
-                output reg [ADDRESS_WIDTH - 1 : 0] LeftOperand_StartAddress,
-                output reg [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
-                output reg [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
-                output reg [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
-                output reg valid,
-                output reg ready = 0
-            );
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+    parameter ELTWISE_TYPE_WIDTH = 4,
+    parameter ELTWISE_SCALE_WIDTH = 32,
+    parameter ELTWISE_ZEROPOINT_WIDTH = 8,
+    parameter IW_WIDTH = 10,
+    parameter IH_WIDTH = 10,
+    parameter IC_WIDTH = 10
+)
+(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+    output reg [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
+    output reg [ELTWISE_SCALE_WIDTH - 1 : 0] LeftOperand_Scale,
+    output reg [ELTWISE_SCALE_WIDTH - 1 : 0] RightOperand_Scale,
+    output reg [ELTWISE_ZEROPOINT_WIDTH - 1 : 0] LeftOperand_zero_point,
+    output reg [ELTWISE_ZEROPOINT_WIDTH - 1 : 0] RightOperand_zero_point,
+    output reg [IW_WIDTH - 1 : 0] EltWise_IW,
+    output reg [IH_WIDTH - 1 : 0] EltWise_IH,
+    output reg [IC_WIDTH - 1 : 0] EltWise_IC,   
+    output reg [ADDRESS_WIDTH - 1 : 0] LeftOperand_StartAddress,
+    output reg [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
+    output reg [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
+    output reg [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
+    output reg valid,
+    output reg ready = 0
+);
 
-            `include "../common/instructions.vh"
+`include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -69,6 +75,10 @@ always @(posedge clk) begin
         // if(done) begin
             opcode <= data_instruction[`EltWise_Opcode];
             EltWise_type <= data_instruction[`EltWise_EltType];
+            LeftOperand_Scale <= data_instruction[`EltWise_AScale];
+            RightOperand_Scale <= data_instruction[`EltWise_BScale];
+            LeftOperand_zero_point <= data_instruction[`EltWise_AZeroPoint];
+            RightOperand_zero_point <= data_instruction[`EltWise_BZeroPoint];
             EltWise_IW <= data_instruction[`EltWise_IW];
             EltWise_IH <= data_instruction[`EltWise_IH];
             EltWise_IC <= data_instruction[`EltWise_IC];

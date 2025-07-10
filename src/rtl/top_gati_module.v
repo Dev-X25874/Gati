@@ -154,8 +154,9 @@ module top_gati_module #(
     parameter ELTWISE_TYPE_WIDTH = `EltWise_EltType_WIDTH, // Width of the element wise
     parameter ELTWISE_IW_WIDTH = `EltWise_IW_WIDTH, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = `EltWise_IH_WIDTH, // Width of the input height;
-    parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH // Width of the output width;
-    
+    parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH, // Width of the output width;
+    parameter ELTWISE_SCALE_WIDTH = `EltWise_AScale_WIDTH,
+    parameter ELTWISE_ZEROPOINT_WIDTH = `EltWise_AZeroPoint_WIDTH
 ) (
     ///global
     input i_clk,
@@ -300,10 +301,6 @@ module top_gati_module #(
 
     wire [NUM_INSTRUCTIONS-1 : 0] valid_inst;
 
-	// wire  [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl;
-// wire mc_config_rdreq;
-//    wire mc_config_valid;
-
   config_blk#(
       .ADDR_W(AXI_ADDR_W),
       .INST_W(INST_W),
@@ -410,9 +407,13 @@ module top_gati_module #(
   //Elementwise inst. signals
   wire [OPCODE_WIDTH-1:0] ew_opcode;
   wire [ELTWISE_TYPE_WIDTH-1:0] EltWise_type;
-  wire [CONV_IW_WIDTH-1 : 0]EltWise_IW;
-  wire [CONV_IH_WIDTH-1 : 0]EltWise_IH;
-  wire [CONV_IC_WIDTH-1 : 0]EltWise_IC;
+  wire [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale;
+  wire [ELTWISE_SCALE_WIDTH-1:0] RightOperand_Scale;
+  wire [ELTWISE_ZEROPOINT_WIDTH-1:0] LeftOperand_zero_point;
+  wire [ELTWISE_ZEROPOINT_WIDTH-1:0] RightOperand_zero_point;
+  wire [CONV_IW_WIDTH-1 : 0] EltWise_IW;
+  wire [CONV_IH_WIDTH-1 : 0] EltWise_IH;
+  wire [CONV_IC_WIDTH-1 : 0] EltWise_IC;
   wire [AXI_ADDR_W-1:0] LeftOperand_start_address;
   wire [AXI_ADDR_W-1:0] RightOperand_start_address;
   wire [AXI_ADDR_W-1:0] LeftOperand_stop_address;
@@ -606,9 +607,9 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) Flattening_trigger <= 1'b0;
     else begin
-        if(start_FC) Flattening_trigger <= 1'b1;
-        else if(FC_layerdone) Flattening_trigger <= 1'b0;
-        else Flattening_trigger <= Flattening_trigger;
+      if(start_FC) Flattening_trigger <= 1'b1;
+      else if(FC_layerdone) Flattening_trigger <= 1'b0;
+      else Flattening_trigger <= Flattening_trigger;
     end
   end
 
@@ -682,7 +683,9 @@ module top_gati_module #(
     .BIASEN_WIDTH(BIASEN_WIDTH),
     .BNCHANNELS_WIDTH(BNCHANNEL_WIDTH),
     .BiasWidth_WIDTH(BiasWidth_WIDTH),
-    .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH)
+    .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+    .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH)
   )
   bus_inst(
     .din(instruction), //i-wire : instruction from config blk
@@ -734,6 +737,10 @@ module top_gati_module #(
     //Elementwise inst. signals
     .opcode_EltWise(ew_opcode),
     .EltWise_type(EltWise_type),
+    .LeftOperand_Scale(LeftOperand_Scale),
+    .RightOperand_Scale(RightOperand_Scale),
+    .LeftOperand_zero_point(LeftOperand_zero_point),
+    .RightOperand_zero_point(RightOperand_zero_point),
     .EltWise_IW(EltWise_IW),
     .EltWise_IH(EltWise_IH),
     .EltWise_IC(EltWise_IC),
@@ -1631,7 +1638,6 @@ module top_gati_module #(
       .CONV_IW_WIDTH(CONV_IW_WIDTH),
       .CONV_IH_WIDTH(CONV_IH_WIDTH),
       
-      
       .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
       .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
       .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
@@ -1645,6 +1651,8 @@ module top_gati_module #(
       .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
       .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH),
       .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+      .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+      .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
       .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
@@ -1761,6 +1769,10 @@ module top_gati_module #(
       .RightOperand_data_in(RightOperand_in_data),
       .LeftOperand_wr_en(dv_LeftOperand_data),
       .RightOperand_wr_en(dv_RightOperand_data),
+      .LeftOperand_Scale(LeftOperand_Scale),
+      .LeftOperand_zero_point(LeftOperand_zero_point),
+      .RightOperand_Scale(RightOperand_Scale),
+      .RightOperand_zero_point(RightOperand_zero_point),
       .EltWise_type(EltWise_type),
       .EltWise_IW(EltWise_IW),
       .EltWise_IH(EltWise_IH),
@@ -1840,56 +1852,56 @@ module top_gati_module #(
     assign op_fifo_empty = &(op_dram_fifo_empty);
     
     iteration_cnt #(
-        .CITER_CNT_WIDTH(W_CITER_CNT), 
-        .KITER_CNT_WIDTH(W_KITER_CNT),
-        .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH)
+      .CITER_CNT_WIDTH(W_CITER_CNT), 
+      .KITER_CNT_WIDTH(W_KITER_CNT),
+      .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH)
     )
     iteration_counter_inst
     (
-        .i_clk(i_clk),
-        .rst(i_rst),
-        .i_start(start),
-        .CONV_FC(CONV_FC),
-        .im2col_done(im2col_done), // i-wire : from im2col block
-        .SA_psum_fifo_empty(SA_psum_fifo_empty),
-        .Tail_done(Tail_done),
-        .op_fifo_empty(op_done),
-        .FC_done(FC_done),
-        .EW_done(EW_done),
-        .c_iter(channel_iteration), //channel iteration
-        .k_iter(kernel_iteration), //kernel iteration
+      .i_clk(i_clk),
+      .rst(i_rst),
+      .i_start(start),
+      .CONV_FC(CONV_FC),
+      .im2col_done(im2col_done), // i-wire : from im2col block
+      .SA_psum_fifo_empty(SA_psum_fifo_empty),
+      .Tail_done(Tail_done),
+      .op_fifo_empty(op_done),
+      .FC_done(FC_done),
+      .EW_done(EW_done),
+      .c_iter(channel_iteration), //channel iteration
+      .k_iter(kernel_iteration), //kernel iteration
 
-        .o_iter_done(iter_done),
-        .o_c_done(channel_done),
-        .o_layer_done(layer_done),
-        .o_SA_done(SA_done), 
+      .o_iter_done(iter_done),
+      .o_c_done(channel_done),
+      .o_layer_done(layer_done),
+      .o_SA_done(SA_done), 
 
-        .BIAS_EN(Bias_En),
-        .RELU_EN(ACT_EN),
-        .QUANT_EN(QUANT_EN),
-        .POOL_EN(POOL_EN),
-        .ACC_EN(ACC_EN),  
-        .FC_BIAS_EN(Bias8_EN), //above six signals comes from instruction fields
+      .BIAS_EN(Bias_En),
+      .RELU_EN(ACT_EN),
+      .QUANT_EN(QUANT_EN),
+      .POOL_EN(POOL_EN),
+      .ACC_EN(ACC_EN),  
+      .FC_BIAS_EN(Bias8_EN), //above six signals comes from instruction fields
 
-        .acc_en(vector_add_enable),
-        .relu_en(relu_enable),
-        .quant_en(quant_enable),
-        .bias_en(bias_enable),
-        .fc_bias_en(bias_fc_enable), 
-        .pool_en(maxpool_enable),
-        .en(shift_reg_en),
+      .acc_en(vector_add_enable),
+      .relu_en(relu_enable),
+      .quant_en(quant_enable),
+      .bias_en(bias_enable),
+      .fc_bias_en(bias_fc_enable), 
+      .pool_en(maxpool_enable),
+      .en(shift_reg_en),
 
-        //Ack signals to config blk.
-        .Conv_Ack(Conv_Ack),
-        .OpBlock_Ack(OpBlock_Ack),
-        .Tail_Ack(Tail_Ack),
-        .EltWise_Ack(EltWise_Ack),
-        //.FC_Ack(FC_Ack)
+      //Ack signals to config blk.
+      .Conv_Ack(Conv_Ack),
+      .OpBlock_Ack(OpBlock_Ack),
+      .Tail_Ack(Tail_Ack),
+      .EltWise_Ack(EltWise_Ack),
+      //.FC_Ack(FC_Ack)
         
-        //for io signals
-        .kernal_count(kernal_count), // represents the current kernal iteration number 
-        .channel_count(channel_count), // represents the current channel iteration number 
-        .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
+      //for io signals
+      .kernal_count(kernal_count), // represents the current kernal iteration number 
+      .channel_count(channel_count), // represents the current channel iteration number 
+      .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
     );
 
     // wire Conv_Ack, OpBlock_Ack, Tail_Ack, FC_Ack;
@@ -1933,18 +1945,6 @@ module top_gati_module #(
     end
   end
 
-  // reg [31:0] stall_cntr;
-  // always@(posedge i_clk) begin
-  //   if(!i_rst) stall_cntr <= 0;
-  //   else begin
-  //     if(OpBlock_Ack) stall_cntr <= 0;
-  //     else if(start_en) begin
-  //       if(stall_on) stall_cntr <= stall_cntr + 1;
-  //     end
-  //     else stall_cntr <= stall_cntr;
-  //   end
-  // end
-
   always@(posedge i_clk) begin
     if(!i_rst) start_en <= 0;
     else begin
@@ -1971,8 +1971,4 @@ module top_gati_module #(
   assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA;
   assign fpga2cpu_start_address = op_start_address;
 
-  //Hard-coded logic for Acc_onchip flag: Deprecated after inclusion of support from sysim
-  // assign Acc_onchip = (CONV_FC)? 0 : ((layer_cntr>=7)? 1 : 0);
-  // assign Acc_onchip = (layer_cntr>=7)? 1 : 0;
-  // assign Acc_onchip = 0;
 endmodule

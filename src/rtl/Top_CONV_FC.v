@@ -86,6 +86,8 @@ module Top_CONV_FC #(
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = 10, // Width of the input height;
     parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
+    parameter ELTWISE_SCALE_WIDTH = 32, // Width of the scale value
+    parameter ELTWISE_ZEROPOINT_WIDTH = 8, // Width of the zero point value
     parameter CONV_TYPE_WIDTH = 2, //CONV type width
 
     parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not
@@ -151,8 +153,6 @@ module Top_CONV_FC #(
     input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
     input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
 
-  
-    
     //im2col signals
     input [CONV_IW_WIDTH-1:0] image_width,
     input [CONV_IH_WIDTH-1:0] image_height,
@@ -161,7 +161,7 @@ module Top_CONV_FC #(
     output [DRAM_BW-1:0] image_rden,
 	  input stall_on,
     input img_read_done,
-
+    
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -185,6 +185,10 @@ module Top_CONV_FC #(
     input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] LeftOperand_data_in,
     input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] RightOperand_data_in,
     input [(ELTWISE_TYPE_WIDTH-1):0] EltWise_type,
+    input [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale,
+    input [ELTWISE_SCALE_WIDTH-1:0] RightOperand_Scale,
+    input [ELTWISE_ZEROPOINT_WIDTH-1:0] LeftOperand_zero_point,
+    input [ELTWISE_ZEROPOINT_WIDTH-1:0] RightOperand_zero_point,
     input [ELTWISE_IW_WIDTH-1:0]EltWise_IW,
     input [ELTWISE_IH_WIDTH-1:0]EltWise_IH,
     input [ELTWISE_IC_WIDTH-1:0]EltWise_IC,
@@ -253,7 +257,6 @@ module Top_CONV_FC #(
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
 
-  // Todo: This logic has to be modified to support Depth-wise convolution and point-wise convolution
   // Generation of im2col buffers based on DRAM_BW and N_SA
   /*
     If number of elements/engine = 1 then read the data directly from the img FIFO,
@@ -308,14 +311,9 @@ module Top_CONV_FC #(
   wire [(DATA_WIDTH*N_SA) -1:0] mux_out;
   wire [ROW-1:0] o_valid_squares;
 
-
-  reg  sel_mux;
   wire im2col_o_valid;
   wire [DATA_WIDTH -1:0] im2col_o_data;
-  
-  always @(posedge i_clk) begin
-	  sel_mux <= (im2col_o_valid == 1'b1)  ? 1'b1 : 1'b0;
-  end
+ 
   wire [N_SA-1:0] maxpool_valid;
   wire [(N_SA*DATA_WIDTH) -1:0] maxpool_output;
   wire [(N_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
@@ -333,7 +331,6 @@ genvar f;
 generate
     for (f = 0; f < 7; f = f + 1) begin : delay_stage
     reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
-        
       if (f == 0) begin
       always @(posedge i_clk ) begin
         delay_reg <= buff_out;
@@ -421,46 +418,46 @@ endgenerate
 
 
   top_sa #(
-      .N_SA(N_SA),
-      .W_DATA(DATA_WIDTH),
-      .COL(COL_SA),
-      .ROW(ROW),
-      .W_PSUM(W_PSUM),
-      .CONV_TYPE_WIDTH(CONV_TYPE_WIDTH),
-      .N_BRAM_BYTES(DRAM_BW),
-      .PSUM_FF_DEPTH(PSUM_FIFO_DEPTH),
-      .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
-      .IMG_FF_DEPTH(IM2COL_FIFO_DEPTH),
-      .NSA_LUT  (NSA_LUT),
-      .NSA_DSP  (NSA_DSP)
+    .N_SA(N_SA),
+    .W_DATA(DATA_WIDTH),
+    .COL(COL_SA),
+    .ROW(ROW),
+    .W_PSUM(W_PSUM),
+    .CONV_TYPE_WIDTH(CONV_TYPE_WIDTH),
+    .N_BRAM_BYTES(DRAM_BW),
+    .PSUM_FF_DEPTH(PSUM_FIFO_DEPTH),
+    .WEIGHT_FF_DEPTH(WEIGHT_FIFO_DEPTH),
+    .IMG_FF_DEPTH(IM2COL_FIFO_DEPTH),
+    .NSA_LUT  (NSA_LUT),
+    .NSA_DSP  (NSA_DSP)
   ) systolic_convolution (
-      .i_clk(i_clk),
-      .s_clk(s_clk),
-      .i_rstn(rst),
-      .i_conv_type(conv_type), //input: CONV type (regular 2D, depthwise, pointwise)
-      .stall_on(stall_on),
-      .istolic_stall(istolic_stall),
-      .i_im2col_start(im2col_global_start),
-	    .i_trigger_1(systolic_array_trigger), //start for CONV operation
-      .i_data_weight_ff_sharing(weight_data_sa),
-      .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
-      .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
-      .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
-      .i_image_ff_array_data(delay_stage[5].delay_reg), //i-wire : from im2col
-      .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
-      .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
-      .o_image_ff_array_almost_full(sa_image_fifo_almost_full),
-
-      .i_psum_ff_array_read_en(opsum_rden),
-      .p_full_output(p_full_output),
-      .o_psum_ff_array_partial_sums(o_psum_ff_array),
-      .o_psum_ff_array_empty(empty_sa),
-      .o_psum_ff_array_almost_empty(almost_empty_sa),
-      .o_psum_ff_array_dv(valid_psum),
-      .i_done(iteration_Done),
-      .i_layer_done(layer_done),
-      .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
-      .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
+    .i_clk(i_clk),
+    .s_clk(s_clk),
+    .i_rstn(rst),
+    .i_conv_type(conv_type), //input: CONV type (regular 2D, depthwise, pointwise)
+    .stall_on(stall_on),
+    .istolic_stall(istolic_stall),
+    .i_im2col_start(im2col_global_start),
+	  .i_trigger_1(systolic_array_trigger), //start for CONV operation
+    .i_data_weight_ff_sharing(weight_data_sa),
+    .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
+    .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
+    .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
+    .i_image_ff_array_data(delay_stage[5].delay_reg), //i-wire : from im2col
+    .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
+    .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
+    .o_image_ff_array_almost_full(sa_image_fifo_almost_full),
+    
+    .i_psum_ff_array_read_en(opsum_rden),
+    .p_full_output(p_full_output),
+    .o_psum_ff_array_partial_sums(o_psum_ff_array),
+    .o_psum_ff_array_empty(empty_sa),
+    .o_psum_ff_array_almost_empty(almost_empty_sa),
+    .o_psum_ff_array_dv(valid_psum),
+    .i_done(iteration_Done),
+    .i_layer_done(layer_done),
+    .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
+    .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
   );
 
   assign SA_psum_fifo_empty = &(empty_sa);
@@ -477,27 +474,23 @@ endgenerate
   //////////////////
   
   op_psum_rden #(
-      .N_SA(N_SA),
-      .COL (COL_SA),
-      .FIFO(ACC_FIFO)
+    .N_SA(N_SA),
+    .COL (COL_SA),
+    .FIFO(ACC_FIFO)
   ) op_psum_rden_inst (
-      .clk(i_clk),
-      .rst(rst),
-      .empty_vector(empty_vector),
-      .almost_empty_vector(almost_empty_vector),
-      .empty_sa(empty_sa),
-      .almost_empty_sa(almost_empty_sa),
-      .op_full(op_full),
-      .vector_enable(vector_add_enable),
-      .opsum_rden(psum_rden)
+    .clk(i_clk),
+    .rst(rst),
+    .empty_vector(empty_vector),
+    .almost_empty_vector(almost_empty_vector),
+    .empty_sa(empty_sa),
+    .almost_empty_sa(almost_empty_sa),
+    .op_full(op_full),
+    .vector_enable(vector_add_enable),
+    .opsum_rden(psum_rden)
   );
 
   
-
-  //////////////////
-
-
-  /// Adder Tree
+  //////// Adder Tree ///////////////
   wire [N_SA-1:0] valid_SA;
   wire [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA;
   
@@ -505,19 +498,19 @@ endgenerate
   generate
     if(COL_SA>1) begin
       top_adder_tree_gen #(
-          .W_PSUM(W_PSUM),
-          .COL(COL_SA), 
-          .N_SA(N_SA),
-          .NSA_DSP(NSA_DSP),
-          .NSA_LUT(NSA_LUT),
-          .DATA_WIDTH_OB(DATA_WIDTH_OB)
+        .W_PSUM(W_PSUM),
+        .COL(COL_SA), 
+        .N_SA(N_SA),
+        .NSA_DSP(NSA_DSP),
+        .NSA_LUT(NSA_LUT),
+        .DATA_WIDTH_OB(DATA_WIDTH_OB)
       ) adder_tree (
-          .clk(i_clk),
-          .rst(rst),
-          .i_psum_ff_array(o_psum_ff_array),
-          .valid_in({COL_SA{valid_psum}}),
-          .valid_out(valid_SA),
-          .result_final(dataout_SA)
+        .clk(i_clk),
+        .rst(rst),
+        .i_psum_ff_array(o_psum_ff_array),
+        .valid_in({COL_SA{valid_psum}}),
+        .valid_out(valid_SA),
+        .result_final(dataout_SA)
       );
     end
     else begin
@@ -565,33 +558,13 @@ endgenerate
     .weight_fifo_array_trigger(weight_rden_trigger_FC), //o-wire: trigger to read weights (goes to rden ctrler of weights in FC)
     .o_done_rden_ctrl(FC_layerdone) //ouput: done signal indicating the finish of FC layer. 
   );
-  //wire FC_layerdone;
-  
   
   wire [ACC_DW*COL_FC-1:0] FC_accumulator_op_data; // fully connected layer o/p
   wire [COL_FC-1:0] dv_FC_accumulator_data; //datavalid of FC o/p
 
- 
   // FC Computing Engine
-  // wire [(DATA_WIDTH_OB*COL_SA)-1:0] data_SA_FC;
-  // wire [COL_SA-1:0] dv_SA_FC;
   wire [(ACC_DW*N_FC_MUX)-1:0] op_data_mux_FC;
   wire valid_out_FC;
-
-  // interconnect of SA and FC
-  // always @(*) begin
-	// if(CONV_FC) begin 
-	// 	data_SA_FC = op_data_mux_FC;
-	// 	dv_SA_FC = {COL_SA{valid_out_FC}};
-	// end 
-	// else begin 
-	// 	data_SA_FC = result_tree;
-	// 	dv_SA_FC = valid_tree;
-	// end
-  // end
-
-// assign data_SA_FC = (CONV_FC) ? op_data_mux_FC : result_tree;
- //assign dv_SA_FC = (CONV_FC) ? {COL_SA{valid_out_FC}} : valid_tree;
 
   wire [(ACC_DW*COL_FC)-1:0] reorder_data_FC;
   wire o_dv_reorder;
@@ -631,13 +604,7 @@ endgenerate
   );
   assign weight_read_en_fc = {(DRAM_BW/COL_SA){weight_read_en_fc1}};
   assign FC_done = &(dv_FC_accumulator_data);
-  
-  
- 
-  //interconnect of SA and FC
-  // assign data_SA_FC = (CONV_FC==1'b1)? op_data_mux_FC : result_tree;
-  //assign dv_SA_FC = (CONV_FC==1'b1)? {COL_SA{valid_out_FC}} : valid_tree;
-  
+    
   //Interconnect to pass SA output or FC ouput
 
   FC_OP_Data_reorder#(
@@ -698,6 +665,8 @@ endgenerate
     .FIFO_NO(ELTWISE_FIFO),       
     .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+    .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
     .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
@@ -712,7 +681,11 @@ endgenerate
     .RightOperand_wr_en(RightOperand_wr_en), //from ddr
     .LeftOperand_data_in(LeftOperand_data_in), //from ddr
     .RightOperand_data_in(RightOperand_data_in), //from ddr
-    .EltWise_type(EltWise_type), //
+    .EltWise_type(EltWise_type),
+    .LeftOperand_Scale(LeftOperand_Scale),
+    .LeftOperand_zero_point(LeftOperand_zero_point),
+    .RightOperand_Scale(RightOperand_Scale),
+    .RightOperand_zero_point(RightOperand_zero_point),
     .EltWise_IW(EltWise_IW),
     .EltWise_IH(EltWise_IH),
     .EltWise_IC(EltWise_IC),

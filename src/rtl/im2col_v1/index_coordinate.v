@@ -127,16 +127,16 @@ module index_coordinate_v1 #(
 
   always @ (*) begin
   if(!rstn) begin
-        r_mat_size_col <= 0;
-        r_mat_size_row <= 0;
-        {r_valid_data,r_data,r_valid_buff} <= {1'd0,8'd0,1'b0};
+        r_mat_size_col = 0;
+        r_mat_size_row = 0;
+        {r_valid_data,r_data,r_valid_buff} = {1'd0,8'd0,1'b0};
         end
     else if (r_start_im2col && valid_mat_size) begin
 
-        r_mat_size_col <= mat_size_col ; //+ pad_left + pad_right ;
-        r_mat_size_row <= mat_size_row ; // + pad_top + pad_bottom;
+        r_mat_size_col = mat_size_col ; //+ pad_left + pad_right ;
+        r_mat_size_row = mat_size_row ; // + pad_top + pad_bottom;
 
-        {r_valid_data,r_data,r_valid_buff} <= ((curr_row < LOWER_BOUND + pad_top) && (curr_col>=LOWER_BOUND) && (curr_col<=r_mat_size_col)) ? {1'd1,8'd0,1'b0} :
+        {r_valid_data,r_data,r_valid_buff} = ((curr_row < LOWER_BOUND + pad_top) && (curr_col>=LOWER_BOUND) && (curr_col<=r_mat_size_col)) ? {1'd1,8'd0,1'b0} :
                                 ((curr_col < LOWER_BOUND + pad_left) && (curr_row>=LOWER_BOUND) && (curr_row<=r_mat_size_row)) ? {1'd1,8'd0,1'b0} : 
                                 ((curr_col > r_mat_size_col - pad_right) && (curr_row>=LOWER_BOUND) && (curr_row<=r_mat_size_row)) ? {1'd1,8'd0,1'b0} :
                                 ((curr_row > r_mat_size_row - pad_bottom) && (curr_col>=LOWER_BOUND) && (curr_col<=r_mat_size_col)) ? {1'd1,8'd0,1'b0} : 
@@ -144,9 +144,9 @@ module index_coordinate_v1 #(
       end
 
       else begin
-        r_mat_size_col <= 0;
-        r_mat_size_row <= 0;
-        {r_valid_data,r_data,r_valid_buff} <= {1'd0,8'd0,1'b0};
+        r_mat_size_col = 0;
+        r_mat_size_row = 0;
+        {r_valid_data,r_data,r_valid_buff} = {1'd0,8'd0,1'b0};
        // o_valid_buff <= 0;
       end
     end

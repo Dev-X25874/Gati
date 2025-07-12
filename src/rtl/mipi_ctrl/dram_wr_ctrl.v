@@ -29,6 +29,8 @@ reg data_valid;
 	reg DataWrLast;
     wire DataWrEnd;
 
+    reg is_single_burst;
+
 	always @(posedge i_clk) begin 
         if (!i_rstn) s_flag <= 0;
         else begin
@@ -41,20 +43,27 @@ reg data_valid;
         end
 	end
 
+    always@(posedge i_clk) begin
+        if(!i_rstn) soft_start <= 1'b0;
+        else if(~|(state) & ~|(count_blen)) soft_start <= 1'b0;
+        else if(state==2'b10 && (count_blen>r_blen) && s_flag) soft_start <= 1'b1;
+    end
+
+
     always@(posedge i_clk)begin
         if (!i_rstn) begin
             count_blen <= 0;
             state <= 2'd0;
-			soft_start <= 0;
+			is_single_burst <= 1'b0;
         end else begin
             case(state)
                 2'd0:begin
-					soft_start <= 0;
-                    if(i_select==1) begin
+					if(i_select==1) begin
                         state <= 2'd1;
                         count_blen <= 0;
                         data_valid <= 1'b0;
                         r_blen <= i_burst_length;
+                        is_single_burst <= (i_burst_length == 0)? 1'b1 : 1'b0;
                     end
                     else begin
                         state <= 0;
@@ -72,30 +81,19 @@ reg data_valid;
                 end
 
                 2'd2:begin
-                    // if(r_blen == 0) begin
-                    //     if(i_write_ready) begin
-                    //         data_valid <= 1'b1;
-                    //         state <= 3;
-                    //         count_blen <= 0;
-                    //         if(s_flag) begin 
-                    //             soft_start<=1;
-                    //         end
-                    //     end
-                    // end
-                        
-                    // else begin
-                    // if((count_blen > r_blen) && DataWrEnd) begin
                     if(count_blen>r_blen) begin
-                        if(i_write_ready & data_valid) begin
-                            data_valid <= 1'b0;
-                        end
                         if(o_data_last) begin
                             state <= 0;
+                            data_valid <= 0;
                             count_blen <= 0;
                         end
-						if(s_flag) begin 
-							soft_start<=1;
-					    end
+                        else begin
+                            if(i_write_ready & data_valid) data_valid <= 1'b0;
+                        end
+
+                        // if(s_flag) begin 
+						// 	soft_start<=1;
+					    // end
                     end
                     else if (count_blen == r_blen) begin
                         if(i_write_ready) begin
@@ -136,17 +134,17 @@ reg data_valid;
 
     assign rden = (data_valid & i_write_ready) ? {N_FIFO{1'b1}} : {N_FIFO{1'b0}};
 
-    assign DataWrEnd = (r_blen==0)? (DataWrLast & i_write_ready) : (DataWrLast & dv & i_write_ready);
-
+    // assign DataWrEnd = (r_blen==0)? (DataWrLast & i_write_ready) : (DataWrLast & dv & i_write_ready);
+    // assign DataWrEnd = is_single_burst? (DataWrLast & i_write_ready) : (DataWrLast & dv & i_write_ready);
     // assign DataWrEnd = DataWrLast & data_valid & i_write_ready;
-    // assign DataWrEnd = DataWrLast & i_write_ready;
+    assign DataWrEnd = DataWrLast & i_write_ready;
 
     always@( posedge i_clk)
     begin
-        if(!i_rstn)                                                    DataWrLast <= 1'b0;
-        else if (data_valid && (r_blen==0))                            DataWrLast <= 1'b1;
-        else if (data_valid && i_write_ready && (count_blen==r_blen+1))DataWrLast <= 1'b1;
-        else if (DataWrEnd)                                            DataWrLast <= 1'b0;
+        if(!i_rstn)                                                 DataWrLast <= 1'b0;
+        else if (DataWrEnd)                                         DataWrLast <= 1'b0;
+        else if (data_valid && (is_single_burst))                   DataWrLast <= 1'b1;
+        else if (dv && i_write_ready && (count_blen==r_blen+1))     DataWrLast <= 1'b1;
         // else                                                           DataWrLast <= 1'b0;
     end
 
@@ -167,7 +165,7 @@ reg dv1 = 0;
 always@(posedge i_clk) begin
     if(!i_rstn) dv <= 0;
     else begin
-        if(r_blen==0) begin
+        if(is_single_burst) begin
             dv  <= data_valid;
         end
         else begin
@@ -180,6 +178,7 @@ end
 assign fifo_occupants = {N_FIFO{1'b0,r_blen}};
 assign o_data_valid = dv;
 assign o_fifo_read_enable = rden;
-assign o_data_last = (r_blen==0)? DataWrLast : DataWrEnd;
+assign o_data_last = is_single_burst? DataWrLast : DataWrEnd;
+// assign o_data_last = (r_blen==0)? DataWrLast : DataWrEnd;
     
 endmodule

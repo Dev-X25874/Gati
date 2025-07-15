@@ -15,10 +15,12 @@ module dram_data_aligner#(
 
     parameter OP_FIFO_DEPTH = 512,
     parameter OP_FIFO = 1,
-    parameter OUTPUT_REG = 0
+    parameter OUTPUT_REG = 0,
+    parameter OutputBlock_OpWidth_WIDTH =3
 ) (
     input i_clk,
     input i_rst,
+    input i_start,
     input i_acc_quant_enable, // 0: acc, 1: quant
     input i_Acc_Onchip,
     output o_op_full,
@@ -28,7 +30,9 @@ module dram_data_aligner#(
     input [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] i_quant_data,
     input [QUANT_OP_FIFO-1 : 0] i_quant_data_wren,
     
-    input [OP_FIFO-1 : 0] i_op_write_dram_fifo_rden,
+    input  [OP_FIFO-1 : 0] i_op_write_dram_fifo_rden,
+    input  [OutputBlock_OpWidth_WIDTH-1:0] i_OB_OpWidth,
+    input  i_last_c_itr,
     output [(($clog2(OP_FIFO_DEPTH)+1)*OP_FIFO)-1:0] o_op_write_dram_fifo_occupants,
     output [OP_FIFO-1 : 0] o_op_write_dram_fifo_empty,
     output [AXI_DATA_WIDTH-1:0] o_op_write_dram_fifo_data,
@@ -50,6 +54,36 @@ module dram_data_aligner#(
     wire [ACC_OP_DATAWIDTH-1:0] acc_op_fifo_data;
     wire [(($clog2(ACC_OP_FIFO_DEPTH)+1)*ACC_OP_FIFO)-1:0] acc_op_fifo_occupants;
     // ACC_OP_FIFO
+
+    wire w_op_8bit  ;
+    wire w_op_32bit ;
+    
+    assign w_op_8bit = (i_OB_OpWidth == 3'b001) ? (i_last_c_itr ? 1 :0 ) : 0 ;
+    assign w_op_32bit = (i_OB_OpWidth == 3'b100) ? 1 : (i_last_c_itr ? 0 : 1) ;
+
+    
+    reg r_op_8bit = 0 ;
+    reg r_op_32bit = 0 ;
+    
+    always @(posedge i_clk) begin
+        if(!i_rst)begin
+            r_op_8bit <= 0;
+            r_op_32bit <= 0;
+        end
+        else if (i_start) begin
+            if(i_OB_OpWidth == 3'b001) begin
+                r_op_8bit <= 1;
+                r_op_32bit <= 0;
+            end
+            else if (i_OB_OpWidth == 3'b100)begin
+                r_op_8bit <= 0;
+                r_op_32bit <= 1;            
+            end
+        end
+    end 
+    
+    
+
     dram_fifo # (
         .DIMENSION(ACC_OP_FIFO),
         .W_DATA(ACC_OP_DATAWIDTH/ACC_OP_FIFO),
@@ -97,6 +131,7 @@ module dram_data_aligner#(
         .o_occupants()
     );
     
+    // TODO this block is for the logic when width it 8 if the width is 8 bits right here irrespective of other logic 
     // Read signal generation for quant FIFOs 
     reg [QUANT_OP_FIFO-1 : 0] r_quant_fifo_read_enable;
     wire [QUANT_OP_FIFO-1 : 0] quant_fifo_read_enable;
@@ -106,7 +141,7 @@ module dram_data_aligner#(
             r_quant_fifo_read_enable <= 0;
         end
         else begin
-            if(i_acc_quant_enable) begin
+            if(w_op_8bit & i_last_c_itr) begin
                 if(o_op_full) r_quant_fifo_read_enable <= 0;
                 else if(r_quant_fifo_read_enable & quant_op_fifo_almost_empty) r_quant_fifo_read_enable <= 0;
                 else if(~quant_op_fifo_empty) r_quant_fifo_read_enable <= {QUANT_OP_FIFO{1'b1}};
@@ -118,6 +153,7 @@ module dram_data_aligner#(
     end
 
     // Read signal generation for acc FIFOs
+    // TODO this generates the flag when its 32 bit and needs to be written to the fifo 
     localparam SHIFT_WIDTH = ((N_SA*DATA_WIDTH_ACC) < AXI_DATA_WIDTH) ? 0 : ((ACC_OP_FIFO > 1)? $clog2(ACC_OP_FIFO) : 0);
     localparam SHIFT_COUNT = ACC_OP_FIFO;
 
@@ -131,7 +167,7 @@ module dram_data_aligner#(
                     r_acc_fifo_read_enable <= 0;
                 end
                 else begin
-                    if(~i_acc_quant_enable) begin
+                    if(w_op_32bit) begin
                         if(o_op_full) r_acc_fifo_read_enable <= 0;
                         else if(acc_fifo_read_enable & (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
                         else if(~|acc_op_fifo_empty) r_acc_fifo_read_enable <= {ACC_OP_FIFO{1'b1}};
@@ -153,7 +189,7 @@ module dram_data_aligner#(
                     r_acc_fifo_read_enable <= 0;
                 end
                 else begin
-                    if(~i_acc_quant_enable) begin
+                    if(w_op_32bit) begin
                         if(op_write_dram_fifo_prog_full) r_acc_fifo_read_enable <= 0;
                         else if((r_acc_fifo_read_enable) && (&(acc_op_fifo_almost_empty))) r_acc_fifo_read_enable <= 0;
                         else if(~&acc_op_fifo_empty) r_acc_fifo_read_enable <= 1;
@@ -172,7 +208,7 @@ module dram_data_aligner#(
                 end
                 else begin
                     r_shift_count_delayed <= r_shift_count;
-                    if(~i_acc_quant_enable) begin
+                    if(w_op_32bit) begin
                         if(r_shift_count == SHIFT_COUNT-1) begin
                             if(r_acc_fifo_read_enable) r_shift_count <= 0;
                         end
@@ -216,14 +252,16 @@ module dram_data_aligner#(
     // Data write into dram FIFO
     wire op_write_dram_fifo_wren;
     wire [AXI_DATA_WIDTH-1:0] op_write_dram_fifo_data;
-
+     
+    // TODO -- use the i_last_c_itr here 
     generate
         if(SHIFT_WIDTH==0) begin
-            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : ((i_Acc_Onchip)? 0 : (acc_op_fifo_dv));
-            assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data;
+            assign op_write_dram_fifo_wren = (w_op_8bit & i_last_c_itr) ? quant_op_fifo_dv : ((i_Acc_Onchip)?(i_last_c_itr ? acc_op_fifo_dv : 0) : acc_op_fifo_dv);
+            assign op_write_dram_fifo_data = (w_op_8bit & i_last_c_itr) ? quant_op_fifo_data : acc_op_fifo_data;
 
-            assign o_acc_onchip_data = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_data : {ACC_OP_DATAWIDTH{1'b0}};
-            assign o_acc_onchip_data_dv = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_dv : {ACC_OP_FIFO{1'b0}};
+            assign o_acc_onchip_data = (i_Acc_Onchip & w_op_32bit) ?(i_last_c_itr ? {ACC_OP_DATAWIDTH{1'b0}} : acc_op_fifo_data ) : {ACC_OP_DATAWIDTH{1'b0}};
+            
+            assign o_acc_onchip_data_dv = (i_Acc_Onchip & w_op_32bit) ? (i_last_c_itr ? {ACC_OP_FIFO{1'b0}} : acc_op_fifo_dv ) : {ACC_OP_FIFO{1'b0}};
         end
         else begin
 
@@ -232,7 +270,7 @@ module dram_data_aligner#(
                     r_shift_count_dv <= 0;
                 end
                 else begin
-                    if(~i_acc_quant_enable & ~i_Acc_Onchip) begin
+                    if(w_op_32bit & ~i_Acc_Onchip) begin
                         if(r_shift_count_dv == SHIFT_COUNT-1) begin
                             if(|(acc_op_fifo_dv)) r_shift_count_dv <= 0;
                         end
@@ -246,11 +284,11 @@ module dram_data_aligner#(
                 end
             end
 
-            assign op_write_dram_fifo_wren = i_acc_quant_enable? quant_op_fifo_dv : ((i_Acc_Onchip)? 0 : |(acc_op_fifo_dv));
-            assign op_write_dram_fifo_data = i_acc_quant_enable? quant_op_fifo_data : acc_op_fifo_data[(AXI_DATA_WIDTH*(ACC_OP_FIFO-r_shift_count_dv)-1) -: AXI_DATA_WIDTH];
+            assign op_write_dram_fifo_wren = (w_op_8bit & i_last_c_itr)? quant_op_fifo_dv : ((i_Acc_Onchip)?(i_last_c_itr? |(acc_op_fifo_dv) :0 ) : |(acc_op_fifo_dv));
+            assign op_write_dram_fifo_data = (w_op_8bit & i_last_c_itr)? quant_op_fifo_data : acc_op_fifo_data[(AXI_DATA_WIDTH*(ACC_OP_FIFO-r_shift_count_dv)-1) -: AXI_DATA_WIDTH];
 
-            assign o_acc_onchip_data = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_data : {ACC_OP_DATAWIDTH{1'b0}};
-            assign o_acc_onchip_data_dv = (i_Acc_Onchip & ~i_acc_quant_enable) ? acc_op_fifo_dv : {ACC_OP_FIFO{1'b0}};
+            assign o_acc_onchip_data = (i_Acc_Onchip & w_op_32bit) ?(i_last_c_itr ? {ACC_OP_DATAWIDTH{1'b0}} : acc_op_fifo_data)  : {ACC_OP_DATAWIDTH{1'b0}};
+            assign o_acc_onchip_data_dv = (i_Acc_Onchip & w_op_32bit) ?(i_last_c_itr ? {ACC_OP_FIFO{1'b0}} : acc_op_fifo_dv ): {ACC_OP_FIFO{1'b0}};
         end
     endgenerate
 
@@ -260,7 +298,7 @@ module dram_data_aligner#(
             assign o_op_full = (o_op_write_dram_fifo_occupants >= (OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0;
         end
         else begin
-            assign o_op_full = (~i_acc_quant_enable)?
+            assign o_op_full = (w_op_32bit)?
                 ((acc_op_fifo_occupants[$clog2(ACC_OP_FIFO_DEPTH):0] >= (ACC_OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0) :
                 ((o_op_write_dram_fifo_occupants >= (OP_FIFO_DEPTH-16)) ? 1'b1 : 1'b0);
         end

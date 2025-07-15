@@ -112,6 +112,7 @@ module top_gati_module #(
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
 
     parameter OutputBlock_AccumulantReadFirst_WIDTH = `OutputBlock_AccumulantReadFirst_WIDTH, // Output block accumulant read first
+    parameter OutputBlock_OpWidth_WIDTH = `OutputBlock_OpWidth_WIDTH,
     parameter MOD1 = 1,
     parameter MOD2 = AXI_DATA_BYTES/N_SA,
     parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
@@ -604,6 +605,8 @@ module top_gati_module #(
   wire [(W_POOL_SCALE - 1) : 0] poolscale;
   wire [(W_POOL_SHIFT - 1) : 0] poolshift;
 
+  wire [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth; // output dram data width in bytes 
+
   // top_master_slave_integrate
   top_master_slave_integrate#(
     .OP_CODE_WIDTH(OPCODE_WIDTH),
@@ -668,6 +671,8 @@ module top_gati_module #(
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
     .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH)
+    .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
+    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
   )
   bus_inst(
     .din(instruction), //i-wire : instruction from config blk
@@ -769,7 +774,9 @@ module top_gati_module #(
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
     .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
-    .BiasEndAddress(bias_stop_address)
+    .BiasEndAddress(bias_stop_address),
+    .OB_OpWidth(OB_OpWidth)
+
   );
   
   // fifo status signals for memory request controllers
@@ -1006,7 +1013,8 @@ module top_gati_module #(
     .W_KERNEL_CNT(W_KITER_CNT),
     .W_CHANNEL_CNT(W_CITER_CNT),
     .IMAGE_DIM_WIDTH_ACC(I_ACC_SIZE_WIDTH),
-    .IMAGE_DIM_WIDTH_OP(I_OP_SIZE_WIDTH) 
+    .IMAGE_DIM_WIDTH_OP(I_OP_SIZE_WIDTH),
+    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH) 
   )
   op_write_mem_req_ctrler(
     .clkin(i_clk),
@@ -1023,6 +1031,7 @@ module top_gati_module #(
     .acc_en(vector_add_enable),
     .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
     .Acc_onchip(Acc_onchip), //i-wire: Enables Accumulant storage locally, comes from instruction
+    .OB_OpWidth(OB_OpWidth),
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
     .o_address(mc_op_write_addr),
@@ -1528,9 +1537,9 @@ module top_gati_module #(
   wire [(AXI_DATA_WIDTH-1):0] quant_op_write_data;
   wire [QUANT_OP_FIFO-1:0] quant_op_wren;
 
-  wire shift_reg_en;
+  wire last_c_itr;
   wire [N_SA-1:0] shift_reg_sel;
-  assign shift_reg_sel = {N_SA{shift_reg_en}};
+  assign shift_reg_sel = {N_SA{last_c_itr}};
 
   wire bias_enable;
   wire quant_enable;
@@ -1796,11 +1805,13 @@ module top_gati_module #(
     .QUANT_OP_FIFO_DEPTH(QUANT_OP_FIFO_DEPTH),
     .OP_FIFO_DEPTH(OP_WRITE_FIFO_DEPTH),
     .OP_FIFO(OP_FIFO),
-    .OUTPUT_REG(0)
+    .OUTPUT_REG(0),
+    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
   )
   dram_data_aligner_inst (
     .i_clk(i_clk),
     .i_rst(i_rst&(~iter_done)),
+    .i_start(start),
     .i_acc_quant_enable(quant_enable),
     .i_Acc_Onchip(Acc_onchip),
     .i_acc_data(acc_op_write_data),
@@ -1808,6 +1819,8 @@ module top_gati_module #(
     .i_quant_data(quant_op_write_data),
     .i_quant_data_wren(quant_op_wren),   
     .i_op_write_dram_fifo_rden(op_write_fifo_rden),
+    .i_last_c_itr(last_c_itr),
+    .i_OB_OpWidth(OB_OpWidth),
     .o_op_write_dram_fifo_occupants(op_write_dram_fifo_occupants),
     .o_op_write_dram_fifo_empty(op_dram_fifo_empty),
     .o_op_write_dram_fifo_data(op_dram_fifo),
@@ -1890,7 +1903,7 @@ module top_gati_module #(
       .bias_en(bias_enable),
       .fc_bias_en(bias_fc_enable), 
       .pool_en(maxpool_enable),
-      .en(shift_reg_en),
+      .en(last_c_itr),
       //for io signals
       .kernal_count(kernal_count), // represents the current kernal iteration number 
       .channel_count(channel_count), // represents the current channel iteration number 
@@ -1973,7 +1986,7 @@ module top_gati_module #(
   assign layer_debug_pin = (layer_cntr==4)? 1 : 0;
 
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
-  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA;
+  assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA*OB_OpWidth;
   assign fpga2cpu_start_address = op_start_address;
 
 endmodule

@@ -14,7 +14,8 @@ module op_write_req_block#(
  parameter IMAGE_DIM_WIDTH_ACC = 16,
  parameter IMAGE_DIM_WIDTH_OP = 16,
  parameter DATA_WIDTH_ACC = 32,
- parameter DATA_WIDTH = 8
+ parameter DATA_WIDTH = 8,
+ parameter OutputBlock_OpWidth_WIDTH =3
 )
 (
 input clkin,
@@ -33,6 +34,7 @@ input acc_en,               //from iteration counter
 input Tail_done,            //from TOP_CONV_FC
 input Acc_onchip,           //from instructions
 //signals to mem_controller
+input [OutputBlock_OpWidth_WIDTH-1 :0] OB_OpWidth,
 output o_last,
 output [7:0] o_address,
 output [7:0] o_burst_len,
@@ -72,12 +74,11 @@ wire [$clog2(DEPTH) : 0] r_burst_len_1;
 assign r_burst_len_1 = r_burst_len+1;
 
 //calculation of burst length
+
 wire [ADDR_WIDTH-1 : 0] offset1, offset2;
-// assign offset1 = (i_imag_dim/NUMBER_ACC)<<$clog2(AXI_DATA_BYTES);
-// assign offset2 = (i_imag_dim_2/NUMBER_OP)<<$clog2(AXI_DATA_BYTES);  
 
 assign offset1 = i_imag_dim * (DATA_WIDTH_ACC/DATA_WIDTH) * N;
-assign offset2 = i_imag_dim_2 * N;
+assign offset2 = (i_imag_dim_2 * N) * OB_OpWidth ;
 
 assign r_acc_stop_add = r_acc_next_add + offset1;
 assign r_layer_stop_add = r_layer_next_add + offset2;                    

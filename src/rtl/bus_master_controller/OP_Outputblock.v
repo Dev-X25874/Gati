@@ -15,7 +15,8 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
             parameter ACC_ONCHIP_WIDTH = 1,
             parameter OH_WIDTH = 10,
             parameter OW_WIDTH = 10,
-            parameter OutputBlock_AccumulantReadFirst_WIDTH = 1
+            parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,
+            parameter OutputBlock_OpWidth_WIDTH = 3
             )
             (
                 input [(INPUT_WIDTH)-1 : 0] din,
@@ -38,7 +39,8 @@ module OP_Outputblock #(parameter OP_CODE_WIDTH = 4,
                 output reg [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip = 0,
                 output reg [OH_WIDTH-1 : 0] OB_OH = 0,
                 output reg [OW_WIDTH-1 : 0] OB_OW = 0,
-                output reg [OutputBlock_AccumulantReadFirst_WIDTH-1 : 0] OutputBlock_AccumulantReadFirst = 0
+                output reg [OutputBlock_AccumulantReadFirst_WIDTH-1 : 0] OutputBlock_AccumulantReadFirst = 0,
+                output reg [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth =0
             );
 
             `include "../common/instructions.vh"
@@ -102,6 +104,7 @@ always @(posedge clk) begin
             OB_OH<= data_instruction[`OutputBlock_OH];
             OB_OW <= data_instruction[`OutputBlock_OW];
             OutputBlock_AccumulantReadFirst <= data_instruction[`OutputBlock_AccumulantReadFirst];
+            OB_OpWidth <= data_instruction[`OutputBlock_OpWidth];
             valid <= 1'b1;
             state <= IDLE;
         // end

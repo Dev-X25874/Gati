@@ -1,3 +1,5 @@
+`include "../common/instructions.vh"
+
 module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4, 
     parameter CNT = (INPUT_WIDTH/OUTPUT_WIDTH),
     parameter INPUT_WIDTH = 256,
@@ -63,8 +65,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter CONV_StartRowSkip_WIDTH = 4,
     parameter CONV_EndRowSkip_WIDTH = 4 ,
     parameter OutputBlock_AccumulantReadFirst_WIDTH = 1        
-) 
-(
+    parameter OutputBlock_OpWidth_WIDTH = 3        
+    (
     input [(INPUT_WIDTH)-1 : 0] din,
     input start,
     input clk,
@@ -153,7 +155,8 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
     output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
-    output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst
+    output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst,
+    output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth
 );
 
     `include "../common/instructions.vh"
@@ -305,7 +308,8 @@ OP_Outputblock(
     .Acc_onchip(Acc_onchip),
     .OB_OH(OB_OH),
     .OB_OW(OB_OW),
-    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst)
+    .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
+    .OB_OpWidth(OB_OpWidth)
 );
 
 OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH), 
@@ -398,6 +402,9 @@ OP_EltWise(
     .valid(valid[`OP_EltWise]),
     .ready(ready[`OP_EltWise])
     );
-//assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
+    
+
+ 
+    //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

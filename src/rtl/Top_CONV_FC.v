@@ -323,6 +323,20 @@ module Top_CONV_FC #(
   wire [(N_SA*ROW) -1:0] fifo_image_wren;
   assign fifo_image_wren = {N_SA{o_valid_squares}}; 
 
+  //Debug counter for img_rden
+  reg [31:0] img_rden_counter = 0;
+  always@(posedge i_clk) begin
+    if(!rst) img_rden_counter <= 0;
+    else begin
+      if(im2col_done) img_rden_counter <= 0;
+      else if(image_rden != 0) img_rden_counter <= img_rden_counter + 1;
+    end
+  end
+
+  //Debug flag to check correctness of image_rden_counter
+  localparam BYTES_PER_SA = DRAM_BW/N_SA;
+  wire img_rden_counter_flag;
+  assign img_rden_counter_flag = (im2col_done) ? ((img_rden_counter == (image_width * image_height)/(BYTES_PER_SA))? 1'b1 : 1'b0) : 1'b0;
 
 //im2col block
 // generate block for 7 cycle dealay in the input reg mux_out
@@ -658,6 +672,7 @@ endgenerate
   //EltWise Operation
   wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
   wire [N_SA-1:0] EltWise_data_out_valid;
+  wire [QUANT_SHIFT-1:0] EltWise_fp_cast_shift;
   Top_element_wise  #(
     .DATA_WIDTH(DATA_WIDTH),   
     .N(N_SA),          
@@ -667,6 +682,7 @@ endgenerate
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
     .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
+    .ELTWISE_QUANT_SHIFT(QUANT_SHIFT),
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
     .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
@@ -694,6 +710,7 @@ endgenerate
     .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
     .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
     .EW_done(EW_done),
+    .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
     .op_fifo_empty(op_fifo_empty)
   );
 
@@ -780,7 +797,21 @@ endgenerate
       .fifo_occupants(bias_fifo_occupants)
   );
   
+  // Quantization Block Interconnect
   
+  wire [QUANT_SHIFT-1:0] fp_cast_shift;
+  wire fp_cast;
+  quant_interconnect # (
+    .SHIFT_WIDTH(QUANT_SHIFT),
+    .OPCODE_WIDTH(OPCODE_WIDTH)
+  )
+  quant_interconnect_inst (
+    .opcode(opcode),
+    .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
+    .fp_cast(fp_cast),
+    .fp_cast_shift(fp_cast_shift)
+  );
+
   wire [(DATA_WIDTH*N_SA) -1:0] quantized_output;
   wire [(DATA_WIDTH_OB*N_SA) -1:0] unquantized_output;
   wire [N_SA -1:0] unquantized_valid;
@@ -796,6 +827,8 @@ endgenerate
       .top_i_data_quant(bias_output),
       .top_i_data_scale({N_SA{quant_scale}}), //from tail inst.
       .enable_quant(quant_enable),  //from iteration cnter
+      .top_i_fp_cast(fp_cast), //from quant interconnect
+      .top_i_fp_cast_shift({N_SA{fp_cast_shift}}), //from quant interconnect
       .top_o_data(quantized_output),
       .quantized_passthrough(unquantized_output),
       .top_i_data_valid(bias_valid),

@@ -19,20 +19,20 @@ module interconnect #(
     always @(*) begin
         case(opcode)
             `OP_CONV: begin
-                data_tail_blk_in <= SA_data;
-                data_tail_blk_vaild <= SA_data_valid;
+                data_tail_blk_in = SA_data;
+                data_tail_blk_vaild = SA_data_valid;
             end
             `OP_FC: begin
-                data_tail_blk_in <= FC_data;
-                data_tail_blk_vaild <= FC_data_valid;
+                data_tail_blk_in = FC_data;
+                data_tail_blk_vaild = FC_data_valid;
             end
             `OP_EltWise: begin
-                data_tail_blk_in <= EltWise_data;
-                data_tail_blk_vaild <= EltWise_data_valid;
+                data_tail_blk_in = EltWise_data;
+                data_tail_blk_vaild = EltWise_data_valid;
             end
             default: begin
-                data_tail_blk_in <= 0;
-                data_tail_blk_vaild <= 0;
+                data_tail_blk_in = 0;
+                data_tail_blk_vaild = 0;
             end
         endcase
     end

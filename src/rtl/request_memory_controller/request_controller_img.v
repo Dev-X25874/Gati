@@ -6,11 +6,17 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
                                 parameter CHANNELITR_WIDTH = 12,
                                 parameter BURST_LENGTH = 10,
                                 parameter AXI_DATA_BYTES = 32,
-                                parameter CONV_TYPE_WIDTH = 2)(
+                                parameter CONV_TYPE_WIDTH = 2,
+                                parameter MOD = 2,
+                                parameter N_SA = 4,
+                                parameter CONV_IH_WIDTH = 10,
+                                parameter CONV_IW_WIDTH = 10)(
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
     input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input [KERNELITR_WIDTH - 1 : 0] kernelitr,
     input [CHANNELITR_WIDTH - 1 : 0] channelitr,
+    input [CONV_IH_WIDTH - 1 : 0] input_img_height,
+    input [CONV_IW_WIDTH - 1 : 0] input_img_width,
     input config_start,
     input fifo_status, //occupancy check
     input clk,
@@ -55,14 +61,23 @@ module request_controller_img #(parameter BURST_LENGTH_WIDTH = 8,
     reg [CONV_TYPE_WIDTH-1 : 0] r_conv_type;
     reg r_dup_flag;
 
+    wire [2*CONV_IW_WIDTH-1 : 0] input_img_size;
+    wire [CONV_IW_WIDTH-1 : 0] extra_img_size;
+    wire [AXI_ADDRESS_WIDTH - 1 : 0] offset;
+
+    assign input_img_size = input_img_height * input_img_width;
+    assign extra_img_size = (input_img_size % MOD == 0) ? 0 : (MOD - (input_img_size % MOD));
+    assign offset = (input_img_size + extra_img_size) * N_SA;
+
 always @ (posedge clk) begin 
 	r_start_addr    <=  start_addr;
 	// r_kernelitr     <=  (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
-	r_stop_addr     <=  stop_addr;
+	// r_stop_addr     <=  stop_addr;
 	r_config_start  <=  config_start;
 	r_fifo_status   <=  fifo_status;
-	r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : 
-                        ((r_conv_type == `CONV_TYPE_DW)? conv_ack : c_done);
+	// r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : 
+    //                     ((r_conv_type == `CONV_TYPE_DW)? conv_ack : c_done);
+    r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : c_done;
 end
 
 
@@ -83,12 +98,14 @@ always @(posedge clk) begin
             last <= 0;
             img_rd_done <= 0;
             if(r_config_start) begin
-                r_kernelitr     <= (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+                // r_kernelitr     <= (conv_type == `CONV_TYPE_DW)? 1 : kernelitr;
+                r_kernelitr     <= kernelitr;
                 r_channelitr    <= channelitr;
                 r_conv_type     <= conv_type;
                 r_dup_flag      <= dup_flag;
                 state           <= FIFO_STATUS;
                 nxt_addr        <= r_start_addr;
+                r_stop_addr     <= (conv_type == `CONV_TYPE_DW)? (r_start_addr + offset) : stop_addr;
                 r_burst_length  <= BURST_LENGTH;
             end
             else begin
@@ -147,7 +164,7 @@ always @(posedge clk) begin
                 wr_enable <= 0;
                 valid <= 0;
                 r_burst_length <= r_burst_length;
-                nxt_addr <= nxt_addr;
+                nxt_addr <= (nxt_addr + ((r_burst_length + 1) << $clog2(AXI_DATA_BYTES)));
             end
             else begin //if nxt_address is smaller than the stop_address then it will simply go to the FIFO_STATUS to check for the fifo's status and iterate again
                 state <= FIFO_STATUS;
@@ -192,7 +209,9 @@ always @(posedge clk) begin
         KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
             img_rd_done <= 0;
             if (count_kernel < r_kernelitr -1) begin
-                nxt_addr <= r_start_addr;
+                // nxt_addr <= r_start_addr;
+                nxt_addr <= (r_conv_type == `CONV_TYPE_DW)? nxt_addr : r_start_addr;
+                r_stop_addr <= (r_conv_type == `CONV_TYPE_DW)? (nxt_addr + offset) : stop_addr;
                 state <= FIFO_STATUS;
                 count_kernel <= count_kernel + 1;
                 r_burst_length <= BURST_LENGTH;

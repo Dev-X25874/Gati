@@ -18,6 +18,8 @@ module mul_shift#(
   input signed [DATA_WIDTH-1:0]         dina, //input data from bias block
   input signed [SCALE_WIDTH-1:0]        dinb, //scale value from inst.
   input                                 enabled,
+  input                                 fp_cast, //if enabled, it will cast the floating point value
+  input [SHIFT_WIDTH-1:0]               fp_cast_shift, //shift value for floating point casting
   output reg [DATA_WIDTH-1:0]           quantized_passthrough,
   output reg                            unquantized_valid,
   output signed [OUT_DATA_WIDTH-1:0]    dout, 
@@ -26,10 +28,12 @@ module mul_shift#(
   input [SHIFT_WIDTH-1:0]               bit_shift
 );
   reg  signed [DATA_WIDTH*2-1:0]        w_dout;
+  reg  signed [DATA_WIDTH*2-1:0]        w_dout1;
   reg  signed [DATA_WIDTH*2-1:0]        w_dout2;
   reg  signed [DATA_WIDTH*2-1:0]        rdout=0;
   reg                                   r_data_valid=0;
   reg                                   r_data_valid1=0;
+  reg                                   r_data_valid2=0;
   reg [DATA_WIDTH-1:0]                  r_dina;
 
   /* quantization is performed in two steps: 
@@ -59,12 +63,19 @@ module mul_shift#(
   // assign w_dout = (enabled==1)? ((rdout+(1<<(bit_shift-1))) >>> bit_shift) : 0;
   
   always @(posedge clk) begin
-      w_dout <= (enabled==1)? ((rdout+(1<<(bit_shift-1))) >>> bit_shift) : 0;
-      r_data_valid1 <= r_data_valid;
+    w_dout <= (enabled==1)? ((rdout+(1<<(bit_shift-1))) >>> bit_shift) : 0;
+    r_data_valid1 <= r_data_valid;
   end
+
+  // Additional logic for floating point casting
+  always @(posedge clk) begin
+    r_data_valid2 <= r_data_valid1;
+    w_dout1 <= fp_cast? (w_dout + (1<<(fp_cast_shift-1))) >>> fp_cast_shift : w_dout;
+  end
+
   always @(posedge clk) begin    
-      w_dout2 <= (w_dout < -128) ? -128 : ((w_dout > 127) ? 127 : w_dout);
-      o_data_valid <= r_data_valid1;  
+    w_dout2 <= (w_dout1 < -128) ? -128 : ((w_dout1 > 127) ? 127 : w_dout1);
+    o_data_valid <= r_data_valid2;  
   end
   assign dout = w_dout2[OUT_DATA_WIDTH-1:0];
   // assign w_dout = (enabled==1)? ((rdout+((1<<bit_shift)>>(1))) >> bit_shift) : 0;

@@ -3,6 +3,7 @@ module Top_element_wise#(
     parameter ELTWISE_TYPE_WIDTH    = 4,
     parameter ELTWISE_SCALE_WIDTH   = 32,
     parameter ELTWISE_ZEROPOINT_WIDTH = 8,
+    parameter ELTWISE_QUANT_SHIFT   = 8,
     parameter N                     = 4,
     parameter MOD                   = 4,
     parameter FIFO_NO               = 8,
@@ -35,6 +36,7 @@ module Top_element_wise#(
     output [N-1:0]EltWise_data_out_valid,
     output [((W_ADDR+1)*FIFO_NO)-1:0]LeftOperand_fifo_occupants,
     output [((W_ADDR+1)*FIFO_NO)-1:0]RightOperand_fifo_occupants,
+    output [ELTWISE_QUANT_SHIFT-1:0]EltWise_fp_cast_shift,
     output EW_done,
     input op_fifo_empty
 );
@@ -46,6 +48,9 @@ wire [FIFO_NO-1:0] LeftOperand_valid_fifo,RightOperand_valid_fifo;
 wire [(DATA_WIDTH*N)-1:0] LeftOperand_fifo_data_out,RightOperand_fifo_data_out;
 wire [FIFO_NO-1:0] element_rd_en;
 wire data_valid;
+
+localparam ELTWISE_FP_BIT_SHIFT = 10; //Todo: Should be replaced with parameter depending on the precision required for floating point
+assign EltWise_fp_cast_shift = ELTWISE_FP_BIT_SHIFT[ELTWISE_QUANT_SHIFT-1:0];
 
 conv_output_reorder_EW #(
     .W_DATA(DATA_WIDTH),

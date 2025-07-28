@@ -815,12 +815,18 @@ module top_gati_module #(
       .CHANNELITR_WIDTH(W_CITER_CNT),
       .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
-      .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH)
+      .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
+      .MOD(MOD2),
+      .CONV_IH_WIDTH(CONV_IH_WIDTH),
+      .CONV_IW_WIDTH(CONV_IW_WIDTH),
+      .N_SA(N_SA)
   ) image_req_ctrl (
       .start_addr(img_start_address),
       .kernelitr(kernel_iteration),
       .channelitr(channel_iteration),
       .stop_addr(img_stop_address),
+      .input_img_width(input_img_width),
+      .input_img_height(input_img_height),
       .config_start(start_SA),
       .fifo_status(img_fifo_status),
       .clk(i_clk),

@@ -5,7 +5,6 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
             parameter INPUT_WIDTH = 8,
             parameter OUTPUT_WIDTH = 256,
             parameter ADDRESS_WIDTH = 32,
-            parameter BNEN_WIDTH = 1,
             parameter ACTEN_WIDTH = 1,
             parameter ACTTYPE_WIDTH = 4,
             parameter ACTPARAM_WIDTH = 8,
@@ -21,6 +20,8 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
             parameter POOLCEIL_WIDTH = 1,
             parameter POOLMODCOUNT_WIDTH = 4,
             parameter POOLPADSIDES_WIDTH = 4,
+            parameter POOLSCALE_WIDTH = 8,
+            parameter POOLSHIFT_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
             parameter BiasWidth_WIDTH = 8)
@@ -33,10 +34,6 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg ready = 0,
                 output reg valid,
                 output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
-                output reg [BNEN_WIDTH - 1 : 0] BNEn = 0,
-                output reg [BNCHANNELS_WIDTH -1 : 0] BNchannels = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] BNStartAddress = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] BNEndAddress = 0,
                 output reg [ACTEN_WIDTH - 1 : 0] ActEn = 0,
                 output reg [ACTTYPE_WIDTH - 1 : 0] acttype = 0,
                 output reg [ACTPARAM_WIDTH - 1 : 0] ActParam = 0,
@@ -52,6 +49,8 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [POOLCEIL_WIDTH - 1 : 0] poolceil = 0,
                 output reg [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount = 0,
                 output reg [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides = 0,
+                output reg [POOLSCALE_WIDTH - 1 : 0] poolscale = 0,
+                output reg [POOLSHIFT_WIDTH - 1 : 0] poolshift = 0,
                 output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
                 output reg [BiasWidth_WIDTH - 1 : 0] BiasWidth = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
@@ -117,10 +116,6 @@ always @(posedge clk) begin
     CONCAT: begin
         // if(done) begin
             opcode <= data_instruction[`TailBlock_Opcode];
-            BNchannels <= data_instruction[`TailBlock_BNChannels];
-            BNEn <= data_instruction[`TailBlock_BNEn];
-            BNStartAddress <= data_instruction[`TailBlock_BNStartAddress];
-            BNEndAddress <= data_instruction[`TailBlock_BNEndAddress];
             ActEn <= data_instruction[`TailBlock_ActEn];
             ActParam <= data_instruction[`TailBlock_ActParam]; 
             acttype <= data_instruction[`TailBlock_ActType];
@@ -136,6 +131,8 @@ always @(posedge clk) begin
             poolceil <= data_instruction[`TailBlock_PoolCeil];
             poolModCount <= data_instruction[`TailBlock_PoolModCount];
             poolpadsides <= data_instruction[`TailBlock_PoolPadSides];
+            poolscale <= data_instruction[`TailBlock_PoolScale];
+            poolshift <= data_instruction[`TailBlock_PoolShift];
             BiasEn <= data_instruction[`TailBlock_BiasEn];
             BiasWidth <= data_instruction[`TailBlock_BiasWidth];
             BiasStartAddress <= data_instruction[`TailBlock_BiasStartAddress];

@@ -29,7 +29,7 @@ always @(posedge clk) begin
     end
     else begin 
         case(pooling_type)
-        `POOL_AVERAGE, `POOL_GLOBAL_AVG: begin                      // Average Pooling Operation
+        `POOL_AVERAGE: begin                      // Average Pooling Operation
             if(datavalid_in) begin
                 r_dout <= ((din_fifo_1 + din_fifo_2) >> 1);
                 r_datavalid <= 1;

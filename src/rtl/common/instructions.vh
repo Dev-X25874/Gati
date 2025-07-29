@@ -59,62 +59,61 @@
 `define OP_TailBlock 'h01
 `define TailBlock_Opcode 3:0
 `define TailBlock_Opcode_WIDTH 4
-// Batch Norm Yes/No
-`define TailBlock_BNEn 4:4
-`define TailBlock_BNEn_WIDTH 1
-`define TailBlock_BNChannels 14:5
-`define TailBlock_BNChannels_WIDTH 10
-`define TailBlock_BNStartAddress 46:15
-`define TailBlock_BNStartAddress_WIDTH 32
-`define TailBlock_BNEndAddress 78:47
-`define TailBlock_BNEndAddress_WIDTH 32
-`define TailBlock_ActEn 79:79
+`define TailBlock_ActEn 4:4
 `define TailBlock_ActEn_WIDTH 1
-`define TailBlock_ActType 83:80
+`define TailBlock_ActType 8:5
 `define TailBlock_ActType_WIDTH 4
-`define TailBlock_ActParam 91:84
+`define TailBlock_ActParam 16:9
 `define TailBlock_ActParam_WIDTH 8
-`define TailBlock_QuantEn 92:92
+`define TailBlock_QuantEn 17:17
 `define TailBlock_QuantEn_WIDTH 1
-`define TailBlock_QuantScale 108:93
+`define TailBlock_QuantScale 33:18
 `define TailBlock_QuantScale_WIDTH 16
-`define TailBlock_QuantShift 113:109
+`define TailBlock_QuantShift 38:34
 `define TailBlock_QuantShift_WIDTH 5
-`define TailBlock_PoolEn 114:114
+`define TailBlock_PoolEn 39:39
 `define TailBlock_PoolEn_WIDTH 1
-`define TailBlock_PoolType 117:115
+`define TailBlock_PoolType 42:40
 `define TailBlock_PoolType_WIDTH 3
-`define TailBlock_PoolWidth 127:118
+`define TailBlock_PoolScale 58:43
+`define TailBlock_PoolScale_WIDTH 16
+`define TailBlock_PoolShift 63:59
+`define TailBlock_PoolShift_WIDTH 5
+`define TailBlock_PoolWidth 73:64
 `define TailBlock_PoolWidth_WIDTH 10
-`define TailBlock_PoolHeight 137:128
+`define TailBlock_PoolHeight 83:74
 `define TailBlock_PoolHeight_WIDTH 10
-`define TailBlock_PoolStride 141:138
+`define TailBlock_PoolStride 87:84
 `define TailBlock_PoolStride_WIDTH 4
-`define TailBlock_PoolPadding 145:142
+`define TailBlock_PoolPadding 91:88
 `define TailBlock_PoolPadding_WIDTH 4
-`define TailBlock_PoolCeil 146:146
+`define TailBlock_PoolCeil 92:92
 `define TailBlock_PoolCeil_WIDTH 1
 // For pools with input size that is not evenly divisible by ke
 // rnel size, mod count is the ceil(input % kernel). For exampl
 // e, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column 
 // to be considered.
-`define TailBlock_PoolModCount 150:147
+`define TailBlock_PoolModCount 96:93
 `define TailBlock_PoolModCount_WIDTH 4
 // Same as above but for cols
-`define TailBlock_PoolModCountCols 154:151
+`define TailBlock_PoolModCountCols 100:97
 `define TailBlock_PoolModCountCols_WIDTH 4
 // Same as PadSides for convolution
-`define TailBlock_PoolPadSides 158:155
+`define TailBlock_PoolPadSides 104:101
 `define TailBlock_PoolPadSides_WIDTH 4
-`define TailBlock_BiasEn 159:159
+`define TailBlock_BiasEn 105:105
 `define TailBlock_BiasEn_WIDTH 1
 // There are two known bias widths 8/32. This is that field.
-`define TailBlock_BiasWidth 167:160
+`define TailBlock_BiasWidth 113:106
 `define TailBlock_BiasWidth_WIDTH 8
-`define TailBlock_BiasStartAddress 199:168
+`define TailBlock_BiasStartAddress 145:114
 `define TailBlock_BiasStartAddress_WIDTH 32
-`define TailBlock_BiasEndAddress 231:200
+`define TailBlock_BiasEndAddress 177:146
 `define TailBlock_BiasEndAddress_WIDTH 32
+`define TailBlock_NegAlpha 187:178
+`define TailBlock_NegAlpha_WIDTH 10
+`define TailBlock_PosAlpha 197:188
+`define TailBlock_PosAlpha_WIDTH 10
 
 `define OP_OutputBlock 'h02
 `define OutputBlock_Opcode 3:0
@@ -167,6 +166,8 @@
 //  aligned bytes with zeros in it
 `define OutputBlock_FlatController 180:180
 `define OutputBlock_FlatController_WIDTH 1
+`define OutputBlock_OpWidth 183:181
+`define OutputBlock_OpWidth_WIDTH 3
 
 `define OP_FC 'h03
 `define FC_Opcode 3:0
@@ -301,9 +302,10 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 8
+`define ISA_VERSION 10
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
+`define ACT_LEAKYRELU 'h02
 `define POOL_MAX 'h00
 `define POOL_AVERAGE 'h01
 `define POOL_GLOBAL_AVG 'h02

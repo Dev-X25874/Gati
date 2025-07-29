@@ -1,3 +1,4 @@
+`include "../common/instructions.vh"
 module top_max #(parameter DATA_WIDTH = 8, 
             parameter POOL_HEIGHT = 4,
             parameter POOL_WIDTH = 4,
@@ -7,6 +8,8 @@ module top_max #(parameter DATA_WIDTH = 8,
             parameter POOLCEIL_WIDTH = 1,
             parameter POOLMODCOUNT_WIDTH = 4,
             parameter POOLPADSIDES_WIDTH = 4,
+            parameter POOL_SCALE_WIDTH = 8,
+            parameter POOL_SHIFT_WIDTH = 4,
             parameter OH_WIDTH = 10,
             parameter ADDR_WIDTH = 5,
             parameter OW_WIDTH = 10
@@ -25,6 +28,9 @@ module top_max #(parameter DATA_WIDTH = 8,
     input [(POOLCEIL_WIDTH - 1) : 0] PoolCeil,
     input [(POOLMODCOUNT_WIDTH - 1) : 0] PoolModCount,
     input [(POOLPADSIDES_WIDTH - 1) : 0] PoolPadSides,
+    input signed [(POOL_SCALE_WIDTH - 1) : 0] PoolScale,       // Scale factor for average pool
+    input [(POOL_SHIFT_WIDTH - 1) : 0] PoolShift,       // Shift value for average pool
+    input [(OH_WIDTH + OW_WIDTH - 1) : 0] PoolimageSize, // Input image size 
     input [(OH_WIDTH - 1) : 0] OH,                      // Output Height of the image
     input [(OW_WIDTH - 1) : 0] OW,                      // Output Width of the image
     output [(DATA_WIDTH - 1) : 0] dout,                 // Final output of the pooling operation
@@ -209,8 +215,82 @@ assign re = (~empty2) & (~empty1);
 // Combines data valid signals for second-stage pooling
 assign dv_pooling_second_stage = ((dv_pooling_second_stage1) && (dv_pooling_second_stage2));
 
-assign datavalid_out = (ENABLE==1)?datavalid_out_intermediate : datavalid_in;
-assign dout =(ENABLE==1)? dout_intermediate : din ;
+/* ------ Additional logic for global average pooling ------ */
+reg signed [2*DATA_WIDTH-1 : 0] global_pool_sum;
+reg signed [2*DATA_WIDTH-1 : 0] r_global_pool_sum;
+reg [2*OH_WIDTH-1 : 0] global_pool_count;
+reg global_pool_sum_valid;
+reg [2*OH_WIDTH-1 : 0] r_PoolimageSize;
+
+always @(posedge clk) r_PoolimageSize <= PoolimageSize;
+
+always @(posedge clk) begin
+    if(!rst_n) begin
+        global_pool_sum <= 0;
+        r_global_pool_sum <= 0;
+        global_pool_count <= 0;
+        global_pool_sum_valid <= 0;
+    end
+    else begin
+        if(ENABLE && PoolType == `POOL_GLOBAL_AVG) begin 
+            if(global_pool_count == r_PoolimageSize) begin
+                global_pool_count <= 0;
+                global_pool_sum <= 0;
+                r_global_pool_sum <= global_pool_sum;
+                global_pool_sum_valid <= 1;
+            end
+            else begin
+                if(datavalid_in) begin
+                    global_pool_sum <= global_pool_sum + din;
+                    global_pool_count <= global_pool_count + 1;
+                    global_pool_sum_valid <= 0;
+                end
+                else begin
+                    global_pool_sum <= global_pool_sum;
+                    global_pool_count <= global_pool_count;
+                    global_pool_sum_valid <= 0;
+                end
+            end
+        end
+        else begin
+            global_pool_sum <= 0;
+            global_pool_count <= 0;
+            global_pool_sum_valid <= 0;
+            r_global_pool_sum <= 0;
+        end
+    end
+end
+
+// Multiply the global pool sum value with the pool scale and shift it by pool shift value
+reg signed [2*POOL_SCALE_WIDTH-1 : 0] scaled_global_pool_sum;
+reg scaled_global_pool_sum_valid;
+always @(posedge clk) begin
+    if(global_pool_sum_valid) begin
+        scaled_global_pool_sum <= r_global_pool_sum * PoolScale;
+        scaled_global_pool_sum_valid <= 1;
+    end
+    else begin
+        scaled_global_pool_sum <= 0;
+        scaled_global_pool_sum_valid <= 0;
+    end
+end
+
+reg signed [2*POOL_SCALE_WIDTH-1 : 0] shifted_global_pool_sum;
+reg shifted_global_pool_sum_valid;
+always @(posedge clk) begin
+    if(scaled_global_pool_sum_valid) begin
+        shifted_global_pool_sum <= (scaled_global_pool_sum + (1 << (PoolShift - 1))) >>> PoolShift; // Right shift with rounding
+        shifted_global_pool_sum_valid <= 1;
+    end
+    else begin
+        shifted_global_pool_sum <= 0;
+        shifted_global_pool_sum_valid <= 0;
+    end
+end
+
+
+assign datavalid_out = (ENABLE==1)? ((PoolType == `POOL_GLOBAL_AVG)? shifted_global_pool_sum_valid : datavalid_out_intermediate) : datavalid_in;
+assign dout =(ENABLE==1)? ((PoolType == `POOL_GLOBAL_AVG)? {shifted_global_pool_sum[2*DATA_WIDTH-1], shifted_global_pool_sum[DATA_WIDTH-2 : 0]} : dout_intermediate) : din ;
 
 
 endmodule

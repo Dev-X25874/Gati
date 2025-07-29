@@ -84,8 +84,8 @@ module rah_gati #(
     parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
     //SA related param
     parameter POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2,
-    parameter NSA_DSP       = 13, 
-    parameter NSA_LUT       = 3,
+    parameter NSA_DSP       = 12, 
+    parameter NSA_LUT       = 4,
     parameter N_SA          = NSA_DSP + NSA_LUT,
     parameter DATA_WIDTH    = 8,
     parameter COL_SA        = 1,
@@ -125,7 +125,6 @@ module rah_gati #(
     parameter N_DMUX_PORTS = 1,
 
     //Tail block param
-    parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
     parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
     parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH,   
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
@@ -138,7 +137,6 @@ module rah_gati #(
     parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
     parameter W_POOL_CEIL       = `TailBlock_PoolCeil_WIDTH,
     parameter W_POOL_MODCOUNT   = `TailBlock_PoolModCount_WIDTH,
-    parameter BNEN_WIDTH        = `TailBlock_BNEn_WIDTH,
     parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
     parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
@@ -711,7 +709,6 @@ module rah_gati #(
       .MOD1(MOD1),
       .MOD2(MOD2),
       .N_DMUX_PORTS(N_DMUX_PORTS),
-      .BNCHANNEL_WIDTH(BNCHANNEL_WIDTH),
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
       .W_QUANT_SHIFT(W_QUANT_SHIFT),
@@ -724,7 +721,6 @@ module rah_gati #(
       .W_POOL_CEIL(W_POOL_CEIL),
       .W_POOL_MODCOUNT(W_POOL_MODCOUNT),
       .W_POOL_PADSIDES(W_POOL_PADSIDES),
-      .BNEN_WIDTH(BNEN_WIDTH),
       .ACTEN_WIDTH(ACTEN_WIDTH),
       .QUANTEN_WIDTH(QUANTEN_WIDTH),
       .POOLEN_WIDTH(POOLEN_WIDTH),

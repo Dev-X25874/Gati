@@ -56,7 +56,7 @@ always @(posedge clk) begin
                     r_datavalid <= 0;
                 end
             end
-            `POOL_AVERAGE, `POOL_GLOBAL_AVG: begin                      // Average Pooling Case
+            `POOL_AVERAGE: begin                      // Average Pooling Case
                 if(datavalid_in) begin
                     if(counter == 0) begin
                         temp <= din;

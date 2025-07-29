@@ -116,7 +116,6 @@ module top_gati_module #(
     parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
 
     //Tail block param
-    parameter BNCHANNEL_WIDTH   = `TailBlock_BNChannels_WIDTH,
     parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
     parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH,   
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
@@ -129,7 +128,8 @@ module top_gati_module #(
     parameter W_POOL_CEIL       = `TailBlock_PoolCeil_WIDTH,
     parameter W_POOL_MODCOUNT   = `TailBlock_PoolModCount_WIDTH,
     parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
-    parameter BNEN_WIDTH        = `TailBlock_BNEn_WIDTH,
+    parameter W_POOL_SCALE      = `TailBlock_PoolScale_WIDTH,
+    parameter W_POOL_SHIFT      = `TailBlock_PoolShift_WIDTH,
     parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
     parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
@@ -168,11 +168,11 @@ module top_gati_module #(
     input dispatcher_busy,
     //signals to DRAM ctrler
     ////config
-   output [7:0] mc_config_addr,
-   output mc_config_rdreq,
-   output mc_config_valid,
-   output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
-   output mc_config_last,
+    output [7:0] mc_config_addr,
+    output mc_config_rdreq,
+    output mc_config_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_config_bl,
+    output mc_config_last,
 
     ////img
     output [7:0] mc_img_addr,
@@ -401,6 +401,7 @@ module top_gati_module #(
   wire [BIASEN_WIDTH-1:0] BIAS_EN;
   wire [BiasWidth_WIDTH-1:0] BiasWidth;
   wire [POOLEN_WIDTH-1:0] POOL_EN;
+
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
 
@@ -621,6 +622,8 @@ module top_gati_module #(
   wire [(W_POOL_CEIL - 1) : 0] poolceil;
   wire [(W_POOL_MODCOUNT - 1) : 0] poolModCount;
   wire [(W_POOL_PADSIDES - 1) : 0] poolpadsides;
+  wire [(W_POOL_SCALE - 1) : 0] poolscale;
+  wire [(W_POOL_SHIFT - 1) : 0] poolshift;
 
   // top_master_slave_integrate
   top_master_slave_integrate#(
@@ -664,7 +667,6 @@ module top_gati_module #(
     .DISPATCH_ID_WIDTH(DISPATCH_ID_WIDTH),
     .DISPATCHEN_WIDTH(DISPATCHEN_WIDTH),
     .ACC_ONCHIP_WIDTH(ACC_ONCHIP_WIDTH),
-    .BNEN_WIDTH(BNEN_WIDTH),
     .ACTEN_WIDTH(ACTEN_WIDTH),
     .ACTTYPE_WIDTH(ACT_TYPE_WIDTH),
     .ACTPARAM_WIDTH(RELU_CLIP_WIDTH),
@@ -680,8 +682,9 @@ module top_gati_module #(
     .POOLCEIL_WIDTH(W_POOL_CEIL),
     .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
     .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
+    .POOLSCALE_WIDTH(W_POOL_SCALE),
+    .POOLSHIFT_WIDTH(W_POOL_SHIFT),
     .BIASEN_WIDTH(BIASEN_WIDTH),
-    .BNCHANNELS_WIDTH(BNCHANNEL_WIDTH),
     .BiasWidth_WIDTH(BiasWidth_WIDTH),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
@@ -767,10 +770,6 @@ module top_gati_module #(
 
     //Tail inst. signals
     .opcode_TB(Op_code_TB),
-    .BNEn(),
-    .BNchannels(),
-    .BNStartAddress(),
-    .BNEndAddress(),
     .ActEn(ACT_EN),
     .acttype(relu_act_type),
     .ActParam(relu_clip_value),
@@ -786,6 +785,8 @@ module top_gati_module #(
     .poolceil(poolceil),
     .poolModCount(poolModCount),
     .poolpadsides(poolpadsides),
+    .poolscale(poolscale),
+    .poolshift(poolshift),
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
     .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
@@ -1622,6 +1623,8 @@ module top_gati_module #(
       .POOLCEIL_WIDTH (W_POOL_CEIL),
       .POOLMODCOUNT_WIDTH (W_POOL_MODCOUNT),
       .POOLPADSIDES_WIDTH (W_POOL_PADSIDES),
+      .POOL_SCALE_WIDTH (W_POOL_SCALE),
+      .POOL_SHIFT_WIDTH (W_POOL_SHIFT),
 
       //FC realated parameters      
       .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH), 
@@ -1753,6 +1756,8 @@ module top_gati_module #(
       .PoolCeil(poolceil),
       .PoolModCount(poolModCount),
       .PoolPadSides(poolpadsides),
+      .PoolScale(poolscale),
+      .PoolShift(poolshift),
 
       .im2col_done(im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),

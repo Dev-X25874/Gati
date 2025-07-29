@@ -302,7 +302,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 10
+`define ISA_VERSION 11
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define ACT_LEAKYRELU 'h02

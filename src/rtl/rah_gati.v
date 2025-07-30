@@ -1,41 +1,20 @@
 `include "common/portid.vh"
 `include "common/instructions.vh"
+`include "common/arch_functions.vh"
+`include "common/arch_param.vh"
 module rah_gati #(
-    parameter   SYS_CLK_PERIOD    = 32'd85_000_000 ,             //System Clock Period
-   // parameter   NUM_PORTS = 4,                                    // number of ports
-   // parameter   BURST_LENGTH_WIDTH = 8,                           // burst length
-    parameter   NO_PORT_WR=2,
-    parameter   ADDRESS_WIDTH = 32,                               // address width                 
-    parameter   IN_ADDR = 8,                                      // input address width of port controller
-    parameter   PORT_ID = {4'b0000, 4'b0001, 4'b0010, 4'b0011, 4'b0100, 4'b0101, 4'b0110, 4'b0111, 4'b1000, 4'b1001 , 4'b1010 , 4'b1011},   // only use for port controller 
-    parameter   POINTER_COUNT = 8,                               // fifo depth
-    parameter   RAM_DEPTH = (1 << POINTER_COUNT),                 // fifo depth
-    parameter   PORT_ID_WIDTH = 4,                                // ID width before the arbiter module [port controller, fifo, arbiter and request manager]
-    parameter   ID_WIDTH = 8,                                     // ID width after the arbiter module
-    parameter   AXI_ID_BLEN_CON = 8 ,                             // burst length width for AXI
-  //  parameter   AXI_DATA_WIDTH      = 256 ,                       // Axi data width 
-    parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8  ,                                  
-    parameter   ADW_C               = AXI_DATA_WIDTH    ,
+    parameter   SYS_CLK_PERIOD      = 32'd85_000_000 ,  //System Clock Period
+    parameter   NO_PORT_WR          = 2,
+	  parameter   ADDRESS_WIDTH       = 32, // address width                 
+    parameter   IN_ADDR             = 8, // input address width of port controller
+    parameter   ID_WIDTH            = 8,// ID width after the arbiter module
+    parameter   AXI_ID_BLEN_CON     = 8,  // burst length width for AXI
+    parameter   AXI_BYTE_NUMBER     = AXI_DATA_WIDTH/8,
+    parameter   ADW_C               = AXI_DATA_WIDTH ,
     parameter   ABN_C               = AXI_BYTE_NUMBER ,
-    // FIFO Depth varies between operators to avoid overflow and underflow 
-    parameter INST_QUEUE_DEPTH    = 256,
-    parameter DRAM_IMG_FIFO_DEPTH = 512,
-    parameter IM2COL_FIFO_DEPTH   = 512,
-    parameter WEIGHT_FIFO_DEPTH   = 512,
-    parameter PSUM_FIFO_DEPTH     = 512,
-    parameter ACC_FIFO_DEPTH      = 1024,
-    parameter BIAS_FIFO_DEPTH     = 256, //For both conv and FC
-    parameter ACC_OP_FIFO_DEPTH   = 256,
-    parameter QUANT_OP_FIFO_DEPTH = 256,
-    parameter OP_WRITE_FIFO_DEPTH = 512,
-    parameter ELTWISE_FIFO_DEPTH  = 256,
-    parameter FPGA2CPU_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
-    parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
-    
     //Default burst lenghts for various memory request controllers
     parameter MIPI_REQ_BLEN         = 15,
     parameter CONFIG_REQ_BLEN       = 7,
-    parameter IMG_REQ_BLEN          = 15,
     parameter WEIGHT_REQ_BLEN       = 47,
     parameter FC_WEIGHT_REQ_BLEN    = 63,
     parameter ACC_REQ_BLEN          = 15,
@@ -43,10 +22,8 @@ module rah_gati #(
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter CPU_DISPATCH_REQ_BLEN = 15,
-
     //parameters related to DRAM controller
     parameter NUM_PORTS = 12, //Number of read and write requestors
-
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
     parameter AXI_DATA_BYTES = 32,  // Axi Data width = 256 bit
@@ -56,61 +33,10 @@ module rah_gati #(
     //MIPI related params
     parameter MIPI_DATA_WIDTH = 32,
     parameter MIPI_FIFO_DEPTH = 512,
-
-   
     //Config blk param
     parameter NUM_INSTRUCTIONS = 6,
     parameter INST_W = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
-    parameter LAYERCNT_WIDTH = `START_LayerNumber_WIDTH,
-    parameter TOTAL_LAYERCNT_WIDTH = `START_TotalLayers_WIDTH,
-    
-    //CONV Parameters(inst related)
-    parameter OPCODE_WIDTH  = `CONV_Opcode_WIDTH,
-    parameter CONV_IW_WIDTH = `CONV_IW_WIDTH,
-    parameter CONV_IH_WIDTH = `CONV_IH_WIDTH,
-    parameter CONV_IC_WIDTH = `CONV_IC_WIDTH,
-    parameter CONV_KN_WIDTH = `CONV_KN_WIDTH,
-    parameter CONV_KW_WIDTH = `CONV_KW_WIDTH,
-    parameter CONV_KH_WIDTH = `CONV_KH_WIDTH,
-    parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
-    parameter OutputBlock_OW_WIDTH = `OutputBlock_OW_WIDTH,
-    parameter OutputBlock_OH_WIDTH = `OutputBlock_OH_WIDTH,
-    
-    //parameter CONV_PAD_WIDTH = `CONV_Pad_WIDTH,
-    parameter CONV_PadLeft_WIDTH = `CONV_PadLeft_WIDTH,
-    parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
-    parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
-    parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
-    //SA related param
-    parameter POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2,
-    parameter NSA_DSP       = 12, 
-    parameter NSA_LUT       = 4,
-    parameter N_SA          = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH    = 8,
-    parameter COL_SA        = 1,
-    parameter COL_FC        = 32,
-    parameter ROW           = 16,
-    parameter W_PSUM        = 20,
-    parameter DATA_WIDTH_OB = 32,
-
-    // FC inst. related params
-    parameter FC_WEIGHTROW_WIDTH    = `FC_WeightRows_WIDTH,
-    parameter FC_WEIGHTCOL_WIDTH    = `FC_WeightCols_WIDTH,
-    parameter FC_IMAGE_ROWS_WIDTH   = `FC_InputRows_WIDTH,
-    parameter FC_DROPOUT_WIDTH      = `FC_DropoutConstant_WIDTH,
-    parameter W_FC_IMAG_DIM         = `FC_ImageDim_WIDTH,
-    parameter W_FC_RW_COUNTER       = `FC_Vec2MatCols_WIDTH, //width of fc r/w address counter
-    parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
-    // FC Engine related parameters
-    parameter ACC_DW            = 32,
-    parameter N_BANK            = N_SA,
-    parameter N_BRAM            = AXI_DATA_BYTES/N_SA,
-    parameter FC_BRAM_DEPTH     = 512,
-    parameter ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0,
-    parameter N_FC_MUX          = N_SA, //number of muxes for FC output
-    parameter NO_PORT_FC        = COL_FC/N_SA, //FC mux size
-
     //Output block inst param
     parameter W_CITER_CNT       = `OutputBlock_ChannelItr_WIDTH,
     parameter W_KITER_CNT       = `OutputBlock_KernelItr_WIDTH,
@@ -120,47 +46,27 @@ module rah_gati #(
     parameter DISPATCH_ID_WIDTH = `OutputBlock_DispatchID_WIDTH,
     parameter DISPATCHEN_WIDTH  = `OutputBlock_DispatchEn_WIDTH,
     parameter ACC_ONCHIP_WIDTH  = `OutputBlock_OnChipAcc_WIDTH,
-    parameter MOD1 = 1,
-    parameter MOD2 = AXI_DATA_BYTES/N_SA,
-    parameter N_DMUX_PORTS = 1,
-
-    //Tail block param
-    parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
-    parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH,   
-    parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
-    parameter W_QUANT_SCALE     = `TailBlock_QuantScale_WIDTH, 
-    parameter POOL_TYPE_WIDTH   = `TailBlock_PoolType_WIDTH,
-    parameter W_POOL_WIDTH      = `TailBlock_PoolWidth_WIDTH,
-    parameter W_POOL_HEIGHT     = `TailBlock_PoolHeight_WIDTH,
-    parameter W_POOL_STRIDE     = `TailBlock_PoolStride_WIDTH,
-    parameter W_POOL_PAD        = `TailBlock_PoolPadding_WIDTH,
-    parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
-    parameter W_POOL_CEIL       = `TailBlock_PoolCeil_WIDTH,
-    parameter W_POOL_MODCOUNT   = `TailBlock_PoolModCount_WIDTH,
-    parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
-    parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
-    parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
-    parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
-    parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
-    
     //Element wise operations param
     parameter EltWise_TYPE_WIDTH = 4,
     //Other parameters
-    parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
+
     parameter MIPI_FIFO     = 8, // Number of MIPI DWP FIFOs
-    parameter BIAS_FIFO     = 16, // Number of bias FIFOs
-    parameter ACC_OP_FIFO   = 2, // Number of o/p accumulant FIFOs
     parameter QUANT_OP_FIFO = 1, // Number of quantized output FIFOs
     parameter OP_FIFO       = 1,  // Number of output write FIFOs
-    parameter ACC_FIFO      = 16, // Number of accumulant FIFOs
     parameter BIAS_FIFO_FC  = 32, // Number of FC bias FIFOs
     parameter CPU_DISPATCH_FIFO = 1, //Number of Data FIFOs in CPU_DISPATCH module
-    parameter NO_PORT_VA    = 1,
-    parameter NO_PORT_BAC   = 1,
-    parameter ACC_TOGGLE    = 0,
-    parameter NO_PORT_BAFC  = 2
-
-
+    parameter ACC_OP_FIFO_DEPTH   = 256,
+    parameter QUANT_OP_FIFO_DEPTH = 256,
+    parameter OP_WRITE_FIFO_DEPTH = 512,
+    parameter DRAM_IMG_FIFO_DEPTH = 512,
+    parameter WEIGHT_FIFO_DEPTH   = 512,
+    
+    parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
+    parameter FPGA2CPU_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
+    parameter DATA_WIDTH    = 8,
+    parameter COL_FC        = 32,
+    parameter W_PSUM        = 20,
+    parameter DATA_WIDTH_OB = 32
 ) (
     input i_clk,
     input valid_32,
@@ -186,10 +92,9 @@ module rah_gati #(
 	//input start_gpio,	
 
     input [1:0] PllLocked,
-    output      DdrCtrl_CFG_RST_N     ,                        //(O)[Control]DDR Controner Reset(Low Active)     
-    output      DdrCtrl_CFG_SEQ_RST   ,                       //(O)[Control]DDR Controner Sequencer Reset 
+    output      DdrCtrl_CFG_RST_N , //(O)[Control]DDR Cntrl Reset(Low Active)     
+    output      DdrCtrl_CFG_SEQ_RST, //(O)[Control]DDR Cntrl Sequencer Reset 
     output      DdrCtrl_CFG_SEQ_START ,   
-  //  output      DdrInitDone           ,
 
     output d_done,
     output  [      7:0] aid     ,
@@ -218,23 +123,104 @@ module rah_gati #(
     input               bvalid  , 
     output              bready  ,
      
-    //io signals
-    output [6:0] kernal_count, // represents the current kernal iteration number 
-    output [6:0] channel_count, // represents the current channel iteration number
-    output soft_start, //user_start from top_gati_module
+    //io signals to board gpio
+    output [6:0] kernal_count,  // current kernal iteration number 
+    output [6:0] channel_count, // current channel iteration number
+    output       soft_start,    //user_start from top_gati_module
     output [3:0] layer_count,
-    output layer_done,
-    output eop
+    output       layer_done,
+    output       eop
 
 );
+
+
+/* --------------------- ARCH Related Parameter ----------------------------*/ 
+
+// these parameter are fetched based on the current architecture from arch_param
+// arch realated parametere 
+
+  localparam integer N_SA    = `N_SA;
+  localparam integer COL_SA  = `COL_SA;
+  localparam integer ROW     = `ROW;
+
+  // Derived parameters via functions 
+  // TODO : these parameters needs to be formulated based on the architecture and the functions defined in arch_functions.vh for the param be removed
+
+  localparam IMG_REQ_BLEN        = get_img_req_blen(N_SA, COL_SA, ROW);
+  localparam POINTER_COUNT       = get_pointer_count(N_SA, COL_SA, ROW);
+  localparam INST_QUEUE_DEPTH    = get_inst_queue_depth(N_SA, COL_SA, ROW);
+  localparam IM2COL_FIFO_DEPTH   = get_im2col_fifo_depth(N_SA, COL_SA, ROW);
+  localparam PSUM_FIFO_DEPTH     = get_psum_fifo_depth(N_SA, COL_SA, ROW);
+  localparam ACC_FIFO_DEPTH      = get_acc_fifo_depth(N_SA, COL_SA, ROW);
+  localparam BIAS_FIFO_DEPTH     = get_bias_fifo_depth(N_SA, COL_SA, ROW);
+  localparam ELTWISE_FIFO_DEPTH  = get_eltwise_fifo_depth(N_SA, COL_SA, ROW);
+  localparam NSA_LUT             = get_nsa_lut(N_SA, COL_SA, ROW);
+  localparam NSA_DSP             = get_nsa_dsp(N_SA, COL_SA, ROW);
+  localparam FC_BRAM_DEPTH       = get_fc_bram_depth(N_SA, COL_SA, ROW);
+  localparam MOD1                = get_mod1(N_SA, COL_SA, ROW);
+  localparam N_DMUX_PORTS        = get_n_dmux_ports(N_SA, COL_SA, ROW);
+  localparam BIAS_FIFO           = get_bias_fifo(N_SA, COL_SA, ROW);
+  localparam ACC_FIFO            = get_acc_fifo(N_SA, COL_SA, ROW);
+  localparam ACC_OP_FIFO         = get_acc_op_fifo(N_SA, COL_SA, ROW);
+  localparam NO_PORT_VA          = get_no_port_va(N_SA, COL_SA, ROW);
+  localparam NO_PORT_BAC         = get_no_port_bac(N_SA, COL_SA, ROW);
+  localparam ACC_TOGGLE          = get_acc_toggle(N_SA, COL_SA, ROW);
+
+  
+  // formuled parameters 
+  localparam SHFT_REG_X    = AXI_DATA_BYTES/N_SA; // Number of shift register
+  localparam MOD2          = AXI_DATA_BYTES/N_SA;
+  localparam RAM_DEPTH     = (1 << POINTER_COUNT);  // fifo depth
+  localparam POP_THRESHOLD = AXI_DATA_BYTES/N_SA - 2 ;
+
+  // FC Engine related parameters
+  localparam ACC_DW            = 32;
+  localparam N_BANK            = N_SA;
+  localparam N_BRAM            = AXI_DATA_BYTES/N_SA;
+  localparam ACC_DATA_REORDER  = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0;
+  localparam N_FC_MUX          = N_SA; //number of muxes for FC output
+  localparam NO_PORT_FC        = COL_FC/N_SA; //FC mux size
+  localparam NO_PORT_BAFC      = AXI_DATA_BYTES/N_SA ;
+
+  /*-----------------------------------------------------------------*/
+
+
+
+  /*------------------- generate port_ ID ----------------------------*/
+
+  // this logic will generate port ID based on the number of ports using NUM_PORTS parameter and the PORT_ID_WIDTH
+
+  localparam PORT_ID_WIDTH                  = ($clog2(NUM_PORTS));   
+  localparam TOTAL_PORT_WIDTH               = PORT_ID_WIDTH * NUM_PORTS;
+  localparam [TOTAL_PORT_WIDTH-1:0] PORT_ID = generate_port_id(NUM_PORTS, PORT_ID_WIDTH);
+
+  /* --------------- function to generate port ID ------------- */
+
+    function [(TOTAL_PORT_WIDTH)-1:0] generate_port_id;
+    input integer num_port;
+    input integer id_width;
+    integer i;
+    reg [(TOTAL_PORT_WIDTH)-1:0] result;
+    reg [31:0] mask;
+    begin
+      result = 0;
+      mask = (1 << id_width) - 1;  // Create mask based on id_width
+      for (i = 0; i < num_port; i = i + 1) begin
+        result = (result << id_width) | (i & mask);
+      end
+      generate_port_id = result;
+    end
+  endfunction
+
+  /*----------------------------------------------------------*/
+
+  /*------------------------------------------------------------------------*/
 
   wire  [31:0] o_data ;
   assign o_data=data; 
   wire valid_data;
   assign valid_data=valid_32;
  
-  wire o_rden;
-  assign o_rden=rden;
 
   always @(posedge c_81_clk) begin
 
@@ -376,8 +362,7 @@ module rah_gati #(
   ///////////////////////operators data
 
   //Signals from DRAM ctrl to internal operator blocks
- // wire [NUM_PORTS-1:0] select;
- // assign select = select_rd | select_wr;
+ 
   //Read block signals
   // wire sel_rd
   wire dram_rd_datavalid;
@@ -550,7 +535,8 @@ module rah_gati #(
   //////////////////////////////
 
 
-  ///////////////////////////////Memory Controller /////////////////////////////////
+  /* --------- Memory Controller --------------*/
+
   Top_DRAM_controller # (
     .SYS_CLK_PERIOD(SYS_CLK_PERIOD),
     .NUM_PORTS(NUM_PORTS),
@@ -597,7 +583,6 @@ module rah_gati #(
     .wr_axi_data(dram_in_wrdata),
     .select_wr(select_wr),
     .select_rd(select_rd),
-   // .DdrInitDone(DdrInitDone),
     .aid(aid),
     .aaddr(aaddr),
     .alen(alen),
@@ -657,23 +642,6 @@ module rah_gati #(
       .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
       .INST_W(INST_W),
       .CONFIG_FIFO_OCCUPANCY(CONFIG_FIFO_OCCUPANCY),
-      .LAYERCNT_WIDTH(LAYERCNT_WIDTH),
-      .TOTAL_LAYERCNT_WIDTH(TOTAL_LAYERCNT_WIDTH),
-      .OPCODE_WIDTH(OPCODE_WIDTH),
-      .CONV_IW_WIDTH(CONV_IW_WIDTH),
-      .CONV_IH_WIDTH(CONV_IH_WIDTH),
-      .OutputBlock_OH_WIDTH(OutputBlock_OH_WIDTH),
-      .OutputBlock_OW_WIDTH(OutputBlock_OW_WIDTH),
-      .CONV_IC_WIDTH(CONV_IC_WIDTH),
-      .CONV_KN_WIDTH(CONV_KN_WIDTH),
-      .CONV_KW_WIDTH(CONV_KW_WIDTH),
-      .CONV_KH_WIDTH(CONV_KH_WIDTH),
-      .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-      //.CONV_PAD_WIDTH(CONV_PAD_WIDTH),
-      .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
-      .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
-      .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
-      .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
       .POP_THRESHOLD(POP_THRESHOLD),
       .NSA_DSP(NSA_DSP),
       .NSA_LUT(NSA_LUT),
@@ -683,14 +651,7 @@ module rah_gati #(
       .COL_FC(COL_FC),
       .ROW(ROW),
       .W_PSUM(W_PSUM),
-      .DATA_WIDTH_OB(DATA_WIDTH_OB),
-      .FC_WEIGHTROW_WIDTH(FC_WEIGHTROW_WIDTH),
-      .FC_WEIGHTCOL_WIDTH(FC_WEIGHTCOL_WIDTH),
-      .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH),
-      .FC_DROPOUT_WIDTH(FC_DROPOUT_WIDTH),
-      .W_FC_IMAG_DIM(W_FC_IMAG_DIM),
-      .W_FC_RW_COUNTER(W_FC_RW_COUNTER),
-      .FLATTEN_EN_WIDTH(FLATTEN_EN_WIDTH),
+      .DATA_WIDTH_OB(DATA_WIDTH_OB),    
       .ACC_DW(ACC_DW),
       .N_BANK(N_BANK),
       .N_BRAM(N_BRAM),
@@ -709,23 +670,6 @@ module rah_gati #(
       .MOD1(MOD1),
       .MOD2(MOD2),
       .N_DMUX_PORTS(N_DMUX_PORTS),
-      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
-      .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
-      .W_QUANT_SHIFT(W_QUANT_SHIFT),
-      .W_QUANT_SCALE(W_QUANT_SCALE),
-      .POOL_TYPE_WIDTH(POOL_TYPE_WIDTH),
-      .W_POOL_WIDTH(W_POOL_WIDTH),
-      .W_POOL_HEIGHT(W_POOL_HEIGHT),
-      .W_POOL_STRIDE(W_POOL_STRIDE),
-      .W_POOL_PAD(W_POOL_PAD),
-      .W_POOL_CEIL(W_POOL_CEIL),
-      .W_POOL_MODCOUNT(W_POOL_MODCOUNT),
-      .W_POOL_PADSIDES(W_POOL_PADSIDES),
-      .ACTEN_WIDTH(ACTEN_WIDTH),
-      .QUANTEN_WIDTH(QUANTEN_WIDTH),
-      .POOLEN_WIDTH(POOLEN_WIDTH),
-      .BIASEN_WIDTH(BIASEN_WIDTH),
-      .BiasWidth_WIDTH(BiasWidth_WIDTH),
       .SHFT_REG_X(SHFT_REG_X),
       .BIAS_FIFO(BIAS_FIFO),
       .ACC_OP_FIFO(ACC_OP_FIFO),
@@ -739,10 +683,8 @@ module rah_gati #(
       .NO_PORT_BAFC(NO_PORT_BAFC)
     ) top_gati_module_inst (
       .i_clk(i_clk),
-   //   .g_clk(g_clk),
 	    .s_clk(s_clk),
       .i_rst(i_rst),
-      // .i_rst(DdrInitDone),
       .dispatcher_busy(dispatcher_busy),
       .user_start(user_start),
       .mc_config_addr(mc_config_addr),
@@ -813,41 +755,12 @@ module rah_gati #(
       .datasize_fpga2cpu(datasize_fpga2cpu),
       .fpga2cpu_start_address(fpga2cpu_start_address),
        
-       //for io signals
-      .kernal_count(kernal_count), // represents the current kernal iteration number 
-      .channel_count(channel_count), // represents the current channel iteration number
+       // io signals to the board gpio 
+      .kernal_count(kernal_count), // current kernal iteration number 
+      .channel_count(channel_count), //current channel iteration number
       .layer_count(layer_count) 
   );
-  ///////////////////////////////	
-// (* async_reg="true" *) reg [AXI_DATA_WIDTH - 1 : 0] f_dram_rd_data,s_dram_rd_data;
-// (* async_reg="true" *) reg f_dram_rd_data_last,s_dram_rd_data_last;
-// (* async_reg="true" *) reg   f_dram_rd_datavalid,s_dram_rd_datavalid;
-// (* async_reg="true" *) reg  f_wr_id_o_wready,s_wr_id_o_wready ;                              
-// (* async_reg="true" *) reg  [BURST_LENGTH_WIDTH-1 : 0] f_wr_burst_len,s_wr_burst_len;
-// (* async_reg="true" *) reg [NUM_PORTS-1:0]f_s,s_s; 
-  //////////////////////////////////// MIPI controller tx
-  // always @ (posedge i_clk) begin 
-  // 	f_dram_rd_data<=dram_rd_data;
-  // 	s_dram_rd_data<=f_dram_rd_data;
-
-  // 	f_dram_rd_data_last<=dram_rd_data_last;
-  // 	s_dram_rd_data_last<=f_dram_rd_data_last;
-
- 	// f_dram_rd_datavalid<=dram_rd_datavalid;
-	// s_dram_rd_datavalid<=f_dram_rd_datavalid;
-
-	//  f_wr_id_o_wready<=wr_id_o_wready;
-	// s_wr_id_o_wready<=f_wr_id_o_wready;
-
-	// f_wr_burst_len<=wr_burst_len;
-	// s_wr_burst_len<=f_wr_burst_len;
-
-  //  	f_s<=(select_rd|select_wr);
-	// s_s<=f_s;
-
-
-  // end 
-	  ///////////////////////////////////
+ 
   
   //FPGA2CPU (CPU Dispatch) Module to transfer the layer output to CPU for debugging
   
@@ -855,7 +768,6 @@ module rah_gati #(
     .ADDR_W(AXI_ADDR_W),
     .DATA_SIZE(2*I_OP_SIZE_WIDTH),
     .ID(DISPATCH_ID_WIDTH),
-    // .W_DATA(W_DATA),
     .W_ADDR($clog2(FPGA2CPU_FIFO_DEPTH)),
     .BURST_LEN(CPU_DISPATCH_REQ_BLEN),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
@@ -885,7 +797,6 @@ module rah_gati #(
     .i_data_in(dram_rd_data), 
     .i_data_last(dram_rd_data_last),
     .i_data_valid(dram_rd_datavalid),
-    // .config_done(config_done), // unused
     .mipi_rd_en(mipi_fifo_rd_en), 
     .o_mipi_ready(),
     .mipi_fifo_empty(mipi_fifo_empty),
@@ -893,7 +804,6 @@ module rah_gati #(
     .mipi_rd_fifo_occupants(mipi_rd_fifo_occupants),
     .mipi_fifo_data_out(mipi_fifo_data_out),
     .mipi_fifo_data_valid(mipi_fifo_data_valid),
-
     .o_data_size_rah(data_size_rah),
     .o_valid_data_size_rah(valid_data_size_rah)
   );

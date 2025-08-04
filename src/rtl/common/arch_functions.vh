@@ -60,14 +60,14 @@ endfunction
 function integer get_nsa_lut(input integer nsa, input integer col, input integer row);
   if (nsa == 4 && col == 4 && row == 9)        get_nsa_lut = 0;
   else if (nsa == 8 && col == 8 && row == 9)   get_nsa_lut = 5;
-  else if (nsa == 16 && col == 1 && row == 16) get_nsa_lut = 3;
+  else if (nsa == 16 && col == 1 && row == 16) get_nsa_lut = 4;
   else get_nsa_lut = 0;
 endfunction
 
 function integer get_nsa_dsp(input integer nsa, input integer col, input integer row);
   if (nsa == 4 && col == 4 && row == 9)        get_nsa_dsp = 4;
   else if (nsa == 8 && col == 8 && row == 9)   get_nsa_dsp = 3;
-  else if (nsa == 16 && col == 1 && row == 16) get_nsa_dsp = 13;
+  else if (nsa == 16 && col == 1 && row == 16) get_nsa_dsp = 12;
   else get_nsa_dsp = 0;
 endfunction
 

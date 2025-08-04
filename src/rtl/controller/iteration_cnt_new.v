@@ -15,6 +15,7 @@ module iteration_cnt_new #(
     output o_layer_done,
     output o_iter_done,
     output o_c_done,
+    output o_SA_done,
     
     input im2col_done,
     input SA_psum_fifo_empty,
@@ -72,7 +73,7 @@ module iteration_cnt_new #(
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
 
 
- 
+    assign o_SA_done = SA_done;
     assign o_iter_done = iter_done;
     assign o_layer_done = r_layer_done;
     assign o_c_done = c_done;
@@ -111,26 +112,31 @@ module iteration_cnt_new #(
         if(!rst) begin
             conv_done <= 0;
             state_conv_done <= 2'b00;
+            SA_done <= 0;
         end
         else begin
             case(state_conv_done)
             2'b00: begin
                 if(r_im2col_done) begin
                     state_conv_done <= 2'b01;
+                    SA_done <= 0;
                 end
                 else begin
                     conv_done <= 0;
                     state_conv_done <= 2'b00;
+                    SA_done <= 0;
                 end
             end
             2'b01: begin
                 if(r_SA_psum_fifo_empty) begin
                     state_conv_done <= 2'b00;
                     conv_done <= 1; // set conv_done
+                    SA_done <= 1;
                 end
                 else begin
                     conv_done <= 0;
                     state_conv_done <= 2'b01;
+                    SA_done <= 0;
                 end
             end
 
@@ -173,7 +179,6 @@ module iteration_cnt_new #(
             state <= 0;
     		iter_done <= 0;
             c_done <= 0;
-            SA_done <= 0;
             r_layer_done <= 0;
             r_valid_opcode <= 0;
         end
@@ -208,9 +213,9 @@ module iteration_cnt_new #(
                 
                     else begin
                         if (r_valid_opcode == done_reg) begin 
-                        state <= 3'd2;
-                        iter_done <= 1;
-                        done_reg <= 0; //reset done_reg
+                            state <= 3'd2;
+                            iter_done <= 1;
+                            done_reg <= 0; //reset done_reg
                         end 
                         else begin
                             for (i = 0 ; i < NUM_INSTRUCTIONS ; i = i+1) begin
@@ -247,8 +252,6 @@ module iteration_cnt_new #(
     
     end
     
-
-
     always@(posedge i_clk) begin
         if(!rst) begin
             acc_en  <=  0;
@@ -289,7 +292,6 @@ module iteration_cnt_new #(
             end
             else begin
                 if(c_ctr==r_c_iter) quant_en <= 1;
-
                 else                quant_en <= 0;
             end
         end
@@ -350,7 +352,6 @@ module iteration_cnt_new #(
         end
     end
 
-
     integer j;
     reg [NUM_INSTRUCTIONS-1:0] prev_done;
 
@@ -371,6 +372,5 @@ module iteration_cnt_new #(
         end
       end
     end
-
 
 endmodule

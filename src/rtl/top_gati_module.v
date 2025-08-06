@@ -120,7 +120,9 @@ module top_gati_module #(
 
     //Tail block param
     parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
-    parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH,   
+    parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH, 
+    parameter NEG_ALPHA_WIDTH   = `TailBlock_NegAlpha_WIDTH,
+    parameter POS_ALPHA_WIDTH   = `TailBlock_PosAlpha_WIDTH,  
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
     parameter W_QUANT_SCALE     = `TailBlock_QuantScale_WIDTH, 
     parameter POOL_TYPE_WIDTH   = `TailBlock_PoolType_WIDTH,
@@ -385,6 +387,8 @@ module top_gati_module #(
   wire [OPCODE_WIDTH-1:0] Op_code_TB;
   wire [RELU_CLIP_WIDTH-1:0] relu_clip_value;
   wire [ACT_TYPE_WIDTH-1:0] relu_act_type;
+  wire [NEG_ALPHA_WIDTH-1:0] NegAlpha;  
+  wire [POS_ALPHA_WIDTH-1:0] PosAlpha;
   wire [W_QUANT_SHIFT-1:0] tail_quantshift;
   wire [W_QUANT_SCALE-1:0] tail_quantscale;
   wire [ACTEN_WIDTH-1:0] ACT_EN;
@@ -646,6 +650,8 @@ module top_gati_module #(
     .ACTEN_WIDTH(ACTEN_WIDTH),
     .ACTTYPE_WIDTH(ACT_TYPE_WIDTH),
     .ACTPARAM_WIDTH(RELU_CLIP_WIDTH),
+    .NEG_ALPHA_WIDTH(NEG_ALPHA_WIDTH),
+    .POS_ALPHA_WIDTH(POS_ALPHA_WIDTH),
     .QUANTEN_WIDTH(QUANTEN_WIDTH),
     .QUANTSCALE_WIDTH(W_QUANT_SCALE),
     .QUANTSHIFT_WIDTH(W_QUANT_SHIFT),
@@ -751,6 +757,8 @@ module top_gati_module #(
     .ActEn(ACT_EN),
     .acttype(relu_act_type),
     .ActParam(relu_clip_value),
+    .NegAlpha(NegAlpha),
+    .PosAlpha(PosAlpha),
     .QuantEn(QUANT_EN), // goes to iteration cter
     .quantscale(tail_quantscale),
     .quantshift(tail_quantshift),
@@ -1596,6 +1604,8 @@ module top_gati_module #(
       .NO_PORT_FC(NO_PORT_FC),
       .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
+      .NEG_ALPHA_WIDTH(NEG_ALPHA_WIDTH),
+      .POS_ALPHA_WIDTH(POS_ALPHA_WIDTH),
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .ACC_TOGGLE(ACC_TOGGLE),
@@ -1710,6 +1720,8 @@ module top_gati_module #(
       .i_rst(i_rst),
       .relu_clip_value(relu_clip_value),
       .relu_act_type(relu_act_type),
+      .neg_alpha(NegAlpha),
+      .pos_alpha(PosAlpha),
       .bias_enable(bias_enable),
       .quant_enable(quant_enable),
       .bias_fc_enable(bias_fc_enable),

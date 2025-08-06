@@ -32,6 +32,8 @@ module Top_CONV_FC #(
     parameter NO_PORT_FC = COL_FC/N_SA,
     parameter RELU_CLIP_WIDTH = 8,
     parameter ACT_TYPE_WIDTH = 4,
+    parameter NEG_ALPHA_WIDTH = 10,
+    parameter POS_ALPHA_WIDTH = 10,
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter ACC_TOGGLE = 1,
@@ -149,6 +151,8 @@ module Top_CONV_FC #(
     input systolic_array_trigger,
     input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
     input [ACT_TYPE_WIDTH-1:0] relu_act_type,
+    input [NEG_ALPHA_WIDTH-1:0] neg_alpha,
+    input [POS_ALPHA_WIDTH-1:0] pos_alpha,
     input bias_enable,
     input quant_enable,
     input bias_fc_enable,
@@ -874,7 +878,9 @@ endgenerate
       .N(N_SA),
       .DATA_WIDTH(DATA_WIDTH),
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
-      .CLIP_WIDTH(RELU_CLIP_WIDTH)
+      .CLIP_WIDTH(RELU_CLIP_WIDTH),
+      .NEG_ALPHA_WIDTH(NEG_ALPHA_WIDTH),
+      .POS_ALPHA_WIDTH(POS_ALPHA_WIDTH)
   ) relu (
       .top_clk(i_clk),
       .top_i_data(bias_fc_out),
@@ -883,6 +889,8 @@ endgenerate
       .top_o_data(relu_output),
       .top_o_valid(relu_valid),
       .top_i_clip({N_SA{relu_clip_value}}), //from tail inst.
+      .top_neg_alpha({N_SA{neg_alpha}}), //from tail inst.
+      .top_pos_alpha({N_SA{pos_alpha}}), //from tail inst.
       .top_i_acttype({N_SA{relu_act_type}})
   );
   

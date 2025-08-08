@@ -480,6 +480,19 @@ endgenerate
     .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
   );
 
+  // this counter is added to count the number of element that have came out of sa  : added for the purpose of bebugging resnet 50 
+  reg [15:0] sa_check_count;
+
+  always @ (posedge i_clk) begin
+    if (!rst | iteration_Done) begin
+      sa_check_count <= 0; 
+    end 
+    else if(valid_psum)begin
+      sa_check_count <= sa_check_count + 1; 
+    end
+  end 
+
+
   assign SA_psum_fifo_empty = &(empty_sa);
 
   generate

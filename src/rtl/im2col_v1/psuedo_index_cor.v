@@ -116,7 +116,7 @@ always @ (posedge clk) begin
 
       else if (pseudo_im2col) begin 
 
-        if (curr_row == (start_row_skip) && curr_col == mat_size_col-2)begin 
+        if (curr_row == (start_row_skip) && curr_col == pseudo_mat_size_col-2)begin 
             r_pseudo_im2col_start <= 1'b1;
         end 
 

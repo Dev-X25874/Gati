@@ -924,11 +924,20 @@ module top_gati_module #(
       .last(mc_fc_bias_last)
   );
 
+
+  wire [AXI_ADDR_W-1:0] r_acc_start_add;
+  wire [AXI_ADDR_W-1:0] r_acc_stop_add;
   
   wire im2col_global_start;
   wire vector_add_enable;
+
+  wire [AXI_ADDR_W-1:0] acc_addr_offset;
+
+  assign acc_addr_offset = (img_dim_Acc*N_SA) * (DATA_WIDTH_OB/DATA_WIDTH) ;
   
-  assign acc_stop_address = acc_start_address + (img_dim_Acc*N_SA)*(DATA_WIDTH_OB/DATA_WIDTH);
+  assign acc_stop_address = acc_start_address + (acc_addr_offset * kernel_iteration);
+  // TODO : Change the logic for enable remove the masking by Acc_onchip
+
 
   request_controller_accumulator #(
       .BURST_LENGTH(ACC_REQ_BLEN),
@@ -937,8 +946,8 @@ module top_gati_module #(
       .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
       .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT)
   ) acc_req_ctrl (
-      .start_addr(acc_start_address),
-      .stop_addr(acc_stop_address),
+      .start_addr(r_acc_start_add),
+      .stop_addr(r_acc_stop_add),
       .config_start(im2col_global_start), //start from im2col start ctrler
       .fifo_status(acc_fifo_status),
       .clk(i_clk),
@@ -1037,7 +1046,9 @@ module top_gati_module #(
     .o_address(mc_op_write_addr),
     .o_burst_len(mc_op_write_bl),
     .o_last(mc_op_write_last),
-    .op_done(op_done) //o-wire: op_done signal to Iteration_ctr
+    .op_done(op_done),
+    .r_acc_stop_add(r_acc_stop_add),
+    .r_acc_start_add(r_acc_start_add) //o-wire: op_done signal to Iteration_ctr
     );
 
   ////////////////////////////////FIFO FOR IMAGE FROM DDR////////////////

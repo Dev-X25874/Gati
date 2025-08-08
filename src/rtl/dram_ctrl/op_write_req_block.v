@@ -42,15 +42,18 @@ output o_read_write_req,
 output o_valid,
 
 output reg op_done,
-output reg layer_done
+output reg layer_done,
+output reg [ADDR_WIDTH-1:0] r_acc_start_add,
+output [ADDR_WIDTH-1:0] r_acc_stop_add
+
 );
 
 //read request controller
 
 reg [3:0] state;
 reg [7:0] r_addr;
-reg [ADDR_WIDTH-1:0] r_acc_start_add,r_layer_start_add;
-wire [ADDR_WIDTH-1:0] r_layer_stop_add,r_acc_stop_add;
+reg [ADDR_WIDTH-1:0] r_layer_start_add;
+wire [ADDR_WIDTH-1:0] r_layer_stop_add;
 reg [ADDR_WIDTH-1:0] r_acc_next_add,r_layer_next_add;
 reg [$clog2(DEPTH) : 0] r_burst_len,r_burst_len1,r_burst_len2;
 reg wr_req_reg;
@@ -358,8 +361,8 @@ always@(posedge clkin) begin
                 r_layer_next_add <= r_layer_start_add;
                 layer_done <= 0;
                 if(c_ctr == r_channel_itr-1) begin
-                    r_acc_start_add <= i_acc_address;
-                    r_acc_next_add <= i_acc_address;
+                    r_acc_start_add <= r_acc_stop_add + 1;
+                    r_acc_next_add <= r_acc_stop_add + 1;
                     r_burst_len2 = BURST_LENGTH_2;
                     c_ctr <= 0;
                     k_ctr <= k_ctr + 1;

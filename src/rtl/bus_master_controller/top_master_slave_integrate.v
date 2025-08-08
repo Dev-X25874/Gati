@@ -64,8 +64,9 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter ELTWISE_ZEROPOINT_WIDTH = 8,
     parameter CONV_StartRowSkip_WIDTH = 4,
     parameter CONV_EndRowSkip_WIDTH = 4 ,
-    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1        
-    parameter OutputBlock_OpWidth_WIDTH = 3        
+    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,        
+    parameter OutputBlock_OpWidth_WIDTH = 3  
+)      
     (
     input [(INPUT_WIDTH)-1 : 0] din,
     input start,

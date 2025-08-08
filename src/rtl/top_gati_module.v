@@ -670,7 +670,7 @@ module top_gati_module #(
     .BiasWidth_WIDTH(BiasWidth_WIDTH),
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
-    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH)
+    .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
     .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
     .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
   )

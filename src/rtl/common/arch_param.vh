@@ -1,4 +1,4 @@
-// arch_param.vh
+ // arch_param.vh
 
 `define N_SA 16
 `define COL_SA 1

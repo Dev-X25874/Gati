@@ -937,7 +937,10 @@ module top_gati_module #(
   
   assign acc_stop_address = acc_start_address + (acc_addr_offset * kernel_iteration);
   // TODO : Change the logic for enable remove the masking by Acc_onchip
-
+  
+  // TODO : this logic for testing a feature should be removed before PR
+  wire ksplit_flag ;
+  assign ksplit_flag = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
 
   request_controller_accumulator #(
       .BURST_LENGTH(ACC_REQ_BLEN),
@@ -951,7 +954,7 @@ module top_gati_module #(
       .config_start(im2col_global_start), //start from im2col start ctrler
       .fifo_status(acc_fifo_status),
       .clk(i_clk),
-      .enable(ACC_EN & ~Acc_onchip), // ACC_EN comes from inst. whether is enabled in this layer or not
+      .enable(ACC_EN & ~ksplit_flag), // ACC_EN comes from inst. whether is enabled in this layer or not
       .ENABLE(vector_add_enable), // acc_en comes from iteration cter to enable it in current iteration based on the instruction field
       .addr_out(mc_acc_addr),
       .wr_enable(mc_acc_rdreq),
@@ -1039,7 +1042,7 @@ module top_gati_module #(
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
     .acc_en(vector_add_enable),
     .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
-    .Acc_onchip(Acc_onchip), //i-wire: Enables Accumulant storage locally, comes from instruction
+    .Acc_onchip(ksplit_flag), //i-wire: Enables Accumulant storage locally, comes from instruction
     .OB_OpWidth(OB_OpWidth),
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
@@ -1421,7 +1424,7 @@ module top_gati_module #(
     .NO_PORT(2)
   ) Acc_FIFO_mux_data(
     .in({vector_add_values_opfifo_acc,vector_add_values_dram}),
-    .sel(1<<Acc_onchip),
+    .sel(1<<ksplit_flag),
     .out(vector_add_values)
   );
 
@@ -1430,7 +1433,7 @@ module top_gati_module #(
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
     .in({{ACC_FIFO{&vector_add_wren_opfifo_acc}},vector_add_wren_dram}),
-    .sel(1<<Acc_onchip),
+    .sel(1<<ksplit_flag),
     .out(vector_add_wren)
   );
   
@@ -1824,7 +1827,7 @@ module top_gati_module #(
     .i_rst(i_rst&(~iter_done)),
     .i_start(start),
     .i_acc_quant_enable(quant_enable),
-    .i_Acc_Onchip(Acc_onchip),
+    .i_Acc_Onchip(ksplit_flag),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_quant_data(quant_op_write_data),

@@ -57,31 +57,13 @@ always@(posedge clk) begin
             end
             
             1: begin
-                if(prev_state == 3'd3) begin
-                    if(r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag) begin
-                        if(!image_fifo_empty) begin
-                            start_im2col <= 1;
-                            state <= 2;
-                        end
-                        else begin
-                            start_im2col <= 0;
-                            state <= 1;
-                        end
-                    end
-                    else begin
+                if(!image_fifo_empty) begin
                         start_im2col <= 1;
                         state <= 2;
-                    end
                 end
                 else begin
-                    if(!image_fifo_empty) begin
-                        start_im2col <= 1;
-                        state <= 2;
-                    end
-                    else begin
                         start_im2col <= 0;
                         state <= 1;
-                    end
                 end
             end
 

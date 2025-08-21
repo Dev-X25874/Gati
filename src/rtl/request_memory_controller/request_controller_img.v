@@ -77,7 +77,7 @@ always @ (posedge clk) begin
 	r_fifo_status   <=  fifo_status;
 	// r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : 
     //                     ((r_conv_type == `CONV_TYPE_DW)? conv_ack : c_done);
-    r_c_done        <=  ((r_conv_type == `CONV_TYPE_REGULAR) && r_dup_flag)? iter_done : c_done;
+    r_c_done        <=  (r_conv_type == `CONV_TYPE_DW)? c_done : iter_done;
 end
 
 
@@ -105,7 +105,7 @@ always @(posedge clk) begin
                 r_dup_flag      <= dup_flag;
                 state           <= FIFO_STATUS;
                 nxt_addr        <= r_start_addr;
-                r_stop_addr     <= (conv_type == `CONV_TYPE_DW)? (r_start_addr + offset) : stop_addr;
+                r_stop_addr     <= r_start_addr + offset;
                 r_burst_length  <= BURST_LENGTH;
             end
             else begin
@@ -158,6 +158,7 @@ always @(posedge clk) begin
                 valid <= 0;  
                 r_burst_length <= r_burst_length;
                 wr_enable <= 0;
+                nxt_addr <= (nxt_addr + ((r_burst_length + 1) << $clog2(AXI_DATA_BYTES)));
             end
             else if(nxt_burst >= r_stop_addr) begin //if nxt_address is greater than stop_address then burst_length will be reduced from the default value to suit the stop_address 
                 state <= C_DONE;
@@ -195,10 +196,32 @@ always @(posedge clk) begin
                     img_rd_done <= 0;
                 end
             end
-            else begin
+            else if (r_conv_type == `CONV_TYPE_DW) begin
                 if (r_c_done) begin
                     state <= KERNEL_ITR;
                     img_rd_done <= 1;
+                end
+                else begin
+                    state <= C_DONE;
+                    img_rd_done <= 0;
+                end
+            end
+            else begin
+                if(r_c_done) begin
+                    img_rd_done <= 1;
+                    if (count_channel < r_channelitr - 1) begin
+                        nxt_addr <= nxt_addr;
+                        r_stop_addr <= nxt_addr + offset;
+                        state <= FIFO_STATUS;
+                        count_channel <= count_channel + 1;
+                        r_burst_length <= BURST_LENGTH;
+                    end
+                    else begin
+                        nxt_addr <= nxt_addr;
+                        r_stop_addr <= r_stop_addr;
+                        state <= KERNEL_ITR;
+                        count_channel <= 0;
+                    end
                 end
                 else begin
                     state <= C_DONE;
@@ -211,7 +234,7 @@ always @(posedge clk) begin
             if (count_kernel < r_kernelitr -1) begin
                 // nxt_addr <= r_start_addr;
                 nxt_addr <= (r_conv_type == `CONV_TYPE_DW)? nxt_addr : r_start_addr;
-                r_stop_addr <= (r_conv_type == `CONV_TYPE_DW)? (nxt_addr + offset) : stop_addr;
+                r_stop_addr <= (r_conv_type == `CONV_TYPE_DW)? nxt_addr + offset : r_start_addr + offset;
                 state <= FIFO_STATUS;
                 count_kernel <= count_kernel + 1;
                 r_burst_length <= BURST_LENGTH;

@@ -575,7 +575,7 @@ module top_gati_module #(
         .i_rst(i_rst),
         .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
         .input_img_height(input_img_height),  
-        .conv_zeropad(conv_pad_right),
+        .conv_zeropad(conv_pad_top),
         .stride (stride),
         .istolic_stall(istolic_stall),
         .row(row),

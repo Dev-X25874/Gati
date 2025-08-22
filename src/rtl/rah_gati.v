@@ -2,6 +2,7 @@
 `include "common/instructions.vh"
 `include "common/arch_functions.vh"
 `include "common/arch_param.vh"
+
 module rah_gati #(
     parameter   SYS_CLK_PERIOD      = 32'd85_000_000 ,  //System Clock Period
     parameter   NO_PORT_WR          = 2,

@@ -1,6 +1,6 @@
 `include "common/instructions.vh"
 `include "common/portid.vh"
-//`include "instruction.mem"
+
 module top_gati_module #(
    // FIFO Depth varies between operators to avoid overflow and underflow 
     parameter INST_QUEUE_DEPTH    = 256,
@@ -560,14 +560,16 @@ module top_gati_module #(
 
     sa_start_stall_ctrl #(
         .CONV_IH_WIDTH(CONV_IH_WIDTH),
+        .CONV_IW_WIDTH(CONV_IW_WIDTH),
         .CONV_PAD_WIDTH(CONV_PadRight_WIDTH), 
-        .COL_SA(COL_SA),
-        .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
         .IMAGE_DIM(CONV_IW_WIDTH),
-        .CONV_KW_WIDTH(CONV_KW_WIDTH)
+        .CONV_Pfetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
+        .COL_SA(COL_SA),
+        .CONV_KW_WIDTH(CONV_KW_WIDTH),
+        .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH)
         )
-    sa_start_stall (
+    sa_start_stall_ctrl_inst (
         .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
         .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
         .im2col_global_start(im2col_global_start),
@@ -576,7 +578,8 @@ module top_gati_module #(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
-        .input_img_height(input_img_height),  
+        .input_img_height(input_img_height), 
+        .input_img_width(input_img_width), 
         .conv_zeropad(conv_pad_top),
         .stride (stride),
         .istolic_stall(istolic_stall),

@@ -564,7 +564,8 @@ module top_gati_module #(
         .COL_SA(COL_SA),
         .CONV_Im2colPrefetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
-        .IMAGE_DIM(CONV_IW_WIDTH)
+        .IMAGE_DIM(CONV_IW_WIDTH),
+        .CONV_KW_WIDTH(CONV_KW_WIDTH)
         )
     sa_start_stall (
         .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
@@ -581,6 +582,7 @@ module top_gati_module #(
         .istolic_stall(istolic_stall),
         .row(row),
         .col(col),
+        .kernel_width(kernel_width),
         .systolic_array_trigger(systolic_array_trigger)
   );
 
@@ -930,17 +932,13 @@ module top_gati_module #(
   
   wire im2col_global_start;
   wire vector_add_enable;
-
-  wire [AXI_ADDR_W-1:0] acc_addr_offset;
-
-  assign acc_addr_offset = (img_dim_Acc*N_SA) * (DATA_WIDTH_OB/DATA_WIDTH) ;
   
-  assign acc_stop_address = acc_start_address + (acc_addr_offset * kernel_iteration);
-  // TODO : Change the logic for enable remove the masking by Acc_onchip
-  
-  // TODO : this logic for testing a feature should be removed before PR
-  wire ksplit_flag ;
-  assign ksplit_flag = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
+// masked acc on chip for kernal split convolution as the added acc in case of k_split needs to be written to the dram irrespective of the acc_onchip or not 
+  wire Acc_onchip_masked ;
+  assign Acc_onchip_masked = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
+
+  wire ksplit ;
+  assign ksplit = (kernel_width >= 4)? (1'b1) : (1'b0);
 
   request_controller_accumulator #(
       .BURST_LENGTH(ACC_REQ_BLEN),
@@ -954,7 +952,7 @@ module top_gati_module #(
       .config_start(im2col_global_start), //start from im2col start ctrler
       .fifo_status(acc_fifo_status),
       .clk(i_clk),
-      .enable(ACC_EN & ~ksplit_flag), // ACC_EN comes from inst. whether is enabled in this layer or not
+      .enable(ACC_EN & ~Acc_onchip_masked), // ACC_EN comes from inst. whether is enabled in this layer or not
       .ENABLE(vector_add_enable), // acc_en comes from iteration cter to enable it in current iteration based on the instruction field
       .addr_out(mc_acc_addr),
       .wr_enable(mc_acc_rdreq),
@@ -1042,7 +1040,7 @@ module top_gati_module #(
     .occupants(op_write_dram_fifo_occupants), // i-wire: op_write dram fifo occupants
     .acc_en(vector_add_enable),
     .Tail_done(Tail_done), //i-wire: Tail_done from TOP_CONV_FC
-    .Acc_onchip(ksplit_flag), //i-wire: Enables Accumulant storage locally, comes from instruction
+    .Acc_onchip(Acc_onchip_masked), //i-wire: Enables Accumulant storage locally, comes from instruction
     .OB_OpWidth(OB_OpWidth),
     .o_read_write_req(mc_op_writereq),
     .o_valid(mc_op_write_valid),
@@ -1050,6 +1048,7 @@ module top_gati_module #(
     .o_burst_len(mc_op_write_bl),
     .o_last(mc_op_write_last),
     .op_done(op_done),
+    .ksplit(ksplit),
     .r_acc_stop_add(r_acc_stop_add),
     .r_acc_start_add(r_acc_start_add) //o-wire: op_done signal to Iteration_ctr
     );
@@ -1424,7 +1423,7 @@ module top_gati_module #(
     .NO_PORT(2)
   ) Acc_FIFO_mux_data(
     .in({vector_add_values_opfifo_acc,vector_add_values_dram}),
-    .sel(1<<ksplit_flag),
+    .sel(1<<Acc_onchip_masked),
     .out(vector_add_values)
   );
 
@@ -1433,7 +1432,7 @@ module top_gati_module #(
     .NO_PORT(2)
   ) Acc_FIFO_mux_dv(
     .in({{ACC_FIFO{&vector_add_wren_opfifo_acc}},vector_add_wren_dram}),
-    .sel(1<<ksplit_flag),
+    .sel(1<<Acc_onchip_masked),
     .out(vector_add_wren)
   );
   
@@ -1827,7 +1826,7 @@ module top_gati_module #(
     .i_rst(i_rst&(~iter_done)),
     .i_start(start),
     .i_acc_quant_enable(quant_enable),
-    .i_Acc_Onchip(ksplit_flag),
+    .i_Acc_Onchip(Acc_onchip_masked),
     .i_acc_data(acc_op_write_data),
     .i_acc_data_wren(acc_op_wren),
     .i_quant_data(quant_op_write_data),

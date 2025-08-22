@@ -44,7 +44,8 @@ output o_valid,
 output reg op_done,
 output reg layer_done,
 output reg [ADDR_WIDTH-1:0] r_acc_start_add,
-output [ADDR_WIDTH-1:0] r_acc_stop_add
+output [ADDR_WIDTH-1:0] r_acc_stop_add,
+input ksplit
 
 );
 
@@ -361,8 +362,17 @@ always@(posedge clkin) begin
                 r_layer_next_add <= r_layer_start_add;
                 layer_done <= 0;
                 if(c_ctr == r_channel_itr-1) begin
-                    r_acc_start_add <= r_acc_stop_add + 1;
-                    r_acc_next_add <= r_acc_stop_add + 1;
+                    // this ksplit based if condition is added here for the ksplit convolutions in case of ksplit teh acc added out for each kernal iteration are saved in seprate address while for normal case they are over written 
+
+                    // TODO : a better way of this could be done however with the current infrasture in mind this is needed
+                    if(ksplit)begin 
+                      r_acc_start_add <= r_acc_stop_add + 1;
+                      r_acc_next_add <= r_acc_stop_add + 1;
+                    end
+                    else begin
+                      r_acc_next_add <= i_acc_address;
+                      r_acc_start_add <= i_acc_address;     
+                    end 
                     r_burst_len2 = BURST_LENGTH_2;
                     c_ctr <= 0;
                     k_ctr <= k_ctr + 1;

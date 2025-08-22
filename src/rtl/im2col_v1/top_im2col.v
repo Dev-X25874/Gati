@@ -90,7 +90,7 @@ module top_im2col_v1 #(
         .pad_bottom(conv_pad_bottom),
 
         .mat_size_col(mat_size_col),
-        .mat_size_row(mat_size_row),  // TODO 
+        .mat_size_row(mat_size_row),  
         .o_data(data),
         .row(w_row),
         .col(w_col),

@@ -480,19 +480,6 @@ endgenerate
     .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
   );
 
-  // this counter is added to count the number of element that have came out of sa  : added for the purpose of bebugging resnet 50 
-  reg [15:0] sa_check_count;
-
-  always @ (posedge i_clk) begin
-    if (!rst | iteration_Done) begin
-      sa_check_count <= 0; 
-    end 
-    else if(valid_psum)begin
-      sa_check_count <= sa_check_count + 1; 
-    end
-  end 
-
-
   assign SA_psum_fifo_empty = &(empty_sa);
 
   generate
@@ -630,7 +617,7 @@ endgenerate
     .i_weight_ff_array_almost_empty(weight_almost_empty_fc),
     .o_weight_ff_array_rden(weight_read_en_fc1), //output: weight fifo rden, goes to fifo sharing
     .i_weight_ff_array_occ(weight_occupants_fc), //input: weight fifo occupants from fifo sharing
-    // .o_image_ff_array_rden(), //Todo: check it
+    // .o_image_ff_array_rden(), 
     .i_kernal_count(i_kernel_cnt_FC),
     .accumulator_dv(dv_FC_accumulator_data),
     .accumulator_data(FC_accumulator_op_data)

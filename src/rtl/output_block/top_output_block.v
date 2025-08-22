@@ -1,7 +1,3 @@
-//`include "fifo.v"
-//`include "mux.v"
-//`include "adder.v"
-//`include "controller_fifo.v"
 
 module top_output_block #(
     parameter DRAM_BW        = 32,

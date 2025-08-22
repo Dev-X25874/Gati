@@ -9,7 +9,8 @@ module sa_start_stall_ctrl #(
   parameter CONV_STRIDE_WIDTH = 3,
   parameter IMAGE_DIM = 32,
   parameter CONV_Im2colPrefetch_WIDTH = 1,
-  parameter COL_SA = 1
+  parameter COL_SA = 1,
+  parameter CONV_KW_WIDTH = 4
 ) ( 
   input sa_image_fifo_almost_empty_flag,
   input sa_image_fifo_almost_full_flag,
@@ -24,6 +25,7 @@ module sa_start_stall_ctrl #(
   input [CONV_STRIDE_WIDTH-1:0]  stride,
   input [(IMAGE_DIM)-1:0]      row,   
   input [(IMAGE_DIM)-1:0]      col,
+  input [CONV_KW_WIDTH-1:0] kernel_width,
   
   output reg istolic_stall,
   output reg systolic_array_trigger
@@ -39,8 +41,6 @@ module sa_start_stall_ctrl #(
   reg stage_1_flag = 0;
   reg stage_2_flag = 0;
   reg stage_3_flag = 0;
-  
-
  // main loop for generation of start and stall flags 
 
   generate
@@ -170,7 +170,7 @@ module sa_start_stall_ctrl #(
         if(stride == 1) begin
           istolic_array_stall <= 0;
           stall_flag <= 0;
-          if(input_img_height < 6) begin
+          if(input_img_height < 4) begin
             if (row == (input_img_height + conv_zeropad -1) && col==1) begin
               sa_start_flag <= 1;
             end
@@ -179,7 +179,7 @@ module sa_start_stall_ctrl #(
             end 
           end
           else begin
-            if(row == 6 && col==1) begin
+            if(row == (kernel_width + 2'd2) && col==1) begin
               sa_start_flag <=1;
               end
             else begin 

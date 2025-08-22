@@ -55,32 +55,14 @@ module dram_data_aligner#(
     wire [(($clog2(ACC_OP_FIFO_DEPTH)+1)*ACC_OP_FIFO)-1:0] acc_op_fifo_occupants;
     // ACC_OP_FIFO
 
+
+    // signal to decide the word size of the data to be written to the dram on on chip fifo 
     wire w_op_8bit  ;
     wire w_op_32bit ;
+
     
     assign w_op_8bit = (i_OB_OpWidth == 3'b001) ? (i_last_c_itr ? 1 :0 ) : 0 ;
     assign w_op_32bit = (i_OB_OpWidth == 3'b100) ? 1 : (i_last_c_itr ? 0 : 1) ;
-
-    
-    reg r_op_8bit = 0 ;
-    reg r_op_32bit = 0 ;
-    
-    always @(posedge i_clk) begin
-        if(!i_rst)begin
-            r_op_8bit <= 0;
-            r_op_32bit <= 0;
-        end
-        else if (i_start) begin
-            if(i_OB_OpWidth == 3'b001) begin
-                r_op_8bit <= 1;
-                r_op_32bit <= 0;
-            end
-            else if (i_OB_OpWidth == 3'b100)begin
-                r_op_8bit <= 0;
-                r_op_32bit <= 1;            
-            end
-        end
-    end 
     
     
 
@@ -131,7 +113,7 @@ module dram_data_aligner#(
         .o_occupants()
     );
     
-    // TODO this block is for the logic when width it 8 if the width is 8 bits right here irrespective of other logic 
+    //  this block is for the logic when width it 8 if the width is 8 bits right here irrespective of other logic 
     // Read signal generation for quant FIFOs 
     reg [QUANT_OP_FIFO-1 : 0] r_quant_fifo_read_enable;
     wire [QUANT_OP_FIFO-1 : 0] quant_fifo_read_enable;
@@ -153,7 +135,7 @@ module dram_data_aligner#(
     end
 
     // Read signal generation for acc FIFOs
-    // TODO this generates the flag when its 32 bit and needs to be written to the fifo 
+    //  this generates the flag when its 32 bit and needs to be written to the fifo 
     localparam SHIFT_WIDTH = ((N_SA*DATA_WIDTH_ACC) < AXI_DATA_WIDTH) ? 0 : ((ACC_OP_FIFO > 1)? $clog2(ACC_OP_FIFO) : 0);
     localparam SHIFT_COUNT = ACC_OP_FIFO;
 
@@ -253,7 +235,6 @@ module dram_data_aligner#(
     wire op_write_dram_fifo_wren;
     wire [AXI_DATA_WIDTH-1:0] op_write_dram_fifo_data;
      
-    // TODO -- use the i_last_c_itr here 
     generate
         if(SHIFT_WIDTH==0) begin
             assign op_write_dram_fifo_wren = (w_op_8bit & i_last_c_itr) ? quant_op_fifo_dv : ((i_Acc_Onchip)?(i_last_c_itr ? acc_op_fifo_dv : 0) : acc_op_fifo_dv);

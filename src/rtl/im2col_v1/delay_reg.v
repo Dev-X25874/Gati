@@ -12,7 +12,7 @@ output reg [DATA_WIDTH-1:0] o_data
 
 genvar i;
 generate
-for(i=0; i<6; i=i+1) begin: delay
+for(i=0; i<DATA_WIDTH-2; i=i+1) begin: delay
 
 reg [ROW-1:0] r_valid_sq;
 reg [DATA_WIDTH-1:0] r_data;
@@ -24,7 +24,7 @@ r_data <= (!rst)? 0:i_data;
 end
 end
 
-else if (i == 5) begin
+else if (i == DATA_WIDTH-3) begin
 always @ (posedge clk) begin
 o_valid_sq <= (!rst)? 0:delay[i-1].r_valid_sq;
 o_data <= (!rst)? 0:delay[i-1].r_data;

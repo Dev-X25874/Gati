@@ -10,6 +10,8 @@ module stride_block_v1 #(
         input rst,
         input  [(UPPER_BOUND)-1:0] curr_row,
         input  [(UPPER_BOUND)-1:0] curr_col,
+        input  [(DATA_WIDTH*ROW)-1:0] lower_bound_row,
+        input  [(DATA_WIDTH*ROW)-1:0] lower_bound_col,
         input  [STRIDE-1:0]        stride, 
         input  [CONV_KH_WIDTH-1:0]   kh,
         input  [CONV_KW_WIDTH-1:0]   kw,
@@ -19,14 +21,15 @@ module stride_block_v1 #(
 
     wire [(UPPER_BOUND)-1:0] row;
     wire [(UPPER_BOUND)-1:0] col;
-    reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_row = 0;
-    reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_col = 0;
+    // reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_row = 0;
+    // reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_col = 0;
     reg                                  bound_gen_done_row = 0; 
     reg                                  bound_gen_done_col = 0;
     
     assign row = curr_row;
     assign col = curr_col;
 
+    /*
     // Generation of lower_bound_row
     reg [$clog2(ROW) : 0] i,j,k;
     always@(posedge clk) begin
@@ -106,21 +109,22 @@ module stride_block_v1 #(
           end
       end
     end
+    */
 
     // Stride block for each valid_sq row
     genvar sq;
     generate 
         for(sq=0; sq<ROW; sq=sq+1) begin
-                    stride_mod_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) finaldut(
-                    .clk(clk),
-                    .rst(rst),
-                    .row(row),
-                    .col(col),
-                    .stride(stride),
-                    .o_mod(valid_stride[sq]),
-                    .lower_bound_col(lower_bound_col[(DATA_WIDTH*(ROW-sq))-1 -:DATA_WIDTH]),
-                    .lower_bound_row(lower_bound_row[(DATA_WIDTH*(ROW-sq))-1 -:DATA_WIDTH])
-                );
+            stride_mod_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) finaldut(
+                .clk(clk),
+                .rst(rst),
+                .row(row),
+                .col(col),
+                .stride(stride),
+                .o_mod(valid_stride[sq]),
+                .lower_bound_col(lower_bound_col[(DATA_WIDTH*(ROW-sq))-1 -:DATA_WIDTH]),
+                .lower_bound_row(lower_bound_row[(DATA_WIDTH*(ROW-sq))-1 -:DATA_WIDTH])
+            );
         end
     endgenerate
 

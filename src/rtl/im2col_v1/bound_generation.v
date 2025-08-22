@@ -7,18 +7,22 @@ module bound_generation_v1 #(
   parameter ROW = 9)
   (
   input                               i_valid,
-  input  [(UPPER_BOUND)-1:0]    mat_size_col,
-  input  [(UPPER_BOUND)-1:0]    mat_size_row,     
+  input  [(UPPER_BOUND)-1:0]          mat_size_col,
+  input  [(UPPER_BOUND)-1:0]          mat_size_row,     
   input                               clk,
   input  [CONV_KH_WIDTH-1:0]          kh,  // Size of the kernel requied for convolution
   input  [CONV_KW_WIDTH-1:0]          kw,
   input                               rstn,
-  input  [(UPPER_BOUND)-1:0]    curr_row,
-  input  [(UPPER_BOUND)-1:0]    curr_col,
+  input  [(UPPER_BOUND)-1:0]          curr_row,
+  input  [(UPPER_BOUND)-1:0]          curr_col,
   output [ROW-1:0]                    valid_sq,           
   input  [DATA_WIDTH-1:0]             valid_sq_data_i,   //Input data from the previous block 
   output [DATA_WIDTH-1:0]             valid_sq_data_o,    //Output data
   output                              o_valid,
+
+  output reg [(DATA_WIDTH*ROW)-1:0]   lower_bound_row,
+  output reg [(DATA_WIDTH*ROW)-1:0]   lower_bound_col,
+
   input                               i_stall_on,
   input                               r_start_im2col,
   input                               im2col_start,
@@ -28,8 +32,7 @@ module bound_generation_v1 #(
 
   reg [ROW-1:0]                        valid_sq_reg = 0;
   reg [DATA_WIDTH-1:0]                 r_data_i = 0;
-  reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_row = 0;
-  reg [(DATA_WIDTH*ROW)-1:0]           lower_bound_col = 0;
+  
   reg [(DATA_WIDTH*ROW)-1:0]           upper_bound_row = 0;
   reg [(DATA_WIDTH*ROW)-1:0]           upper_bound_col = 0;
   reg                                  bound_gen_done_row = 0; 

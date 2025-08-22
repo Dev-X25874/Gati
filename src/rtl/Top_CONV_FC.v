@@ -343,32 +343,30 @@ module Top_CONV_FC #(
   assign img_rden_counter_flag = (im2col_done) ? ((img_rden_counter == (image_width * image_height)/(BYTES_PER_SA))? 1'b1 : 1'b0) : 1'b0;
 
 //im2col block
-// generate block for 7 cycle dealay in the input reg mux_out
-// Generate block for delay the SA data to match 6 cycle delay of im2col
+// Generate block for delay the SA data to match delay of im2col
+/*
+  Number of delay registers is equal to number of pipeline stages used in 
+  mod operator in im2col Engine. No.of pipeline stages(N) = W_CONV_IMAGE_DIM-1
+*/
 genvar f;
 generate
-    for (f = 0; f < 7; f = f + 1) begin : delay_stage
-    reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
-      if (f == 0) begin
-      always @(posedge i_clk ) begin
-        delay_reg <= buff_out;
-      end 
-      end 
-      else begin
-        always @(posedge i_clk ) begin
-         delay_reg <= delay_stage[f-1].delay_reg;
-      end
-      end
+  for (f = 0; f < IM2COL_BOUND_GEN_WIDTH-1; f = f + 1) begin : delay_stage
+  reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
+    if (f == 0) begin
+      always @(posedge i_clk ) delay_reg <= buff_out; 
+    end 
+    else begin
+      always @(posedge i_clk ) delay_reg <= delay_stage[f-1].delay_reg;
     end
+  end
 endgenerate
 
-
-
+localparam IM2COL_BOUND_GEN_WIDTH = W_CONV_IMAGE_DIM - 1; // Added for testing only
 
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(W_CONV_IMAGE_DIM),
                 .LOWER_BOUND(1),
-                .DATA_WIDTH(DATA_WIDTH),
+                .DATA_WIDTH(IM2COL_BOUND_GEN_WIDTH),
                 .CONV_KH_WIDTH(CONV_KH_WIDTH),
                 .CONV_KW_WIDTH(CONV_KW_WIDTH),
                 .STRIDE(STRIDE),
@@ -378,8 +376,8 @@ endgenerate
                 .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
                 .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
                 .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
-                .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH))
-
+                .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH)
+    )
     im2col_v1 (
       .clk_in(i_clk),
       .rstn(rst),
@@ -388,7 +386,6 @@ endgenerate
       .i_start_im2col_index(im2col_global_start),
       .kw(kernel_width),
       .kh(kernel_height),
-
 
       .conv_pad_left(conv_pad_left),
       .conv_pad_right(conv_pad_right),
@@ -461,7 +458,7 @@ endgenerate
     .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
     .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
     .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
-    .i_image_ff_array_data(delay_stage[5].delay_reg), //i-wire : from im2col
+    .i_image_ff_array_data(delay_stage[IM2COL_BOUND_GEN_WIDTH-3].delay_reg), //i-wire : from im2col
     .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
     .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
     .o_image_ff_array_almost_full(sa_image_fifo_almost_full),

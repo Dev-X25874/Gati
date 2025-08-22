@@ -13,11 +13,13 @@ module stride_mod_v1 #(
         output o_mod
     );
 
-    wire [$clog2(STRIDE*64):0] theta;
+    localparam THETA_WIDTH = STRIDE << (DATA_WIDTH-2);
+
+    wire [$clog2(THETA_WIDTH)-1:0] theta;
     wire [DATA_WIDTH-1:0] mod_row;
     wire [DATA_WIDTH-1:0] mod_col;
 
-    assign theta = stride * 64;
+    assign theta = stride << (DATA_WIDTH-2);
    
    // MOD operation for row coordinate
     gen_mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) rowdut(

@@ -77,7 +77,7 @@ always @ (posedge clk) begin
 	r_fifo_status   <=  fifo_status;
 	// r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : 
     //                     ((r_conv_type == `CONV_TYPE_DW)? conv_ack : c_done);
-    r_c_done        <=  (r_conv_type == `CONV_TYPE_REGULAR && r_dup_flag)? iter_done : c_done;
+    r_c_done        <=  ((r_conv_type == `CONV_TYPE_REGULAR) && r_dup_flag)? iter_done : c_done;
 end
 
 

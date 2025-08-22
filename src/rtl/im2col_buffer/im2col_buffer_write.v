@@ -66,6 +66,39 @@ module im2col_buffer_write #(
         or 'psum_full'. This way, we can ensure that 'rden' is set to 1 only when the 
         buffer is ready to be read and ~fifo_empty. 
       */
+      
+      reg r_read_buf = 0;
+      wire read_buf_rise;
+      always @(posedge clk) r_read_buf <= read_buf_data;
+      assign read_buf_rise = (~r_read_buf & read_buf_data);
+
+      wire read_buf_fall;
+      assign read_buf_fall = (r_read_buf & ~read_buf_data);
+      
+      /* 
+        The below piece of logic is used to handle the odd image dim in 
+        conv layer with zero pads and count = 1
+      */
+      // To handle stall_on on rising edge of read_buf_data
+      wire debug_flag; // rising edge of read_buf_data & stall_on and element_poped = 1
+      assign debug_flag = (read_buf_rise & stall_on) && (count==1);
+
+      reg r_debug_flag;
+      always@(posedge clk) begin
+        if(!stall_on) r_debug_flag <= 0;
+        else if(debug_flag) r_debug_flag <= 1;
+      end
+
+      // To handle stall_on on falling edge of read_buf_data
+      wire debug_flag1;
+      assign debug_flag1 = (read_buf_fall & stall_on) && (count==1);
+
+      reg r_debug_flag1;
+      always@(posedge clk) begin
+        if(!stall_on) r_debug_flag1 <= 0;
+        else if(debug_flag1) r_debug_flag1 <= 1;
+      end
+      
       reg r_fifo_empty = 0;
       wire fifo_empty_fall;
 
@@ -73,10 +106,10 @@ module im2col_buffer_write #(
       wire psum_full_fall;
 
       always @(posedge clk) r_fifo_empty <= &(fifo_empty);
-      assign fifo_empty_fall = r_fifo_empty & (~&fifo_empty);
+      assign fifo_empty_fall = (r_fifo_empty & (~&fifo_empty)) & ~r_debug_flag;
 
       always @(posedge clk) r_psum_full <= psum_full;
-      assign psum_full_fall = r_psum_full & ~psum_full;
+      assign psum_full_fall = (r_psum_full & ~psum_full) & ~r_debug_flag;
 
       always @(posedge clk) begin
         if (!rst) begin
@@ -99,6 +132,10 @@ module im2col_buffer_write #(
                   state <= ONGOING;
                 end
                 else if ((~|fifo_empty) && count == 1 && (fifo_empty_fall | psum_full_fall) && read_buf_data) begin
+                  rd <= {DRAM_BW{1'b1}};
+                  state <= ONGOING;
+                end
+                else if ((~|fifo_empty) && count == 1 && (fifo_empty_fall | psum_full_fall) && r_debug_flag1) begin
                   rd <= {DRAM_BW{1'b1}};
                   state <= ONGOING;
                 end

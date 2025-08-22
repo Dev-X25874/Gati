@@ -104,7 +104,8 @@ module top_im2col_v1 #(
 
 
     wire pseudo_im2col_start;
-        psuedo_index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND),.CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+    
+    psuedo_index_coordinate_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND),.CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
     .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
     .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
     .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
@@ -138,6 +139,9 @@ module top_im2col_v1 #(
     wire r_start_im2col;
     wire real_start_im2col;
 
+    wire [(DATA_WIDTH*ROW)-1:0] lower_bound_row;
+    wire [(DATA_WIDTH*ROW)-1:0] lower_bound_col;
+
     bound_generation_v1 #(.UPPER_BOUND(UPPER_BOUND), .LOWER_BOUND(LOWER_BOUND), .DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH)) bound_dut(
         .clk(clk_in),
         .rstn(rstn),
@@ -152,6 +156,9 @@ module top_im2col_v1 #(
         .valid_sq(w_valid_sq),
         .valid_sq_data_o(w_data),
         .o_valid(o_valid),
+        .lower_bound_row(lower_bound_row),
+        .lower_bound_col(lower_bound_col),
+
         .i_stall_on(i_stall_on),
         .r_start_im2col(r_start_im2col),
         .im2col_start(pseudo_im2col_start),
@@ -175,6 +182,8 @@ module top_im2col_v1 #(
     .stride(stride),
     .curr_col(w_col),
     .curr_row(w_row),
+    .lower_bound_row(lower_bound_row),
+    .lower_bound_col(lower_bound_col),
     .kw(kw),
     .kh(kh),
     .start_SA(start_SA),

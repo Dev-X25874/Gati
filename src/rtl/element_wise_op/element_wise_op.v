@@ -62,7 +62,9 @@ begin
   begin
     case (EltWise_type)
       `ELTWISE_ADD  : r_EltWise_out <= LeftOperand_scaled + RightOperand_scaled;  // Addition
-      `ELTWISE_SUB  : r_EltWise_out <= LeftOperand_scaled - RightOperand_scaled;  // Subtraction
+      `ifdef ELTWISE_SUB_HW
+        `ELTWISE_SUB  : r_EltWise_out <= LeftOperand_scaled - RightOperand_scaled;  // Subtraction
+      `endif
       `ifdef ELTWISE_MULT_HW
         `ELTWISE_MULT : r_EltWise_out <= LeftOperand_scaled * RightOperand_scaled;  // Multiplication (signed)
       `endif

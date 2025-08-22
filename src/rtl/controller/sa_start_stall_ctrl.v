@@ -80,13 +80,15 @@ module sa_start_stall_ctrl #(
           if (CONV_Im2colPrefetch == 1) begin 
             istolic_array_stall <= 0;
             stall_flag <= 0;
-            if(row == (input_img_height + conv_zeropad -1) && col==1) begin
-              sa_start_flag <= 1;
+            if(input_img_height == 1) sa_start_flag <= im2col_global_start;
+            else begin
+              if(row == (input_img_height + conv_zeropad -1) && col==1) begin
+                sa_start_flag <= 1;
+              end
+              else begin 
+                sa_start_flag <= 0;
+              end 
             end
-            else begin 
-              sa_start_flag <= 0;
-            end 
-
           end 
           //// the new logic for stride > 1
 

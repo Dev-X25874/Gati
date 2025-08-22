@@ -63,7 +63,7 @@ module iteration_cnt_new #(
     wire [NUM_INSTRUCTIONS-1:0] done_input;
 
 
-// assigging hte done_input signals\
+// assigning the done_input signals\
 // To Add new Mega Block, add the corresponding done_input signal here
 
     assign done_input[`OP_CONV] = conv_done;

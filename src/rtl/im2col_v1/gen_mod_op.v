@@ -7,13 +7,16 @@ module gen_mod_op_v1 #(
         input [(UPPER_BOUND)-1:0] lower_bound,
         input clk,
         input rst,
-        input  [$clog2(STRIDE*64):0] theta,
+        input  [$clog2(THETA_WIDTH)-1:0] theta,
         output [DATA_WIDTH-1:0] o_partial,
-        output [$clog2(STRIDE*64):0] o_shift
+        output [$clog2(THETA_WIDTH)-1:0] o_shift
     );
        
     // wire [DATA_WIDTH-1:0] partial [5:0];
     // wire [9:0]            shift   [5:0];
+
+    localparam THETA_WIDTH = STRIDE << (DATA_WIDTH-2);
+
     wire [(UPPER_BOUND)-1:0] diff;
 
     assign diff = crd - lower_bound;
@@ -21,10 +24,10 @@ module gen_mod_op_v1 #(
     // 7 blocks pipline architecture for calculating mod
     genvar i;
     generate
-        for(i=0; i<7; i=i+1) begin: blocks
+        for(i=0; i<DATA_WIDTH-1; i=i+1) begin: blocks
 
             wire [DATA_WIDTH-1:0] partial;
-            wire [$clog2(STRIDE*64):0] shift;
+            wire [$clog2(THETA_WIDTH)-1:0] shift;
 
             if(i == 0) begin
             mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut1(
@@ -37,7 +40,7 @@ module gen_mod_op_v1 #(
             );
             end
 
-        else if (i == 6) begin
+        else if (i == DATA_WIDTH-2) begin
             mod_op_v1 #(.DATA_WIDTH(DATA_WIDTH), .STRIDE(STRIDE)) modut7(
             .clk(clk),
             .rst(rst),

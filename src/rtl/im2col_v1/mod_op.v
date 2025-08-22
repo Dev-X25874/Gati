@@ -5,17 +5,19 @@ module mod_op_v1 #(
         input  [DATA_WIDTH-1:0] diff,
         input clk,
         input rst,
-        input  [$clog2(STRIDE*64):0] theta,
+        input  [$clog2(THETA_WIDTH)-1:0] theta,
         output [DATA_WIDTH-1:0] o_partial,
-        output [$clog2(STRIDE*64):0] o_shift
+        output [$clog2(THETA_WIDTH)-1:0] o_shift
     );
 
+    localparam THETA_WIDTH = STRIDE << (DATA_WIDTH-2);
+
     wire select;
-    reg  [$clog2(STRIDE*64):0] r_shift;
+    reg  [$clog2(THETA_WIDTH)-1:0] r_shift;
     wire cmp;
     wire non_zero;
     reg  [DATA_WIDTH-1:0] r_partial;
-    wire [$clog2(STRIDE*64):0] subtrahend;
+    wire [$clog2(THETA_WIDTH)-1:0] subtrahend;
    // wire [9:0] theta;
 
     //assign theta = stride * 64;

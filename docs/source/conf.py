@@ -7,8 +7,8 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Gati'
-copyright = '2023, Vicharak LLP'
-author = 'Shreeyash Pandey'
+copyright = '2025, Vicharak Computers PVT LTD'
+author = 'Vicharak'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

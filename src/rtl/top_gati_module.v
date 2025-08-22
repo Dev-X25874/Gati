@@ -1877,7 +1877,7 @@ module top_gati_module #(
     //o_done_rden_ctrl from flattening indicates data read from BRAM for k_iter times
 
   // iteration counter new 
-    iteration_cnt_new #(
+    iteration_cnt #(
         .CITER_CNT_WIDTH(W_CITER_CNT), 
         .KITER_CNT_WIDTH(W_KITER_CNT),
         .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),

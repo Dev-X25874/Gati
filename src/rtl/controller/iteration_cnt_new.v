@@ -1,6 +1,6 @@
 `include "../common/instructions.vh"
 
-module iteration_cnt_new #(
+module iteration_cnt #(
     parameter CITER_CNT_WIDTH = 12,
     parameter KITER_CNT_WIDTH = 12,
     parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,

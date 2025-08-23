@@ -37,12 +37,10 @@ module sa_start_stall_ctrl #(
 
   // internal flages to control the start and stall of the systolic array
   reg       istolic_array_stall = 0;
-  reg       stall_flag = 0;
   reg       sa_start_flag = 0;
   // main loop for generation of start and stall flags
 
   reg [2:0] state;
-  // state are gray coded
   reg [2:0] IDLE = 3'b000;
   reg [2:0] P_FETCH = 3'b001;
   reg [2:0] SA_STALL_START = 3'b011;
@@ -60,7 +58,8 @@ module sa_start_stall_ctrl #(
         end else begin
           if (CONV_Im2colPrefetch == 1) begin
             istolic_array_stall <= 0;
-            if (row == (input_img_height + conv_zeropad - 1) && col == 1) begin
+            if (input_img_height == 1) sa_start_flag <= im2col_global_start;
+            else if (row == (input_img_height + conv_zeropad ) && col == 1) begin
               sa_start_flag <= 1;
             end else sa_start_flag <= 0;
           end else if (CONV_Im2colPrefetch == 0) begin
@@ -102,7 +101,9 @@ module sa_start_stall_ctrl #(
           end
         end
       end
-    end  // this gets generated for the 988 or 944 architecture 
+    end  
+    
+    // this gets generated for the 988 or 944 architecture 
     else begin
       // if the input image is larger then 256 then we cannt prefetch the 2*(Kh-1) row for it to work so we have to follow the prefetch and stall logic for that as well thus we will first check this and then choose whcih method we will use for startign the systolic array
 
@@ -139,7 +140,7 @@ module sa_start_stall_ctrl #(
           else if (prefetch_method) begin
             if (CONV_Im2colPrefetch == 1) begin
               istolic_array_stall <= 0;
-              if (row == (input_img_height + conv_zeropad - 1) && col == 1) begin
+              if (row == (input_img_height + conv_zeropad) && col == 1) begin
                 sa_start_flag <= 1;
               end else sa_start_flag <= 0;
             end else if (CONV_Im2colPrefetch == 0) begin

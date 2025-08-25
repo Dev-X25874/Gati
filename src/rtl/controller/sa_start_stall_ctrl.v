@@ -60,7 +60,7 @@ module sa_start_stall_ctrl #(
           istolic_array_stall <= 0 ;
           stall_flag <= 0;
           if(input_img_height < 4) begin
-            if (row == (input_img_height + conv_zeropad -1) && col==1) begin
+            if(row == (input_img_height + conv_zeropad -1) && col==1) begin
               sa_start_flag <= 1;
             end
             else begin 
@@ -82,7 +82,7 @@ module sa_start_stall_ctrl #(
             stall_flag <= 0;
             if(input_img_height == 1) sa_start_flag <= im2col_global_start;
             else begin
-              if(row == (input_img_height + conv_zeropad -1) && col==1) begin
+              if(row == (input_img_height + 2*conv_zeropad -1) && col==1) begin
                 sa_start_flag <= 1;
               end
               else begin 
@@ -170,7 +170,7 @@ module sa_start_stall_ctrl #(
         if(stride == 1) begin
           istolic_array_stall <= 0;
           stall_flag <= 0;
-          if(input_img_height < 4) begin
+          if(input_img_height <= 4) begin
             if (row == (input_img_height + conv_zeropad -1) && col==1) begin
               sa_start_flag <= 1;
             end

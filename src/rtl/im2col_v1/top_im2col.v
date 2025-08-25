@@ -2,6 +2,7 @@
 module top_im2col_v1 #(
     parameter UPPER_BOUND = 224,
     parameter LOWER_BOUND = 1,
+    parameter N_MOD_STAGES = 8,
     parameter CONV_KW_WIDTH = 4,
     parameter CONV_KH_WIDTH = 4,
     parameter DATA_WIDTH = 8,
@@ -167,7 +168,7 @@ module top_im2col_v1 #(
     );
     
     // Delay registers to match the initial delay of stride_block
-    delay_reg_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW)) delay_dut(
+    delay_reg_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .N_MOD_STAGES(N_MOD_STAGES)) delay_dut(
     .clk(clk_in),
     .rst(rstn),
     .i_valid_sq(w_valid_sq),
@@ -176,7 +177,7 @@ module top_im2col_v1 #(
     .o_data(valid_sq_data_o)
     );
     
-    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
+    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .N_MOD_STAGES(N_MOD_STAGES), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
     .clk(clk_in),
     .rst(rstn),
     .stride(stride),

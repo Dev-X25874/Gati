@@ -1,6 +1,8 @@
 module delay_reg_v1 #(
 parameter ROW = 9,
-parameter DATA_WIDTH = 8)
+parameter N_MOD_STAGES = 8,
+parameter DATA_WIDTH = 8
+)
 (
 input clk,
 input rst,
@@ -12,7 +14,7 @@ output reg [DATA_WIDTH-1:0] o_data
 
 genvar i;
 generate
-for(i=0; i<DATA_WIDTH-2; i=i+1) begin: delay
+for(i=0; i<N_MOD_STAGES-2; i=i+1) begin: delay
 
 reg [ROW-1:0] r_valid_sq;
 reg [DATA_WIDTH-1:0] r_data;
@@ -24,7 +26,7 @@ r_data <= (!rst)? 0:i_data;
 end
 end
 
-else if (i == DATA_WIDTH-3) begin
+else if (i == N_MOD_STAGES-3) begin
 always @ (posedge clk) begin
 o_valid_sq <= (!rst)? 0:delay[i-1].r_valid_sq;
 o_data <= (!rst)? 0:delay[i-1].r_data;

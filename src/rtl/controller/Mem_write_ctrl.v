@@ -130,19 +130,6 @@ module Mem_write_ctrl #(
     assign dv_next = is_single_burst? data_valid : ((data_valid & ~data_last)| (dv & ~data_last));
     always@(posedge clk) dv <= dv_next;
 
-    // always@(posedge clk) begin
-    //     if(!rst) dv <= 0;
-    //     else begin
-    //         if(is_single_burst) begin
-    //             dv  <= data_valid;
-    //         end
-    //         else begin
-    //             if(data_last) dv <= 1'b0;
-    //             else if(data_valid) dv <= 1'b1;
-    //         end
-    //     end
-    // end
-
     assign o_data_valid = dv;
     assign data_last = is_single_burst? DataWrLast : DataWrEnd;
     

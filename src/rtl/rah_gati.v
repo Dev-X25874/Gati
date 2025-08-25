@@ -5,7 +5,7 @@
 module rah_gati #(
     parameter   SYS_CLK_PERIOD      = 32'd85_000_000 ,  //System Clock Period
     parameter   NO_PORT_WR          = 2,
-	  parameter   ADDRESS_WIDTH       = 32, // address width                 
+    parameter   ADDRESS_WIDTH       = 32, // address width                 
     parameter   IN_ADDR             = 8, // input address width of port controller
     parameter   ID_WIDTH            = 8,// ID width after the arbiter module
     parameter   AXI_ID_BLEN_CON     = 8,  // burst length width for AXI
@@ -139,9 +139,11 @@ module rah_gati #(
 // these parameter are fetched based on the current architecture from arch_param
 // arch realated parametere 
 
-  localparam integer N_SA    = `N_SA;
-  localparam integer COL_SA  = `COL_SA;
-  localparam integer ROW     = `ROW;
+  localparam integer N_SA           = `N_SA;
+  localparam integer COL_SA         = `COL_SA;
+  localparam integer ROW            = `ROW;
+  localparam IM2COL_BOUND_GEN_WIDTH = `IM2COL_BOUND_GEN_WIDTH; // Data width for bound generation registers of Im2Col Engine
+  localparam N_MOD_STAGES           = `N_MOD_STAGES; // Number of stages in mod operator in Im2Col stride handling block
 
   // Derived parameters via functions 
   // TODO : these parameters needs to be formulated based on the architecture and the functions defined in arch_functions.vh for the param be removed
@@ -210,7 +212,7 @@ module rah_gati #(
       end
       generate_port_id = result;
     end
-  endfunction
+    endfunction
 
   /*----------------------------------------------------------*/
 
@@ -223,7 +225,6 @@ module rah_gati #(
  
 
   always @(posedge c_81_clk) begin
-
     if (!empty) begin
       rden <= 1;
     end else begin
@@ -245,14 +246,14 @@ module rah_gati #(
     
   assign soft_start = user_start;
 	////////////////////////////MIPI controller rx
-  mipi_ctrl_top #(
+    mipi_ctrl_top #(
       .N_FIFO(MIPI_FIFO),
       .W_DATA(MIPI_DATA_WIDTH),
       .BURST_LEN(MIPI_REQ_BLEN),
       .W_BURST_LEN(BURST_LENGTH_WIDTH),
       .W_ADDR($clog2(MIPI_FIFO_DEPTH)),
       .AXI_BYTES(AXI_DATA_BYTES)
-  ) mipi_ctrler_reciver (
+    ) mipi_ctrler_reciver (
       .i_clk(c_81_clk),
 	    .dr_clk(i_clk),
       .i_rstn(i_rst),
@@ -272,7 +273,7 @@ module rah_gati #(
       .valid_wr_req_ctrl(valid_wr_req_ctrl),
       .soft_start(user_start),
       .eop(eop)
-  );
+    );
   wire [NUM_PORTS-1:0] select_wr;
   wire [NUM_PORTS-1:0]select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
@@ -396,31 +397,27 @@ module rah_gati #(
     end
   end
 
-  vector_mux_param #(
+    vector_mux_param #(
       .PORT_SIZE(AXI_DATA_WIDTH),
       .NO_PORT  (NO_PORT_WR)
-  ) dram_write_data (
+    ) dram_write_data (
       .sel({sel_op_write,sel_mipi_write}),
       .in (in_wr_data_mux),
       .out(dram_in_wrdata)
-
-  );
+    );
 
   wire [(1*NO_PORT_WR)-1:0] in_wr_valid_mux;
   assign in_wr_valid_mux = {dv_op_write, o_data_valid};
   wire dram_in_wrvalid;
 
-
-
-  vector_mux_param #(
+    vector_mux_param #(
       .PORT_SIZE(1),
       .NO_PORT  (NO_PORT_WR)
-  ) dram_write_valid (
+    ) dram_write_valid (
 	    .sel({sel_op_write,sel_mipi_write}),
       .in (in_wr_valid_mux),
       .out(dram_in_wrvalid)
-
-  );
+    );
 
 
 
@@ -428,17 +425,14 @@ module rah_gati #(
   assign in_wr_last_mux = {data_last_op_write, final_o_data_last};
   wire dram_in_wrlast;
 
-
-
-  vector_mux_param #(
+    vector_mux_param #(
       .PORT_SIZE(1),
       .NO_PORT  (NO_PORT_WR)
-  ) dram_write_last (
+    ) dram_write_last (
       .sel({sel_op_write,sel_mipi_write}),
 	    .in (in_wr_last_mux),
       .out(dram_in_wrlast)
-
-  );
+    );
   
   wire i_valid_req_clk81;
   wire [IN_ADDR-1:0] in_address_clk81;
@@ -642,6 +636,8 @@ module rah_gati #(
       .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
       .INST_W(INST_W),
       .CONFIG_FIFO_OCCUPANCY(CONFIG_FIFO_OCCUPANCY),
+      .IM2COL_BOUND_GEN_WIDTH(IM2COL_BOUND_GEN_WIDTH),
+      .N_MOD_STAGES(N_MOD_STAGES),
       .POP_THRESHOLD(POP_THRESHOLD),
       .NSA_DSP(NSA_DSP),
       .NSA_LUT(NSA_LUT),

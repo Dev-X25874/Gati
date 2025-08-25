@@ -1,6 +1,7 @@
 module stride_block_v1 #(
     parameter DATA_WIDTH = 8,
     parameter ROW = 9,
+    parameter N_MOD_STAGES = 8,
     parameter CONV_KH_WIDTH = 4,
     parameter CONV_KW_WIDTH = 4,
     parameter UPPER_BOUND = 224,
@@ -32,7 +33,7 @@ module stride_block_v1 #(
     genvar sq;
     generate 
         for(sq=0; sq<ROW; sq=sq+1) begin
-            stride_mod_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) finaldut(
+            stride_mod_v1 #(.DATA_WIDTH(DATA_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE), .N_MOD_STAGES(N_MOD_STAGES)) finaldut(
                 .clk(clk),
                 .rst(rst),
                 .row(row),

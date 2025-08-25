@@ -2,7 +2,7 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-	  parameter DATA_WIDTH = 8,
+	parameter DATA_WIDTH = 8,
     parameter COL_SA = 4,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,
@@ -82,6 +82,8 @@ module Top_CONV_FC #(
     parameter CONV_PadBottom_WIDTH = 3, // Bottom padding width
     parameter CONV_StartRowSkip_WIDTH = 4, // Start row skip for im2col
     parameter CONV_EndRowSkip_WIDTH = 4, // End row skip for im2col
+    parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
+    parameter N_MOD_STAGES = 9, // Number of stages in mod operator in Im2Col stride handling block
     
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
@@ -161,7 +163,7 @@ module Top_CONV_FC #(
     input valid_img_size_im2col,
     input im2col_global_start,
     output [DRAM_BW-1:0] image_rden,
-	  input stall_on,
+	input stall_on,
     input img_read_done,
     
     //tail block signals
@@ -227,7 +229,7 @@ module Top_CONV_FC #(
     output Tail_done,
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
-	  output p_full_output,
+	output p_full_output,
   	output EW_done,
     //FIFO status signals for memory request controllers
     output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
@@ -255,8 +257,8 @@ module Top_CONV_FC #(
   end
   assign rst = r_rst[1];
 
- 	wire [N_SA -1:0] relu_valid;
-	wire [(N_SA*DATA_WIDTH) -1:0] relu_output;
+  wire [N_SA -1:0] relu_valid;
+  wire [(N_SA*DATA_WIDTH) -1:0] relu_output;
 
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
@@ -350,7 +352,7 @@ module Top_CONV_FC #(
 */
 genvar f;
 generate
-  for (f = 0; f < IM2COL_BOUND_GEN_WIDTH-1; f = f + 1) begin : delay_stage
+  for (f = 0; f < N_MOD_STAGES-1; f = f + 1) begin : delay_stage
   reg [(DATA_WIDTH*N_SA) -1:0] delay_reg ;
     if (f == 0) begin
       always @(posedge i_clk ) delay_reg <= buff_out; 
@@ -361,11 +363,10 @@ generate
   end
 endgenerate
 
-localparam IM2COL_BOUND_GEN_WIDTH = W_CONV_IMAGE_DIM - 1; // Added for testing only
-
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(W_CONV_IMAGE_DIM),
                 .LOWER_BOUND(1),
+                .N_MOD_STAGES(N_MOD_STAGES),
                 .DATA_WIDTH(IM2COL_BOUND_GEN_WIDTH),
                 .CONV_KH_WIDTH(CONV_KH_WIDTH),
                 .CONV_KW_WIDTH(CONV_KW_WIDTH),
@@ -453,12 +454,12 @@ localparam IM2COL_BOUND_GEN_WIDTH = W_CONV_IMAGE_DIM - 1; // Added for testing o
     .stall_on(stall_on),
     .istolic_stall(istolic_stall),
     .i_im2col_start(im2col_global_start),
-	  .i_trigger_1(systolic_array_trigger), //start for CONV operation
+	.i_trigger_1(systolic_array_trigger), //start for CONV operation
     .i_data_weight_ff_sharing(weight_data_sa),
     .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
     .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
     .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
-    .i_image_ff_array_data(delay_stage[IM2COL_BOUND_GEN_WIDTH-3].delay_reg), //i-wire : from im2col
+    .i_image_ff_array_data(delay_stage[N_MOD_STAGES-3].delay_reg), //i-wire : from im2col
     .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
     .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
     .o_image_ff_array_almost_full(sa_image_fifo_almost_full),

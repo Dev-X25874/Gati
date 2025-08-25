@@ -1,6 +1,8 @@
 module mod_op_v1 #(
     parameter DATA_WIDTH = 8,
-    parameter STRIDE = 3)
+    parameter STRIDE = 3,
+    parameter N_MOD_STAGES = 8
+    )
     (
         input  [DATA_WIDTH-1:0] diff,
         input clk,
@@ -10,7 +12,7 @@ module mod_op_v1 #(
         output [$clog2(THETA_WIDTH)-1:0] o_shift
     );
 
-    localparam THETA_WIDTH = STRIDE << (DATA_WIDTH-2);
+    localparam THETA_WIDTH = STRIDE << (N_MOD_STAGES-2);
 
     wire select;
     reg  [$clog2(THETA_WIDTH)-1:0] r_shift;

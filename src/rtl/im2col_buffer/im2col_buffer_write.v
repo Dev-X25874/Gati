@@ -4,12 +4,12 @@ module im2col_buffer_write #(
     parameter POP_THRESHOLD = 5
 ) (
     input clk,
-	  input rst,
+    input rst,
     input im2col_done,
     input read_buf_data,
     input stall_on,
     input psum_full,
-	  input [DRAM_BW-1:0] fifo_empty,
+	input [DRAM_BW-1:0] fifo_empty,
     input [$clog2((DRAM_BW/N_SA))-1:0] count,
     output [DRAM_BW -1:0] rden 
 );

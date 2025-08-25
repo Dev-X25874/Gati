@@ -55,21 +55,22 @@ module top_gati_module #(
     parameter OutputBlock_OW_WIDTH = `OutputBlock_OW_WIDTH, // Output block output width
     parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
     
-    
     parameter CONV_PadLeft_WIDTH = `CONV_PadLeft_WIDTH,
     parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
     parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
     parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
     parameter CONV_StartRowSkip_WIDTH = `CONV_StartRowSkip_WIDTH, // Start row skip for im2col
     parameter CONV_EndRowSkip_WIDTH = `CONV_EndRowSkip_WIDTH, // End row skip for im2col
-
-   
+    
     parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
     parameter CONV_CHANNELDUPLICATE_WIDTH = `CONV_ChannelDuplicate_WIDTH,
 
     //im2col related param 
     parameter STRIDE          =  1,        //`CONV_Stride,
-    parameter KERNEL_SIZE     =  3,       //`CONV_KH,   
+    parameter KERNEL_SIZE     =  3,       //`CONV_KH,
+    parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
+    parameter N_MOD_STAGES    =  9, // Number of stages in mod operator in Im2Col stride handling block   
+    
     //SA related param
     parameter POP_THRESHOLD = (AXI_DATA_BYTES/N_SA) - 3,
     parameter NSA_DSP       = 3, 
@@ -291,7 +292,7 @@ module top_gati_module #(
 
     wire [NUM_INSTRUCTIONS-1 : 0] valid_inst;
 
-  config_blk#(
+    config_blk#(
       .ADDR_W(AXI_ADDR_W),
       .INST_W(INST_W),
       .NUM_INSTRUCTIONS(NUM_INSTRUCTIONS),
@@ -302,7 +303,7 @@ module top_gati_module #(
       .STATUS_DRAM_LIM(CONFIG_FIFO_OCCUPANCY),
       .LAY_N(LAYERCNT_WIDTH),
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
-  ) config_blk_inst (
+    ) config_blk_inst (
 	  //.temp_data(temp_data),
 	  //.temp_wren(temp_wren),
       .clkin(i_clk),
@@ -326,7 +327,7 @@ module top_gati_module #(
       .o_instruction_bus(instruction),
       .start_bus(start_bus), //o-wire: goes to bus master
       .o_instruction_bus_v() 
-  );
+    );
   
   // localparam APPEND = ((1<<OP_CODE_WIDTH) - NUM_INSTRUCTIONS);
  
@@ -1631,6 +1632,8 @@ module top_gati_module #(
       .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
       .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
       .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH),
+      .IM2COL_BOUND_GEN_WIDTH(IM2COL_BOUND_GEN_WIDTH),
+      .N_MOD_STAGES(N_MOD_STAGES),
 
       .ELTWISE_FIFO(ELTWISE_FIFO),
       .ELTWISE_FIFO_DEPTH(ELTWISE_FIFO_DEPTH),
@@ -1708,7 +1711,7 @@ module top_gati_module #(
       .img_read_done(img_read_done),
       .image_rden(image_rden),
       .row(row),
-	    .col(col),
+      .col(col),
       .real_col(real_col),
       .real_row(real_row),
       .relu_enable(relu_enable),
@@ -1936,7 +1939,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) debug_counter <= 0;
     else begin
-      if(layer_done) debug_counter <= 0;
+      if(layer_cntr==97) debug_counter <= 0;
       else if(start_en) debug_counter <= debug_counter + 1;
       else debug_counter <= debug_counter;
     end
@@ -1955,7 +1958,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==63) layer_cntr <= 0;
+      if(layer_cntr==97) layer_cntr <= 0;
       else begin
         if(layer_done) layer_cntr <= layer_cntr + 1;
       end

@@ -1,6 +1,7 @@
 `include "common/instructions.vh"
 `include "common/portid.vh"
-
+`include "common/arch_param.vh"
+//`include "instruction.mem"
 module top_gati_module #(
    // FIFO Depth varies between operators to avoid overflow and underflow 
     parameter INST_QUEUE_DEPTH    = 256,
@@ -270,7 +271,9 @@ module top_gati_module #(
     //io signals
     output [6:0] kernal_count, // represents the current kernal iteration number 
     output [6:0] channel_count, // represents the current channel iteration number
-    output [3:0] layer_count 
+    output [3:0] layer_count,
+    
+    output [31:0] layer_cycles_count
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
@@ -309,14 +312,14 @@ module top_gati_module #(
 	  //.temp_wren(temp_wren),
       .clkin(i_clk),
       .rst(i_rst),
-	    .user_start(user_start),
+      .user_start(user_start),
       .valid(dram_rd_datavalid),
       .data_last(dram_rd_data_last),
       .sel(select[`Config]),
       .instruction_data(dram_rd_data),
       .dispatch_busy(dispatcher_busy),
 
-	    .memory_read_r(mc_config_rdreq),
+	  .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),
@@ -1973,7 +1976,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) debug_counter <= 0;
     else begin
-      if(layer_cntr==97) debug_counter <= 0;
+      if(layer_done) debug_counter <= 0;
       else if(start_en) debug_counter <= debug_counter + 1;
       else debug_counter <= debug_counter;
     end
@@ -2004,5 +2007,49 @@ module top_gati_module #(
   (*syn_use_dsp = "no"*) wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu; //number of bytes to be transferred from DRAM to CPU
   assign datasize_fpga2cpu = CONV_FC? img_dim_Op*N_SA[I_OP_SIZE_WIDTH-1:0]*fc_kernel_iter : img_dim_Op*kernel_iteration*N_SA*OB_OpWidth;
   assign fpga2cpu_start_address = op_start_address;
+
+  
+  /* ----- Additional logic to monitor compute cycles and stall cycles for each layer ----- */
+
+  `ifdef MONITOR_LAYER_CYCLES
+
+    wire layer_monitor_fifo_empty;
+    // wire [31:0] layer_cycles_count;
+    wire layer_monitor_fifo_rden;
+
+    /* 
+        Write the FIFO debug count value on layer_done and
+        read it after layer_ctr reaches to maximum value
+    */
+
+    sync_fifo #(.W_DATA(32),
+                .W_ADDR(7) // Change the FIFO depth if necessary based on the maximum number of layers
+    )
+    layer_monitor_fifo (
+        .clk_i(i_clk),
+        .wr_en_i(layer_done),
+        .rd_en_i(layer_monitor_fifo_rden),
+        .full_o(),
+        .empty_o(layer_monitor_fifo_empty),
+        .wdata(debug_counter),
+        .datacount_o(),
+        .rst_busy(),
+        .rdata(layer_cycles_count),
+        .a_rst_i(~i_rst),
+        .o_valid()
+    );
+
+    reg inference_done;
+    always@(posedge i_clk) begin
+        if(!i_rst) inference_done <= 1'b0;
+        else begin
+            if(user_start) inference_done <= 1'b0;
+            else if(layer_cntr == 97) inference_done <= 1'b1;
+        end
+    end
+
+    assign layer_monitor_fifo_rden = inference_done ? ~layer_monitor_fifo_empty : 1'b0;
+
+  `endif
 
 endmodule

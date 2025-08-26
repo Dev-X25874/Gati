@@ -130,8 +130,9 @@ module rah_gati #(
     output       soft_start,    //user_start from top_gati_module
     output [3:0] layer_count,
     output       layer_done,
-    output       eop
+    output       eop,
 
+    output [31:0] layer_cycles_count
 );
 
 
@@ -680,7 +681,7 @@ module rah_gati #(
       .NO_PORT_BAFC(NO_PORT_BAFC)
     ) top_gati_module_inst (
       .i_clk(i_clk),
-	    .s_clk(s_clk),
+	  .s_clk(s_clk),
       .i_rst(i_rst),
       .dispatcher_busy(dispatcher_busy),
       .user_start(user_start),
@@ -739,8 +740,8 @@ module rah_gati #(
       .dram_rd_data_last(dram_rd_data_last),
       .dram_rd_data(dram_rd_data),
       .sel_op_write(sel_op_write),
-	    .wready(wr_id_o_wready),
-	    .wr_burst_len(wr_burst_len),
+	  .wready(wr_id_o_wready),
+	  .wr_burst_len(wr_burst_len),
       .dv_op_write(dv_op_write),
       .o_data_last_op_write(data_last_op_write),
       .op_dram_fifo(op_dram_fifo),
@@ -755,7 +756,8 @@ module rah_gati #(
        // io signals to the board gpio 
       .kernal_count(kernal_count), // current kernal iteration number 
       .channel_count(channel_count), //current channel iteration number
-      .layer_count(layer_count) 
+      .layer_count(layer_count) ,
+      .layer_cycles_count(layer_cycles_count)
   );
  
   

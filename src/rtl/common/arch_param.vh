@@ -24,3 +24,12 @@
 */
 `define IM2COL_BOUND_GEN_WIDTH 16
 `define N_MOD_STAGES 9
+
+
+// Macros for Debugging
+// Comment these if not required
+// To monitor Layer wise compute cycles
+`define MONITOR_LAYER_CYCLES
+
+// To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)
+`define MONITOR_STALL_CYLES

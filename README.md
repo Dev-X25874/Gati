@@ -4,6 +4,8 @@
 > Gati docs and crash-course videos are hosted locally which you can
 > access while in office premises. See #Gati slack channel for links.
 
+If you are starting fresh, check out how to set up [new board](docs/NewBoard.md). 
+
 # Contribution Guidelines
 
 ## General rules

@@ -1,7 +1,7 @@
 // this module is used to control the start and stall of the systolic array
 // the stall logic is needed for accomodating stride > 1
 // more about this can be read on the GATI github issue page ISSUE number #203
-
+`include "../common/instructions.vh"
 
 module sa_start_stall_ctrl #(
     parameter CONV_IH_WIDTH = 8,
@@ -10,6 +10,7 @@ module sa_start_stall_ctrl #(
     parameter CONV_STRIDE_WIDTH = 3,
     parameter IMAGE_DIM = 32,
     parameter CONV_Pfetch_WIDTH = 1,
+    parameter CONV_TYPE_WIDTH = 2,
     parameter COL_SA = 1,
     parameter CONV_KW_WIDTH = 4,
     parameter IM2COL_FIFO_DEPTH = 1024
@@ -25,6 +26,7 @@ module sa_start_stall_ctrl #(
     input [      CONV_IW_WIDTH-1:0] input_img_width,
     input [     CONV_PAD_WIDTH-1:0] conv_zeropad,
     input [CONV_Pfetch_WIDTH - 1:0] CONV_Im2colPrefetch,
+    input [    CONV_TYPE_WIDTH-1:0] conv_type,
     input [  CONV_STRIDE_WIDTH-1:0] stride,
     input [          IMAGE_DIM-1:0] row,
     input [          IMAGE_DIM-1:0] col,
@@ -48,7 +50,7 @@ module sa_start_stall_ctrl #(
   generate
 
     if(COL_SA == 1)
-    // this gets genrteted for 16 1 16 arch 
+    // this gets generated for 16 1 16 arch 
     begin
 
       always @(posedge i_clk) begin
@@ -56,58 +58,78 @@ module sa_start_stall_ctrl #(
           istolic_array_stall <= 0;
           sa_start_flag <= 0;
         end else begin
-          if (CONV_Im2colPrefetch == 1) begin
-            istolic_array_stall <= 0;
-            if (input_img_height == 1) sa_start_flag <= im2col_global_start;
-            else if (row == (input_img_height + conv_zeropad ) && col == 1) begin
-              sa_start_flag <= 1;
-            end else sa_start_flag <= 0;
-          end else if (CONV_Im2colPrefetch == 0) begin
-            case (state)
-              IDLE: begin
-                if (im2col_global_start) state <= P_FETCH;
-                else state <= IDLE;
-              end
-
-              P_FETCH: begin
-                if (sa_image_fifo_almost_full_flag) begin
-                  sa_start_flag <= 1;
-                  state <= SA_STALL_START;
-                end else state <= P_FETCH;
-              end
-
-              SA_STALL_START: begin
-                sa_start_flag <= 0;
-                if (sa_image_fifo_almost_empty_flag) begin
-                  istolic_array_stall <= 1;
-                end else if (sa_image_fifo_almost_full_flag) begin
-                  istolic_array_stall <= 0;
-                end
-                if (im2col_done) state <= IM2COL_DONE;
-                else state <= SA_STALL_START;
-              end
-
-              IM2COL_DONE: begin
+            
+            if(conv_type == `CONV_TYPE_PW) begin
                 istolic_array_stall <= 0;
-                if (SA_done) begin
-                  state <= IDLE;
+                if (input_img_height == 1) sa_start_flag <= im2col_global_start;
+                else begin
+                    if(row == 1 && col == input_img_height/2) begin
+                        sa_start_flag <= 1;
+                    end
+                    else begin 
+                        sa_start_flag <= 0;
+                    end
                 end
-              end
-              default: state <= IDLE;
-            endcase
-          end else begin
-            istolic_array_stall <= 0;
-            sa_start_flag <= 0;
-          end
+            end
+
+            else begin
+                if (CONV_Im2colPrefetch == 1) begin
+                    istolic_array_stall <= 0;
+                    if (input_img_height == 1) sa_start_flag <= im2col_global_start;
+                    else if (row == (input_img_height + conv_zeropad) && col == 1) begin
+                        sa_start_flag <= 1;
+                    end else sa_start_flag <= 0;
+                end else if (CONV_Im2colPrefetch == 0) begin
+                case (state)
+                    IDLE: begin
+                        if (im2col_global_start) state <= P_FETCH;
+                        else state <= IDLE;
+                    end
+
+                    P_FETCH: begin
+                        if (sa_image_fifo_almost_full_flag) begin
+                            sa_start_flag <= 1;
+                            state <= SA_STALL_START;
+                        end else state <= P_FETCH;
+                    end
+
+                    SA_STALL_START: begin
+                        sa_start_flag <= 0;
+                        if (sa_image_fifo_almost_empty_flag) begin
+                            istolic_array_stall <= 1;
+                        end else if (sa_image_fifo_almost_full_flag) begin
+                            istolic_array_stall <= 0;
+                        end
+                        if (im2col_done) state <= IM2COL_DONE;
+                        else state <= SA_STALL_START;
+                    end
+
+                    IM2COL_DONE: begin
+                        istolic_array_stall <= 0;
+                        if (SA_done) begin
+                            state <= IDLE;
+                        end
+                    end
+                    default: state <= IDLE;
+                endcase
+                end else begin
+                    istolic_array_stall <= 0;
+                    sa_start_flag <= 0;
+                end
+            end
         end
       end
     end  
     
     // this gets generated for the 988 or 944 architecture 
     else begin
-      // if the input image is larger then 256 then we cannt prefetch the 2*(Kh-1) row for it to work so we have to follow the prefetch and stall logic for that as well thus we will first check this and then choose whcih method we will use for startign the systolic array
-
-      // generating a flag which will let us know the input size is bigger  this should be calculated based on the IM2col fifo depth the kernal size and input image weight
+      /* if the input image is larger then 256 then we cannot prefetch the 2*(Kh-1) row for it to work,
+         so we have to follow the prefetch and stall logic for that as well thus we will first check 
+         this and then choose which method we will use for starting the systolic array
+      */
+      /* generating a flag which will let us know the input size is bigger, this should be calculated 
+        based on the IM2col fifo depth the kernal size and input image width
+      */
       wire f_big_input;
 
       assign f_big_input = (IM2COL_FIFO_DEPTH <=(2 * (kernel_width - 1)* input_img_width)) ? 1:0;

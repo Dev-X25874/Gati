@@ -273,7 +273,8 @@ module top_gati_module #(
     output [6:0] channel_count, // represents the current channel iteration number
     output [3:0] layer_count,
     
-    output [31:0] layer_cycles_count
+    output [31:0] layer_cycles_count,
+    output [39:0] stall_cycles_count
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
@@ -308,9 +309,7 @@ module top_gati_module #(
       .LAY_N(LAYERCNT_WIDTH),
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
     ) config_blk_inst (
-	  //.temp_data(temp_data),
-	  //.temp_wren(temp_wren),
-      .clkin(i_clk),
+	  .clkin(i_clk),
       .rst(i_rst),
       .user_start(user_start),
       .valid(dram_rd_datavalid),
@@ -332,9 +331,6 @@ module top_gati_module #(
       .start_bus(start_bus), //o-wire: goes to bus master
       .o_instruction_bus_v() 
     );
-  
-  // localparam APPEND = ((1<<OP_CODE_WIDTH) - NUM_INSTRUCTIONS);
- 
   
   //CONV inst. signals
   wire [OPCODE_WIDTH-1:0] conv_opcode;
@@ -472,14 +468,11 @@ module top_gati_module #(
 
   /* opcode generation this logic needs to be used however the start_command needs to be modified */ 
 
-  reg [OPCODE_WIDTH-1:0] opcode_c;
-
   wire [(NUM_INSTRUCTIONS*OPCODE_WIDTH)-1:0] opcode_hold;
 
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = fc_opcode;
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
-
 
   integer i;
   
@@ -497,22 +490,16 @@ module top_gati_module #(
   end
 
 
-
-  //Generation of start_SA and start_FC
-  // wire start_SA,start_FC;
-  // assign start_SA = (CONV_FC==0)? start : 1'b0;
-  // assign start_FC = (CONV_FC==1)? start : 1'b0;
-  /*This is modified since, CONV_FC gets updated one cycle after recieving 'start' signal
-  which causes one cycle delay in generation of 'start_SA' and 'start_FC' signals*/
-
-
-   // the real_row and real_col are the counters that are used to calculate full image dimension instead of the row skip one for example if image is 224*224 the real_row and real_col will be till 224 where the row will be 224 - row_skips 
+  /*
+    The real_row and real_col are the counters that are used to calculate full image dimension 
+    instead of the row skip one. Ex: if image is 224*224 the real_row and real_col will be till 
+    224 where the 'row' register will be 224 - row_skips
+  */ 
   wire  [CONV_IH_WIDTH-1:0] row;    
   wire  [CONV_IW_WIDTH-1:0] col;
   wire  [CONV_IH_WIDTH-1:0] real_row;  
   wire  [CONV_IW_WIDTH-1:0] real_col;
 
-  
   reg Flattening_trigger=0;
 
   // Generate logic for stall_on signal 
@@ -521,38 +508,37 @@ module top_gati_module #(
   wire [AXI_DATA_BYTES-1:0] image_fifo_empty;
   reg stall_on=0;
   reg stall_enable=0;
-  // wire stall_on; 
-
+  
   always@(posedge i_clk) begin 
     if((&(image_fifo_empty) && stall_enable) | psum_full) begin
-      stall_on <= 1;
+        stall_on <= 1;
     end
     else begin 
-      stall_on <= 0;
+        stall_on <= 0;
     end
 
     if(input_img_height <= (AXI_DATA_BYTES/N_SA)) begin
-      stall_enable <= 0;
+        stall_enable <= 0;
     end
     else begin
-      if(im2col_global_start) begin
-        stall_enable <= 1;
-      end
-      else if((real_row == input_img_height + conv_pad_top)  
-        && (real_col >= ((input_img_width + conv_pad_left) - (AXI_DATA_BYTES/N_SA)))) begin 
-        stall_enable <= 0;
-      end
-      else begin 
-        stall_enable <= stall_enable;
-      end
+        if(im2col_global_start) begin
+            stall_enable <= 1;
+        end
+        else if((real_row == input_img_height + conv_pad_top)  
+            && (real_col >= ((input_img_width + conv_pad_left) - (AXI_DATA_BYTES/N_SA)))) begin 
+            stall_enable <= 0;
+        end
+        else begin 
+            stall_enable <= stall_enable;
+        end
     end
   end
 
- // logic for systolic array start and stalling sytolic array for stride more than 1 
- 
-  // the almost empty and almost full flags are used to control the start and stall of the systolic array these are genrated 15 and 24 address line before the actual empty and full of the fifo
-
-  // thus the name might be confusing but they arent genrated only one cycle before the actual empty and full of the fifo but 15 and 24 address line before the actual empty and full of the fifo
+  
+  /*
+    The almost empty and almost full flags are used to control the start and stall of the systolic array.
+    NOte that these are prog. full and prog. empty status of the SA i/p image FIFOs.
+  */
   
     wire sa_image_fifo_almost_empty_flag ;
     wire sa_image_fifo_almost_full_flag;
@@ -568,6 +554,7 @@ module top_gati_module #(
         .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
         .IMAGE_DIM(CONV_IW_WIDTH),
         .CONV_Pfetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
+        .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
         .COL_SA(COL_SA),
         .CONV_KW_WIDTH(CONV_KW_WIDTH),
         .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH)
@@ -581,6 +568,7 @@ module top_gati_module #(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .CONV_Im2colPrefetch(CONV_Im2colPrefetch),
+        .conv_type(conv_type),
         .input_img_height(input_img_height), 
         .input_img_width(input_img_width), 
         .conv_zeropad(conv_pad_top),
@@ -596,9 +584,9 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) Flattening_trigger <= 1'b0;
     else begin
-      if(start_FC) Flattening_trigger <= 1'b1;
-      else if(FC_layerdone) Flattening_trigger <= 1'b0;
-      else Flattening_trigger <= Flattening_trigger;
+        if(start_FC) Flattening_trigger <= 1'b1;
+        else if(FC_layerdone) Flattening_trigger <= 1'b0;
+        else Flattening_trigger <= Flattening_trigger;
     end
   end
 
@@ -939,7 +927,10 @@ module top_gati_module #(
   wire im2col_global_start;
   wire vector_add_enable;
   
-// masked acc on chip for kernal split convolution as the added acc in case of k_split needs to be written to the dram irrespective of the acc_onchip or not 
+  /*
+    Masked acc on chip for kernal split convolution as the Accumulant addition output in case of k_split 
+    needs to be written to the dram irrespective of the acc_onchip or not
+  */
   wire Acc_onchip_masked ;
   assign Acc_onchip_masked = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
 
@@ -1011,9 +1002,6 @@ module top_gati_module #(
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
   wire op_done;
-
-  
-  
 
   op_write_req_block#(
     .N(N_SA),
@@ -1094,14 +1082,14 @@ module top_gati_module #(
   assign mc_img_bl1 = mc_img_bl + 1;
   always@(posedge i_clk) begin
     if(!i_rst) begin
-      req_occupants_img <= 0;
+        req_occupants_img <= 0;
     end
     else begin
       if(start_en) begin
-        if(mc_img_last && select[`Image])                      req_occupants_img <= req_occupants_img + mc_img_bl;
-        else if(mc_img_last)                                   req_occupants_img <= req_occupants_img + (mc_img_bl+1);
-        else if(select[`Image])                                req_occupants_img <= req_occupants_img - 1;
-        else                                                   req_occupants_img <= req_occupants_img;
+        if(mc_img_last && select[`Image])   req_occupants_img <= req_occupants_img + mc_img_bl;
+        else if(mc_img_last)                req_occupants_img <= req_occupants_img + (mc_img_bl+1);
+        else if(select[`Image])             req_occupants_img <= req_occupants_img - 1;
+        else                                req_occupants_img <= req_occupants_img;
       end
       else begin
         req_occupants_img <= 0;
@@ -1225,8 +1213,8 @@ module top_gati_module #(
   wire [(N_FIFOS* ($clog2(WEIGHT_FIFO_DEPTH) + 1))-1 : 0] weight_fifo_occupants;
   reg [$clog2(WEIGHT_FIFO_DEPTH):0] limit_c=0,limit_f;
   always @(*) begin 
-	  limit_c = (2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
-	  limit_f = (((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
+    limit_c = (2*ROW[$clog2(WEIGHT_FIFO_DEPTH):0]);
+    limit_f = (((WEIGHT_FIFO_DEPTH[$clog2(WEIGHT_FIFO_DEPTH):0])*3)/4);
   end
 
   //Virtual occupant logic for weights
@@ -1264,7 +1252,6 @@ module top_gati_module #(
     .clk(i_clk),
     .i_rstn(i_rst),
     .i_done(iter_done),
-    //.i_sel_sa_rden_ctrl(sel_sa_rden), // i-wire: select signal (toggled/un-toggled) from sa
     .i_opcode(opcode), // i-wire - check it how to get this opcode from slave blocks
     .i_data_weight_ff_array(weight_dram_fifosharing),         //i-wire - from fifo sharing wren ctrler
     .i_write_en_weight_ff_array(weight_write_en_fifosharing), //i-wire - from fifo sharing wren ctrler
@@ -1299,7 +1286,7 @@ module top_gati_module #(
   assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
   assign eltwise_fifo_th = ((3*(ELTWISE_FIFO_DEPTH[$clog2(ELTWISE_FIFO_DEPTH):0]))/4);
   
-	reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
+  reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   reg [$clog2(BIAS_FIFO_DEPTH):0] virtual_occ_bias;
   reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_LeftOperand;
   reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_RightOperand;
@@ -1364,7 +1351,7 @@ module top_gati_module #(
     end
   end
 
-//  assign acc_fifo_status = (acc_fifo_occupants<={ACC_FIFO{acc_fifo_th}})? 1 : 0;
+
   assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
   assign bias_fifo_status = ((bias_fifo_occupants[$clog2(BIAS_FIFO_DEPTH):0]+virtual_occ_bias)<=bias_fifo_th)? 1 : 0;
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
@@ -1572,13 +1559,11 @@ module top_gati_module #(
   wire FC_done;
 
   assign fc_kernel_iter = kernel_iteration;
-	wire psum_full;
+  wire psum_full;
   wire  op_full;
 
   wire  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip;
   wire  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip;
-
-
 
   // Top module of CONV and FC Blocks
   Top_CONV_FC #(
@@ -1880,9 +1865,8 @@ module top_gati_module #(
 
     assign op_fifo_empty = &(op_dram_fifo_empty);
     
-    //o_done_rden_ctrl from flattening indicates data read from BRAM for k_iter times
-
-  // iteration counter new 
+    
+   // iteration counter new 
     iteration_cnt #(
         .CITER_CNT_WIDTH(W_CITER_CNT), 
         .KITER_CNT_WIDTH(W_KITER_CNT),
@@ -1995,10 +1979,19 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==97) layer_cntr <= 0;
+      if(layer_cntr==96) layer_cntr <= 0;
       else begin
         if(layer_done) layer_cntr <= layer_cntr + 1;
       end
+    end
+  end
+
+  reg inference_done;
+  always@(posedge i_clk) begin
+    if(!i_rst) inference_done <= 1'b0;
+    else begin
+        if(user_start) inference_done <= 1'b0;
+        else if(layer_cntr == 96) inference_done <= 1'b1;
     end
   end
 
@@ -2014,7 +2007,6 @@ module top_gati_module #(
   `ifdef MONITOR_LAYER_CYCLES
 
     wire layer_monitor_fifo_empty;
-    // wire [31:0] layer_cycles_count;
     wire layer_monitor_fifo_rden;
 
     /* 
@@ -2039,16 +2031,53 @@ module top_gati_module #(
         .o_valid()
     );
 
-    reg inference_done;
+    assign layer_monitor_fifo_rden = inference_done ? ~layer_monitor_fifo_empty : 1'b0;
+
+  `endif
+
+  `ifdef MONITOR_STALL_CYLES
+    reg [19:0] im2col_stall_cycles;
+    reg [19:0] sa_stall_cycles;
+
     always@(posedge i_clk) begin
-        if(!i_rst) inference_done <= 1'b0;
+        if(!i_rst) im2col_stall_cycles <= 0;
         else begin
-            if(user_start) inference_done <= 1'b0;
-            else if(layer_cntr == 97) inference_done <= 1'b1;
+            if(layer_done) im2col_stall_cycles <= 0;
+            else if(stall_on) im2col_stall_cycles <= im2col_stall_cycles + 1;
+            else im2col_stall_cycles <= im2col_stall_cycles;
         end
     end
 
-    assign layer_monitor_fifo_rden = inference_done ? ~layer_monitor_fifo_empty : 1'b0;
+    always@(posedge i_clk) begin
+        if(!i_rst) sa_stall_cycles <= 0;
+        else begin
+            if(layer_done) sa_stall_cycles <= 0;
+            else if(istolic_stall) sa_stall_cycles <= sa_stall_cycles + 1;
+            else sa_stall_cycles <= sa_stall_cycles;
+        end
+    end
+
+    wire stall_monitor_fifo_empty;
+    wire stall_monitor_fifo_rden;
+    
+    sync_fifo #(.W_DATA(40),
+                .W_ADDR(7) // Change the FIFO depth if necessary based on the maximum number of layers
+    )
+    stall_monitor_fifo (
+        .clk_i(i_clk),
+        .wr_en_i(layer_done),
+        .rd_en_i(stall_monitor_fifo_rden),
+        .full_o(),
+        .empty_o(stall_monitor_fifo_empty),
+        .wdata({sa_stall_cycles, im2col_stall_cycles}),
+        .datacount_o(),
+        .rst_busy(),
+        .rdata(stall_cycles_count),
+        .a_rst_i(~i_rst),
+        .o_valid()
+    );
+
+    assign stall_monitor_fifo_rden = inference_done ? ~stall_monitor_fifo_empty : 1'b0;
 
   `endif
 

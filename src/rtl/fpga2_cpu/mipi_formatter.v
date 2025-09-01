@@ -67,9 +67,16 @@ always @ (posedge clk) begin
         1:begin
             ready <= 0;
             if(!empty) begin
-                r_data_out <= sof;
-                valid <= 1;
-                state <= 2;
+                if(~full) begin
+                    r_data_out <= sof;
+                    valid <= 1;
+                    state <= 2;
+                end
+                else begin
+                    r_data_out <= 0;
+                    valid <= 0;
+                    state <= 1;
+                end
             end
             else begin
                 r_data_out <= 0;

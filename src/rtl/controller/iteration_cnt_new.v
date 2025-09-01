@@ -190,7 +190,6 @@ module iteration_cnt #(
                     r_c_iter<=c_iter-1;
     		        r_k_iter<=k_iter;
                     r_valid_opcode <= valid_opcode;
-                
                 end
     			c_ctr <= 0;
                 k_ctr <= 0;

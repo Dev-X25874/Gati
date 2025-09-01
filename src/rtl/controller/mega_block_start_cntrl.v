@@ -27,7 +27,7 @@ module mega_block_start_ctrl #(
         end
     end 
 
-    /* delayed version of start_command to snch the start signal*/ 
+    /* delayed version of start_command to synchronize the start signal*/ 
     
     always @(posedge i_clk)begin
         if (!i_rst) begin

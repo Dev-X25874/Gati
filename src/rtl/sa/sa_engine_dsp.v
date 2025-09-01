@@ -81,7 +81,8 @@ weight_fifo_array_rden#(
 
 wire read_rden_ctrl_image_ff_array;
 wire [ROW-1 : 0] empty_image_ff_array_rden_ctrl;
-wire[(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
+wire [ROW-1 : 0] almost_empty_image_ff_array_rden_ctrl;
+wire [(ROW * W_DATA)-1 : 0] data_image_ff_array_append_dv;
 wire [ROW-1:0] dv_image_ff_array_append_dv;
 
 /*
@@ -113,9 +114,11 @@ image_fifo_array#(
     .i_read_enable(read_rden_ctrl_image_ff_array_delayed),
     .o_data(data_image_ff_array_append_dv),
     .o_fifo_empty(empty_image_ff_array_rden_ctrl),
-    .o_fifo_almost_empty(o_image_ff_array_almost_empty),
-    .o_fifo_almost_full(o_image_ff_array_almost_full),
+    .o_fifo_almost_empty(almost_empty_image_ff_array_rden_ctrl),
+    .o_fifo_almost_full(),
     .o_fifo_full(),
+    .o_fifo_prog_full(o_image_ff_array_almost_full),
+    .o_fifo_prog_empty(o_image_ff_array_almost_empty),
     .o_fifo_dv(dv_image_ff_array_append_dv),
     .o_occupants()
 );
@@ -132,7 +135,7 @@ append_dv#(
 
 wire [((W_DATA + 1) * ROW)-1 : 0] image_append_dv_cdc;
 
-//Control read enable signal of uart_rx_image_fifo
+
 image_fifo_array_rden#(
     .ROW(ROW),
     .W_ADDR(IMG_FF_ADDR),
@@ -143,6 +146,7 @@ image_fifo_array_rden#(
    	.psum_full(psum_full),
 	.i_trigger(enb_weight_rden_ctrl_image_rden_ctrl),
     .i_fifo_empty(empty_image_ff_array_rden_ctrl),
+    .i_fifo_almost_empty(almost_empty_image_ff_array_rden_ctrl),
     .o_read_enable(read_rden_ctrl_image_ff_array)
 );
 

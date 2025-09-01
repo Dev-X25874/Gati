@@ -132,7 +132,8 @@ module rah_gati #(
     output       layer_done,
     output       eop,
 
-    output [31:0] layer_cycles_count
+    output [31:0] layer_cycles_count,
+    output [39:0] stall_cycles_count
 );
 
 
@@ -757,7 +758,8 @@ module rah_gati #(
       .kernal_count(kernal_count), // current kernal iteration number 
       .channel_count(channel_count), //current channel iteration number
       .layer_count(layer_count) ,
-      .layer_cycles_count(layer_cycles_count)
+      .layer_cycles_count(layer_cycles_count),
+      .stall_cycles_count(stall_cycles_count)
   );
  
   

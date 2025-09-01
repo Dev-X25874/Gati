@@ -51,7 +51,9 @@ vicharak@mantra:~$ dmesg | grep vop
 Check if the resolution in the last line is 1280x1024p60; if it is not, get the bridge's firmware reflashed. A newer version of Rah may have modified the resolution; check with the Gati team.
 
 #### 4. IP conflicts
-When starting up the board, your IP might clash with others, and your SSH will lag, or the board might disconnect. To make sure that doesn't happen, we use avahi-daemon.
+When starting up the board, your IP might clash with others, and your SSH will lag, or the board might disconnect. To make sure that doesn't happen, we use [macacetamol](https://github.com/bojle/macacetamol).
+Follow the instructions from macacetamol repo.
+After it's done, we will use avahi-daemon to set your name for SSH, so you don't have to use IP address every time you SSH to your board.
 ```
 sudo apt install avahi-daemon
 systemctl start avahi-daemon.service

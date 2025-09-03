@@ -17,30 +17,16 @@ module gen_bram #(
      
     generate
         for(i=0; i<N_BRAM; i=i+1) begin
-            //if(i<CHANNELS) begin
-                simple_dpram #(.W_ADDR(W_ADDR), .W_DATA(W_DATA)) a_bram_dut(
-                    .clk(clk),
-                    .wdata_a(data_in[(W_DATA*(AXI_DATA_BYTES-i))-1 -:W_DATA]),
-                    .re(re[N_BRAM-1-i]),
-                    .we(we[N_BRAM-1-i]),
-                    .rdata_b(data_out[(W_DATA*(AXI_DATA_BYTES-i))-1 -:W_DATA]),
-                    .waddr(waddr[((W_ADDR*(N_BRAM-i))-1) -:W_ADDR]),
-                    .raddr(raddr[((W_ADDR*(N_BRAM-i))-1) -:W_ADDR])
-                );
-            end
-
-            // else begin
-                // sdpram #(.W_ADDR(W_ADDR), .W_DATA(W_DATA)) b_bram_dut(
-                    // .clk(clk),
-                    // .wdata_a(data_in[(W_DATA*(CHANNELS-(i-CHANNELS)))-1 -:W_DATA]),
-                    // .re(re[i]),
-                    // .we(we[i-CHANNELS]),
-                    // .rdata_b(data_out[(W_DATA*(N_BRAM-i))-1 -:W_DATA]),
-                    // .waddr(waddr[((W_ADDR + 1)*(CHANNELS-(i-CHANNELS)))-1 -:(W_ADDR + 1)]),
-                    // .raddr(raddr[((W_ADDR + 1)*(N_BRAM-i))-1 -:(W_ADDR + 1)])
-                // );
-            // end
-        //end
+            simple_dpram #(.W_ADDR(W_ADDR), .W_DATA(W_DATA)) a_bram_dut(
+                .clk(clk),
+                .wdata_a(data_in[(W_DATA*(AXI_DATA_BYTES-i))-1 -:W_DATA]),
+                .re(re[N_BRAM-1-i]),
+                .we(we[N_BRAM-1-i]),
+                .rdata_b(data_out[(W_DATA*(AXI_DATA_BYTES-i))-1 -:W_DATA]),
+                .waddr(waddr[((W_ADDR*(N_BRAM-i))-1) -:W_ADDR]),
+                .raddr(raddr[((W_ADDR*(N_BRAM-i))-1) -:W_ADDR])
+            );
+        end
     endgenerate
-
+    
 endmodule

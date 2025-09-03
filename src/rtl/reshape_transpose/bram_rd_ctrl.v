@@ -76,7 +76,7 @@ always @ (posedge clk) begin
                 valid <= 0;
                 state <= 2;
             end
-            else if (class_counter >= input_channels) begin //to manage the delay of brams
+            else if (class_counter >= input_channels) begin
                 class_counter <= class_counter + 1;
                 bram_counter <= 0;
                 r_addr <= r_addr;

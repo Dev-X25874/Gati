@@ -482,288 +482,288 @@ module rah_gati #(
 
   `ifdef FC 
     `ifdef BIAS_FC
-    assign i_valid = {
-    mc_config_valid,
-    mc_wghts_valid,    
-    mc_bias_valid,
-    mc_img_valid,
-    mc_fc_valid,
-    mc_acc_valid,
-    mc_op_write_valid,
-    mc_fc_bias_valid,
-    mc_fpga2cpu_valid,
-    mc_LeftOperand_valid,
-    mc_RightOperand_valid,
-    mc_ReshapeTranspose_valid
-   };
+      assign i_valid = {
+       mc_config_valid,
+       mc_wghts_valid,    
+       mc_bias_valid,
+       mc_img_valid,
+       mc_fc_valid,
+       mc_acc_valid,
+       mc_op_write_valid,
+       mc_fc_bias_valid,
+       mc_fpga2cpu_valid,
+       mc_LeftOperand_valid,
+       mc_RightOperand_valid,
+       mc_ReshapeTranspose_valid
+      };
 
-   assign in_address = {
-    mc_config_addr,
-    mc_wghts_addr,
-    mc_bias_addr,
-    mc_img_addr,
-    mc_fc_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_fc_bias_addr,
-    mc_fpga2cpu_addr,
-    mc_LeftOperand_addr,
-    mc_RightOperand_addr,
-    mc_ReshapeTranspose_addr
-   };
+      assign in_address = {
+       mc_config_addr,
+       mc_wghts_addr,
+       mc_bias_addr,
+       mc_img_addr,
+       mc_fc_addr,
+       mc_acc_addr,
+       mc_op_write_addr,
+       mc_fc_bias_addr,
+       mc_fpga2cpu_addr,
+       mc_LeftOperand_addr,
+       mc_RightOperand_addr,
+       mc_ReshapeTranspose_addr
+      };
 
-   assign in_BLEN = {
-    mc_config_bl,
-    mc_wghts_bl,
-    mc_bias_bl,
-    mc_img_bl,
-    mc_fc_bl,
-    mc_acc_bl,
-    mc_op_write_bl,
-    mc_fc_bias_bl,
-    mc_fpga2cpu_bl,
-    mc_LeftOperand_bl,
-    mc_RightOperand_bl,
-    mc_ReshapeTranspose_bl
-   };
+      assign in_BLEN = {
+       mc_config_bl,
+       mc_wghts_bl,
+       mc_bias_bl,
+       mc_img_bl,
+       mc_fc_bl,
+       mc_acc_bl,
+       mc_op_write_bl,
+       mc_fc_bias_bl,
+       mc_fpga2cpu_bl,
+       mc_LeftOperand_bl,
+       mc_RightOperand_bl,
+       mc_ReshapeTranspose_bl
+      };
 
-   assign i_enable = {
-    mc_config_rdreq,
-    mc_wghts_rdreq,  
-    mc_bias_rdreq,
-    mc_img_rdreq,
-    mc_fc_rdreq,
-    mc_acc_rdreq,
-    mc_op_writereq,
-    mc_fc_bias_rdreq,
-    mc_fpga2cpu_readreq,
-    mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq,
-    mc_ReshapeTranspose_rdreq
-   };
+      assign i_enable = {
+       mc_config_rdreq,
+       mc_wghts_rdreq,  
+       mc_bias_rdreq,
+       mc_img_rdreq,
+       mc_fc_rdreq,
+       mc_acc_rdreq,
+       mc_op_writereq,
+       mc_fc_bias_rdreq,
+       mc_fpga2cpu_readreq,
+       mc_LeftOperand_rdreq,
+       mc_RightOperand_rdreq,
+       mc_ReshapeTranspose_rdreq
+      };
 
-   assign i_last = {
-    mc_config_last,
-    mc_wghts_last,
-    mc_bias_last,
-    mc_img_last,
-    mc_fc_last,
-    mc_acc_last,
-    mc_op_write_last,
-    mc_fc_bias_last,
-    mc_fpga2cpu_last,
-    mc_LeftOperand_last,
-    mc_RightOperand_last,
-    mc_ReshapeTranspose_last
-   };
-   `else
-   assign i_valid = {
-    mc_config_valid,
-    mc_wghts_valid,
-    mc_bias_valid,  
-    mc_img_valid,
-    mc_fc_valid,
-    mc_acc_valid,
-    mc_op_write_valid,
-    mc_fpga2cpu_valid,
-    mc_LeftOperand_valid,
-    mc_RightOperand_valid,
-    mc_ReshapeTranspose_valid
-   };
+      assign i_last = {
+       mc_config_last,
+       mc_wghts_last,
+       mc_bias_last,
+       mc_img_last,
+       mc_fc_last,
+       mc_acc_last,
+       mc_op_write_last,
+       mc_fc_bias_last,
+       mc_fpga2cpu_last,
+       mc_LeftOperand_last,
+       mc_RightOperand_last,
+       mc_ReshapeTranspose_last
+      };
+    `else
+      assign i_valid = {
+       mc_config_valid,
+       mc_wghts_valid,
+       mc_bias_valid,  
+       mc_img_valid,
+       mc_fc_valid,
+       mc_acc_valid,
+       mc_op_write_valid,
+       mc_fpga2cpu_valid,
+       mc_LeftOperand_valid,
+       mc_RightOperand_valid,
+       mc_ReshapeTranspose_valid
+      };
 
-   assign in_address = {
-    mc_config_addr,
-    mc_wghts_addr,
-    mc_bias_addr,
-    mc_img_addr,
-    mc_fc_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_fpga2cpu_addr,
-    mc_LeftOperand_addr,
-    mc_RightOperand_addr,
-    mc_ReshapeTranspose_addr
-   };
+      assign in_address = {
+       mc_config_addr,
+       mc_wghts_addr,
+       mc_bias_addr,
+       mc_img_addr,
+       mc_fc_addr,
+       mc_acc_addr,
+       mc_op_write_addr,
+       mc_fpga2cpu_addr,
+       mc_LeftOperand_addr,
+       mc_RightOperand_addr,
+       mc_ReshapeTranspose_addr
+      };
 
-   assign in_BLEN = {
-    mc_config_bl,
-    mc_wghts_bl,
-    mc_bias_bl,
-    mc_img_bl,
-    mc_fc_bl,
-    mc_acc_bl,
-    mc_op_write_bl,
-    mc_fpga2cpu_bl,
-    mc_LeftOperand_bl,
-    mc_RightOperand_bl,
-    mc_ReshapeTranspose_bl
-   };
+      assign in_BLEN = {
+       mc_config_bl,
+       mc_wghts_bl,
+       mc_bias_bl,
+       mc_img_bl,
+       mc_fc_bl,
+       mc_acc_bl,
+       mc_op_write_bl,
+       mc_fpga2cpu_bl,
+       mc_LeftOperand_bl,
+       mc_RightOperand_bl,
+       mc_ReshapeTranspose_bl
+      };
 
-   assign i_enable = {
-    mc_config_rdreq,
-    mc_wghts_rdreq,
-    mc_bias_rdreq,  
-    mc_img_rdreq,
-    mc_fc_rdreq,
-    mc_acc_rdreq,
-    mc_op_writereq,
-    mc_fpga2cpu_readreq,
-    mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq,
-    mc_ReshapeTranspose_rdreq
-   };
+      assign i_enable = {
+       mc_config_rdreq,
+       mc_wghts_rdreq,
+       mc_bias_rdreq,  
+       mc_img_rdreq,
+       mc_fc_rdreq,
+       mc_acc_rdreq,
+       mc_op_writereq,
+       mc_fpga2cpu_readreq,
+       mc_LeftOperand_rdreq,
+       mc_RightOperand_rdreq,
+       mc_ReshapeTranspose_rdreq
+      };
 
-   assign i_last = {
-    mc_config_last,
-    mc_wghts_last,
-    mc_bias_last,
-    mc_img_last,
-    mc_fc_last,
-    mc_acc_last,
-    mc_op_write_last,
-    mc_fpga2cpu_last,
-    mc_LeftOperand_last,
-    mc_RightOperand_last,
-    mc_ReshapeTranspose_last
-   };
-   `endif //BIAS_FC
-  `else
-   `ifdef BIAS_FC
-   assign i_valid = {
-    mc_config_valid,
-    mc_wghts_valid,
-    mc_bias_valid, 
-    mc_img_valid,
-    mc_acc_valid,
-    mc_op_write_valid,
-    mc_fc_bias_valid,
-    mc_fpga2cpu_valid,
-    mc_LeftOperand_valid,
-    mc_RightOperand_valid,
-    mc_ReshapeTranspose_valid
-   };
+      assign i_last = {
+       mc_config_last,
+       mc_wghts_last,
+       mc_bias_last,
+       mc_img_last,
+       mc_fc_last,
+       mc_acc_last,
+       mc_op_write_last,
+       mc_fpga2cpu_last,
+       mc_LeftOperand_last,
+       mc_RightOperand_last,
+       mc_ReshapeTranspose_last
+      };
+    `endif //BIAS_FC
+  `else  
+    `ifdef BIAS_FC
+      assign i_valid = {
+       mc_config_valid,
+       mc_wghts_valid,
+       mc_bias_valid, 
+       mc_img_valid,
+       mc_acc_valid,
+       mc_op_write_valid,
+       mc_fc_bias_valid,
+       mc_fpga2cpu_valid,
+       mc_LeftOperand_valid,
+       mc_RightOperand_valid,
+       mc_ReshapeTranspose_valid
+      };
 
-   assign in_address = {
-    mc_config_addr,
-    mc_wghts_addr,
-    mc_bias_addr,
-    mc_img_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_fc_bias_addr,
-    mc_fpga2cpu_addr,
-    mc_LeftOperand_addr,
-    mc_RightOperand_addr,
-    mc_ReshapeTranspose_addr
-   };
+      assign in_address = {
+       mc_config_addr,
+       mc_wghts_addr,
+       mc_bias_addr,
+       mc_img_addr,
+       mc_acc_addr,
+       mc_op_write_addr,
+       mc_fc_bias_addr,
+       mc_fpga2cpu_addr,
+       mc_LeftOperand_addr,
+       mc_RightOperand_addr,
+       mc_ReshapeTranspose_addr
+      };
 
-   assign in_BLEN = {
-    mc_config_bl,
-    mc_wghts_bl,
-    mc_bias_bl,
-    mc_img_bl,
-    mc_acc_bl,
-    mc_op_write_bl,
-    mc_fc_bias_bl,
-    mc_fpga2cpu_bl,
-    mc_LeftOperand_bl,
-    mc_RightOperand_bl,
-    mc_ReshapeTranspose_bl
-   };
+      assign in_BLEN = {
+       mc_config_bl,
+       mc_wghts_bl,
+       mc_bias_bl,
+       mc_img_bl,
+       mc_acc_bl,
+       mc_op_write_bl,
+       mc_fc_bias_bl,
+       mc_fpga2cpu_bl,
+       mc_LeftOperand_bl,
+       mc_RightOperand_bl,
+       mc_ReshapeTranspose_bl
+      };
 
-   assign i_enable = {
-    mc_config_rdreq,
-    mc_wghts_rdreq,
-    mc_bias_rdreq,  
-    mc_img_rdreq,
-    mc_acc_rdreq,
-    mc_op_writereq,
-    mc_fc_bias_rdreq,
-    mc_fpga2cpu_readreq,
-    mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq,
-    mc_ReshapeTranspose_rdreq
-   };
+      assign i_enable = {
+       mc_config_rdreq,
+       mc_wghts_rdreq,
+       mc_bias_rdreq,  
+       mc_img_rdreq,
+       mc_acc_rdreq,
+       mc_op_writereq,
+       mc_fc_bias_rdreq,
+       mc_fpga2cpu_readreq,
+       mc_LeftOperand_rdreq,
+       mc_RightOperand_rdreq,
+       mc_ReshapeTranspose_rdreq
+      };
 
-   assign i_last = {
-    mc_config_last,
-    mc_wghts_last,
-    mc_bias_last,
-    mc_img_last,
-    mc_acc_last,
-    mc_op_write_last,
-    mc_fc_bias_last,
-    mc_fpga2cpu_last,
-    mc_LeftOperand_last,
-    mc_RightOperand_last,
-    mc_ReshapeTranspose_last
-   };
-   `else
-   assign i_valid = {
-    mc_config_valid,
-    mc_wghts_valid,
-    mc_bias_valid, 
-    mc_img_valid,
-    mc_acc_valid,
-    mc_op_write_valid,
-    mc_fpga2cpu_valid,
-    mc_LeftOperand_valid,
-    mc_RightOperand_valid,
-    mc_ReshapeTranspose_valid
-   };
-
-   assign in_address = {
-    mc_config_addr,
-    mc_wghts_addr,
-    mc_bias_addr,
-    mc_img_addr,
-    mc_acc_addr,
-    mc_op_write_addr,
-    mc_fpga2cpu_addr,
-    mc_LeftOperand_addr,
-    mc_RightOperand_addr,
-    mc_ReshapeTranspose_addr
-   };
-
-   assign in_BLEN = {
-    mc_config_bl,
-    mc_wghts_bl,
-    mc_bias_bl,
-    mc_img_bl,
-    mc_acc_bl,
-    mc_op_write_bl,
-    mc_fpga2cpu_bl,
-    mc_LeftOperand_bl,
-    mc_RightOperand_bl,
-    mc_ReshapeTranspose_bl
-   };
-
-   assign i_enable = {
-    mc_config_rdreq,
-    mc_wghts_rdreq,
-    mc_bias_rdreq,  
-    mc_img_rdreq,
-    mc_acc_rdreq,
-    mc_op_writereq,
-    mc_fpga2cpu_readreq,
-    mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq,
-    mc_ReshapeTranspose_rdreq
-   };
-
-   assign i_last = {
-    mc_config_last,
-    mc_wghts_last,
-    mc_bias_last,
-    mc_img_last,
-    mc_acc_last,
-    mc_op_write_last,
-    mc_fpga2cpu_last,
-    mc_LeftOperand_last,
-    mc_RightOperand_last,
-    mc_ReshapeTranspose_last
-   };
-   `endif //BIAS_FC
+      assign i_last = {
+       mc_config_last,
+       mc_wghts_last,
+       mc_bias_last,
+       mc_img_last,
+       mc_acc_last,
+       mc_op_write_last,
+       mc_fc_bias_last,
+       mc_fpga2cpu_last,
+       mc_LeftOperand_last,
+       mc_RightOperand_last,
+       mc_ReshapeTranspose_last
+      };
+    `else
+      assign i_valid = {
+       mc_config_valid,
+       mc_wghts_valid,
+       mc_bias_valid, 
+       mc_img_valid,
+       mc_acc_valid,
+       mc_op_write_valid,
+       mc_fpga2cpu_valid,
+       mc_LeftOperand_valid,
+       mc_RightOperand_valid,
+       mc_ReshapeTranspose_valid
+      };
+    
+      assign in_address = {
+       mc_config_addr,
+       mc_wghts_addr,
+       mc_bias_addr,
+       mc_img_addr,
+       mc_acc_addr,
+       mc_op_write_addr,
+       mc_fpga2cpu_addr,
+       mc_LeftOperand_addr,
+       mc_RightOperand_addr,
+       mc_ReshapeTranspose_addr
+      };
+    
+      assign in_BLEN = {
+       mc_config_bl,
+       mc_wghts_bl,
+       mc_bias_bl,
+       mc_img_bl,
+       mc_acc_bl,
+       mc_op_write_bl,
+       mc_fpga2cpu_bl,
+       mc_LeftOperand_bl,
+       mc_RightOperand_bl,
+       mc_ReshapeTranspose_bl
+      };
+    
+      assign i_enable = {
+       mc_config_rdreq,
+       mc_wghts_rdreq,
+       mc_bias_rdreq,  
+       mc_img_rdreq,
+       mc_acc_rdreq,
+       mc_op_writereq,
+       mc_fpga2cpu_readreq,
+       mc_LeftOperand_rdreq,
+       mc_RightOperand_rdreq,
+       mc_ReshapeTranspose_rdreq
+      };
+    
+      assign i_last = {
+       mc_config_last,
+       mc_wghts_last,
+       mc_bias_last,
+       mc_img_last,
+       mc_acc_last,
+       mc_op_write_last,
+       mc_fpga2cpu_last,
+       mc_LeftOperand_last,
+       mc_RightOperand_last,
+       mc_ReshapeTranspose_last
+      };
+    `endif //BIAS_FC
   `endif //FC
    
 

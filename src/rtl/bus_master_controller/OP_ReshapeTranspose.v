@@ -1,5 +1,4 @@
-//this module is the slave block, it handles the operations for convolution block
-//when this module will be selected it will receive data from the master block and gives output for further convolution operation processing 
+//this module is a slave module, that when selected receives data from the master block and gives outputs for further transpose and reshape operation processing 
 
 module OP_ReshapeTranspose #(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
@@ -33,7 +32,6 @@ reg [17:0] count = 0;
 parameter IDLE = 3'b000;
 parameter REGISTER = 3'b001;
 parameter CONCAT = 3'b011;
-// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals
 
 always @(posedge clk) begin
     case(state)
@@ -61,15 +59,13 @@ always @(posedge clk) begin
         end
     end
     CONCAT: begin
-        // if(done) begin
-            opcode <= data_instruction[`TRANSPOSE_Opcode];
-            ReshapeTranspose_IW <= data_instruction[`TRANSPOSE_IW];
-            ReshapeTranspose_IH <= data_instruction[`TRANSPOSE_IH];
-            ReshapeTranspose_IC <= data_instruction[`TRANSPOSE_IC];
-            ReshapeTranspose_StartAddress <= data_instruction[`TRANSPOSE_ImageStartAddress];
-            valid <= 1'b1;
-            state <= IDLE;
-        // end
+        opcode <= data_instruction[`TRANSPOSE_Opcode];
+        ReshapeTranspose_IW <= data_instruction[`TRANSPOSE_IW];
+        ReshapeTranspose_IH <= data_instruction[`TRANSPOSE_IH];
+        ReshapeTranspose_IC <= data_instruction[`TRANSPOSE_IC];
+        ReshapeTranspose_StartAddress <= data_instruction[`TRANSPOSE_ImageStartAddress];
+        valid <= 1'b1;
+        state <= IDLE;
     end
     endcase
 end

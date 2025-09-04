@@ -482,9 +482,8 @@ module top_gati_module #(
     end else begin
       for (i = 0; i < NUM_INSTRUCTIONS; i = i + 1) begin
         if (start_command[i] && (i != 1) && (i != 2)) begin
-          opcode = opcode_hold[(i * OPCODE_WIDTH) +: OPCODE_WIDTH];
+          opcode <= opcode_hold[(i * OPCODE_WIDTH) +: OPCODE_WIDTH];
         end
-        else opcode = opcode;
       end
     end
   end

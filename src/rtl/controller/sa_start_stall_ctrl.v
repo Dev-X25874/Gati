@@ -76,7 +76,7 @@ module sa_start_stall_ctrl #(
                 if (CONV_Im2colPrefetch == 1) begin
                     istolic_array_stall <= 0;
                     if (input_img_height == 1) sa_start_flag <= im2col_global_start;
-                    else if (row == (input_img_height + conv_zeropad) && col == 1) begin
+                    else if (row == (input_img_height + conv_zeropad + 1) && col == 1) begin
                         sa_start_flag <= 1;
                     end else sa_start_flag <= 0;
                 end else if (CONV_Im2colPrefetch == 0) begin

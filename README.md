@@ -30,7 +30,7 @@ You are advised to go through this througly before making any changes or adding 
 There are two recommendations for simulation softwares:
 
 1. [verilator](https://verilator.org/)
-2. [iverilor](https://steveicarus.github.io/iverilog/)
+2. [iverilog](https://steveicarus.github.io/iverilog/)
 
 and for waveform viewers:
 

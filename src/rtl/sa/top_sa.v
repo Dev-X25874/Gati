@@ -70,19 +70,40 @@ end
         engine.
 */
 
-integer k;
+
 reg [W_DATA*N_SA*ROW-1:0] r_image_fifo_array_data;
-always@(*) begin
-    if(i_conv_type == `CONV_TYPE_PW) begin
-        r_image_fifo_array_data = {N_SA{{i_image_ff_array_data},{(ROW-N_SA){W_DATA{1'b0}}}}};
-    end
+
+
+/* to accommodate pwc in 944 and 16 1 16 */
+generate
+   // in case of 16 1 16 arch 
+    if (COL == 1) begin
+        integer k; 
+        always@(*) begin
+            if(i_conv_type == `CONV_TYPE_PW) begin
+                r_image_fifo_array_data = {N_SA{{i_image_ff_array_data},{(ROW-N_SA){W_DATA{1'b0}}}}};
+            end
+            else begin
+                for(k=0; k<N_SA; k=k+1)begin
+                    r_image_fifo_array_data[((ROW*W_DATA)*(N_SA-k)-1) -: (ROW*W_DATA)] = 
+                    {ROW{i_image_ff_array_data[(W_DATA*(N_SA-k))-1 -: W_DATA]}}; 
+                end
+            end
+        end
+    end 
+
+    // in case of 944 and 988 arch 
     else begin
-        for(k=0; k<N_SA; k=k+1)begin
-            r_image_fifo_array_data[((ROW*W_DATA)*(N_SA-k)-1) -: (ROW*W_DATA)] = 
-            {ROW{i_image_ff_array_data[(W_DATA*(N_SA-k))-1 -: W_DATA]}}; 
+        integer k;
+        always @(*)begin
+            for(k=0; k<N_SA; k=k+1)begin
+                r_image_fifo_array_data[((ROW*W_DATA)*(N_SA-k)-1) -: (ROW*W_DATA)] = 
+                {ROW{i_image_ff_array_data[(W_DATA*(N_SA-k))-1 -: W_DATA]}}; 
+            end
         end
     end
-end
+
+endgenerate
 
 genvar i;
 generate

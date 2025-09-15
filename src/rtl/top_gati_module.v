@@ -248,12 +248,14 @@ module top_gati_module #(
     output [BURST_LENGTH_WIDTH-1 : 0] mc_RightOperand_bl,
     output mc_RightOperand_last,
 
+    `ifdef TRANSPOSE
     ///////////////ReshapeTranspose
     output [7:0] mc_ReshapeTranspose_addr,
     output mc_ReshapeTranspose_rdreq, 
     output mc_ReshapeTranspose_valid,   
     output [BURST_LENGTH_WIDTH-1 : 0] mc_ReshapeTranspose_bl,
     output mc_ReshapeTranspose_last,
+    `endif //TRANSPOSE
     
     /////////////output write ctrl
     output [7:0] mc_op_write_addr,
@@ -438,12 +440,14 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] LeftOperand_stop_address;
   wire [AXI_ADDR_W-1:0] RightOperand_stop_address;
 
+  `ifdef TRANSPOSE
   //Reshape Transpose inst. signals
   wire [OPCODE_WIDTH-1:0] rt_opcode;
   wire [AXI_ADDR_W-1:0] ReshapeTranspose_start_address;
   wire [TRANSPOSE_IH_WIDTH-1:0] ReshapeTranspose_IH;
   wire [TRANSPOSE_IW_WIDTH-1:0] ReshapeTranspose_IW;
   wire [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC;
+  `endif //TRANSPOSE
 
   // start and end address signals for memory request controllers
 
@@ -515,13 +519,18 @@ module top_gati_module #(
 
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
+
+  `ifdef TRANSPOSE
   assign opcode_hold[(`OP_TRANSPOSE*OPCODE_WIDTH) +:OPCODE_WIDTH] = rt_opcode;
+  `else
+  assign opcode_hold[(`OP_TRANSPOSE*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
+  `endif //TRANSPOSE
 
   `ifdef FC
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = fc_opcode;
   `else
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
-  `endif
+  `endif //FC
 
 
   integer i;
@@ -792,12 +801,14 @@ module top_gati_module #(
     .RightOperand_StartAddress(RightOperand_start_address),
     .RightOperand_EndAddress(RightOperand_stop_address),
 
+    `ifdef TRANSPOSE
     //Reshape Transpose inst. signals
     .rt_opcode(rt_opcode),
     .ReshapeTranspose_start_address(ReshapeTranspose_start_address),
     .ReshapeTranspose_IH(ReshapeTranspose_IH),
     .ReshapeTranspose_IW(ReshapeTranspose_IW),
     .ReshapeTranspose_IC(ReshapeTranspose_IC),
+    `endif //TRANSPOSE
 
     //OP block inst. signals
     .opcode_OB(Op_code_OB),
@@ -1920,6 +1931,7 @@ module top_gati_module #(
       .end_row_skip(end_row_skip)
   );
 
+  `ifdef TRANSPOSE
   wire RT_done;
   wire [QUANT_OP_FIFO-1:0] rt_op_fifo_wren;
   wire [AXI_DATA_WIDTH-1:0] reshape_transpose_data;
@@ -1958,6 +1970,7 @@ module top_gati_module #(
     .last_read_requestor(mc_ReshapeTranspose_last),
     .valid_read_requestor(mc_ReshapeTranspose_valid)
   );
+  `endif //TRANSPOSE
 
 
   //op_write fifo rden ctrl(with Acc_onchip flag) - added on 25-11-24
@@ -1978,8 +1991,15 @@ module top_gati_module #(
     .i_quant_fifo_wren(quant_op_wren),
     .i_nms_fifo_data(0),
     .i_nms_fifo_wren(0),
+    
+    `ifdef TRANSPOSE
     .i_rt_fifo_data(reshape_transpose_data),
     .i_rt_fifo_wren(rt_op_fifo_wren),
+    `else
+    .i_rt_fifo_data(0),
+    .i_rt_fifo_wren(0),
+    `endif //TRANSPOSE
+
     .o_op_fifo_data(i_op_fifo_data),
     .o_op_fifo_wren(i_op_fifo_wren)
   );
@@ -2077,7 +2097,11 @@ module top_gati_module #(
         `endif //FC
 
         .EW_done(EW_done),
+
+        `ifdef TRANSPOSE
         .RT_done(RT_done),
+        `endif //TRANSPOSE
+        
         .c_iter(channel_iteration), //channel iteration
         .k_iter(kernel_iteration), //kernel iteration
 

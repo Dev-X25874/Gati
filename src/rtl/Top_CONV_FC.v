@@ -3,7 +3,7 @@
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
-	parameter DATA_WIDTH = 8,
+	  parameter DATA_WIDTH = 8,
     parameter COL_SA = 4,
     parameter COL_FC = 32,
     parameter QUANT_SHIFT = 8,

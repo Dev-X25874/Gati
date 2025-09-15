@@ -169,13 +169,17 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
     output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst,
-    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController,
     output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth,
+
+    `ifdef TRANSPOSE
     output [OP_CODE_WIDTH-1:0] rt_opcode,
     output [ADDRESS_WIDTH-1:0] ReshapeTranspose_start_address,
     output [TRANSPOSE_IH_WIDTH-1:0] ReshapeTranspose_IH,
     output [TRANSPOSE_IW_WIDTH-1:0] ReshapeTranspose_IW,
-    output [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC
+    output [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC,
+    `endif //TRANSPOSE
+    
+    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController
 );
 
     `include "../common/instructions.vh"
@@ -430,6 +434,7 @@ OP_EltWise(
     .ready(ready[`OP_EltWise])
     );
 
+`ifdef TRANSPOSE
 OP_ReshapeTranspose # (
     .OP_CODE_WIDTH(OP_CODE_WIDTH),
     .CNT(CNT),
@@ -454,6 +459,7 @@ OP_ReshapeTranspose # (
     .valid(valid[`OP_TRANSPOSE]),
     .ready(ready[`OP_TRANSPOSE])
   );
+`endif //TRANSPOSE
 //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

@@ -63,7 +63,7 @@ module sa_start_stall_ctrl #(
                 istolic_array_stall <= 0;
                 if (input_img_height == 1) sa_start_flag <= im2col_global_start;
                 else begin
-                    if(row == 1 && col == input_img_height/2) begin
+                    if(row == 2 && col == 1) begin
                         sa_start_flag <= 1;
                     end
                     else begin 

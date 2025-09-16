@@ -79,8 +79,23 @@ wire transfer_done;
 assign o_mipi_ready = mipi_ready;
 // Data size and valid for cvt32248 module to send data to rah
 // Here, data size to rah = data size read from DRAM + SOP + EOP (24 bytes extra)
-assign o_data_size_rah = w_data_size + 24;
-assign o_valid_data_size_rah = request;
+
+reg [DATA_SIZE-1 : 0] r_data_size_rah;
+reg r_valid_data_size_rah;
+
+assign o_data_size_rah = r_data_size_rah;
+assign o_valid_data_size_rah = r_valid_data_size_rah;
+
+always@(posedge clk) begin
+    if(request) begin
+        r_valid_data_size_rah   <= 1'b1;
+        r_data_size_rah         <= w_data_size + 24;
+    end
+    else begin
+        r_valid_data_size_rah   <= 1'b0;
+        r_data_size_rah         <= r_data_size_rah;
+    end
+end
 
 always @ (posedge clk) begin
 if(!rst) begin

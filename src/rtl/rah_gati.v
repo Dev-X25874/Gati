@@ -258,7 +258,7 @@ module rah_gati #(
       .AXI_BYTES(AXI_DATA_BYTES)
     ) mipi_ctrler_reciver (
       .i_clk(c_81_clk),
-	    .dr_clk(i_clk),
+	  .dr_clk(i_clk),
       .i_rstn(i_rst),
       // .i_rstn(1'b1),
       .i_data_valid(valid_data),
@@ -278,7 +278,7 @@ module rah_gati #(
       .eop(eop)
     );
   wire [NUM_PORTS-1:0] select_wr;
-  wire [NUM_PORTS-1:0]select_rd;
+  wire [NUM_PORTS-1:0] select_rd;
   wire [(AXI_DATA_WIDTH*NO_PORT_WR)-1:0] in_wr_data_mux;
   
   wire [AXI_DATA_WIDTH-1:0] dram_in_wrdata;
@@ -571,7 +571,7 @@ module rah_gati #(
     .port_ctrl_i_last(i_last),
     .axi_read_o_delay_data(dram_rd_data),
     .d_done(d_done),
-	  .rd_r_last(dram_rd_data_last),
+	.rd_r_last(dram_rd_data_last),
     .rd_r_valid(dram_rd_datavalid),
     .wr_id_o_wready(wr_id_o_wready),
     .wr_axi_blen(wr_burst_len),

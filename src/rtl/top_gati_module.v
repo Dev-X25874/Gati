@@ -491,8 +491,7 @@ module top_gati_module #(
 
   /*
     The real_row and real_col are the counters that are used to calculate full image dimension 
-    instead of the row skip one. Ex: if image is 224*224 the real_row and real_col will be till 
-    224 where the 'row' register will be 224 - row_skips
+    instead of the row skip one. Ex: if image is 224*224 the real_row and real_col will be till 224 where the 'row' register will be 224 - row_skips
   */ 
   wire  [CONV_IH_WIDTH-1:0] row;    
   wire  [CONV_IW_WIDTH-1:0] col;

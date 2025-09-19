@@ -29,7 +29,6 @@
 // Macros for Debugging
 // Comment these if not required
 // To monitor Layer wise compute cycles
-
 //`define MONITOR_LAYER_CYCLES
 
 // To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)

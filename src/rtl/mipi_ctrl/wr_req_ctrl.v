@@ -57,6 +57,10 @@ generate
     end
 endgenerate
 
+// this register is used to queue the read request in case where fifo gets empty
+reg need_read; 
+
+
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         req <= 0;
@@ -80,9 +84,16 @@ always @(posedge i_clk)begin
             end
             1:begin
                 if(i_valid_size_address) begin
-                    o_rd_en_size_address <= 1'b1;
                     data_size <= i_rd_size_address;
-                    state <= 2;
+                    if (~i_empty_size_address)begin
+                        o_rd_en_size_address <= 1'b1;
+                        state <=2;
+                    end 
+                    else begin 
+                        o_rd_en_size_address <= 1'b0;
+                        state <= 2;
+                        need_read <= 1'b1;
+                    end
                 end
                 else begin
                     o_rd_en_size_address <= 0;
@@ -90,22 +101,29 @@ always @(posedge i_clk)begin
                 end
             end
             2:begin
-                o_rd_en_size_address <= 1'b0;
-                if (data_size==0) begin
+                if (data_size == 0) begin
                     state <= 0;
+                    o_rd_en_size_address <= 1'b0;
                 end
                 else begin
-                    if (i_valid_size_address) begin
-                        r_addr <= i_rd_size_address;
-                        r_burst_len <= BURST_LEN;
-                        state <= 3;
+                    if (need_read & ~i_empty_size_address)begin 
+                        need_read <= 0;
+                        o_rd_en_size_address <= 1'b1;
+                    end 
+                    else if (!need_read)begin
+                        o_rd_en_size_address <= 1'b0;
+                        if (i_valid_size_address) begin
+                            r_addr <= i_rd_size_address;
+                            r_burst_len <= BURST_LEN;
+                            state <= 3;
+                        end
                     end
                 end
             end
             3: begin 
                 o_ack_dram_ctrl <= 0;
                 state <= 4;
-				if(data_size<(BURST_LEN<<$clog2(AXI_BYTES)) && data_size!=0) begin 
+				if(data_size < ((BURST_LEN + 1)<<$clog2(AXI_BYTES)))  begin 
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 
@@ -149,7 +167,7 @@ always @(posedge i_clk)begin
             end
             7: begin 
                 if(data_size != 0 )begin
-                    if(data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1) && (data_size[31]!=1))) begin  //if data size = 32 * (blen+1)
+                    if((data_size >= ((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1)) && (data_size[31]!=1)) begin  
                         r_burst_len <= BURST_LEN;
 						if(i_data_last) begin 
                             state <= 3; 
@@ -175,25 +193,5 @@ always @(posedge i_clk)begin
             default: state <= 0; 
         endcase
     end
-end
-/*
-always @(posedge i_clk)begin
-    case (rq_state)
-        0:begin
-            if(state == 4)begin //2
-                if(addr_counter == 0)begin
-                    req <= 1'b1;
-                    rq_state <= 1;
-                end
-            end
-        end
-        1: begin
-            req <= 1'b0;
-            rq_state <= 0;
-        end
-        default:rq_state <= 0; 
-    endcase
-end
-*/
-    
+end    
 endmodule

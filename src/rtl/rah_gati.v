@@ -133,7 +133,7 @@ module rah_gati #(
     output       eop,
 
     output [31:0] layer_cycles_count,
-    output [39:0] stall_cycles_count
+    output [59:0] stall_cycles_count
 );
 
 

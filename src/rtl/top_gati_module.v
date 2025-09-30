@@ -274,7 +274,7 @@ module top_gati_module #(
     output [3:0] layer_count,
     
     output [31:0] layer_cycles_count,
-    output [39:0] stall_cycles_count
+    output [59:0] stall_cycles_count
 );
 
     // localparam NUM_QUEUE = NUM_PORTS; //number of Requestor queues in DRAM controller
@@ -2036,6 +2036,7 @@ module top_gati_module #(
   `ifdef MONITOR_STALL_CYLES
     reg [19:0] im2col_stall_cycles;
     reg [19:0] sa_stall_cycles;
+    reg [19:0] layer_done_wait_cycles;
 
     always@(posedge i_clk) begin
         if(!i_rst) im2col_stall_cycles <= 0;
@@ -2055,10 +2056,24 @@ module top_gati_module #(
         end
     end
 
+    // layer_done_wait_cycles
+    reg r_tail_done;
+    always@(posedge i_clk) begin
+        if(Tail_done) r_tail_done <= 1'b1;
+        else if(op_done) r_tail_done <= 1'b0;
+    end
+    always@(posedge i_clk) begin
+        if(!i_rst) layer_done_wait_cycles <= 0;
+        else begin
+            if(layer_done) layer_done_wait_cycles <= 0;
+            else if(r_tail_done) layer_done_wait_cycles <= layer_done_wait_cycles + 1;
+        end
+    end
+
     wire stall_monitor_fifo_empty;
     wire stall_monitor_fifo_rden;
     
-    sync_fifo #(.W_DATA(40),
+    sync_fifo #(.W_DATA(60),
                 .W_ADDR(7) // Change the FIFO depth if necessary based on the maximum number of layers
     )
     stall_monitor_fifo (
@@ -2067,7 +2082,7 @@ module top_gati_module #(
         .rd_en_i(stall_monitor_fifo_rden),
         .full_o(),
         .empty_o(stall_monitor_fifo_empty),
-        .wdata({sa_stall_cycles, im2col_stall_cycles}),
+        .wdata({layer_done_wait_cycles, sa_stall_cycles, im2col_stall_cycles}),
         .datacount_o(),
         .rst_busy(),
         .rdata(stall_cycles_count),

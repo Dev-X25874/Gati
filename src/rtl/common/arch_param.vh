@@ -1,8 +1,8 @@
  // arch_param.vh
 
-`define N_SA 4
-`define COL_SA 4
-`define ROW 9
+`define N_SA 16
+`define COL_SA 1
+`define ROW 16
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care
@@ -22,15 +22,15 @@
     Ex: 1. max i/p dim = 224, N_MOD_STAGES = 8
         2. max i/p dim = 300, N_MOD_STAGES = 9 
 */
-`define IM2COL_BOUND_GEN_WIDTH 8
-`define N_MOD_STAGES 8
+`define IM2COL_BOUND_GEN_WIDTH 16
+`define N_MOD_STAGES 9
 
 
 // Macros for Debugging
 // Comment these if not required
 // To monitor Layer wise compute cycles
 
-//`define MONITOR_LAYER_CYCLES
+`define MONITOR_LAYER_CYCLES
 
 // To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)
-//`define MONITOR_STALL_CYLES
+`define MONITOR_STALL_CYLES

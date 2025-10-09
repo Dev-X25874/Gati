@@ -16,7 +16,7 @@
 `define FC       //Define this macro to generate hardware for FC in the architecture
 `define POOL     //Define this macro to generate hardware for Pooling operation in the architecture
 // `define BIAS_FC  //Define this macro to generate hardware for BIAS_FC add in the architecture
-`define TRANSPOSE //Define this macro to generate hardware for Reshape Transpose operation in the architecture
+// `define TRANSPOSE //Define this macro to generate hardware for Reshape Transpose operation in the architecture
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care

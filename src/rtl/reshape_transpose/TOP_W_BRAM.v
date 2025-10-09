@@ -14,7 +14,8 @@ module TOP_W_BRAM #(parameter AXI_DATA_WIDTH = 256,
     input  clk,
     input  rst_n,
     input  rd_start,                                                                    //to start the dram rd requestor pulse 
-    input  empty,                 
+    input  empty,
+    input  done,            
     input  i_select,                                                   //select for the mem rd ctrl
     input  i_data_last,                                                   //data last input for mem rd ctrl from dram
     input  i_data_valid,                                                  //data valid input for mem rd ctrl from dram
@@ -42,6 +43,7 @@ wire [(AXI_DATA_BYTES * DATA_WIDTH) - 1 : 0] data_out_slice_controller;
 DRAM_read_requestor #(.AXI_BYTES(AXI_DATA_BYTES),
                       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
                       .W_CITER_CNT(W_CITER_CNT),
+                      .N_SA(N_SA),
                       .IMG_HEIGHT(IMG_HEIGHT),
                       .ADDR_OUT_CHUNCK_WIDTH(ADDR_OUT_CHUNCK_WIDTH))
 DRAM_read_requestor(
@@ -101,6 +103,7 @@ bram_wr_ctrl #(.AXI_DATA_BYTES(AXI_DATA_BYTES),
 bram_wr_ctrl(
     .clk(clk),
     .rst_n(rst_n),
+    .done(done),
     .valid_in(valid_in_slice_controller),
     .data_in(data_in_slice_controller),
     .n_bram_rden(n_bram_rden),

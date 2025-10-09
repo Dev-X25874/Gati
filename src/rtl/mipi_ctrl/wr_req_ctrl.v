@@ -60,7 +60,6 @@ endgenerate
 // this register is used to queue the read request in case where fifo gets empty
 reg need_read; 
 
-
 always @(posedge i_clk)begin
     if(~i_rstn)begin
         req <= 0;
@@ -85,13 +84,12 @@ always @(posedge i_clk)begin
             1:begin
                 if(i_valid_size_address) begin
                     data_size <= i_rd_size_address;
-                    if (~i_empty_size_address)begin
+                    state <= 2;
+                    if(~i_empty_size_address) begin
                         o_rd_en_size_address <= 1'b1;
-                        state <=2;
-                    end 
-                    else begin 
+                    end
+                    else begin
                         o_rd_en_size_address <= 1'b0;
-                        state <= 2;
                         need_read <= 1'b1;
                     end
                 end
@@ -101,7 +99,7 @@ always @(posedge i_clk)begin
                 end
             end
             2:begin
-                if (data_size == 0) begin
+                if (data_size==0) begin
                     state <= 0;
                     o_rd_en_size_address <= 1'b0;
                 end
@@ -123,7 +121,7 @@ always @(posedge i_clk)begin
             3: begin 
                 o_ack_dram_ctrl <= 0;
                 state <= 4;
-				if(data_size < ((BURST_LEN + 1)<<$clog2(AXI_BYTES)))  begin 
+				if((data_size<((BURST_LEN + 1)<<$clog2(AXI_BYTES))) && (data_size!=0)) begin 
 					r_burst_len <= (data_size >> $clog2(AXI_BYTES))-1;
 				end
 				else begin 
@@ -167,7 +165,7 @@ always @(posedge i_clk)begin
             end
             7: begin 
                 if(data_size != 0 )begin
-                    if((data_size >= ((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1)) && (data_size[31]!=1)) begin  
+                    if((data_size >= (((W_DATA >> $clog2(8)) * N_FIFO)*(r_burst_len+1))) && (data_size[31]!=1)) begin  //if data size = 32 * (blen+1)
                         r_burst_len <= BURST_LEN;
 						if(i_data_last) begin 
                             state <= 3; 

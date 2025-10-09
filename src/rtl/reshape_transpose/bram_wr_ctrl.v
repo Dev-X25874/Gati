@@ -12,6 +12,7 @@ module bram_wr_ctrl #(
     input clk,
     input rst_n,
     input valid_in,
+    input done,
     input  [(W_ADDR*N_BRAM) - 1:0]                 rd_addr,
     input  [(AXI_DATA_BYTES * W_DATA) - 1 : 0] data_in,
     input  [(N_BRAM - 1) : 0]                  n_bram_rden,
@@ -24,7 +25,7 @@ wire [(AXI_DATA_BYTES * W_DATA) - 1 : 0] data_in_fifo;
 wire [(N_BRAM * W_ADDR)-1 : 0]             wr_addr;
 reg  [(N_BRAM - 1) : 0]                  n_bram_wren = 0;
 reg  [W_ADDR - 1:0]                          r_addr = 0;
-reg  [W_DATA-1:0]                            counter = 0;
+reg  [(2*W_DATA)-1:0]                        counter = 0;
 assign wr_addr = {N_BRAM{r_addr}};
 
 localparam OFFSET = COL_SA;
@@ -62,6 +63,12 @@ always @(posedge clk) begin
                 rd_bram_start <= 1;
                 counter <= 0;
             end
+        end
+        else if(done) begin
+            n_bram_wren <= 0;
+            r_addr <= 0;
+            rd_bram_start <= 0;
+            counter <= 0;
         end
         else begin
             n_bram_wren <= 32'b0000_0000_0000_0000_0000_0000_0000_0000;

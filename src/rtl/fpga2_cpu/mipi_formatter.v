@@ -155,8 +155,14 @@ always @ (posedge clk) begin
 
         6:begin
             if((data_size_count > 0) && (data_size_count[DATA_SIZE-1] != 1)) begin //check if all the data has been sent or not
-                rd_en <= 1;
-                state <= 4;
+                if(~empty) begin
+                    rd_en <= 1;
+                    state <= 4;
+                end
+                else begin
+                    rd_en <= 0;
+                    state <= 6;
+                end
             end
             else begin
                 rd_en <= 0;

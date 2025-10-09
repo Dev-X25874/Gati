@@ -2,6 +2,7 @@ module DRAM_read_requestor #(parameter AXI_BYTES = 32,
                              parameter BURST_LENGTH_WIDTH = 8,
                              parameter W_CITER_CNT = 10,
                              parameter IMG_HEIGHT = 16,
+                             parameter N_SA = 16,
                              parameter ADDR_OUT_CHUNCK_WIDTH = 8)
 (
     input clk,
@@ -25,8 +26,8 @@ reg [(AXI_BYTES - 1) : 0] nxt_addr = 0;
 reg [(AXI_BYTES - 1) : 0] r_start_addr = 0;
 reg [1:0]                 state = 0;
 reg [7:0]                 count_addr_out = 0;
-reg [7:0]                 count_channel_offset = 0;
-reg [7:0]                 count_channel_elments = 0;
+reg [15:0]                count_channel_offset = 0;
+reg [15:0]                count_channel_elments = 0;
 
 //assign r_start_addr = start_addr;
 
@@ -40,7 +41,7 @@ always @(posedge clk) begin
         state <= 0;
         count_addr_out <= 0;
         count_channel_offset <= 0;
-        count_channel_elments <= 8'd1;
+        count_channel_elments <= 0;
         nxt_addr <= 0;
         r_start_addr <= 0;
     end
@@ -77,7 +78,7 @@ always @(posedge clk) begin
         2: begin
             last <= 0;
             valid <= 0;
-            if(count_channel_offset < channel_itr_count - 1) begin //channel_itr_count = 7
+            if(count_channel_offset < (channel_itr_count - 1)) begin //channel_itr_count = 7
                 if(last_data) begin
                     nxt_addr <= (nxt_addr + (offset<<$clog2(AXI_BYTES)));
                     count_channel_offset <= count_channel_offset + 1;
@@ -94,6 +95,7 @@ always @(posedge clk) begin
             else begin
                 nxt_addr <= nxt_addr;
                 count_channel_offset <= 0;
+                count_channel_elments <= count_channel_elments + AXI_BYTES/N_SA;
                 state <= 3;
                 channel_last <= 1;
             end
@@ -103,7 +105,6 @@ always @(posedge clk) begin
             if(empty) begin
                 if(count_channel_elments < img_dimension) begin //img_dimension = 19x19/2 ~ 181
                     nxt_addr <= (start_addr+(count_channel_elments<<$clog2(AXI_BYTES)));
-                    count_channel_elments <= count_channel_elments + 1;
                     state <= 1;
                 end 
                 else begin

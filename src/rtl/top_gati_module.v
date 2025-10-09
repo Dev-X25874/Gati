@@ -903,7 +903,7 @@ module top_gati_module #(
       .clk(i_clk),
       .rst(i_rst),
       .iter_done(iter_done),
-      .c_done(channel_done),
+      .c_done(Tail_done),
       .conv_type(conv_type),
       .conv_ack(ack_opcode[`OP_CONV]),
       .dup_flag(CONV_ChannelDuplicate),
@@ -2203,7 +2203,7 @@ module top_gati_module #(
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
     else begin
-      if(layer_cntr==96) layer_cntr <= 0;
+      if(layer_cntr==108) layer_cntr <= 0;
       else begin
         if(layer_done) layer_cntr <= layer_cntr + 1;
       end

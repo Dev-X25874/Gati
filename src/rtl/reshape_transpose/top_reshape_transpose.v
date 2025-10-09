@@ -62,7 +62,7 @@ module top_reshape_transpose #(
     assign op_fifo_wr_en = (&fifo_dv);
     assign rd_rq_offset = (img_dim % ELEMENTS == 0)? (img_dim/ELEMENTS):((img_dim/ELEMENTS) + 1);
     assign fifo_rd_en = (|empty_flag)? 0:{AXI_DATA_BYTES{1'b1}};
-    assign channel_iter = input_channels/N_SA;
+    assign channel_iter = (input_channels % N_SA == 0)? (input_channels/N_SA):((input_channels/N_SA) + 1);
 
     always @(posedge clk) begin
         if (!rst) fifo_in <= 0;
@@ -73,7 +73,8 @@ module top_reshape_transpose #(
         .clk(clk),
         .rst_n(rst),
         .rd_start(rd_start),
-        .empty(w_next_req),
+        .done(reshape_transpose_done),
+        .empty(w_next_req | reshape_transpose_done),
         .i_select(i_select),
         .i_data_last(i_data_last),
         .i_data_valid(i_data_valid),

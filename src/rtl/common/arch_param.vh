@@ -1,8 +1,8 @@
  // arch_param.vh
 
-`define N_SA 16
-`define COL_SA 1
-`define ROW 16
+`define N_SA 4
+`define COL_SA 4
+`define ROW 9
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care
@@ -25,6 +25,8 @@
 `define IM2COL_BOUND_GEN_WIDTH 16
 `define N_MOD_STAGES 9
 
+// For using Leaky ReLU
+//`define GEN_LEAKY_RELU
 
 // Macros for Debugging
 // Comment these if not required

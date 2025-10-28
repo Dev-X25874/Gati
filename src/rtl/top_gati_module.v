@@ -67,7 +67,7 @@ module top_gati_module #(
     parameter CONV_CHANNELDUPLICATE_WIDTH = `CONV_ChannelDuplicate_WIDTH,
 
     //im2col related param 
-    parameter STRIDE          =  1,        //`CONV_Stride,
+    parameter STRIDE          =  `STRIDE, // From arch_param.vh
     parameter KERNEL_SIZE     =  3,       //`CONV_KH,
     parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
     parameter N_MOD_STAGES    =  9, // Number of stages in mod operator in Im2Col stride handling block   
@@ -1641,7 +1641,7 @@ module top_gati_module #(
       .W_FC_IMAG_DIM(W_FC_IMAG_DIM),
       .ACC_DATA_REORDER(ACC_DATA_REORDER),
       // for im2col_v1
-      .STRIDE(CONV_STRIDE_WIDTH),
+      .STRIDE(STRIDE),
       .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH(CONV_KW_WIDTH),

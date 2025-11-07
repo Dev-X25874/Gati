@@ -43,6 +43,7 @@ module top_reshape_transpose #(
     wire fifo_wr_en;
     wire d_fifo_wr_en;
     reg  [DATA_WIDTH-1:0] fifo_in;
+    reg  dd_fifo_wr_en;
     wire [DATA_WIDTH-1:0] d_bram_out;
     wire w_bram_rd_start;
     wire w_next_req;
@@ -65,8 +66,14 @@ module top_reshape_transpose #(
     assign channel_iter = (input_channels % N_SA == 0)? (input_channels/N_SA):((input_channels/N_SA) + 1);
 
     always @(posedge clk) begin
-        if (!rst) fifo_in <= 0;
-        else fifo_in <= d_bram_out;
+        if (!rst) begin
+            fifo_in <= 0;
+            dd_fifo_wr_en <= 0;
+        end
+        else begin
+            fifo_in <= d_bram_out;
+            dd_fifo_wr_en <= d_fifo_wr_en;
+        end
     end
 
     TOP_W_BRAM #(.AXI_DATA_BYTES(AXI_DATA_BYTES), .AXI_DATA_WIDTH(AXI_DATA_WIDTH), .BURST_LENGTH_WIDTH(BURST_LEN), .IMG_HEIGHT(IMG_HEIGHT), .W_CITER_CNT(W_CITER_CNT), .DATA_WIDTH(DATA_WIDTH), .N_BRAM(AXI_DATA_BYTES), .W_ADDR(W_ADDR), .ELEMENTS(ELEMENTS), .COL_SA(COL_SA), .N_SA(N_SA), .ADDR_OUT_CHUNCK_WIDTH(ADDR_OUT_CHUNCK_WIDTH)) dut1(
@@ -139,7 +146,7 @@ module top_reshape_transpose #(
     vector_mux_param_inst (
       .in({256'd0,rt_data_byte}),
       .out(fifo_wr_data),
-      .sel(1<<((~d_fifo_wr_en) && (fifo_counter != 0)))
+      .sel(1<<((~dd_fifo_wr_en) && (fifo_counter != 0)))
     );
 
     gen_fifo #(.W_ADDR($clog2(FIFO_DEPTH)), .W_DATA(DATA_WIDTH), .N_FIFO(AXI_DATA_BYTES)) dut9( //dram fifo array

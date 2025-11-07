@@ -104,7 +104,7 @@ always @(posedge clk) begin
             channel_last <= 0;
             if(empty) begin
                 if(count_channel_elments < img_dimension) begin //img_dimension = 19x19/2 ~ 181
-                    nxt_addr <= (start_addr+(count_channel_elments<<$clog2(AXI_BYTES)));
+                    nxt_addr <= (start_addr+((count_channel_elments/(AXI_BYTES/N_SA))<<$clog2(AXI_BYTES)));
                     state <= 1;
                 end 
                 else begin

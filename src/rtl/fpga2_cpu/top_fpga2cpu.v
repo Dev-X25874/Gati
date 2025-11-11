@@ -193,7 +193,7 @@ Mem_read_ctrl #(.AXI_DATA_WIDTH(AXI_DATA_WIDTH), .N_FIFO(N_FIFO)) dut5(
 );
 
 sync_fifo #(.W_DATA(AXI_DATA_WIDTH), .W_ADDR(W_ADDR)) dram_fifo(
-.a_rst_i(~rst),
+.a_rst_i((~rst)|(transfer_done)),
 .clk_i(clk),
 .wdata(fifo_in),
 .rdata(fifo_out),

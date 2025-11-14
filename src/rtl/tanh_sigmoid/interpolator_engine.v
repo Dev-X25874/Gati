@@ -33,9 +33,9 @@ module interpolator_engine#(
 
     initial begin
         // Initialize data_samples, slope_values, and tanh_values
-        $readmemh("data_samples.txt", data_samples_lut,0,127);
-        $readmemh("slope_values.txt", slope_values_lut,0,127);
-        $readmemh("tanh_values.txt", tanh_values_lut,0,127);
+        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/data_samples.txt", data_samples_lut,0,127);
+        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/slope_values.txt", slope_values_lut,0,127);
+        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/tanh_values.txt", tanh_values_lut,0,127);
     end
 
     /*

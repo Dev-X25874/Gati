@@ -10,9 +10,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 4
-`define COL_SA 4
-`define ROW 9
+`define N_SA 16
+`define COL_SA 1
+`define ROW 16
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care

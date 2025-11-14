@@ -113,7 +113,7 @@ end
 assign EltWise_out = $signed(r_EltWise_out[DATA_WIDTH_OB-1:0]);
 
 endmodule
-
+// lut-based instantiation module
 module element_wise_op_lut#(
   parameter DATA_WIDTH = 8,
   parameter ELTWISE_TYPE_WIDTH = 4,

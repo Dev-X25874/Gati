@@ -9,7 +9,7 @@ module top_Tanh_Sigmoid_Engine#(
     input i_rst,
 
     input i_data_valid,
-    input signed [OUT_DATA_WIDTH-1:0] scaled_data_in, //increased width
+    input signed [SCALE_WIDTH-1:0] scaled_data_in,
     input i_tanh_sigmoid, // 0 for Tanh, 1 for Sigmoid
 
     output reg o_data_valid,

@@ -180,6 +180,8 @@ generate
             .EltWise_out(EltWise_data_out[((N-i)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
             .EltWise_valid(EltWise_data_out_valid[i]) 
         );
+      /* Duplicate modules from element_wise_op to interpolator_engine have
+      been created for lut-based instantiation. */
       end else begin
         element_wise_op_lut #(
             .DATA_WIDTH(DATA_WIDTH),

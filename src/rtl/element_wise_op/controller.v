@@ -6,7 +6,8 @@ module EltWise_controller#(
     parameter I_OP_SIZE_WIDTH = 16,
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
     parameter ELTWISE_IH_WIDTH = 10, // Width of the input height;
-    parameter ELTWISE_IC_WIDTH = 10 // Width of the output width;
+    parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
+    parameter ELTWISE_TYPE_WIDTH = 4
 )(
     input clkin,
     input rst,
@@ -21,6 +22,7 @@ module EltWise_controller#(
     input [FIFO_NO - 1:0] RightOperand_valid_fifo,
     input [FIFO_NO - 1:0] LeftOperand_empty_flag,
     input [FIFO_NO - 1:0] RightOperand_empty_flag,
+    input [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
 
     output [FIFO_NO - 1:0] element_rd_en,
     output reg [(DATA_WIDTH * N) - 1:0] LeftOperand_fifo_data_out,
@@ -42,6 +44,9 @@ always @(posedge clkin) begin
     r_img_size <= EltWise_IW * EltWise_IH;
 end
 
+wire tanh_switch;
+assign tanh_switch = ((EltWise_type == `ELTWISE_SIG) || (EltWise_type == `ELTWISE_TANH)) ? 1'b1 : 0;
+
 // Status monitoring to read the zeropadded data after the image size is reached
 wire [FIFO_NO-1:0] diff;
 reg [FIFO_NO-1:0] count_diff = 0;
@@ -56,7 +61,8 @@ reg [1:0] state = 0;
 reg sig_en = 0;
 
 reg fifo_rden = 0;
-reg [ELTWISE_IW_WIDTH+ELTWISE_IH_WIDTH-1:0] rd_counter = 0; // Added for debugging purpose only: Later can be removed(Important)
+reg [ELTWISE_IW_WIDTH+ELTWISE_IH_WIDTH-1:0] rd_counter = 0;
+// reg fifo_mux;
 // Read enable logic for element-wise operation
 always @(posedge clkin) begin
     if (!rst) begin
@@ -66,7 +72,6 @@ always @(posedge clkin) begin
         // cnt1 <= 0;
         fifo_rden <= 0;
         // LeftOperand_fifo_data_out <= 0;
-        // RightOperand_fifo_data_out <= 0;
         // data_valid <= 0;
         EW_done <= 0;
         state <= 0;
@@ -81,21 +86,26 @@ always @(posedge clkin) begin
             count_diff <= 0;
             if((rd_counter == r_img_size) && (rd_counter!=0)) begin
                 fifo_rden <= 0;
-                cycle_idx <= cycle_idx;
-                rd_counter <= rd_counter;
+                // cycle_idx <= cycle_idx;
+                // rd_counter <= rd_counter;
                 state <= 1;
             end
             else begin
-                if(!LeftOperand_empty_flag[cycle_idx] && !RightOperand_empty_flag[cycle_idx]) begin
+                if (tanh_switch && !LeftOperand_empty_flag[cycle_idx]) begin
+                  fifo_rden <= 1'b1;
+                  rd_counter <= rd_counter + 1;
+                  cycle_idx <= cycle_idx + 1;
+                  state <= 0;
+                end else if(!LeftOperand_empty_flag[cycle_idx] && !RightOperand_empty_flag[cycle_idx]) begin
                     fifo_rden <= 1'b1;
                     rd_counter <= rd_counter + 1;
                     cycle_idx <= cycle_idx + 1;
                     state <= 0;
-                end
+                end 
                 else begin
                     fifo_rden <= 0;
-                    cycle_idx <= cycle_idx;
-                    rd_counter <= rd_counter;
+                    // cycle_idx <= cycle_idx;
+                    // rd_counter <= rd_counter;
                     state <= 0;
                 end
             end
@@ -104,7 +114,7 @@ always @(posedge clkin) begin
         1: begin
             count_diff <= 0;
             sig_en <= 0;
-            cycle_idx <= cycle_idx;
+            // cycle_idx <= cycle_idx;
             fifo_rden <= 0;
             if(EltWise_op_en && (cnt1 == r_img_size)) begin
                 EW_done <= 1'b1;
@@ -113,7 +123,6 @@ always @(posedge clkin) begin
             end
             else begin
                 EW_done <= 1'b0;
-                rd_counter <= rd_counter;
                 state <= 1;
             end
         end
@@ -157,7 +166,13 @@ always @ (posedge clkin) begin
         RightOperand_fifo_data_out <= 0;
     end
     else begin
-         if (|(LeftOperand_valid_fifo) && |(RightOperand_valid_fifo) && ~sig_en) begin
+          if (tanh_switch && |(LeftOperand_valid_fifo) && ~sig_en) begin
+            LeftOperand_fifo_data_out <= LeftOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
+            RightOperand_fifo_data_out <= 0;
+            data_valid <= 1'b1;
+            cnt1 <= cnt1 + 1;
+            cycle_idx1 <= cycle_idx1 + 1;
+        end else if (|(LeftOperand_valid_fifo) && |(RightOperand_valid_fifo) && ~sig_en) begin
             LeftOperand_fifo_data_out <= LeftOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
             RightOperand_fifo_data_out <= RightOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
             data_valid <= 1'b1;

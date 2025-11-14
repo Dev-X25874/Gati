@@ -1,3 +1,5 @@
+`include "../common/instructions.vh"
+`include "../common/arch_param.vh"
 module Top_element_wise#(
     parameter DATA_WIDTH            = 8,
     parameter ELTWISE_TYPE_WIDTH    = 4,
@@ -28,8 +30,8 @@ module Top_element_wise#(
     input [(DATA_WIDTH*FIFO_NO*N)-1:0]LeftOperand_data_in,
     input [(DATA_WIDTH*FIFO_NO*N)-1:0]RightOperand_data_in,
     input [ELTWISE_TYPE_WIDTH-1:0]EltWise_type,
-    input [ELTWISE_SCALE_WIDTH-1:0]LeftOperand_Scale,
-    input [ELTWISE_SCALE_WIDTH-1:0]RightOperand_Scale,
+    input [ELTWISE_SCALE_WIDTH-15:0]LeftOperand_Scale,
+    input [ELTWISE_SCALE_WIDTH-15:0]RightOperand_Scale,
     input [ELTWISE_ZEROPOINT_WIDTH-1:0]LeftOperand_zero_point,
     input [ELTWISE_ZEROPOINT_WIDTH-1:0]RightOperand_zero_point,
     output [(DATA_WIDTH_OB*N)-1:0]EltWise_data_out,
@@ -48,9 +50,23 @@ wire [FIFO_NO-1:0] LeftOperand_valid_fifo,RightOperand_valid_fifo;
 wire [(DATA_WIDTH*N)-1:0] LeftOperand_fifo_data_out,RightOperand_fifo_data_out;
 wire [FIFO_NO-1:0] element_rd_en;
 wire data_valid;
+reg [ELTWISE_TYPE_WIDTH-1:0] r_EltWise_type;
 
 localparam ELTWISE_FP_BIT_SHIFT = 10; //Todo: Should be replaced with parameter depending on the precision required for floating point
-assign EltWise_fp_cast_shift = ELTWISE_FP_BIT_SHIFT[ELTWISE_QUANT_SHIFT-1:0];
+// assign EltWise_fp_cast_shift = ELTWISE_FP_BIT_SHIFT;
+`ifdef ELTWISE_SIGMOID_TANH
+reg [ELTWISE_QUANT_SHIFT-1:0] eltwise_fp_bit_shift_;
+
+always@(EltWise_type) begin
+    case (EltWise_type)
+        `ELTWISE_SIG, `ELTWISE_TANH: eltwise_fp_bit_shift_ <= 16;
+        default: eltwise_fp_bit_shift_ <= ELTWISE_FP_BIT_SHIFT;
+    endcase
+end
+assign EltWise_fp_cast_shift = eltwise_fp_bit_shift_;
+`else 
+assign EltWise_fp_cast_shift = ELTWISE_FP_BIT_SHIFT;
+`endif
 
 conv_output_reorder_EW #(
     .W_DATA(DATA_WIDTH),
@@ -107,7 +123,6 @@ dram_fifo #(.DIMENSION(FIFO_NO),
     .o_fifo_dv(RightOperand_valid_fifo),
     .o_occupants(RightOperand_fifo_occupants)
 );
-
 EltWise_controller #(
     .DATA_WIDTH(DATA_WIDTH),  
     .N(N),           
@@ -116,7 +131,8 @@ EltWise_controller #(
     .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
     .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
     .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
-    .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)       
+    .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH),
+    .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH)
 )EltWise_controller(
     .clkin(clkin),
     .rst(rst),
@@ -128,9 +144,10 @@ EltWise_controller #(
     .RightOperand_valid_fifo(RightOperand_valid_fifo),
     .element_rd_en(element_rd_en),
     .EltWise_IW(EltWise_IW),
-    .EltWise_IH(EltWise_IH),    
+    .EltWise_IH(EltWise_IH),
     .EltWise_IC(EltWise_IC),
     .LeftOperand_empty_flag(LeftOperand_empty_flag),
+    .EltWise_type(EltWise_type),
     .RightOperand_empty_flag(RightOperand_empty_flag),
     .LeftOperand_fifo_data_out(LeftOperand_fifo_data_out),
     .RightOperand_fifo_data_out(RightOperand_fifo_data_out),
@@ -138,28 +155,53 @@ EltWise_controller #(
     .data_valid(data_valid),
     .op_fifo_empty(op_fifo_empty)
 );
+
 genvar i;
 generate
     for(i=0;i<N;i=i+1)begin
-        element_wise_op #(
+      if(i < 8) begin
+        element_wise_op#(
             .DATA_WIDTH(DATA_WIDTH),
             .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
-            .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+            .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH-14),
             .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
             .DATA_WIDTH_OB(DATA_WIDTH_OB)
         ) ew_op (
             .clkin(clkin),
+            .rst(rst), 
             .LeftOperand(LeftOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
             .RightOperand(RightOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
             .data_valid(data_valid),
-            .LeftOperand_Scale(LeftOperand_Scale),
-            .RightOperand_Scale(RightOperand_Scale),
+            .LeftOperand_Scale(LeftOperand_Scale[ELTWISE_SCALE_WIDTH-15:0]),
+            .RightOperand_Scale(RightOperand_Scale[ELTWISE_SCALE_WIDTH-15:0]),
             .LeftOperand_zero_point(LeftOperand_zero_point),
             .RightOperand_zero_point(RightOperand_zero_point),
             .EltWise_type(EltWise_type),
             .EltWise_out(EltWise_data_out[((N-i)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
             .EltWise_valid(EltWise_data_out_valid[i]) 
         );
+      end else begin
+        element_wise_op_lut #(
+            .DATA_WIDTH(DATA_WIDTH),
+            .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
+            .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH-14),
+            .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
+            .DATA_WIDTH_OB(DATA_WIDTH_OB)
+        ) ew_op_lut (
+            .clkin(clkin),
+            .rst(rst),
+            .LeftOperand(LeftOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
+            .RightOperand(RightOperand_fifo_data_out[((N-i)*DATA_WIDTH)-1 -:DATA_WIDTH]),
+            .data_valid(data_valid),
+            .LeftOperand_Scale(LeftOperand_Scale[ELTWISE_SCALE_WIDTH-15:0]),
+            .RightOperand_Scale(RightOperand_Scale[ELTWISE_SCALE_WIDTH-15:0]),
+            .LeftOperand_zero_point(LeftOperand_zero_point),
+            .RightOperand_zero_point(RightOperand_zero_point),
+            .EltWise_type(EltWise_type),
+            .EltWise_out(EltWise_data_out[((N-i)*DATA_WIDTH_OB)-1 -: DATA_WIDTH_OB]),
+            .EltWise_valid(EltWise_data_out_valid[i]) 
+        );
+      end
     end
 endgenerate
 endmodule

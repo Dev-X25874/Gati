@@ -1,3 +1,4 @@
+
 `define OP_CONV 'h00
 // Opcode
 `define CONV_Opcode 3:0
@@ -302,7 +303,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 12
+`define ISA_VERSION 13
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define ACT_LEAKYRELU 'h02
@@ -329,6 +330,8 @@
 `define ELTWISE_ADD 0
 `define ELTWISE_SUB 1
 `define ELTWISE_MULT 2
+`define ELTWISE_SIG 3
+`define ELTWISE_TANH 4
 `define INST_SIZE_BITS 256
 `define META_WIDTH_BITS 48
 `define RAH_APP_ID 1

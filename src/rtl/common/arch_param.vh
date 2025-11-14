@@ -10,9 +10,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 16
-`define COL_SA 1
-`define ROW 16
+`define N_SA 4
+`define COL_SA 4
+`define ROW 9
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care
@@ -39,8 +39,11 @@
 `define N_MOD_STAGES 9
 `define STRIDE 4 
 
-// For Generating Leaky ReLU functionality in the relu activation block 
+// For Generating Sigmoid/Tanh Eltwise operation
 
+`define ELTWISE_SIGMOID_TANH
+
+// For Generating Leaky ReLU functionality in the relu activation block 
 //`define GEN_LEAKY_RELU
 
 // Macros for Debugging

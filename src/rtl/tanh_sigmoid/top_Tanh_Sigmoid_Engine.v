@@ -37,6 +37,7 @@ module top_Tanh_Sigmoid_Engine#(
         end
         else r_tanh_datavalid <= 1'b0;
     end
+
     wire [OUT_DATA_WIDTH-1 : 0] w_tanh_interpolated_out;
     wire w_tanh_data_valid;
     tanh_interpolator_engine #(
@@ -83,8 +84,6 @@ module top_Tanh_Sigmoid_Engine#(
 
 endmodule
 
-
-
 module top_Tanh_Sigmoid_Engine_lut#(
     parameter DATA_WIDTH    = 8,
     parameter SCALE_WIDTH   = 32,
@@ -96,7 +95,7 @@ module top_Tanh_Sigmoid_Engine_lut#(
     input i_rst,
 
     input i_data_valid,
-    input signed [OUT_DATA_WIDTH-1:0] scaled_data_in, //increased width
+    input signed [SCALE_WIDTH-1:0] scaled_data_in,
     input i_tanh_sigmoid, // 0 for Tanh, 1 for Sigmoid
 
     output reg o_data_valid,
@@ -124,13 +123,14 @@ module top_Tanh_Sigmoid_Engine_lut#(
         end
         else r_tanh_datavalid <= 1'b0;
     end
+
     wire [OUT_DATA_WIDTH-1 : 0] w_tanh_interpolated_out;
     wire w_tanh_data_valid;
     tanh_interpolator_engine_lut #(
         .DATA_WIDTH(OUT_DATA_WIDTH),
         .LUT_SIZE(LUT_SIZE),
         .FP_BITS(FP_BITS)
-    ) tanh_engine_lut (
+    ) tanh_engine_lut(
         .i_clk(i_clk),
         .i_rst(i_rst),
         .i_data_valid(r_tanh_datavalid),

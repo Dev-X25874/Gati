@@ -1,8 +1,6 @@
 `timescale 1ns/1ns
 `include "../../rtl/element_wise_op/element_wise_op.v"
 `include "../../rtl/tanh_sigmoid/input_range_decoder.v"
-`include "../../rtl/tanh_sigmoid/saturate_region.v"
-`include "../../rtl/tanh_sigmoid/pass_region.v"
 `include "../../rtl/tanh_sigmoid/interpolator_engine.v"
 `include "../../rtl/tanh_sigmoid/tanh_interpolator_engine.v"
 `include "../../rtl/tanh_sigmoid/top_Tanh_Sigmoid_Engine.v"
@@ -33,52 +31,19 @@ module tb_tanh_sigmoid_elementwise();
 
     // Clock generation
     initial clkin = 1;
-    always #5 clkin = ~clkin; // 100 MHz clock
-
-    /* -------------- Unoptimized Module Instantiation -------------- */
-    /*
-    tanh_sigmoid  tanh_sigmoid_inst (
-        .i_clk(i_clk),
-        .i_rst(i_rst),
-        .i_data(i_data),
-        .i_data_valid(i_data_valid),
-        .o_tanh(o_tanh),
-        .o_tanh_valid(o_tanh_valid)
-    );
-    */
-
-    /* -------------- Optimized Module Instantiation -------------- */
-    // Parameters for the tanh interpolator engine
+    always #5 clkin = ~clkin;
 
     localparam DATA_WIDTH = 8;
     localparam ELTWISE_TYPE_WIDTH = 4;
-    localparam ELTWISE_SCALE_WIDTH = 32;
+    localparam ELTWISE_SCALE_WIDTH = 17;
     localparam ELTWISE_ZEROPOINT_WIDTH = 8;
     localparam DATA_WIDTH_OB = 32;
 
-    /* ----------------- Tanh Interpolator Engine ----------------- */
-    /*
-    tanh_interpolator_engine # (
-        .DATA_WIDTH(DATA_WIDTH),
-        .LUT_SIZE(LUT_SIZE),
-        .FP_BITS(FP_BITS)
-    )
-    tanh_interpolator_engine_inst (
-      .i_clk(i_clk),
-      .i_rst(i_rst),
-      .i_data_valid(i_data_valid),
-      .i_data(i_data),
-      .o_data_valid(o_tanh_valid),
-      .o_data(o_tanh)
-    );
-    */
-
-    /* ------------------ Tanh_Sigmoid Engine --------------------- */
 
     element_wise_op # (
         .DATA_WIDTH(DATA_WIDTH),
         .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
-        .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH-14),
+        .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
         .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
         .DATA_WIDTH_OB(DATA_WIDTH_OB)
     )
@@ -88,8 +53,8 @@ module tb_tanh_sigmoid_elementwise();
         .LeftOperand(LeftOperand),
         .RightOperand(RightOperand),
         .data_valid(data_valid),
-        .LeftOperand_Scale(input_scale[ELTWISE_SCALE_WIDTH-15:0]),
-        .RightOperand_Scale(RightOperand_Scale[ELTWISE_SCALE_WIDTH-15:0]),
+        .LeftOperand_Scale(input_scale),
+        .RightOperand_Scale(RightOperand_Scale),
         .LeftOperand_zero_point(LeftOperand_zero_point),
         .RightOperand_zero_point(RightOperand_zero_point),
         .EltWise_type(EltWise_type),
@@ -117,7 +82,7 @@ module tb_tanh_sigmoid_elementwise();
     real expected;
 
     wire signed [ELTWISE_SCALE_WIDTH-1:0] input_scale,output_scale;
-    assign input_scale = 51407;
+    assign input_scale = 51408;
     assign output_scale = 127;
 
     initial begin
@@ -132,11 +97,6 @@ module tb_tanh_sigmoid_elementwise();
         $dumpvars(0);
 
         $display("Starting simulation...");
-        // Initialize inputs
-        // i_rst = 0;
-        // i_data = 0;
-        // i_data_valid = 0;
-        // i_tanh_sigmoid = 0;
 
         rst = 0;
         LeftOperand = 0;
@@ -153,18 +113,17 @@ module tb_tanh_sigmoid_elementwise();
         #10;
         LeftOperand = 0;
         data_valid = 1;
-        #10 LeftOperand = 252;
-        #10 LeftOperand = 251;
-        #10 LeftOperand = 250;
+        #10 LeftOperand = 1;
+        #10 LeftOperand = 1;
+        #10 LeftOperand = 2;
         #10 LeftOperand = 0;
-        #10 LeftOperand = -128;
+        #10 LeftOperand = -1;
         #10 LeftOperand = 8'h0;
         #10 LeftOperand = 8'h08;
         #10 LeftOperand = -4;
-        #10 LeftOperand = 8'hfc;
-        #10 LeftOperand = 8'hfb;
-        #10 LeftOperand = 8'hfa;
-        #10 LeftOperand = 8'hfb;
+        #10 LeftOperand = 2;
+        #10 LeftOperand = -2;
+        #10 LeftOperand = -5;
         #10 data_valid = 0; // Stop data valid signal
 
         #200; // Wait for some time to observe outputs
@@ -186,19 +145,15 @@ module tb_tanh_sigmoid_elementwise();
                 $display("Output is undefined for input %h", r_i_data);
             end 
             else if ($abs(expected - (r_o_tanh/2**16.0)) > 0.001) begin
-                $display("Mismatch at input %f, (hex: %h): Expected %f, got %f, (hex: %h)", ((r_i_data*input_scale)/2**16.0), (r_i_data), expected, (r_o_tanh/2**16.0), (r_o_tanh));
+                $display("Mismatch at input %f, (hex: %h): Expected %f, got %f, (hex: %h), after quant: %f", ((r_i_data*input_scale)/2**16), (r_i_data), expected, (r_o_tanh/2**16.0), (r_o_tanh), ((r_o_tanh*127 + 32768)>>> 16));
             end 
             else begin
-                $display("Match at input %f, (hex: %h): Output %f, (hex: %h), expected: %f", (r_i_data*input_scale/2**16.0), r_i_data, (r_o_tanh/2**16.0), r_o_tanh, expected);
+                $display("Match at input %f, (hex: %h): Output %f, (hex: %h), expected: %f, after quant: %f", (r_i_data*input_scale/2**16.0), r_i_data, (r_o_tanh/2**16.0), r_o_tanh, expected, ((r_o_tanh*127 + 32768)>>> 16));
             end
         end
 
         $finish;
     end
-
-    // initial begin
-    //     $monitor("Time: %0t, LeftOperand : %h, EltWise_out: %h, EltWise_valid: %b", $time, LeftOperand, EltWise_out, EltWise_valid);
-    // end
 
     always @(posedge clkin) begin
         if (data_valid) begin

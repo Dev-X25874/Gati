@@ -12,10 +12,11 @@ Gati
     DRAM-controller
     adder_tree
     transpose
+    Sigmoid
+    eltwise_op
     DWP
     dispatcher
     nms
-
 .. contents:: Table of Contents
    :local:
    :depth: 1
@@ -152,6 +153,18 @@ are added directly to the convolution outputs in the pipeline, ensuring
 efficient and seamless data processing without additional memory access
 overhead.
 
+Element Wise Operations
+***********************
+
+The element_wise_op block includes multiple operations that can be done on individual inputs. 
+The current supported element wise operations include:
+
+1. Addition 
+2. Subtraction
+3. multiplication 
+4. Sigmoid/Tanh (Refer to :ref:`Sigmoid` for more info.)
+
+For more info on Element wise operation megablock, refer :ref:`eltwise_op`
 
 Quantization
 ============

@@ -35,13 +35,13 @@
     STRIDE is the parameter that define the max stride for which the im2col engine will be generated thus if it 4 then it can only handle the stride 4 in input beyond which the system will break thus this can be changes based on the max input stride and should not be kept unnecessary  large thus to reduce the resource usages. 
 */
 
-`define IM2COL_BOUND_GEN_WIDTH 16
-`define N_MOD_STAGES 9
+`define IM2COL_BOUND_GEN_WIDTH 8
+`define N_MOD_STAGES 8
 `define STRIDE 4 
 
 // For Generating Sigmoid/Tanh Eltwise operation
 
-`define ELTWISE_SIGMOID_TANH
+// `define ELTWISE_SIGMOID_TANH
 
 // For Generating Leaky ReLU functionality in the relu activation block 
 //`define GEN_LEAKY_RELU

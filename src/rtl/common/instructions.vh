@@ -324,7 +324,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 15
+`define ISA_VERSION 16
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define ACT_LEAKYRELU 'h02
@@ -391,6 +391,24 @@
 `define CONCAT_KN4_WIDTH 10
 `define CONCAT_InNum 214:212
 `define CONCAT_InNum_WIDTH 3
+
+`define OP_RESIZE 'ha
+// Opcode
+`define RESIZE_Opcode 3:0
+`define RESIZE_Opcode_WIDTH 4
+// Width of the input image
+`define RESIZE_IW 13:4
+`define RESIZE_IW_WIDTH 10
+// Height of the input image
+`define RESIZE_IH 23:14
+`define RESIZE_IH_WIDTH 10
+// Channel count for the input
+`define RESIZE_IC 35:24
+`define RESIZE_IC_WIDTH 12
+`define RESIZE_ImageStartAddress 67:36
+`define RESIZE_ImageStartAddress_WIDTH 32
+`define RESIZE_ImageEndAddress 99:68
+`define RESIZE_ImageEndAddress_WIDTH 32
 
 `define ZerothStartAddress 31:0
 `define ZerothStartAddress_WIDTH 32

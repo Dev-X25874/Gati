@@ -180,6 +180,12 @@ module top_gati_module #(
     parameter TRANSPOSE_IH_WIDTH = `TRANSPOSE_IH_WIDTH,
     parameter TRANSPOSE_IW_WIDTH = `TRANSPOSE_IW_WIDTH,
 
+    parameter W_RESIZE_IW       = `RESIZE_IW_WIDTH,
+    parameter W_RESIZE_IH       = `RESIZE_IH_WIDTH,
+    parameter W_RESIZE_IC       = `RESIZE_IC_WIDTH,
+    parameter W_RESIZE_IMG_STA_ADD = `RESIZE_ImageStartAddress_WIDTH,
+    parameter W_RESIZE_IMG_END_ADD = `RESIZE_ImageEndAddress_WIDTH,      
+
     //Other parameters
     parameter SHFT_REG_X    = AXI_DATA_BYTES/N_SA, // Number of shift register blocks
     parameter BIAS_FIFO     = 16, // Number of bias FIFOs
@@ -481,6 +487,17 @@ module top_gati_module #(
   wire [QUANTEN_WIDTH-1:0] QUANT_EN;
   wire [BIASEN_WIDTH-1:0] BIAS_EN;
   wire [BiasWidth_WIDTH-1:0] BiasWidth;
+  // wire [POOLEN_WIDTH-1:0] POOL_EN;
+  // inster global pool here 
+  // wire [G_POOLEN_WIDTH-1:0] G_POOL_EN;
+  
+  wire resize_done,
+  wire [OPCODE_WIDTH-1:0] resize_opcode,
+  wire [W_RESIZE_IW-1:0] resize_iw,
+  wire [W_RESIZE_IH-1:0] resize_ih,
+  wire [W_RESIZE_IC-1:0] resize_ic,
+  wire [W_RESIZE_IMG_STA_ADD-1:0] resize_img_sta_add,
+  wire [W_RESIZE_IMG_END_ADD-1:0] resize_img_end_add,
 
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
@@ -527,7 +544,7 @@ module top_gati_module #(
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  wire start_SA, start_FC, start_EW, start_RT, start_POOL;
+  wire start_SA, start_POOL, start_FC, start_RT, start_EW, start_RESIZE;
   wire [NUM_INSTRUCTIONS-1:0] start_block; 
 
   /* start signal for mega blocks can create new start from here using the mega block macro , the start_block signal is one cycle delayed signal of start commond to match with the start and conv_fc*/ 
@@ -538,6 +555,7 @@ module top_gati_module #(
   assign start_EW = start_block[`OP_EltWise];
   assign start_RT = start_block[`OP_TRANSPOSE];
   assign start_Concat = start_block[`OP_CONCAT];
+  assign start_RESIZE = start_block[`OP_RESIZE];
 
 
   /* always block for the generation of the CONV_FC */
@@ -605,6 +623,7 @@ module top_gati_module #(
   `else 
   assign opcode_hold[(`OP_POOL*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
   `endif
+  assign opcode_hold[(`OP_RESIZE*OPCODE_WIDTH) +:OPCODE_WIDTH] = resize_opcode;
 
   integer i;
   
@@ -969,6 +988,11 @@ module top_gati_module #(
     .TRANSPOSE_IC_WIDTH(TRANSPOSE_IC_WIDTH),
     .TRANSPOSE_IH_WIDTH(TRANSPOSE_IH_WIDTH),
     .TRANSPOSE_IW_WIDTH(TRANSPOSE_IW_WIDTH),
+    .RESIZE_IW_WIDTH(W_RESIZE_IW),
+    .RESIZE_IH_WIDTH(W_RESIZE_IH),
+    .RESIZE_IC_WIDTH(W_RESIZE_IC),
+    .RESIZE_IMG_STA_ADD_WIDTH(W_RESIZE_IMG_STA_ADD),
+    .RESIZE_IMG_END_ADD_WIDTH(W_RESIZE_IMG_END_ADD),
     .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
     .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH),
     .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
@@ -1058,6 +1082,13 @@ module top_gati_module #(
     .ReshapeTranspose_IW(ReshapeTranspose_IW),
     .ReshapeTranspose_IC(ReshapeTranspose_IC),
     `endif //TRANSPOSE
+    //Resize
+    .opcode_resize(resize_opcode),
+    .resize_iw(resize_iw),
+    .resize_ih(resize_ih),
+    .resize_ic(resize_ic),
+    .resize_img_sta_add(resize_img_sta_add),
+    .resize_img_end_add(resize_img_end_add),
 
     //OP block inst. signals
     .opcode_OB(Op_code_OB),
@@ -1215,30 +1246,17 @@ module top_gati_module #(
       .last(mc_img_last_conv)
   );
 
-wire img_read_done_pool;
-wire [7:0] mc_img_addr_pool;
-wire mc_img_rdreq_pool;
-wire mc_img_valid_pool;
-wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_pool;
-wire mc_img_last_pool;
-
-wire img_read_done_conv;
-wire [7:0] mc_img_addr_conv;
-wire mc_img_rdreq_conv;
-wire mc_img_valid_conv;
-wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_conv;
-wire mc_img_last_conv;
-
-// mux for image request controller output
-assign img_read_done = (opcode == `OP_CONV) ? img_read_done_conv : img_read_done_pool; 
-assign mc_img_addr = (opcode == `OP_CONV) ? mc_img_addr_conv : mc_img_addr_pool; 
-assign mc_img_rdreq = (opcode == `OP_CONV) ? mc_img_rdreq_conv : mc_img_rdreq_pool; 
-assign mc_img_valid = (opcode == `OP_CONV) ? mc_img_valid_conv : mc_img_valid_pool; 
-assign mc_img_bl = (opcode == `OP_CONV) ? mc_img_bl_conv : mc_img_bl_pool; 
-assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
 
   `ifdef MEGA_POOL // This will come in resize also
-  request_controller_img_pool#(
+  wire [(W_POOL_IMG_STA_ADD - 1) : 0] pool_resize_img_sta_add;
+  wire [(W_POOL_IH - 1 ): 0] pool_resize_ih;
+  wire [(W_POOL_IW - 1 ): 0] pool_resize_iw;
+
+  assign pool_resize_img_sta_add = (opcode == `OP_RESIZE)? pool_img_sta_add : resize_img_sta_add; 
+  assign pool_resize_ih = (opcode == `OP_RESIZE)? pool_ih : resize_ih; 
+  assign pool_resize_iw = (opcode == `OP_RESIZE)? pool_iw : resize_iw; 
+  
+  request_controller_img_pool_resize#(
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
     .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
     .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
@@ -1250,29 +1268,53 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     .N_SA(N_SA),
     .W_POOL_IW(W_POOL_IW),
     .W_POOL_IH(W_POOL_IH)
-  ) image_req_ctrl_pool (
+  ) image_req_ctrl_pool_resize (
     .clk(i_clk),
     .rst(i_rst),
-    .start_addr(pool_img_sta_add),
-    .stop_addr(pool_img_end_add),
+    .start_addr(pool_resize_img_sta_add),
+    // .stop_addr(pool_img_end_add),
     .kernelitr(kernel_iteration),
-    .channelitr(channel_iteration),
-    .input_img_height(pool_ih),
-    .input_img_width(pool_iw),
-    .config_start(start_POOL),
+    // .channelitr(channel_iteration),
+    .input_img_height(pool_resize_ih),
+    .input_img_width(pool_resize_iw),
+    .config_start(start_POOL | start_RESIZE),
     .fifo_status(img_fifo_status),
-    .iter_done(iter_done),
+    // .iter_done(iter_done),
     .c_done(channel_done),
-    .pool_ack(ack_opcode[`OP_POOL]),
+    // .pool_ack(ack_opcode[`OP_POOL]),
 
-    .img_rd_done(img_read_done_pool),
+    .img_rd_done(img_read_done_pool_resize),
 
-    .addr_out(mc_img_addr_pool),
-    .wr_enable(mc_img_rdreq_pool), //write-read enable
-    .valid(mc_img_valid_pool),
-    .last(mc_img_last_pool),
-    .burst_length(mc_img_bl_pool));
-  `endif
+    .addr_out(mc_img_addr_pool_resize),
+    .wr_enable(mc_img_rdreq_pool_resize), //write-read enable
+    .valid(mc_img_valid_pool_resize),
+    .last(mc_img_last_pool_resize),
+    .burst_length(mc_img_bl_pool_resize)
+);
+ `endif
+
+wire img_read_done_pool_resize;
+wire [7:0] mc_img_addr_pool_resize;
+wire mc_img_rdreq_pool_resize;
+wire mc_img_valid_pool_resize;
+wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_pool_resize;
+wire mc_img_last_pool_resize;
+
+wire img_read_done_conv;
+wire [7:0] mc_img_addr_conv;
+wire mc_img_rdreq_conv;
+wire mc_img_valid_conv;
+wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_conv;
+wire mc_img_last_conv;
+
+// mux for image request controller output
+assign img_read_done = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? img_read_done_pool_resize : img_read_done_conv; 
+assign mc_img_addr = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_addr_pool_resize : mc_img_addr_conv; 
+assign mc_img_rdreq = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_rdreq_pool_resize : mc_img_rdreq_conv; 
+assign mc_img_valid = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_valid_pool_resize : mc_img_valid_conv; 
+assign mc_img_bl = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_bl_pool_resize : mc_img_bl_conv; 
+assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last_pool_resize : mc_img_last_conv; 
+
 
   //CONV_FC = 1 => FC mode , else CONV mode
   assign start_address_weights  = CONV_FC ? weight_start_addr_fc : weight_start_addr_conv;
@@ -1734,13 +1776,13 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .i_clk(i_clk),
       .i_rst(i_rst),
       .i_data(image_data_out),
-      .i_read_enable(image_rden),
+      .i_read_enable(image_rden), // mux here for resize
       .i_write_enable({AXI_DATA_BYTES{image_data_out_dv}}),
-      .o_data(fifo_imgo_data),
+      .o_data(fifo_imgo_data), // demux here for resize 
       .o_fifo_empty(image_fifo_empty),
       .o_fifo_full(),
       .o_fifo_dv(),
-      .o_occupants(img_fifo_occupants)
+      .o_occupants(img_fifo_occupants) // use this for resize
   );
   
   //fifo weight 
@@ -2727,14 +2769,21 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     )
     iteration_counter_new_inst
     (
-        .i_clk(i_clk),
-        .rst(i_rst),
-        .i_start(start),
-        .CONV_FC(CONV_FC),
-        .im2col_done(im2col_done), // i-wire : from im2col block
-        .SA_psum_fifo_empty(SA_psum_fifo_empty),
-        .Tail_done(Tail_done),
-        .op_fifo_empty(op_done),
+      .i_clk(i_clk),
+      .rst(i_rst),
+      .i_start(start),
+      .CONV_FC(CONV_FC),
+      .im2col_done(im2col_done), // i-wire : from im2col block
+      .SA_psum_fifo_empty(SA_psum_fifo_empty),
+      .pool_done(pool_done),
+      .op_dram_fifo_empty(op_fifo_empty),
+      .Tail_done(Tail_done),
+      .op_fifo_empty(op_done),
+      .FC_done(FC_done),
+      .EW_done(EW_done),
+      .resize_done(resize_done), // khud laao
+      .c_iter(channel_iteration), //channel iteration
+      .k_iter(kernel_iteration), //kernel iteration
 
         `ifdef FC
         .FC_done(FC_done),

@@ -27,6 +27,7 @@ module iteration_cnt #(
     input RT_done,
     input pool_done,
     input i_concat_done,
+    input resize_done,
    // input [15:0] img_w, //width of input image matrix
     input [CITER_CNT_WIDTH-1:0] c_iter,
     input [KITER_CNT_WIDTH-1:0] k_iter,
@@ -75,6 +76,7 @@ module iteration_cnt #(
     assign done_input[`OP_EltWise]     = r_EW_done;
     assign done_input[`OP_TRANSPOSE]   = r_RT_done;
     assign done_input[`OP_TailBlock]   = r_Tail_done;
+    assign done_input[`OP_RESIZE] = r_resize_done;
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
     
     `ifdef MEGA_POOL
@@ -102,7 +104,8 @@ module iteration_cnt #(
     reg r_EW_done;
     reg r_RT_done;
     reg r_concat_done;
-	reg [CITER_CNT_WIDTH-1:0] r_c_iter,sub_iter;
+    reg r_resize_done;
+  	reg [CITER_CNT_WIDTH-1:0] r_c_iter,sub_iter;
     reg [KITER_CNT_WIDTH-1:0] r_k_iter;
     
     //Enable signals from instruction
@@ -180,6 +183,7 @@ module iteration_cnt #(
         `endif
         
         r_concat_done <= i_concat_done;
+        r_resize_done <= resize_done;
 		r_BIAS_EN<=BIAS_EN;
 		r_RELU_EN<=RELU_EN;
 		r_QUANT_EN<=QUANT_EN;

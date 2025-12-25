@@ -1,0 +1,77 @@
+module OP_Resize#(
+    parameter OP_CODE_WIDTH = 4, 
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+
+    parameter RESIZE_IW_WIDTH = 10,
+    parameter RESIZE_IH_WIDTH = 10,
+    parameter RESIZE_IC_WIDTH = 10,
+    parameter RESIZE_IMG_STA_ADD_WIDTH = 10,
+    parameter RESIZE_IMG_END_ADD_WIDTH = 10
+    )(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg valid,
+    output reg ready = 0,
+    output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+    output [RESIZE_IW_WIDTH - 1 : 0] resize_iw,
+    output [RESIZE_IH_WIDTH - 1 : 0] resize_ih,
+    output [RESIZE_IC_WIDTH - 1 : 0] resize_ic,
+    output [RESIZE_IMG_STA_ADD_WIDTH - 1 : 0] resize_img_sta_add,
+    output [RESIZE_IMG_END_ADD_WIDTH - 1 : 0] resize_img_end_add
+);
+
+`include "../common/instructions.vh"
+
+reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
+reg [2:0] state = 0;
+reg [17:0] count = 0;
+parameter IDLE = 3'b000;
+parameter REGISTER = 3'b001;
+parameter CONCAT = 3'b011;
+// assign valid = done;  //valid gets high as soon as done bit is received indicating that all the respective data has been assigned to the output signals
+
+always @(posedge clk) begin
+    case(state)
+    IDLE: begin
+        data_instruction <= 0;
+        valid <= 0;
+        ready <= 0;
+        state <= REGISTER;
+    end
+    REGISTER: begin
+        if(sel) begin
+            ready <= 1'b1;
+            if(write) begin
+                if(count < (CNT-1)) begin
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
+                    count <= count + 1;
+                    state <= REGISTER;
+                end
+                else begin
+                    data_instruction[OUTPUT_WIDTH-(count*8)-1 -:8] <= din;
+                    count <= 0;
+                    state <= CONCAT;
+                end
+            end
+        end
+    end
+    CONCAT: begin
+            opcode <= data_instruction[`RESIZE_Opcode];
+            resize_iw <= data_instruction[`RESIZE_IW];
+            resize_ih <= data_instruction[`RESIZE_IH];
+            resize_ic <= data_instruction[`RESIZE_IC];
+            resize_img_sta_add <= data_instruction[`RESIZE_ImageStartAddress];
+            resize_img_end_add <= data_instruction[`RESIZE_ImageEndAddress];
+            valid <= 1'b1;
+            state <= IDLE;
+    end
+    endcase
+end
+
+endmodule

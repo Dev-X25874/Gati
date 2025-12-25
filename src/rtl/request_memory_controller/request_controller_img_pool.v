@@ -1,6 +1,6 @@
 `include "../common/arch_param.vh"
 
-module request_controller_img_pool#(
+module request_controller_img_pool_resize#(
     parameter BURST_LENGTH_WIDTH = 8, 
     parameter AXI_ADDRESS_WIDTH = 32,
     parameter ADDR_OUT_CHUNK_WIDTH = 8,
@@ -16,16 +16,12 @@ module request_controller_img_pool#(
     input clk,
     input rst,
     input [AXI_ADDRESS_WIDTH - 1 : 0] start_addr,
-    input [AXI_ADDRESS_WIDTH - 1 : 0] stop_addr,
     input [KERNELITR_WIDTH - 1 : 0] kernelitr,
-    input [CHANNELITR_WIDTH - 1 : 0] channelitr,
     input [W_POOL_IH - 1 : 0] input_img_height,
     input [W_POOL_IW - 1 : 0] input_img_width,
     input config_start,
     input fifo_status,
-    input iter_done,
     input c_done,
-    input pool_ack,
 
     output reg img_rd_done = 0,
     output reg [ADDR_OUT_CHUNK_WIDTH - 1 : 0] addr_out  = 0,
@@ -40,7 +36,6 @@ module request_controller_img_pool#(
     reg [AXI_ADDRESS_WIDTH - 1 : 0] nxt_addr = 0,nxt_burst=0;
     reg [2:0] state = 0;
     reg [KERNELITR_WIDTH - 1 : 0] count_kernel = 0;
-    reg [CHANNELITR_WIDTH - 1 : 0] count_channel = 0;
     reg [BURST_LENGTH_WIDTH - 1 : 0] r_burst_length = 0,rbl_add1=0;
     
     localparam IDLE = 3'b000;
@@ -53,12 +48,10 @@ module request_controller_img_pool#(
     assign burst_length = r_burst_length;
 	reg [AXI_ADDRESS_WIDTH - 1 : 0] r_start_addr;
     reg [KERNELITR_WIDTH - 1 : 0] 	r_kernelitr;
-    reg [CHANNELITR_WIDTH - 1 : 0] r_channelitr;
     reg [AXI_ADDRESS_WIDTH - 1 : 0] r_stop_addr;
     reg r_config_start;
     reg r_fifo_status; //occupancy check
     reg r_c_done;
-    reg r_dup_flag;
 
     wire [2*W_POOL_IW-1 : 0] input_img_size;
     wire [W_POOL_IW-1 : 0] extra_img_size;
@@ -93,7 +86,6 @@ always @(posedge clk) begin
             img_rd_done <= 0;
             if(r_config_start) begin
                 r_kernelitr     <= kernelitr;
-                r_channelitr    <= channelitr;
                 state           <= FIFO_STATUS;
                 nxt_addr        <= r_start_addr;
                 r_stop_addr     <= r_start_addr + offset;
@@ -175,7 +167,7 @@ always @(posedge clk) begin
                     state <= C_DONE;
                     img_rd_done <= 0;
                 end
-             end          
+             end      
         KERNEL_ITR: begin //this state will check for kernal value as to how many times the same image has to be read
             img_rd_done <= 0;
             if (count_kernel < r_kernelitr -1) begin

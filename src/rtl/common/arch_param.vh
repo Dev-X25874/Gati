@@ -40,6 +40,9 @@
 `define N_MOD_STAGES 10
 `define STRIDE 4
 
+// For generating eltwise multiplication operation
+// `define ELTWISE_MULT_HW
+
 // For Generating Sigmoid/Tanh Eltwise operation
 //`define ELTWISE_SIGMOID_TANH
 

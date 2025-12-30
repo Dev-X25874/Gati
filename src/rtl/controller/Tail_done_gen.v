@@ -51,6 +51,9 @@ always @(posedge i_clk) begin
         `OP_EltWise: begin
             data_count<=img_dim_Op;
         end
+        `OP_RESIZE: begin
+          data_count<=img_dim_Op;
+        end
     endcase
 end
 always@(posedge i_clk) begin

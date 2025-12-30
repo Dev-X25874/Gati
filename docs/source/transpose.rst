@@ -6,9 +6,6 @@ Transpose Architecture
 This document presents the architecture for performing transpose operation on a
 tensor MxNxK, specifically, CHW to HWC transpose.
 
-.. image:: _static/Transpose.jpg
-    :width: 70%
-    :align: center
 
 The basic idea of this architecture is to read the data from DRAM randomly and
 write the data into DRAM sequentially in the required order to achieve desired
@@ -48,3 +45,10 @@ iteration.
 Note that, DRAM read requestor initially reads the first 'L' bytes of all
 channels and then next subsequent bytes were requested after successful transfer
 of the data present in the 'L' FIFOs.
+
+
+Block Diagram
+============= 
+
+
+.. image:: /_static/reshape_transpose.svg

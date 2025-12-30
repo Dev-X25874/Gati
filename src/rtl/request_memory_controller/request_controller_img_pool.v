@@ -28,7 +28,8 @@ module request_controller_img_pool_resize#(
     output reg wr_enable = 0, //write-read enable
     output reg valid = 0,
     output reg last = 0,
-    output [BURST_LENGTH_WIDTH - 1 : 0] burst_length
+    output [BURST_LENGTH_WIDTH - 1 : 0] burst_length,
+    output reg o_kernel_update
 );
 
     integer i;
@@ -98,6 +99,7 @@ always @(posedge clk) begin
         FIFO_STATUS: begin //for checking if required occupancy has been achieved or not
             nxt_burst<=(nxt_addr+((r_burst_length+1)<<$clog2(AXI_DATA_BYTES)));
             img_rd_done <= 0;
+            o_kernel_update <= 1'b0;
             if(r_fifo_status) begin
                 state <= START_ADDR;
             end
@@ -175,10 +177,12 @@ always @(posedge clk) begin
                 r_stop_addr <= nxt_addr + offset;
                 state <= FIFO_STATUS;
                 count_kernel <= count_kernel + 1;
+                o_kernel_update <= 1'b1;
                 r_burst_length <= BURST_LENGTH;
             end
             else begin
                 nxt_addr <= 0;
+                o_kernel_update <= 1'b0;
                 state <= IDLE;
                 count_kernel <= 0;
             end

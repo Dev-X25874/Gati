@@ -96,7 +96,6 @@ module Top_CONV_FC #(
     parameter FC_BRAM_DEPTH = 1024,
     parameter W_KERNEL_CNT = 16,
     parameter W_FC_IMAG_DIM = 20,
-
     // im2col_v1 parameter
 
     parameter KERNEL_SIZE = 4,  // im2col kernal size
@@ -211,7 +210,10 @@ module Top_CONV_FC #(
     output [DRAM_BW-1:0] image_rden,
 	  input stall_on,
     input img_read_done,
-    
+     // signals for resize block 
+    input [N_SA-1:0] resize_valid,
+    input [N_SA*DATA_WIDTH-1:0] resize_op,
+   
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -1355,6 +1357,8 @@ always @(posedge i_clk) begin
     `endif
   `endif
 
+  assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : ((maxpool_enable) ?maxpool_output : ((opcode == `OP_RESIZE) ? resize_op : relu_output));
+  assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : ((maxpool_enable) ? maxpool_valid : ((opcode == `OP_RESIZE) ? resize_valid : relu_valid));
   //zero padding circuit
   top_zero # (
     .DW(DATA_WIDTH),

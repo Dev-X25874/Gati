@@ -611,7 +611,7 @@ OP_EltWise(
     .ready(ready[`OP_EltWise])
     );
 
-OP_RESIZE #(
+OP_Resize #(
 .OP_CODE_WIDTH(OP_CODE_WIDTH),
 .CNT(CNT),
 .INPUT_WIDTH(OUTPUT_WIDTH),

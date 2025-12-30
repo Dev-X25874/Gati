@@ -491,13 +491,13 @@ module top_gati_module #(
   // inster global pool here 
   // wire [G_POOLEN_WIDTH-1:0] G_POOL_EN;
   
-  wire resize_done,
-  wire [OPCODE_WIDTH-1:0] resize_opcode,
-  wire [W_RESIZE_IW-1:0] resize_iw,
-  wire [W_RESIZE_IH-1:0] resize_ih,
-  wire [W_RESIZE_IC-1:0] resize_ic,
-  wire [W_RESIZE_IMG_STA_ADD-1:0] resize_img_sta_add,
-  wire [W_RESIZE_IMG_END_ADD-1:0] resize_img_end_add,
+  wire resize_done;
+  wire [OPCODE_WIDTH-1:0] resize_opcode;
+  wire [W_RESIZE_IW-1:0] resize_iw;
+  wire [W_RESIZE_IH-1:0] resize_ih;
+  wire [W_RESIZE_IC-1:0] resize_ic;
+  wire [W_RESIZE_IMG_STA_ADD-1:0] resize_img_sta_add;
+  wire [W_RESIZE_IMG_END_ADD-1:0] resize_img_end_add;
 
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
@@ -1251,11 +1251,12 @@ module top_gati_module #(
   wire [(W_POOL_IMG_STA_ADD - 1) : 0] pool_resize_img_sta_add;
   wire [(W_POOL_IH - 1 ): 0] pool_resize_ih;
   wire [(W_POOL_IW - 1 ): 0] pool_resize_iw;
-
-  assign pool_resize_img_sta_add = (opcode == `OP_RESIZE)? pool_img_sta_add : resize_img_sta_add; 
-  assign pool_resize_ih = (opcode == `OP_RESIZE)? pool_ih : resize_ih; 
-  assign pool_resize_iw = (opcode == `OP_RESIZE)? pool_iw : resize_iw; 
-  
+  wire w_resize_kernel_start;
+  wire w_kernel_update;
+  assign pool_resize_img_sta_add = (opcode == `OP_RESIZE)? resize_img_sta_add : pool_img_sta_add ; 
+  assign pool_resize_ih = (opcode == `OP_RESIZE) ? resize_ih : pool_ih; 
+  assign pool_resize_iw = (opcode == `OP_RESIZE) ? resize_iw : pool_iw ; 
+  assign w_resize_kernel_start = (opcode == `OP_RESIZE) ? w_kernel_update : 1'b0;
   request_controller_img_pool_resize#(
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
     .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
@@ -1289,7 +1290,8 @@ module top_gati_module #(
     .wr_enable(mc_img_rdreq_pool_resize), //write-read enable
     .valid(mc_img_valid_pool_resize),
     .last(mc_img_last_pool_resize),
-    .burst_length(mc_img_bl_pool_resize)
+    .burst_length(mc_img_bl_pool_resize),
+    .o_kernel_update(w_kernel_update)
 );
  `endif
 
@@ -1765,7 +1767,20 @@ assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last
     .o_dv(image_data_out_dv)
   );
 
+
+  wire [AXI_DATA_BYTES-1:0] img_fifo_rden;
+  wire [($clog2(DRAM_IMG_FIFO_DEPTH)):0] img_fifo_occ;
+  wire [($clog2(DRAM_IMG_FIFO_DEPTH)):0] img_fifo_occ_resize;
+  assign img_fifo_occ = img_fifo_occupants[(($clog2(DRAM_IMG_FIFO_DEPTH)+1)*AXI_DATA_BYTES)-1-:($clog2(DRAM_IMG_FIFO_DEPTH)+1)];
+  assign img_fifo_rden = (opcode == `OP_RESIZE) ? resize_fifo_rden : image_rden;
+  assign img_fifo_occ_resize = (opcode == `OP_RESIZE) ? img_fifo_occ : 0;
   //fifo img
+  wire [AXI_DATA_BYTES -1:0] img_fifo_dv;
+  wire [AXI_DATA_BYTES-1:0] img_fifo_dv_resize;
+  wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] fifo_img_data_resize;
+
+  assign fifo_img_data_resize = (opcode == `OP_RESIZE) ? fifo_imgo_data : 0;
+  assign img_fifo_dv_resize = (opcode == `OP_RESIZE) ? img_fifo_dv : 0;
   dram_fifo #(
       .DIMENSION(AXI_DATA_BYTES),
       .W_DATA(DATA_WIDTH),
@@ -1776,12 +1791,12 @@ assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last
       .i_clk(i_clk),
       .i_rst(i_rst),
       .i_data(image_data_out),
-      .i_read_enable(image_rden), // mux here for resize
+      .i_read_enable(img_fifo_rden), // mux here for resize
       .i_write_enable({AXI_DATA_BYTES{image_data_out_dv}}),
       .o_data(fifo_imgo_data), // demux here for resize 
       .o_fifo_empty(image_fifo_empty),
       .o_fifo_full(),
-      .o_fifo_dv(),
+      .o_fifo_dv(img_fifo_dv),
       .o_occupants(img_fifo_occupants) // use this for resize
   );
   
@@ -2608,11 +2623,12 @@ assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last
       `ifdef CONCAT
       .end_row_skip(end_row_skip),
       .o_concat_data(o_concat_data),
-      .o_concat_dv(o_concat_dv)
-      `else
-      .end_row_skip(end_row_skip)
+      .o_concat_dv(o_concat_dv),
       `endif
 
+      .end_row_skip(end_row_skip),
+      .resize_valid(resize_valid),
+      .resize_op(resize_op)
   );
 
   `ifdef TRANSPOSE
@@ -2727,7 +2743,39 @@ assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last
     .o_acc_onchip_data_dv(vector_add_wren_opfifo_acc),
     .quant_op_fifo_full(quant_op_fifo_full)
   );
+ 
+  wire [AXI_DATA_BYTES-1:0] resize_fifo_rden;
+  wire [N_SA-1:0] resize_valid;
+  wire [AXI_DATA_BYTES*DATA_WIDTH-1:0] resize_op;
 
+
+  gen_top_resize#(
+    .AXI_DATA_BYTES(AXI_DATA_BYTES),
+    .DATA_WIDTH(DATA_WIDTH),
+    .FIFO_NO(AXI_DATA_BYTES),
+    .N_SA(N_SA),
+    .RESIZE_IW_WIDTH(W_RESIZE_IW),
+    .RESIZE_IH_WIDTH(W_RESIZE_IH),
+    .RESIZE_IC_WIDTH(W_RESIZE_IC),
+    .MOD2(MOD2),
+    .W_ADDR($clog2(DRAM_IMG_FIFO_DEPTH))
+  ) resize_inst(
+    .i_clk(i_clk),
+    .i_rst(i_rst),
+    .i_resize_IW(resize_iw),
+    .i_resize_IH(resize_ih),
+    .i_fifo_occupants(img_fifo_occ_resize),
+    .i_fifo_data(fifo_img_data_resize),
+    .i_fifo_data_valid(img_fifo_dv_resize),
+    .i_fifo_empty(image_fifo_empty),
+    .o_valid(resize_valid),
+    .o_data_out(resize_op),
+    .o_busy(),
+    .o_fifo_rden(resize_fifo_rden),
+    .o_done(resize_done),
+    .i_resize_start(w_resize_kernel_start | start_RESIZE)
+  );
+  
   // DRAM write control for OP_FIFO  
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -2769,21 +2817,16 @@ assign mc_img_last = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last
     )
     iteration_counter_new_inst
     (
-      .i_clk(i_clk),
-      .rst(i_rst),
-      .i_start(start),
-      .CONV_FC(CONV_FC),
-      .im2col_done(im2col_done), // i-wire : from im2col block
-      .SA_psum_fifo_empty(SA_psum_fifo_empty),
-      .pool_done(pool_done),
-      .op_dram_fifo_empty(op_fifo_empty),
-      .Tail_done(Tail_done),
-      .op_fifo_empty(op_done),
-      .FC_done(FC_done),
-      .EW_done(EW_done),
-      .resize_done(resize_done), // khud laao
-      .c_iter(channel_iteration), //channel iteration
-      .k_iter(kernel_iteration), //kernel iteration
+        .i_clk(i_clk),
+        .rst(i_rst),
+        .i_start(start),
+        .CONV_FC(CONV_FC),
+        .im2col_done(im2col_done), // i-wire : from im2col block
+        .SA_psum_fifo_empty(SA_psum_fifo_empty),
+        .op_dram_fifo_empty(op_fifo_empty),
+        .Tail_done(Tail_done),
+        .op_fifo_empty(op_done),
+        .resize_done(resize_done), // khud laao
 
         `ifdef FC
         .FC_done(FC_done),

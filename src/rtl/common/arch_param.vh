@@ -46,6 +46,7 @@
 // For Generating Sigmoid/Tanh Eltwise operation
 //`define ELTWISE_SIGMOID_TANH
 
+
 // For Generating Leaky ReLU functionality in the relu activation block 
 // DO NOT GENERATE IN CASE OF 16 1 16
 //`define GEN_LEAKY_RELU

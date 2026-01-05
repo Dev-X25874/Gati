@@ -1,4 +1,6 @@
 `include "../common/instructions.vh"
+`include "../common/arch_param.vh"
+
 module Tail_done_gen#(
     parameter N = 4,
     parameter I_ACC_SIZE_WIDTH = 16,
@@ -38,6 +40,11 @@ always @(posedge i_clk) begin
         	    data_count<=img_dim_Op;
         	end
         end
+        `ifdef MEGA_MAX
+        `OP_POOL: begin
+            data_count<=img_dim_Op;
+        end
+        `endif
         `OP_FC: begin
             data_count<=img_dim_Op;
         end

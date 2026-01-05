@@ -6,6 +6,8 @@ module top_im2col_v1 #(
     parameter CONV_KW_WIDTH = 4,
     parameter CONV_KH_WIDTH = 4,
     parameter DATA_WIDTH = 8,
+    parameter STRIDE_COL = 3,
+    parameter STRIDE_ROW = 3,
     parameter STRIDE = 3,
     parameter ROW = 9,
     parameter CONV_PadLeft_WIDTH = 3, // Left padding width
@@ -15,36 +17,37 @@ module top_im2col_v1 #(
     parameter CONV_StartRowSkip_WIDTH = 4, // Start row skip for im2col
     parameter CONV_EndRowSkip_WIDTH = 4 ) // End row skip for im2col)
     (
-        input                                  clk_in,
-        input                                  rstn,
-        input                                  valid_mat_size,
-        input                                  i_start_im2col_index,
-        input                                  i_valid_data,
-        input  [DATA_WIDTH-1:0]                i_data,
-        input  [CONV_KW_WIDTH-1:0]             kw,
-        input  [CONV_KH_WIDTH-1:0]             kh,
-        input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
-        input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
-        input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
-        input [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom,
+        input                               clk_in,
+        input                               rstn,
+        input                               valid_mat_size,
+        input                               i_start_im2col_index,
+        input                               i_valid_data,
+        input [DATA_WIDTH-1:0]              i_data,
+        input [CONV_KW_WIDTH-1:0]           kw, 
+        input [CONV_KH_WIDTH-1:0]           kh, 
+        input [CONV_PadLeft_WIDTH-1:0]      conv_pad_left, 
+        input [CONV_PadRight_WIDTH-1:0]     conv_pad_right,
+        input [CONV_PadTop_WIDTH-1:0]       conv_pad_top,
+        input [CONV_PadBottom_WIDTH-1:0]    conv_pad_bottom,
+        input [(UPPER_BOUND)-1:0]           i_mat_size_col, 
+        input [(UPPER_BOUND)-1:0]           i_mat_size_row, 
+        input [CONV_StartRowSkip_WIDTH-1:0] start_row_skip, 
+        input [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
+        input [STRIDE_COL-1:0]              stride_col, 
+        input [STRIDE_ROW-1:0]              stride_row, 
+        input                               start_SA,
+        input                               i_stall_on,
         
-        input  [(UPPER_BOUND)-1:0]       i_mat_size_col,
-        input  [(UPPER_BOUND)-1:0]       i_mat_size_row,
-        output [ROW-1:0]                       valid_sq,           
-        output                                 o_valid,
-        output [DATA_WIDTH-1:0]                valid_sq_data_o,
-        input  [STRIDE-1:0]                    stride,
-        output                                 o_valid_buff,
-        output                                 o_im2col_done,
-        input                                  start_SA,
-        input                                  i_stall_on,
-        output [(UPPER_BOUND)-1:0]       o_row,
-        output [(UPPER_BOUND)-1:0]       o_col,
-        output [(UPPER_BOUND)-1:0]       real_row,
-        output [(UPPER_BOUND)-1:0]       real_col,
-        input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
-        input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
-        output                              pseudo_im2col_done
+        output                     o_valid_buff,
+        output                     o_im2col_done, 
+        output [(UPPER_BOUND)-1:0] o_row,
+        output [(UPPER_BOUND)-1:0] o_col,
+        output [(UPPER_BOUND)-1:0] real_row,
+        output [(UPPER_BOUND)-1:0] real_col,
+        output [ROW-1:0]           valid_sq,           
+        output                     o_valid,
+        output [DATA_WIDTH-1:0]    valid_sq_data_o,
+        output                     pseudo_im2col_done
             
 
     );
@@ -182,10 +185,12 @@ module top_im2col_v1 #(
     .o_data(valid_sq_data_o)
     );
     
-    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .N_MOD_STAGES(N_MOD_STAGES), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE)) stride_dut(
+    stride_block_v1 #(.DATA_WIDTH(DATA_WIDTH), .ROW(ROW), .N_MOD_STAGES(N_MOD_STAGES), .CONV_KH_WIDTH(CONV_KH_WIDTH), .CONV_KW_WIDTH(CONV_KW_WIDTH), .UPPER_BOUND(UPPER_BOUND), .STRIDE(STRIDE),.STRIDE_COL(STRIDE_COL),.STRIDE_ROW(STRIDE_ROW)) 
+    stride_dut(
     .clk(clk_in),
     .rst(rstn),
-    .stride(stride),
+    .stride_row(stride_row),
+    .stride_col(stride_col),
     .curr_col(w_col),
     .curr_row(w_row),
     .lower_bound_row(lower_bound_row),
@@ -196,7 +201,7 @@ module top_im2col_v1 #(
     .valid_stride(w_valid_stride)
     );
     
-    assign valid_sq = (stride == 'd1)? d_valid_sq : (d_valid_sq & w_valid_stride) ;  
+    assign valid_sq = ((stride_col == 'd1) && (stride_row == 'd1)) ? d_valid_sq : (d_valid_sq & w_valid_stride);  
     
 
 endmodule

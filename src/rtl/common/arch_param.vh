@@ -39,22 +39,30 @@
     STRIDE is the parameter that define the max stride for which the im2col engine will be generated thus if it 4 then it can only handle the stride 4 in input beyond which the system will break thus this can be changes based on the max input stride and should not be kept unnecessary  large thus to reduce the resource usages. 
 */
 
-`define IM2COL_BOUND_GEN_WIDTH 8
-`define N_MOD_STAGES 8
+`define IM2COL_BOUND_GEN_WIDTH 16
+`define N_MOD_STAGES 9
 `define STRIDE 4 
 
 // For Generating Sigmoid/Tanh Eltwise operation
-
-// `define ELTWISE_SIGMOID_TANH
+//`define ELTWISE_SIGMOID_TANH
 
 // For Generating Leaky ReLU functionality in the relu activation block 
 //`define GEN_LEAKY_RELU
 
+// For Generating Maxpool as a mega block
+//`define MEGA_MAX
+
+// For Generating Global Average Pool
+//`define GLOBAL_POOL
+
 // Macros for Debugging
-// Comment these if not required
+/* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 
+*/
+
 // To monitor Layer wise compute cycles
 
 //`define MONITOR_LAYER_CYCLES
 
-// To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)
+// To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)\
+
 //`define MONITOR_STALL_CYLES

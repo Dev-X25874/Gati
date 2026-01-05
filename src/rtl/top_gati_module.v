@@ -126,7 +126,33 @@ module top_gati_module #(
     parameter LR_POS_ALPHA_WIDTH   = `TailBlock_PosAlpha_WIDTH,  
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
     parameter W_QUANT_SCALE     = `TailBlock_QuantScale_WIDTH, 
-    parameter POOL_TYPE_WIDTH   = `TailBlock_PoolType_WIDTH,
+
+    parameter W_GBL_POOL_SCALE = `TailBlock_GblPoolScale_WIDTH,
+    parameter W_GBL_POOL_SHIFT = `TailBlock_GblPoolShift_WIDTH,
+    parameter W_GBL_POOL_EN    = `TailBlock_GblPoolEn_WIDTH,
+
+    `ifdef MEGA_MAX
+    parameter W_POOL_IW         = `POOL_IW_WIDTH,
+    parameter W_POOL_IH         = `POOL_IH_WIDTH,
+    parameter W_POOL_IC         = `POOL_IC_WIDTH,
+    parameter W_POOL_IMG_STA_ADD = `POOL_ImageStartAddress_WIDTH,
+    parameter W_POOL_IMG_END_ADD = `POOL_ImageEndAddress_WIDTH,
+    parameter W_POOL_TYPE       = `POOL_PoolType_WIDTH,
+    parameter W_POOL_SCALE      = `POOL_PoolScale_WIDTH,
+    parameter W_POOL_SHIFT      = `POOL_PoolShift_WIDTH,
+    parameter W_POOL_WIDTH      = `POOL_PoolWidth_WIDTH,
+    parameter W_POOL_HEIGHT     = `POOL_PoolHeight_WIDTH,
+    parameter W_POOL_STRIDE_W   = `POOL_PoolStrideWidth_WIDTH,
+    parameter W_POOL_STRIDE_H   = `POOL_PoolStrideHeight_WIDTH,
+    parameter W_POOL_CEIL       = `POOL_PoolCeil_WIDTH,
+    parameter W_POOL_PAD_L      = `POOL_PadLeft_WIDTH,
+    parameter W_POOL_PAD_R      = `POOL_PadRight_WIDTH,
+    parameter W_POOL_PAD_T      = `POOL_PadTop_WIDTH,
+    parameter W_POOL_PAD_B      = `POOL_PadBottom_WIDTH,
+    parameter W_POOL_PREFETCH   = `POOL_Im2colPrefetch_WIDTH,
+    `else POOL
+    parameter W_POOL_EN         = `TailBlock_PoolEn_WIDTH,
+    parameter W_POOL_TYPE       = `TailBlock_PoolType_WIDTH,
     parameter W_POOL_WIDTH      = `TailBlock_PoolWidth_WIDTH,
     parameter W_POOL_HEIGHT     = `TailBlock_PoolHeight_WIDTH,
     parameter W_POOL_STRIDE     = `TailBlock_PoolStride_WIDTH,
@@ -136,9 +162,10 @@ module top_gati_module #(
     parameter W_POOL_PADSIDES   = `TailBlock_PoolPadSides_WIDTH,
     parameter W_POOL_SCALE      = `TailBlock_PoolScale_WIDTH,
     parameter W_POOL_SHIFT      = `TailBlock_PoolShift_WIDTH,
+    `endif
+
     parameter ACTEN_WIDTH       = `TailBlock_ActEn_WIDTH,
     parameter QUANTEN_WIDTH     = `TailBlock_QuantEn_WIDTH,
-    parameter POOLEN_WIDTH      = `TailBlock_PoolEn_WIDTH,
     parameter BIASEN_WIDTH      = `TailBlock_BiasEn_WIDTH,
     parameter BiasWidth_WIDTH   = `TailBlock_BiasWidth_WIDTH,
 
@@ -416,11 +443,17 @@ module top_gati_module #(
   wire [LR_POS_ALPHA_WIDTH-1:0] LR_PosAlpha;
   wire [W_QUANT_SHIFT-1:0] tail_quantshift;
   wire [W_QUANT_SCALE-1:0] tail_quantscale;
+
+  `ifdef GLOBAL_POOL
+  wire [W_GBL_POOL_SCALE-1:0] gbl_pool_scale;
+  wire [W_GBL_POOL_SHIFT-1:0] gbl_pool_shift;
+  wire [W_GBL_POOL_EN-1:0] gbl_pool_en;
+  `endif
+
   wire [ACTEN_WIDTH-1:0] ACT_EN;
   wire [QUANTEN_WIDTH-1:0] QUANT_EN;
   wire [BIASEN_WIDTH-1:0] BIAS_EN;
   wire [BiasWidth_WIDTH-1:0] BiasWidth;
-  wire [POOLEN_WIDTH-1:0] POOL_EN;
 
   wire [AXI_ADDR_W-1:0] bias_start_address;
   wire [AXI_ADDR_W-1:0] bias_stop_address;
@@ -467,12 +500,13 @@ module top_gati_module #(
   reg [OPCODE_WIDTH-1:0] opcode;
   reg valid_inst_CONV_FC;
   reg CONV_FC;
-  wire start_SA,start_FC,start_EW,start_RT;
+  wire start_SA, start_FC, start_EW, start_RT, start_POOL;
   wire [NUM_INSTRUCTIONS-1:0] start_block; 
 
   /* start signal for mega blocks can create new start from here using the mega block macro , the start_block signal is one cycle delayed signal of start commond to match with the start and conv_fc*/ 
 
   assign start_SA = start_block[`OP_CONV];
+  assign start_POOL = start_block[`OP_POOL];  
   assign start_FC = start_block[`OP_FC];
   assign start_EW = start_block[`OP_EltWise];
   assign start_RT = start_block[`OP_TRANSPOSE];
@@ -532,6 +566,11 @@ module top_gati_module #(
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
   `endif //FC
 
+  `ifdef MEGA_MAX
+  assign opcode_hold[(`OP_POOL*OPCODE_WIDTH) +:OPCODE_WIDTH] = pool_opcode;
+  `else 
+  assign opcode_hold[(`OP_POOL*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
+  `endif
 
   integer i;
   
@@ -565,7 +604,18 @@ module top_gati_module #(
   wire [AXI_DATA_BYTES-1:0] image_fifo_empty;
   reg stall_on=0;
   reg stall_enable=0;
-  
+
+  wire [CONV_PadTop_WIDTH-1:0] pad_top;
+  wire [CONV_PadLeft_WIDTH-1:0] pad_left;
+
+  `ifdef MEGA_MAX
+  assign pad_top = (opcode == `OP_POOL) ? pool_pad_t : conv_pad_top;
+  assign pad_left = (opcode == `OP_POOL) ? pool_pad_l : conv_pad_left;
+  `else 
+  assign pad_top = conv_pad_top;
+  assign pad_left = conv_pad_left;
+  `endif
+
   always@(posedge i_clk) begin 
     if((&(image_fifo_empty) && stall_enable) | psum_full) begin
         stall_on <= 1;
@@ -581,8 +631,8 @@ module top_gati_module #(
         if(im2col_global_start) begin
             stall_enable <= 1;
         end
-        else if((real_row == input_img_height + conv_pad_top)  
-            && (real_col >= ((input_img_width + conv_pad_left) - (AXI_DATA_BYTES/N_SA)))) begin 
+        else if((real_row == input_img_height + pad_top)  
+            && (real_col >= ((input_img_width + pad_left) - (AXI_DATA_BYTES/N_SA)))) begin 
             stall_enable <= 0;
         end
         else begin 
@@ -602,7 +652,44 @@ module top_gati_module #(
     wire istolic_stall;
     wire systolic_array_trigger;
 
-  // instantiation of sa_start_stall_ctrler
+    `ifdef MEGA_MAX
+    reg sa_start_ctrl_sa_done;
+    reg sa_start_ctrl_prefetch;
+    reg [CONV_IH_WIDTH-1 : 0] sa_start_ctrl_img_h;
+    reg [CONV_IW_WIDTH-1 : 0] sa_start_ctrl_img_w;
+    reg [CONV_PadTop_WIDTH-1:0] sa_start_ctrl_zeropad;
+    reg [CONV_STRIDE_WIDTH-1:0] sa_start_ctrl_stride_width;
+    reg [CONV_STRIDE_WIDTH-1:0] sa_start_ctrl_stride_height;
+    reg [CONV_ConvType_WIDTH-1:0] sa_start_ctrl_conv_type;
+    reg [CONV_KW_WIDTH-1:0] sa_start_ctrl_kernel_w;
+    reg [CONV_KH_WIDTH-1:0] sa_start_ctrl_kernel_h;
+
+    always @(posedge i_clk) begin
+      if (opcode == `OP_POOL) begin
+        sa_start_ctrl_sa_done <= pool_done;
+        sa_start_ctrl_prefetch <= pool_prefetch;
+        sa_start_ctrl_img_h <= pool_ih;
+        sa_start_ctrl_img_w <= pool_iw;
+        sa_start_ctrl_zeropad <= pool_pad_t;
+        sa_start_ctrl_stride_width <= poolstride_w;
+        sa_start_ctrl_stride_height <= poolstride_h;
+        sa_start_ctrl_conv_type <= 2'b01;
+        sa_start_ctrl_kernel_w <= poolwidth;
+        sa_start_ctrl_kernel_h <= poolheight;
+      end
+      else begin
+        sa_start_ctrl_sa_done <= SA_done;
+        sa_start_ctrl_prefetch <= CONV_Im2colPrefetch;
+        sa_start_ctrl_img_h <= input_img_height;
+        sa_start_ctrl_img_w <= input_img_width;
+        sa_start_ctrl_zeropad <= conv_pad_top;
+        sa_start_ctrl_stride_width <= stride;
+        sa_start_ctrl_stride_height <= stride;
+        sa_start_ctrl_conv_type <= conv_type;
+        sa_start_ctrl_kernel_w <= kernel_width;
+        sa_start_ctrl_kernel_h <= kernel_height;
+      end
+    end
 
     sa_start_stall_ctrl #(
         .CONV_IH_WIDTH(CONV_IH_WIDTH),
@@ -614,6 +701,52 @@ module top_gati_module #(
         .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
         .COL_SA(COL_SA),
         .CONV_KW_WIDTH(CONV_KW_WIDTH),
+        .CONV_KH_WIDTH(CONV_KH_WIDTH),
+        .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH)
+        )
+    sa_start_stall_ctrl_inst (
+        .sa_image_fifo_almost_empty_flag(sa_image_fifo_almost_empty_flag),
+        .sa_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
+        .im2col_global_start(im2col_global_start),
+        .im2col_done(im2col_done),
+        .SA_done(sa_start_ctrl_sa_done),
+        .i_clk(i_clk),
+        .i_rst(i_rst),
+        .CONV_Im2colPrefetch(sa_start_ctrl_prefetch),
+        .conv_type(sa_start_ctrl_conv_type),
+        .input_img_height(sa_start_ctrl_img_h), 
+        .input_img_width(sa_start_ctrl_img_w), 
+        .conv_zeropad(sa_start_ctrl_zeropad),
+        .stride_width(sa_start_ctrl_stride_width),
+        .stride_height(sa_start_ctrl_stride_height),
+        .istolic_stall(istolic_stall),
+        .row(row),
+        .col(col),
+        .kernel_width(sa_start_ctrl_kernel_w),
+        .kernel_height(sa_start_ctrl_kernel_h),
+        .systolic_array_trigger(systolic_array_trigger)
+  );
+
+    wire pool_done;
+    wire pool_start;
+    wire pool_stall;
+
+    assign pool_start = (opcode == `OP_POOL) ? systolic_array_trigger : 0;
+    assign pool_stall = (opcode == `OP_POOL) ? istolic_stall : 0;
+
+    `else
+
+    sa_start_stall_ctrl #(
+        .CONV_IH_WIDTH(CONV_IH_WIDTH),
+        .CONV_IW_WIDTH(CONV_IW_WIDTH),
+        .CONV_PAD_WIDTH(CONV_PadRight_WIDTH), 
+        .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+        .IMAGE_DIM(CONV_IW_WIDTH),
+        .CONV_Pfetch_WIDTH(CONV_Im2colPrefetch_WIDTH),
+        .CONV_TYPE_WIDTH(CONV_ConvType_WIDTH),
+        .COL_SA(COL_SA),
+        .CONV_KW_WIDTH(CONV_KW_WIDTH),
+        .CONV_KH_WIDTH(CONV_KH_WIDTH),
         .IM2COL_FIFO_DEPTH(IM2COL_FIFO_DEPTH)
         )
     sa_start_stall_ctrl_inst (
@@ -629,13 +762,16 @@ module top_gati_module #(
         .input_img_height(input_img_height), 
         .input_img_width(input_img_width), 
         .conv_zeropad(conv_pad_top),
-        .stride (stride),
+        .stride_width(stride),
+        .stride_height(stride),
         .istolic_stall(istolic_stall),
         .row(row),
         .col(col),
         .kernel_width(kernel_width),
+        .kernel_height(kernel_height),
         .systolic_array_trigger(systolic_array_trigger)
-  );
+    );
+    `endif
 
   `ifdef FC
   // logic for flattening trigger
@@ -651,7 +787,29 @@ module top_gati_module #(
   end
   `endif //FC
 
-  wire [(POOL_TYPE_WIDTH - 1) : 0] pooltype;
+  `ifdef MEGA_MAX
+  wire [(OPCODE_WIDTH - 1) : 0] pool_opcode;
+  wire [(W_POOL_IW - 1 ): 0] pool_iw;
+  wire [(W_POOL_IH - 1) : 0] pool_ih;
+  wire [(W_POOL_IC - 1) : 0] pool_ic;
+  wire [(W_POOL_IMG_STA_ADD - 1) : 0] pool_img_sta_add;
+  wire [(W_POOL_IMG_END_ADD - 1) : 0] pool_img_end_add;
+  wire [(W_POOL_TYPE - 1) : 0] pooltype;
+  wire [(W_POOL_SCALE - 1) : 0] poolscale;
+  wire [(W_POOL_SHIFT - 1) : 0]  poolshift;
+  wire [(W_POOL_WIDTH - 1) : 0] poolwidth;
+  wire [(W_POOL_HEIGHT - 1) : 0] poolheight;
+  wire [(W_POOL_STRIDE_W - 1) : 0] poolstride_w;
+  wire [(W_POOL_STRIDE_H - 1) : 0] poolstride_h;
+  wire [(W_POOL_CEIL - 1) : 0] poolceil;
+  wire [(W_POOL_PAD_L - 1) : 0] pool_pad_l;
+  wire [(W_POOL_PAD_R - 1) : 0] pool_pad_r;
+  wire [(W_POOL_PAD_T - 1) : 0] pool_pad_t;
+  wire [(W_POOL_PAD_B - 1) : 0] pool_pad_b;
+  wire [(W_POOL_PREFETCH - 1) : 0] pool_prefetch;
+  `elseif POOL
+  wire [(W_POOL_EN - 1) : 0] POOL_EN;
+  wire [(W_POOL_TYPE - 1) : 0] pooltype;
   wire [(W_POOL_WIDTH - 1) : 0] poolwidth;
   wire [(W_POOL_HEIGHT - 1) : 0] poolheight;
   wire [(W_POOL_STRIDE - 1) : 0] poolstride;
@@ -661,6 +819,7 @@ module top_gati_module #(
   wire [(W_POOL_PADSIDES - 1) : 0] poolpadsides;
   wire [(W_POOL_SCALE - 1) : 0] poolscale;
   wire [(W_POOL_SHIFT - 1) : 0] poolshift;
+  `endif
 
   wire [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth; // output dram data width in bytes 
 
@@ -714,19 +873,44 @@ module top_gati_module #(
     .QUANTEN_WIDTH(QUANTEN_WIDTH),
     .QUANTSCALE_WIDTH(W_QUANT_SCALE),
     .QUANTSHIFT_WIDTH(W_QUANT_SHIFT),
-    .POOLEN_WIDTH(POOLEN_WIDTH),
-    .POOLTYPE_WIDTH(POOL_TYPE_WIDTH),
+
+    .GBL_POOL_SCALE_WIDTH(W_GBL_POOL_SCALE),
+    .GBL_POOL_SHIFT_WIDTH(W_GBL_POOL_SHIFT),
+    .GBL_POOL_EN_WIDTH(W_GBL_POOL_EN), 
+
+    // MEGA POOL Parameters
+    `ifdef MEGA_POOL
+    .POOL_IW_WIDTH(W_POOL_IW),
+    .POOL_IH_WIDTH(W_POOL_IH),
+    .POOL_IC_WIDTH(W_POOL_IC),
+    .POOL_IMG_STA_ADD_WIDTH(W_POOL_IMG_STA_ADD),
+    .POOL_IMG_END_ADD_WIDTH(W_POOL_IMG_END_ADD),
+    .POOLTYPE_WIDTH(W_POOL_TYPE),
+    .POOLSCALE_WIDTH(W_POOL_SCALE),
+    .POOLSHIFT_WIDTH(W_POOL_SHIFT),
+    .POOLWIDTH_WIDTH(W_POOL_WIDTH),
+    .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
+    .POOLSTRIDE_W_WIDTH(W_POOL_STRIDE_W),
+    .POOLSTRIDE_H_WIDTH(W_POOL_STRIDE_H),
+    .POOLCEIL_WIDTH(W_POOL_CEIL),
+    .POOLPAD_L_WIDTH(W_POOL_PAD_L),
+    .POOLPAD_R_WIDTH(W_POOL_PAD_R),
+    .POOLPAD_T_WIDTH(W_POOL_PAD_T),
+    .POOLPAD_B_WIDTH(W_POOL_PAD_B),
+    .POOL_PREFETCH_WIDTH(W_POOL_PREFETCH),
+    `else POOL
+    .POOLTYPE_WIDTH(W_POOL_TYPE),
     .POOLWIDTH_WIDTH(W_POOL_WIDTH),
     .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
     .POOLSTRIDE_WIDTH(W_POOL_STRIDE),
-    .POOLPADDING_WIDTH(W_POOL_PAD),
+    .POOLPAD_WIDTH(W_POOL_PAD),
     .POOLCEIL_WIDTH(W_POOL_CEIL),
     .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
     .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
     .POOLSCALE_WIDTH(W_POOL_SCALE),
     .POOLSHIFT_WIDTH(W_POOL_SHIFT),
-    .BIASEN_WIDTH(BIASEN_WIDTH),
-    .BiasWidth_WIDTH(BiasWidth_WIDTH),
+    `endif
+
     .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
     .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
     .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
@@ -838,6 +1022,38 @@ module top_gati_module #(
     .QuantEn(QUANT_EN), // goes to iteration cter
     .quantscale(tail_quantscale),
     .quantshift(tail_quantshift),
+    .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
+    .BiasWidth(BiasWidth),
+    .BiasStartAddress(bias_start_address),
+    .BiasEndAddress(bias_stop_address),
+    
+    `ifdef GLOBAL_POOL
+    .gbl_pool_scale(gbl_pool_scale),
+    .gbl_pool_shift(gbl_pool_shift),
+    .gbl_pool_en(gbl_pool_en),
+    `endif
+
+    `ifdef MEGA_MAX
+    .opcode_pool(pool_opcode), 
+    .pool_iw(pool_iw),
+    .pool_ih(pool_ih),
+    .pool_ic(pool_ic),
+    .pool_img_sta_add(pool_img_sta_add),
+    .pool_img_end_add(pool_img_end_add),
+    .pooltype(pooltype),
+    .poolscale(poolscale),
+    .poolshift(poolshift),
+    .poolwidth(poolwidth),
+    .poolheight(poolheight),
+    .poolstride_w(poolstride_w),
+    .poolstride_h(poolstride_h),
+    .poolceil(poolceil),
+    .pool_pad_l(pool_pad_l),
+    .pool_pad_r(pool_pad_r),
+    .pool_pad_t(pool_pad_t),
+    .pool_pad_b(pool_pad_b),
+    .pool_prefetch(pool_prefetch),
+    `elseif POOL
     .PoolEn(POOL_EN), //goes to iteration cter
     .pooltype(pooltype),
     .poolwidth(poolwidth),
@@ -848,11 +1064,8 @@ module top_gati_module #(
     .poolModCount(poolModCount),
     .poolpadsides(poolpadsides),
     .poolscale(poolscale),
-    .poolshift(poolshift),
-    .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
-    .BiasWidth(BiasWidth),
-    .BiasStartAddress(bias_start_address),
-    .BiasEndAddress(bias_stop_address)
+    .poolshift(poolshift)
+    `endif
 
   );
   
@@ -907,17 +1120,77 @@ module top_gati_module #(
       .conv_type(conv_type),
       .conv_ack(ack_opcode[`OP_CONV]),
       .dup_flag(CONV_ChannelDuplicate),
-      .img_rd_done(img_read_done),
+
+      .img_rd_done(img_read_done_conv),
 
       //signals goes to memory controller
-      .addr_out(mc_img_addr),
-      .wr_enable(mc_img_rdreq),
-      .valid(mc_img_valid),
-      .burst_length(mc_img_bl),
-      .last(mc_img_last)
+      .addr_out(mc_img_addr_conv),
+      .wr_enable(mc_img_rdreq_conv),
+      .valid(mc_img_valid_conv),
+      .burst_length(mc_img_bl_conv),
+      .last(mc_img_last_conv)
   );
-  
-    
+
+wire img_read_done_pool;
+wire [7:0] mc_img_addr_pool;
+wire mc_img_rdreq_pool;
+wire mc_img_valid_pool;
+wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_pool;
+wire mc_img_last_pool;
+
+wire img_read_done_conv;
+wire [7:0] mc_img_addr_conv;
+wire mc_img_rdreq_conv;
+wire mc_img_valid_conv;
+wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_conv;
+wire mc_img_last_conv;
+
+// mux for image request controller output
+assign img_read_done = (opcode == `OP_CONV) ? img_read_done_conv : img_read_done_pool; 
+assign mc_img_addr = (opcode == `OP_CONV) ? mc_img_addr_conv : mc_img_addr_pool; 
+assign mc_img_rdreq = (opcode == `OP_CONV) ? mc_img_rdreq_conv : mc_img_rdreq_pool; 
+assign mc_img_valid = (opcode == `OP_CONV) ? mc_img_valid_conv : mc_img_valid_pool; 
+assign mc_img_bl = (opcode == `OP_CONV) ? mc_img_bl_conv : mc_img_bl_pool; 
+assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
+
+  `ifdef MEGA_MAX // This will come in resize also
+  request_controller_img_pool#(
+    .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
+    .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
+    .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
+    .KERNELITR_WIDTH(W_KITER_CNT),
+    .CHANNELITR_WIDTH(W_CITER_CNT),
+    .BURST_LENGTH(IMG_REQ_BLEN),
+    .AXI_DATA_BYTES(AXI_DATA_BYTES),
+    .MOD(MOD2),
+    .N_SA(N_SA),
+    .W_POOL_IW(W_POOL_IW),
+    .W_POOL_IH(W_POOL_IH)
+  ) image_req_ctrl_pool (
+    .clk(i_clk),
+    .rst(i_rst),
+    .start_addr(pool_img_sta_add),
+    .stop_addr(pool_img_end_add),
+    .kernelitr(kernel_iteration),
+    .channelitr(channel_iteration),
+    .input_img_height(pool_ih),
+    .input_img_width(pool_iw),
+    .config_start(start_POOL),
+    .fifo_status(img_fifo_status),
+    .iter_done(iter_done),
+    .c_done(channel_done),
+    .pool_ack(ack_opcode[`OP_POOL]),
+
+    .img_rd_done(img_read_done_pool),
+
+    .addr_out(mc_img_addr_pool),
+    .wr_enable(mc_img_rdreq_pool), //write-read enable
+    .valid(mc_img_valid_pool),
+    .last(mc_img_last_pool),
+    .burst_length(mc_img_bl_pool)
+);
+  `endif
+
   //CONV_FC = 1 => FC mode , else CONV mode
   assign start_address_weights  = CONV_FC ? weight_start_addr_fc : weight_start_addr_conv;
   assign stop_address_weights   = CONV_FC ? weight_stop_addr_fc  : weight_stop_addr_conv;
@@ -1026,7 +1299,11 @@ module top_gati_module #(
   assign Acc_onchip_masked = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
 
   wire ksplit ;
+  `ifdef MEGA_MAX
+  assign ksplit = (opcode == `OP_POOL)? 0 : ((kernel_width >= 4)? (1'b1) : (1'b0));
+  `else
   assign ksplit = (kernel_width >= 4)? (1'b1) : (1'b0);
+  `endif
 
   request_controller_accumulator #(
       .BURST_LENGTH(ACC_REQ_BLEN),
@@ -1724,6 +2001,9 @@ module top_gati_module #(
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .LR_NEG_ALPHA_WIDTH(LR_NEG_ALPHA_WIDTH),
       .LR_POS_ALPHA_WIDTH(LR_POS_ALPHA_WIDTH),
+      .GBL_POOL_SCALE_WIDTH(W_GBL_POOL_SCALE),
+      .GBL_POOL_SHIFT_WIDTH(W_GBL_POOL_SHIFT),
+      .GBL_POOL_EN_WIDTH(W_GBL_POOL_EN),
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .ACC_TOGGLE(ACC_TOGGLE),
@@ -1735,18 +2015,38 @@ module top_gati_module #(
       .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
       .N_DMUX_PORTS(N_DMUX_PORTS),
 
-      //general pool
-      .POOLEN_WIDTH   (POOLEN_WIDTH),
-      .POOLTYPE_WIDTH (POOL_TYPE_WIDTH),
-      .POOLWIDTH_WIDTH (W_POOL_WIDTH),
-      .POOLHEIGHT_WIDTH (W_POOL_HEIGHT),
-      .POOLSTRIDE_WIDTH (W_POOL_STRIDE),
-      .POOLPADDING_WIDTH (W_POOL_PAD),
-      .POOLCEIL_WIDTH (W_POOL_CEIL),
-      .POOLMODCOUNT_WIDTH (W_POOL_MODCOUNT),
-      .POOLPADSIDES_WIDTH (W_POOL_PADSIDES),
-      .POOL_SCALE_WIDTH (W_POOL_SCALE),
-      .POOL_SHIFT_WIDTH (W_POOL_SHIFT),
+      `ifdef MEGA_POOL
+      .POOL_IW_WIDTH(W_POOL_IW),
+      .POOL_IH_WIDTH(W_POOL_IH),
+      .POOL_IC_WIDTH(W_POOL_IC),
+      .POOL_IMG_STA_ADD_WIDTH(W_POOL_IMG_STA_ADD),
+      .POOL_IMG_END_ADD_WIDTH(W_POOL_IMG_END_ADD),
+      .POOLTYPE_WIDTH(W_POOL_TYPE),
+      .POOLSCALE_WIDTH(W_POOL_SCALE),
+      .POOLSHIFT_WIDTH(W_POOL_SHIFT),
+      .POOLWIDTH_WIDTH(W_POOL_WIDTH),
+      .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
+      .POOLSTRIDE_W_WIDTH(W_POOL_STRIDE_W),
+      .POOLSTRIDE_H_WIDTH(W_POOL_STRIDE_H),
+      .POOLCEIL_WIDTH(W_POOL_CEIL),
+      .POOLPAD_L_WIDTH(W_POOL_PAD_L),
+      .POOLPAD_R_WIDTH(W_POOL_PAD_R),
+      .POOLPAD_T_WIDTH(W_POOL_PAD_T),
+      .POOLPAD_B_WIDTH(W_POOL_PAD_B),
+      .POOL_PREFETCH_WIDTH(W_POOL_PREFETCH),
+      `else POOL
+      .POOL_EN_WIDTH(W_POOL_EN),
+      .POOLTYPE_WIDTH(W_POOL_TYPE),
+      .POOLWIDTH_WIDTH(W_POOL_WIDTH),
+      .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
+      .POOLSTRIDE_WIDTH(W_POOL_STRIDE),
+      .POOLPAD_WIDTH(W_POOL_PAD),
+      .POOLCEIL_WIDTH(W_POOL_CEIL),
+      .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
+      .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
+      .POOLSCALE_WIDTH(W_POOL_SCALE),
+      .POOLSHIFT_WIDTH(W_POOL_SHIFT),
+      `endif
 
       //FC realated parameters      
       .FC_IMAGE_ROWS_WIDTH(FC_IMAGE_ROWS_WIDTH), 
@@ -1856,7 +2156,12 @@ module top_gati_module #(
 
       .image_width(input_img_width),
       .image_height(input_img_height),
-      .valid_img_size_im2col(valid_opcode[`OP_CONV]), //valid inst conv
+      `ifdef MEGA_MAX
+      .start_POOL(start_POOL),
+      .valid_img_size_im2col(valid_opcode[`OP_CONV] | valid_opcode[`OP_POOL]), //valid inst conv
+      `else
+      .valid_img_size_im2col(valid_opcode[`OP_CONV]),
+      `endif 
       .im2col_global_start(im2col_global_start),
       .img_read_done(img_read_done),
       .image_rden(image_rden),
@@ -1878,12 +2183,39 @@ module top_gati_module #(
       .shift_value(({COL_SA{tail_quantshift}})),
       .quant_scale(({COL_SA{tail_quantscale}})),
       .vector_add_enable(vector_add_enable),
+  
+      `ifdef GLOBAL_POOL
+      .maxpool_enable(maxpool_enable),
+      .gbl_pool_scale(gbl_pool_scale),
+      .gbl_pool_shift(gbl_pool_shift),
+      `endif
+
       .acc_op_write_data(acc_op_write_data),
       .acc_op_wren(acc_op_wren),
       .quant_op_write_data(quant_op_write_data),
       .quant_op_wren(quant_op_wren),
 
-      `ifdef POOL
+      `ifdef MEGA_MAX
+      .opcode_pool(pool_opcode), 
+      .pool_iw(pool_iw),
+      .pool_ih(pool_ih),
+      .pool_ic(pool_ic),
+      .pool_img_sta_add(pool_img_sta_add),
+      .pool_img_end_add(pool_img_end_add),
+      .pooltype(pooltype),
+      .poolscale(poolscale),
+      .poolshift(poolshift),
+      .poolwidth(poolwidth),
+      .poolheight(poolheight),
+      .poolstride_w(poolstride_w),
+      .poolstride_h(poolstride_h),
+      .poolceil(poolceil),
+      .pool_pad_l(pool_pad_l),
+      .pool_pad_r(pool_pad_r),
+      .pool_pad_t(pool_pad_t),
+      .pool_pad_b(pool_pad_b),
+      .pool_prefetch(pool_prefetch),
+      `elseif POOL
       .maxpool_enable(maxpool_enable),
       .PoolType(pooltype),
       .PoolWidth(poolwidth),
@@ -1895,13 +2227,18 @@ module top_gati_module #(
       .PoolPadSides(poolpadsides),
       .PoolScale(poolscale),
       .PoolShift(poolshift),
-      `endif //POOL
+      `endif
 
       .im2col_done(im2col_done),
       .pseudo_im2col_done(pseudo_im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),
       .Tail_done(Tail_done), // Generated in integration block
       .EW_done(EW_done),
+
+      `ifdef MEGA_MAX
+      .pool_done(pool_done),
+      `endif
+
       .acc_fifo_occupants(acc_fifo_occupants),
       .bias_fifo_occupants(bias_fifo_occupants),
       .stride(stride),
@@ -2101,9 +2438,14 @@ module top_gati_module #(
         `ifdef TRANSPOSE
         .RT_done(RT_done),
         `endif //TRANSPOSE
+
+        `ifdef MEGA_MAX
+        .pool_done(pool_done),
+        `endif
         
         .c_iter(channel_iteration), //channel iteration
         .k_iter(kernel_iteration), //kernel iteration
+
 
       .o_iter_done(iter_done),
       .o_c_done(channel_done),
@@ -2113,7 +2455,15 @@ module top_gati_module #(
         .BIAS_EN(Bias_En),
         .RELU_EN(ACT_EN),
         .QUANT_EN(QUANT_EN),
+
+        `ifdef GLOBAL_POOL
+        .POOL_EN(gbl_pool_en),
+        `elseif POOL
         .POOL_EN(POOL_EN),
+        `else
+        .POOL_EN(1'b0),
+        `endif
+
         .ACC_EN(ACC_EN),
         
         `ifdef BIAS_FC
@@ -2168,13 +2518,19 @@ module top_gati_module #(
     (
       .clk(i_clk),
       .rst(i_rst),
-      .start(start_SA), //start_SA
+
+      `ifdef MEGA_MAX
+      .start(start_SA | start_POOL), 
+      `else
+      .start(start_SA),
+      `endif
+
       .image_fifo_empty(&(image_fifo_empty)),
       .iter_done(iter_done),
       .c_iter(channel_iteration),
       .k_iter(kernel_iteration),
-      .conv_type(conv_type),
-      .dup_flag(CONV_ChannelDuplicate),
+      .conv_type(conv_type), // Not used inside
+      .dup_flag(CONV_ChannelDuplicate), // Not used inside
 
       .start_im2col(im2col_global_start)
     );

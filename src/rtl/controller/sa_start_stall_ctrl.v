@@ -13,6 +13,7 @@ module sa_start_stall_ctrl #(
     parameter CONV_TYPE_WIDTH = 2,
     parameter COL_SA = 1,
     parameter CONV_KW_WIDTH = 4,
+    parameter CONV_KH_WIDTH = 4,
     parameter IM2COL_FIFO_DEPTH = 1024
 ) (
     input                           sa_image_fifo_almost_empty_flag,
@@ -27,10 +28,12 @@ module sa_start_stall_ctrl #(
     input [     CONV_PAD_WIDTH-1:0] conv_zeropad,
     input [CONV_Pfetch_WIDTH - 1:0] CONV_Im2colPrefetch,
     input [    CONV_TYPE_WIDTH-1:0] conv_type,
-    input [  CONV_STRIDE_WIDTH-1:0] stride,
+    input [  CONV_STRIDE_WIDTH-1:0] stride_width,
+    input [  CONV_STRIDE_WIDTH-1:0] stride_height,
     input [          IMAGE_DIM-1:0] row,
     input [          IMAGE_DIM-1:0] col,
     input [      CONV_KW_WIDTH-1:0] kernel_width,
+    input [      CONV_KH_WIDTH-1:0] kernel_height,
 
     output reg istolic_stall,
     output reg systolic_array_trigger
@@ -132,12 +135,12 @@ module sa_start_stall_ctrl #(
       */
       wire f_big_input;
 
-      assign f_big_input = (IM2COL_FIFO_DEPTH <=(2 * (kernel_width - 1)* input_img_width)) ? 1:0;
+      assign f_big_input = ((IM2COL_FIFO_DEPTH <=(2 * (kernel_width - 1)* input_img_width)) || (IM2COL_FIFO_DEPTH <=(2 * (kernel_height - 1)* input_img_height)))? 1:0;
 
       // now if the f_big_input is one we will go by the prefetch method otherwise normal method is fine
 
       wire prefetch_method;
-      assign prefetch_method = (stride >= 2) ? 1'b1 : (f_big_input) ? 1'b1 : 1'b0;
+      assign prefetch_method = ((stride_width >= 2) || (stride_height >= 2))? 1'b1 : (f_big_input) ? 1'b1 : 1'b0;
 
       always @(posedge i_clk) begin
         if (!i_rst) begin

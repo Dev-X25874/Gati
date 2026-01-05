@@ -1,4 +1,5 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further tail block(s) operation processing
+`include "../common/arch_param.vh"
 
 module OP_Tailblock#(parameter OP_CODE_WIDTH = 4, 
             parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
@@ -13,17 +14,20 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
             parameter QUANTEN_WIDTH = 1,
             parameter QUANTSCALE_WIDTH = 16,
             parameter QUANTSHIFT_WIDTH = 5,
-            parameter POOLEN_WIDTH = 1,
-            parameter POOLTYPE_WIDTH = 3,
-            parameter POOLWIDTH_WIDTH = 4,
-            parameter POOLHEIGHT_WIDTH = 4,
-            parameter POOLSTRIDE_WIDTH = 4,
-            parameter POOLPADDING_WIDTH = 4,
-            parameter POOLCEIL_WIDTH = 1,
-            parameter POOLMODCOUNT_WIDTH = 4,
-            parameter POOLPADSIDES_WIDTH = 4,
-            parameter POOLSCALE_WIDTH = 8,
-            parameter POOLSHIFT_WIDTH = 4,
+            parameter GBL_POOL_SCALE_WIDTH = 4, 
+            parameter GBL_POOL_SHIFT_WIDTH = 4,
+            parameter GBL_POOL_EN_WIDTH = 1,
+            // parameter POOLEN_WIDTH = 1,
+            // parameter POOLTYPE_WIDTH = 3,
+            // parameter POOLWIDTH_WIDTH = 4,
+            // parameter POOLHEIGHT_WIDTH = 4,
+            // parameter POOLSTRIDE_WIDTH = 4,
+            // parameter POOLPADDING_WIDTH = 4,
+            // parameter POOLCEIL_WIDTH = 1,
+            // parameter POOLMODCOUNT_WIDTH = 4,
+            // parameter POOLPADSIDES_WIDTH = 4,
+            // parameter POOLSCALE_WIDTH = 8,
+            // parameter POOLSHIFT_WIDTH = 4,
             parameter BIASEN_WIDTH = 1,
             parameter BNCHANNELS_WIDTH = 10,
             parameter BiasWidth_WIDTH = 8)
@@ -44,17 +48,20 @@ module OP_Tailblock#(parameter OP_CODE_WIDTH = 4,
                 output reg [QUANTEN_WIDTH - 1 : 0] QuantEn = 0,
                 output reg [QUANTSCALE_WIDTH - 1 : 0] quantscale = 0,
                 output reg [QUANTSHIFT_WIDTH - 1 : 0] quantshift = 0,
-                output reg [POOLEN_WIDTH - 1 : 0] PoolEn = 0,
-                output reg [POOLTYPE_WIDTH - 1 : 0] pooltype = 0,
-                output reg [POOLWIDTH_WIDTH - 1 : 0] poolwidth = 0,
-                output reg [POOLHEIGHT_WIDTH - 1 : 0] poolheight = 0,
-                output reg [POOLSTRIDE_WIDTH - 1 : 0] poolstride = 0,
-                output reg [POOLPADDING_WIDTH - 1 : 0] poolpadding = 0,
-                output reg [POOLCEIL_WIDTH - 1 : 0] poolceil = 0,
-                output reg [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount = 0,
-                output reg [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides = 0,
-                output reg [POOLSCALE_WIDTH - 1 : 0] poolscale = 0,
-                output reg [POOLSHIFT_WIDTH - 1 : 0] poolshift = 0,
+                output reg [GBL_POOL_SCALE_WIDTH - 1 : 0] gbl_pool_scale = 0,
+                output reg [GBL_POOL_SHIFT_WIDTH - 1 : 0] gbl_pool_shift = 0,
+                output reg [GBL_POOL_EN_WIDTH - 1 : 0] gbl_pool_en = 0,
+                // output reg [POOLEN_WIDTH - 1 : 0] PoolEn = 0,
+                // output reg [POOLTYPE_WIDTH - 1 : 0] pooltype = 0,
+                // output reg [POOLWIDTH_WIDTH - 1 : 0] poolwidth = 0,
+                // output reg [POOLHEIGHT_WIDTH - 1 : 0] poolheight = 0,
+                // output reg [POOLSTRIDE_WIDTH - 1 : 0] poolstride = 0,
+                // output reg [POOLPADDING_WIDTH - 1 : 0] poolpadding = 0,
+                // output reg [POOLCEIL_WIDTH - 1 : 0] poolceil = 0,
+                // output reg [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount = 0,
+                // output reg [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides = 0,
+                // output reg [POOLSCALE_WIDTH - 1 : 0] poolscale = 0,
+                // output reg [POOLSHIFT_WIDTH - 1 : 0] poolshift = 0,
                 output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
                 output reg [BiasWidth_WIDTH - 1 : 0] BiasWidth = 0,
                 output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
@@ -128,6 +135,8 @@ always @(posedge clk) begin
             QuantEn <= data_instruction[`TailBlock_QuantEn];
             quantscale <= data_instruction[`TailBlock_QuantScale];
             quantshift <= data_instruction[`TailBlock_QuantShift];
+            
+            `ifdef POOL 
             PoolEn <= data_instruction[`TailBlock_PoolEn];
             pooltype <= data_instruction[`TailBlock_PoolType];
             poolwidth <= data_instruction[`TailBlock_PoolWidth];
@@ -139,6 +148,14 @@ always @(posedge clk) begin
             poolpadsides <= data_instruction[`TailBlock_PoolPadSides];
             poolscale <= data_instruction[`TailBlock_PoolScale];
             poolshift <= data_instruction[`TailBlock_PoolShift];
+            `endif
+
+            `ifdef GLOBAL_POOL
+            gbl_pool_scale <= data_instruction[`TailBlock_GblPoolScale];
+            gbl_pool_shift <= data_instruction[`TailBlock_GblPoolShift];
+            gbl_pool_en <= data_instruction[`TailBlock_GblPoolEn];
+            `endif
+
             BiasEn <= data_instruction[`TailBlock_BiasEn];
             BiasWidth <= data_instruction[`TailBlock_BiasWidth];
             BiasStartAddress <= data_instruction[`TailBlock_BiasStartAddress];

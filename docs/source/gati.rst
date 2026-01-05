@@ -11,6 +11,7 @@ Gati
     configuration-block
     DRAM-controller
     adder_tree
+    mega_pool
     transpose
     Sigmoid
     eltwise_op

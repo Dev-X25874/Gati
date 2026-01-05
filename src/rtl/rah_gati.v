@@ -41,7 +41,7 @@ module rah_gati #(
     parameter MIPI_DATA_WIDTH = 32,
     parameter MIPI_FIFO_DEPTH = 512,
     //Config blk param
-    parameter NUM_INSTRUCTIONS = 8,
+    parameter NUM_INSTRUCTIONS = 9, // change here to 7
     parameter INST_W = 256,
     parameter CONFIG_FIFO_OCCUPANCY = 10,
     //Output block inst param

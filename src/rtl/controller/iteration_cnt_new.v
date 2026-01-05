@@ -1,4 +1,5 @@
 `include "../common/instructions.vh"
+`include "../common/arch_param.vh"
 
 module iteration_cnt #(
     parameter CITER_CNT_WIDTH = 12,
@@ -24,6 +25,8 @@ module iteration_cnt #(
     input FC_done,
     input EW_done,
     input RT_done,
+    input pool_done,
+
    // input [15:0] img_w, //width of input image matrix
     input [CITER_CNT_WIDTH-1:0] c_iter,
     input [KITER_CNT_WIDTH-1:0] k_iter,
@@ -73,7 +76,11 @@ module iteration_cnt #(
     assign done_input[`OP_TRANSPOSE] = r_RT_done;
     assign done_input[`OP_TailBlock] = r_Tail_done;
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
-
+    
+    `ifdef MEGA_MAX
+    reg r_pool_done;
+    assign done_input[`OP_POOL] = r_pool_done; 
+    `endif
 
     assign o_SA_done = SA_done;
     assign o_iter_done = iter_done;
@@ -152,7 +159,6 @@ module iteration_cnt #(
         end        
     end
 
-
     //reg r_iter_done;
     reg r_layer_done;
     //always@(posedge i_clk) r_iter_done <= iter_done;
@@ -165,6 +171,11 @@ module iteration_cnt #(
         r_FC_done<=FC_done;
         r_EW_done<=EW_done;
         r_RT_done<=RT_done;
+
+        `ifdef MEGA_MAX
+        r_pool_done <= pool_done;
+        `endif
+        
 		r_BIAS_EN<=BIAS_EN;
 		r_RELU_EN<=RELU_EN;
 		r_QUANT_EN<=QUANT_EN;

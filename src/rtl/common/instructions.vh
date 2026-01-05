@@ -72,48 +72,24 @@
 `define TailBlock_QuantScale_WIDTH 16
 `define TailBlock_QuantShift 38:34
 `define TailBlock_QuantShift_WIDTH 5
-`define TailBlock_PoolEn 39:39
-`define TailBlock_PoolEn_WIDTH 1
-`define TailBlock_PoolType 42:40
-`define TailBlock_PoolType_WIDTH 3
-`define TailBlock_PoolScale 58:43
-`define TailBlock_PoolScale_WIDTH 16
-`define TailBlock_PoolShift 63:59
-`define TailBlock_PoolShift_WIDTH 5
-`define TailBlock_PoolWidth 73:64
-`define TailBlock_PoolWidth_WIDTH 10
-`define TailBlock_PoolHeight 83:74
-`define TailBlock_PoolHeight_WIDTH 10
-`define TailBlock_PoolStride 87:84
-`define TailBlock_PoolStride_WIDTH 4
-`define TailBlock_PoolPadding 91:88
-`define TailBlock_PoolPadding_WIDTH 4
-`define TailBlock_PoolCeil 92:92
-`define TailBlock_PoolCeil_WIDTH 1
-// For pools with input size that is not evenly divisible by ke
-// rnel size, mod count is the ceil(input % kernel). For exampl
-// e, 21x21 for kernel 2x2, mod count is 1 i.e. 1 extra column 
-// to be considered.
-`define TailBlock_PoolModCount 96:93
-`define TailBlock_PoolModCount_WIDTH 4
-// Same as above but for cols
-`define TailBlock_PoolModCountCols 100:97
-`define TailBlock_PoolModCountCols_WIDTH 4
-// Same as PadSides for convolution
-`define TailBlock_PoolPadSides 104:101
-`define TailBlock_PoolPadSides_WIDTH 4
-`define TailBlock_BiasEn 105:105
+`define TailBlock_GblPoolScale 54:39
+`define TailBlock_GblPoolScale_WIDTH 16
+`define TailBlock_GblPoolShift 59:55
+`define TailBlock_GblPoolShift_WIDTH 5
+`define TailBlock_GblPoolEn 60:60
+`define TailBlock_GblPoolEn_WIDTH 1
+`define TailBlock_BiasEn 61:61
 `define TailBlock_BiasEn_WIDTH 1
 // There are two known bias widths 8/32. This is that field.
-`define TailBlock_BiasWidth 113:106
+`define TailBlock_BiasWidth 69:62
 `define TailBlock_BiasWidth_WIDTH 8
-`define TailBlock_BiasStartAddress 145:114
+`define TailBlock_BiasStartAddress 101:70
 `define TailBlock_BiasStartAddress_WIDTH 32
-`define TailBlock_BiasEndAddress 177:146
+`define TailBlock_BiasEndAddress 133:102
 `define TailBlock_BiasEndAddress_WIDTH 32
-`define TailBlock_NegAlpha 187:178
+`define TailBlock_NegAlpha 143:134
 `define TailBlock_NegAlpha_WIDTH 10
-`define TailBlock_PosAlpha 197:188
+`define TailBlock_PosAlpha 153:144
 `define TailBlock_PosAlpha_WIDTH 10
 
 `define OP_OutputBlock 'h02
@@ -135,39 +111,39 @@
 // is field is equal to ImageDimAcc. Additionally, if FlatContr
 // oller flag is set to 1, this field is the product of ceil_mo
 // d(OC*OH*OW, AXI_WIDTH).
-`define OutputBlock_ImageDimOutput 108:93
-`define OutputBlock_ImageDimOutput_WIDTH 16
+`define OutputBlock_ImageDimOutput 112:93
+`define OutputBlock_ImageDimOutput_WIDTH 20
 // Output of the conv operation (HxW)
-`define OutputBlock_ImageDimAcc 124:109
-`define OutputBlock_ImageDimAcc_WIDTH 16
+`define OutputBlock_ImageDimAcc 132:113
+`define OutputBlock_ImageDimAcc_WIDTH 20
 // For layer with fewer channels than number of columns in the 
 // systolic array, accumulation of partial sums across iteratio
 // ns is disabled
-`define OutputBlock_AccEn 125:125
+`define OutputBlock_AccEn 133:133
 `define OutputBlock_AccEn_WIDTH 1
 // If this layer's output is supposed to be sent back to the CP
 // U, this flag is set
-`define OutputBlock_DispatchEn 126:126
+`define OutputBlock_DispatchEn 134:134
 `define OutputBlock_DispatchEn_WIDTH 1
 // This is a integrity id that the FPGA should attach to the Ad
 // dr part of the receiving DWP packet.
-`define OutputBlock_DispatchID 158:127
+`define OutputBlock_DispatchID 166:135
 `define OutputBlock_DispatchID_WIDTH 32
 // If output dimensions of a conv operation can fit on the FPGA
 //  output buffers, they should not be sent to the DRAM, all of
 //  the conv can happen on chip saving latency. This flag sets 
 // that bit.
-`define OutputBlock_OnChipAcc 159:159
+`define OutputBlock_OnChipAcc 167:167
 `define OutputBlock_OnChipAcc_WIDTH 1
-`define OutputBlock_OH 169:160
+`define OutputBlock_OH 177:168
 `define OutputBlock_OH_WIDTH 10
-`define OutputBlock_OW 179:170
+`define OutputBlock_OW 187:178
 `define OutputBlock_OW_WIDTH 10
 // If 1, treat outputs from the megablock as flat bytes, not as
 //  aligned bytes with zeros in it
-`define OutputBlock_FlatController 180:180
+`define OutputBlock_FlatController 188:188
 `define OutputBlock_FlatController_WIDTH 1
-`define OutputBlock_OpWidth 183:181
+`define OutputBlock_OpWidth 191:189
 `define OutputBlock_OpWidth_WIDTH 3
 
 `define OP_FC 'h03
@@ -278,6 +254,52 @@
 `define EltWise_AZeroPoint_WIDTH 8
 `define EltWise_BZeroPoint 247:240
 `define EltWise_BZeroPoint_WIDTH 8
+
+`define OP_POOL 'h08
+// Opcode
+`define POOL_Opcode 3:0
+`define POOL_Opcode_WIDTH 4
+// Width of the input image
+`define POOL_IW 13:4
+`define POOL_IW_WIDTH 10
+// Height of the input image
+`define POOL_IH 23:14
+`define POOL_IH_WIDTH 10
+// Channel count for the input
+`define POOL_IC 35:24
+`define POOL_IC_WIDTH 12
+`define POOL_ImageStartAddress 67:36
+`define POOL_ImageStartAddress_WIDTH 32
+`define POOL_ImageEndAddress 99:68
+`define POOL_ImageEndAddress_WIDTH 32
+`define POOL_PoolType 102:100
+`define POOL_PoolType_WIDTH 3
+`define POOL_PoolScale 118:103
+`define POOL_PoolScale_WIDTH 16
+`define POOL_PoolShift 123:119
+`define POOL_PoolShift_WIDTH 5
+`define POOL_PoolWidth 127:124
+`define POOL_PoolWidth_WIDTH 4
+`define POOL_PoolHeight 131:128
+`define POOL_PoolHeight_WIDTH 4
+`define POOL_PoolStrideWidth 135:132
+`define POOL_PoolStrideWidth_WIDTH 4
+`define POOL_PoolStrideHeight 139:136
+`define POOL_PoolStrideHeight_WIDTH 4
+`define POOL_PoolCeil 140:140
+`define POOL_PoolCeil_WIDTH 1
+`define POOL_PadLeft 143:141
+`define POOL_PadLeft_WIDTH 3
+`define POOL_PadBottom 146:144
+`define POOL_PadBottom_WIDTH 3
+`define POOL_PadRight 149:147
+`define POOL_PadRight_WIDTH 3
+`define POOL_PadTop 152:150
+`define POOL_PadTop_WIDTH 3
+// Set if the entire image can be fetched in im2col blocks at o
+// nce
+`define POOL_Im2colPrefetch 153:153
+`define POOL_Im2colPrefetch_WIDTH 1
 
 `define OP_TRANSPOSE 'h07
 `define TRANSPOSE_Opcode 3:0

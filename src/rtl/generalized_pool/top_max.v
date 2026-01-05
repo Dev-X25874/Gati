@@ -18,9 +18,9 @@ module top_max #(parameter DATA_WIDTH = 8,
     input clk,
     input rst_n,
     input ENABLE,                                       // Enable signal to control the operation
-    input [(DATA_WIDTH - 1) : 0] din,                   // Input data to the pooling operation
-    input datavalid_in,                                 // Input data valid signal
-    input [(POOLING_TYPE_WIDTH - 1) : 0] PoolType,      // Type of pooling (Max/Avg)
+    input [(DATA_WIDTH - 1) : 0] din,                   // Input data to the pooling operation, used in global pool
+    input datavalid_in,                                  // Input data valid signal, used in global pool
+    input [(POOLING_TYPE_WIDTH - 1) : 0] PoolType,      // Type of pooling (Max/Avg), used in global pool
     input [(POOLSTRIDE_WIDTH - 1) : 0]PoolStride,
     input [(POOL_WIDTH - 1) : 0] PoolWidth,             // Width of the pooling kernel
     input [(POOL_HEIGHT - 1) : 0] PoolHeight,           // Height of the pooling kernel
@@ -28,9 +28,9 @@ module top_max #(parameter DATA_WIDTH = 8,
     input [(POOLCEIL_WIDTH - 1) : 0] PoolCeil,
     input [(POOLMODCOUNT_WIDTH - 1) : 0] PoolModCount,
     input [(POOLPADSIDES_WIDTH - 1) : 0] PoolPadSides,
-    input signed [(POOL_SCALE_WIDTH - 1) : 0] PoolScale,       // Scale factor for average pool
-    input [(POOL_SHIFT_WIDTH - 1) : 0] PoolShift,       // Shift value for average pool
-    input [(OH_WIDTH + OW_WIDTH - 1) : 0] PoolimageSize, // Input image size 
+    input [(POOL_SCALE_WIDTH - 1) : 0] PoolScale,       // Scale factor for global average pool
+    input [(POOL_SHIFT_WIDTH - 1) : 0] PoolShift,       // Shift value for global average pool
+    input [(OH_WIDTH + OW_WIDTH - 1) : 0] PoolimageSize, // Input image size
     input [(OH_WIDTH - 1) : 0] OH,                      // Output Height of the image
     input [(OW_WIDTH - 1) : 0] OW,                      // Output Width of the image
     output [(DATA_WIDTH - 1) : 0] dout,                 // Final output of the pooling operation

@@ -1,5 +1,6 @@
 `include "common/instructions.vh"
 `include "common/arch_param.vh"
+
 module Top_CONV_FC #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
@@ -35,6 +36,11 @@ module Top_CONV_FC #(
     parameter ACT_TYPE_WIDTH = 4,
     parameter LR_NEG_ALPHA_WIDTH = 10,
     parameter LR_POS_ALPHA_WIDTH = 10,
+    
+    parameter GBL_POOL_SCALE_WIDTH = 4,
+    parameter GBL_POOL_SHIFT_WIDTH = 4,
+    parameter GBL_POOL_EN_WIDTH = 1,
+    
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter ACC_TOGGLE = 1,
@@ -46,18 +52,38 @@ module Top_CONV_FC #(
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
     parameter N_DMUX_PORTS = DRAM_BW/(N_SA*(ACC_DW/8)),
-     //Generalized Pool Parameters
-    parameter POOLEN_WIDTH = 1,
+
+    `ifdef MEGA_POOL 
+    parameter POOL_IW_WIDTH = 10,
+    parameter POOL_IH_WIDTH = 10,
+    parameter POOL_IC_WIDTH = 10,
+    parameter POOL_IMG_STA_ADD_WIDTH = 10,
+    parameter POOL_IMG_END_ADD_WIDTH = 10,
+    parameter POOLTYPE_WIDTH = 3,
+    parameter POOL_SCALE_WIDTH = 8,
+    parameter POOL_SHIFT_WIDTH = 4,
+    parameter POOLWIDTH_WIDTH = 4,
+    parameter POOLHEIGHT_WIDTH = 4,
+    parameter POOLSTRIDE_W_WIDTH = 4,
+    parameter POOLSTRIDE_H_WIDTH = 4,
+    parameter POOLCEIL_WIDTH = 1,
+    parameter POOLPAD_L_WIDTH = 4,
+    parameter POOLPAD_R_WIDTH = 4,
+    parameter POOLPAD_T_WIDTH = 4,
+    parameter POOLPAD_B_WIDTH = 4,
+    `else POOL
+    parameter POOL_EN_WIDTH = 1,
     parameter POOLTYPE_WIDTH = 3,
     parameter POOLWIDTH_WIDTH = 4,
     parameter POOLHEIGHT_WIDTH = 4,
     parameter POOLSTRIDE_WIDTH = 4,
-    parameter POOLPADDING_WIDTH = 4,
-    parameter POOLCEIL_WIDTH = 1,
+    parameter POOLPAD_WIDTH = 4,
+    parameter POOLCEIL_WIDTH = 4,
     parameter POOLMODCOUNT_WIDTH = 4,
     parameter POOLPADSIDES_WIDTH = 4,
-    parameter POOL_SCALE_WIDTH = 8,
-    parameter POOL_SHIFT_WIDTH = 4,
+    parameter POOLSCALE_WIDTH = 4,
+    parameter POOLSHIFT_WIDTH = 4,
+    `endif 
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
@@ -180,7 +206,7 @@ module Top_CONV_FC #(
     input valid_img_size_im2col,
     input im2col_global_start,
     output [DRAM_BW-1:0] image_rden,
-	input stall_on,
+	  input stall_on,
     input img_read_done,
     
     //tail block signals
@@ -190,7 +216,6 @@ module Top_CONV_FC #(
     input [(QUANT_SHIFT) -1:0] shift_value,
     input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
-    //input maxpool_enable,
     input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     input [CONV_STRIDE_WIDTH-1:0] stride, // im2col input stride 
@@ -214,9 +239,28 @@ module Top_CONV_FC #(
     input [ELTWISE_FIFO-1:0] LeftOperand_wr_en,
     input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
     input EltWise_op_en,
-
-    `ifdef POOL
-    //Generalized Pool
+    
+    `ifdef MEGA_MAX
+    input pool_stall,
+    input pool_start,
+    input [POOL_IW_WIDTH - 1 : 0] PoolIW, // CONV_KW_WIDTH
+    input [POOL_IH_WIDTH - 1 : 0] PoolIH, // CONV_IH_WIDTH
+    input [POOL_IC_WIDTH - 1 : 0] PoolIC,
+    input [POOL_IMG_STA_ADD_WIDTH - 1 : 0] PoolImgStaAdd,
+    input [POOL_IMG_END_ADD_WIDTH - 1 : 0] PoolImgEndAdd,
+    input [POOLTYPE_WIDTH - 1 : 0] PoolType,
+    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale, // used in glob avg
+    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift, // used in glob avg
+    input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
+    input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
+    input [POOLSTRIDE_W_WIDTH - 1 : 0] PoolStrideW,
+    input [POOLSTRIDE_H_WIDTH - 1 : 0] PoolStrideH,
+    input [POOLCEIL_WIDTH - 1 : 0] PoolCeil,
+    input [POOLPAD_L_WIDTH - 1 : 0] PoolPadL,
+    input [POOLPAD_R_WIDTH - 1 : 0] PoolPadR,
+    input [POOLPAD_T_WIDTH - 1 : 0] PoolPadT,
+    input [POOLPAD_B_WIDTH - 1 : 0] PoolPadB,
+    `elseif POOL
     input maxpool_enable,
     input [POOLTYPE_WIDTH - 1 : 0] PoolType,
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
@@ -228,8 +272,14 @@ module Top_CONV_FC #(
     input [POOLPADSIDES_WIDTH - 1 : 0] PoolPadSides,
     input [POOL_SCALE_WIDTH - 1 : 0] PoolScale,
     input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift,
-    `endif //POOL
-
+    `endif
+    
+    `ifdef GLOBAL_POOL
+    input maxpool_enable, 
+    input [GBL_POOL_SCALE_WIDTH-1:0] gbl_pool_scale,
+    input [GBL_POOL_SHIFT_WIDTH-1:0] gbl_pool_shift,
+    input [GBL_POOL_EN_WIDTH-1:0] gbl_pool_en,
+    `endif
     // accumulant output write signals
     output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
     output [ACC_OP_FIFO-1:0] acc_op_wren,
@@ -245,6 +295,11 @@ module Top_CONV_FC #(
     output im2col_done,
     output pseudo_im2col_done, // output: pseudo im2col done signal
     output SA_psum_fifo_empty,
+
+    `ifdef MEGA_MAX
+    output reg pool_done,
+    `endif
+
     output Tail_done,
 	  output p_full_output,
   	output EW_done,
@@ -255,7 +310,7 @@ module Top_CONV_FC #(
     output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants,
     output o_image_fifo_almost_empty_flag,
     output o_image_fifo_almost_full_flag,
-    input istolic_stall ,
+    input istolic_stall,
     input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
     input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
 
@@ -338,6 +393,12 @@ module Top_CONV_FC #(
  
   wire [N_SA-1:0] maxpool_valid;
   wire [(N_SA*DATA_WIDTH) -1:0] maxpool_output;
+  
+  `ifdef MEGA_MAX
+  wire [N_SA-1:0] pool_o_datavalid;
+  wire [(N_SA*DATA_WIDTH) -1:0] pool_o_data;
+  `endif
+
   wire [(N_SA*(SHFT_REG_X*DATA_WIDTH)) -1:0] x_final_data;
 
   wire [N_SA-1:0] x_final_valid;
@@ -379,6 +440,81 @@ generate
   end
 endgenerate
 
+wire [CONV_KW_WIDTH-1:0] KernelWidth;
+wire [CONV_KH_WIDTH-1:0] KernelHeight;
+wire [CONV_PadLeft_WIDTH-1:0] PadLeft;
+wire [CONV_PadRight_WIDTH-1:0] PadRight;
+wire [CONV_PadTop_WIDTH-1:0] PadTop;
+wire [CONV_PadBottom_WIDTH-1:0] PadBottom;
+wire [CONV_IW_WIDTH-1:0] ImageWidth;
+wire [CONV_IH_WIDTH-1:0] ImageHeight;
+wire [CONV_STRIDE_WIDTH-1:0] StrideWidth;
+wire [CONV_STRIDE_WIDTH-1:0] StrideHeight;
+
+interconnect_sa_pool #(
+  .OPCODE_WIDTH(OPCODE_WIDTH),
+  .CONV_KW_WIDTH(CONV_KW_WIDTH),
+  .CONV_KH_WIDTH(CONV_KH_WIDTH),
+  .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+  .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+  .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+  .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+  .CONV_IW_WIDTH(CONV_IW_WIDTH),
+  .CONV_IH_WIDTH(CONV_IH_WIDTH),
+  .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+  .POOLWIDTH_WIDTH(POOLWIDTH_WIDTH),
+  .POOLHEIGHT_WIDTH(POOLHEIGHT_WIDTH),
+  .POOLPAD_L_WIDTH(POOLPAD_L_WIDTH),
+  .POOLPAD_R_WIDTH(POOLPAD_R_WIDTH),
+  .POOLPAD_T_WIDTH(POOLPAD_T_WIDTH),
+  .POOLPAD_B_WIDTH(POOLPAD_B_WIDTH),
+  .POOL_IW_WIDTH(POOL_IW_WIDTH),
+  .POOL_IH_WIDTH(POOL_IH_WIDTH),
+  .POOLSTRIDE_W_WIDTH(POOLSTRIDE_W_WIDTH),
+  .POOLSTRIDE_H_WIDTH(POOLSTRIDE_H_WIDTH)
+) interconnect_sa_pool_inst (
+  .clk(i_clk),
+  .rst(rst),
+  .opcode(opcode),
+  // CONV
+  .kernel_width(kernel_width),
+  .kernel_height(kernel_height),
+  .conv_pad_left(conv_pad_left),
+  .conv_pad_right(conv_pad_right),
+  .conv_pad_top(conv_pad_top),
+  .conv_pad_bottom(conv_pad_bottom),
+  .image_width(image_width),
+  .image_height(image_height),
+  .stride_col(stride),
+  .stride_row(stride),
+
+  `ifdef MEGA_MAX
+  // POOL
+  .PoolWidth(PoolWidth),
+  .PoolHeight(PoolHeight),
+  .PoolPadL(PoolPadL),
+  .PoolPadR(PoolPadR),
+  .PoolPadT(PoolPadT),
+  .PoolPadB(PoolPadB),
+  .PoolIW(PoolIW),
+  .PoolIH(PoolIH),
+  .PoolStrideW(PoolStrideW),
+  .PoolStrideH(PoolStrideH),
+  `endif
+
+  // Output
+  .KernelWidth(KernelWidth),
+  .KernelHeight(KernelHeight),
+  .PadLeft(PadLeft),
+  .PadRight(PadRight),
+  .PadTop(PadTop),
+  .PadBottom(PadBottom),
+  .ImageWidth(ImageWidth),
+  .ImageHeight(ImageHeight),
+  .StrideWidth(StrideWidth),
+  .StrideHeight(StrideHeight)
+);
+
 // im2col version 1 instance 
   top_im2col_v1 # (.UPPER_BOUND(W_CONV_IMAGE_DIM),
                 .LOWER_BOUND(1),
@@ -387,6 +523,8 @@ endgenerate
                 .CONV_KH_WIDTH(CONV_KH_WIDTH),
                 .CONV_KW_WIDTH(CONV_KW_WIDTH),
                 .STRIDE(STRIDE),
+                .STRIDE_COL(CONV_STRIDE_WIDTH),
+                .STRIDE_ROW(CONV_STRIDE_WIDTH),
                 .ROW(ROW),
                 .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
                 .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
@@ -401,33 +539,32 @@ endgenerate
       .valid_mat_size(valid_img_size_im2col),
       .i_data(0), // the data does not go throught the Im2col so it does not matter what you give here but zero should be prefered  
       .i_start_im2col_index(im2col_global_start),
-      .kw(kernel_width),
-      .kh(kernel_height),
+      .kw(KernelWidth),
+      .kh(KernelHeight),
 
-      .conv_pad_left(conv_pad_left),
-      .conv_pad_right(conv_pad_right),
-      .conv_pad_top(conv_pad_top),
-      .conv_pad_bottom(conv_pad_bottom),
+      .conv_pad_left(PadLeft),
+      .conv_pad_right(PadRight),
+      .conv_pad_top(PadTop),
+      .conv_pad_bottom(PadBottom),
 
-      .i_mat_size_col(image_width),
-      .i_mat_size_row(image_height),
+      .i_mat_size_col(ImageWidth),
+      .i_mat_size_row(ImageHeight),
       .valid_sq(o_valid_squares),
       .o_valid(im2col_o_valid),
-      .stride(stride),       
+      .stride_col(StrideWidth),       
+      .stride_row(StrideHeight),
       .o_valid_buff(read_buf_data),
       .o_im2col_done(im2col_done),
-      .start_SA(start_SA),
+      .start_SA(start_SA | start_POOL),
       .i_stall_on (stall_on),
       .o_row(row), 
       .o_col(col),
-      .start_row_skip(start_row_skip),
-      .end_row_skip(end_row_skip),
+      .start_row_skip((opcode == `OP_POOL) ? 0 : start_row_skip), 
+      .end_row_skip((opcode == `OP_POOL) ? 0 : end_row_skip),
       .real_col(real_col),
       .real_row(real_row),
       .pseudo_im2col_done(pseudo_im2col_done) // output: pseudo im2col done signal
     ); 
-
-    
 
 
   //parameters will change for top_SA (for CONV opeartion)
@@ -451,6 +588,99 @@ endgenerate
   assign o_image_fifo_almost_empty_flag = |(sa_image_fifo_almost_empty);
   assign o_image_fifo_almost_full_flag = |(sa_image_fifo_almost_full);
 
+  
+wire [(N_SA * ROW)-1 : 0] read_rden_ctrl_image_ff_array_delayed;
+wire [(N_SA * ROW)-1 : 0] pool_img_fifo_rd_en;
+wire [(N_SA * ROW)-1 : 0] sa_img_fifo_rd_en;
+
+assign read_rden_ctrl_image_ff_array_delayed = (opcode == `OP_POOL) ? pool_img_fifo_rd_en : sa_img_fifo_rd_en ;
+
+wire [(N_SA * ROW)-1 : 0] empty_image_ff_array_rden_ctrl;
+wire [(N_SA * ROW)-1 : 0]  almost_empty_image_ff_array_rden_ctrl;
+wire [(N_SA * ROW)-1 : 0] dv_image_ff_array_append_dv;
+
+reg [DATA_WIDTH * N_SA * ROW-1:0] r_image_fifo_array_data;
+wire [DATA_WIDTH * N_SA * ROW-1:0] data_image_ff_array_append_dv;
+
+localparam IMG_FF_ADDR = $clog2(IM2COL_FIFO_DEPTH);
+
+genvar k;
+generate
+if(N_SA == 0)begin
+  image_fifo_array sa_engine_image_fifo_array (
+      .i_clk(),
+      .i_rstn(),
+      .i_data(),  
+      .i_write_enable(), 
+      .i_read_enable(),
+      .o_data(),
+      .o_fifo_empty(),
+      .o_fifo_almost_empty(),
+      .o_fifo_almost_full(),
+      .o_fifo_full(),
+      .o_fifo_prog_full(), 
+      .o_fifo_prog_empty(), 
+      .o_fifo_dv(),
+      .o_occupants()
+  );
+end 
+  else begin
+    for(k = 0; k < N_SA; k = k +1)begin : SA_ENG_IMG_FIFO
+      image_fifo_array#(
+          .DIMENSION(ROW),
+          .W_DATA(DATA_WIDTH),
+          .W_ADDR(IMG_FF_ADDR),
+          .RAM_DEPTH(IM2COL_FIFO_DEPTH)
+      ) sa_pool_image_fifo_array (
+          .i_clk(i_clk),
+          .i_rstn(rst),
+          .i_data(r_image_fifo_array_data[((ROW * DATA_WIDTH) * (N_SA - k))-1 -: (ROW * DATA_WIDTH)]),  // outside
+          .i_write_enable(fifo_image_wren[(ROW * (N_SA - k))-1 -: ROW]), // outside
+
+          .i_read_enable(read_rden_ctrl_image_ff_array_delayed[(ROW * (N_SA - k))-1 -: ROW]),
+
+          .o_data(data_image_ff_array_append_dv[((ROW * DATA_WIDTH) * (N_SA - k))-1 -: (ROW * DATA_WIDTH)]),
+
+          .o_fifo_empty(empty_image_ff_array_rden_ctrl[(ROW * (N_SA - k))-1 -: ROW]),
+          .o_fifo_almost_empty(almost_empty_image_ff_array_rden_ctrl[(ROW * (N_SA - k))-1 -: ROW]),
+          .o_fifo_prog_full(sa_image_fifo_almost_full[(ROW * (N_SA - k))-1 -: ROW]), // outside
+          .o_fifo_prog_empty(sa_image_fifo_almost_empty[(ROW * (N_SA - k))-1 -: ROW]), // outside
+          .o_fifo_dv(dv_image_ff_array_append_dv[(ROW * (N_SA - k))-1 -: ROW])
+      );
+    end
+  end
+endgenerate
+
+/* to accommodate pwc in 944 and 16 1 16 */
+generate
+   // in case of 16 1 16 arch 
+    if (COL_SA == 1) begin
+        integer k; 
+        always@(*) begin
+            if((conv_type == `CONV_TYPE_PW) && (opcode == `OP_CONV)) begin
+                r_image_fifo_array_data = {N_SA{{delay_stage[N_MOD_STAGES-3].delay_reg},{(ROW-N_SA){DATA_WIDTH{1'b0}}}}};
+            end
+            else begin
+                for(k=0; k<N_SA; k=k+1)begin
+                    r_image_fifo_array_data[((ROW*DATA_WIDTH)*(N_SA-k)-1) -: (ROW*DATA_WIDTH)] = 
+                    {ROW{delay_stage[N_MOD_STAGES-3].delay_reg[(DATA_WIDTH*(N_SA-k))-1 -: DATA_WIDTH]}}; 
+                end
+            end
+        end
+    end 
+
+    // in case of 944 and 988 arch 
+    else begin
+        integer k;
+        always @(*)begin
+            for(k=0; k<N_SA; k=k+1)begin
+                r_image_fifo_array_data[((ROW*DATA_WIDTH)*(N_SA-k)-1) -: (ROW*DATA_WIDTH)] = 
+                {ROW{delay_stage[N_MOD_STAGES-3].delay_reg[(DATA_WIDTH*(N_SA-k))-1 -: DATA_WIDTH]}}; 
+            end
+        end
+    end
+
+endgenerate
 
   top_sa #(
     .N_SA(N_SA),
@@ -478,10 +708,6 @@ endgenerate
     .i_dv_weight_ff_sharing({COL_SA{weight_dv_sa}}),
     .i_empty_weight_ff_sharing({COL_SA{weight_empty_sa}}),
     .i_occupants_weight_ff_sharing({COL_SA{weight_occupants_sa}}),
-    .i_image_ff_array_data(delay_stage[N_MOD_STAGES-3].delay_reg), //i-wire : from im2col
-    .i_image_fifo_array_wren(fifo_image_wren), //i-wire: valid squares signal from im2col
-    .o_image_ff_array_almost_empty(sa_image_fifo_almost_empty),
-    .o_image_ff_array_almost_full(sa_image_fifo_almost_full),
     
     .i_psum_ff_array_read_en(opsum_rden),
     .p_full_output(p_full_output),
@@ -491,9 +717,67 @@ endgenerate
     .o_psum_ff_array_dv(valid_psum),
     .i_done(iteration_Done),
     .i_layer_done(layer_done),
-    .o_mux_sel(), // goes to select sa rden in fifo sharing
-    .o_read_en_weight_ff_sharing(weight_read_en_sa) //output: goes to fifo sharing controller
-  );
+    .o_mux_sel(sel_sa_rden), // goes to select sa rden in fifo sharing
+    .o_read_en_weight_ff_sharing(weight_read_en_sa), //output: goes to fifo sharing controller
+    
+    .read_rden_ctrl_image_ff_array_delayed(sa_img_fifo_rd_en),
+    .data_image_ff_array_append_dv(data_image_ff_array_append_dv),
+    .empty_image_ff_array_rden_ctrl(empty_image_ff_array_rden_ctrl),
+    .almost_empty_image_ff_array_rden_ctrl(almost_empty_image_ff_array_rden_ctrl),
+    .dv_image_ff_array_append_dv(dv_image_ff_array_append_dv)
+
+  ); 
+
+  `ifdef MEGA_MAX
+  top_pool_engine#(
+    .W_DATA(DATA_WIDTH),
+    .ROW(ROW),
+    .N_SA(N_SA),
+    .IMG_FF_DEPTH(IM2COL_FIFO_DEPTH),
+    .N_MOD_STAGES(N_MOD_STAGES),
+    .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH)
+  ) top_pool_inst (
+    .i_clk(i_clk),
+    .i_rstn(rst),
+    .i_mode(PoolType), 
+    .i_start(pool_start), 
+    .i_done(iteration_Done), 
+    .pool_stall(pool_stall),
+    .im2col_done(im2col_done),
+    .i_img_dim_Op(op_img_size),
+    .o_data(pool_o_data),
+    .o_datavalid(pool_o_datavalid),
+
+    .read_rden_ctrl_image_ff_array_delayed(pool_img_fifo_rd_en),
+    .data_image_ff_array_append_dv(data_image_ff_array_append_dv),
+    .empty_image_ff_array_rden_ctrl(empty_image_ff_array_rden_ctrl),
+    .almost_empty_image_ff_array_rden_ctrl(almost_empty_image_ff_array_rden_ctrl),
+    .dv_image_ff_array_append_dv(dv_image_ff_array_append_dv)
+);
+
+reg pool_done_flag;
+
+always @(posedge i_clk) begin
+  if(!rst) begin
+      pool_done <= 0;
+      pool_done_flag <= 0;
+  end 
+  else begin
+    if((im2col_done) && (!pool_done_flag) && (opcode == `OP_POOL)) begin
+      pool_done <= 0;
+      pool_done_flag <= 1;
+    end
+    else if((&(empty_image_ff_array_rden_ctrl)) && (pool_done_flag)) begin
+        pool_done <= 1;
+        pool_done_flag <= 0;
+    end
+    else begin
+      pool_done <= 0;
+      pool_done_flag <= pool_done_flag;
+    end
+    end
+  end
+  `endif
 
   assign SA_psum_fifo_empty = &(empty_sa);
 
@@ -502,7 +786,7 @@ endgenerate
       assign opsum_rden = (vector_add_enable)? (|(empty_vector)? 0:psum_rden):psum_rden;
     end
     else begin
-      assign opsum_rden = (vector_add_enable)? (&(empty_vector)? 0:psum_rden):psum_rden;
+      assign opsum_rden = (vector_add_enable)? (&(empty_vector)? 0:            ((istolic_stall) && (&empty_sa))? 0:psum_rden):psum_rden;
     end
   endgenerate
 
@@ -919,21 +1203,6 @@ endgenerate
       .top_i_acttype({N_SA{relu_act_type}})
   );
   
-  /* maxpool_gen #(
-      .N_SA(N_SA),
-      .DATA_IN(DATA_WIDTH),
-      .IMG_WIDTH(W_CONV_OP_IMAGE_DIM)
-  ) maxpool (
-      .clk(i_clk),
-      .data_in(relu_output),
-      .rst(rst&(~iteration_Done)),
-      .maxpool_enable(maxpool_enable), //from iteration cnter
-      .datavalid(relu_valid),
-      .IW(maxpool_threshold), //from conv inst.
-      .maxvalue_o(maxpool_output),
-      .datavalid_o(maxpool_valid)
-  );*/
-  
   //Total data_size of CONV output. This is calculated to determine number of zeros to be generated by zero padder
   (* syn_use_dsp = "no" *) wire [I_ACC_SIZE_WIDTH-1:0] op_img_size;
   assign op_img_size = op_height * op_width;
@@ -945,13 +1214,8 @@ endgenerate
     .POOL_HEIGHT(POOLHEIGHT_WIDTH), // width of kernal height
     .POOL_WIDTH(POOLWIDTH_WIDTH), // width of kernal width
     .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH), //width of Pooling Type
-    .POOLSTRIDE_WIDTH(POOLSTRIDE_WIDTH),
-    .POOLPADDING_WIDTH(POOLPADDING_WIDTH),
-    .POOLCEIL_WIDTH(POOLCEIL_WIDTH),
-    .POOLMODCOUNT_WIDTH(POOLMODCOUNT_WIDTH),
-    .POOLPADSIDES_WIDTH(POOLPADSIDES_WIDTH),
-    .POOL_SCALE_WIDTH(POOL_SCALE_WIDTH),
-    .POOL_SHIFT_WIDTH(POOL_SHIFT_WIDTH),
+    .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
+    .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
     .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
     .ADDR_WIDTH(9), //Synchronous Fifo depth
     .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
@@ -962,7 +1226,7 @@ endgenerate
     .rst_n(rst&(~iteration_Done)),
     .ENABLE(maxpool_enable),
     .datavalid_in(relu_valid),
-    .PoolType(PoolType), //3'b001
+    .PoolType('h02), // Hardcoded for GblAvgPool
     .PoolStride(PoolStride),
     .PoolWidth(PoolWidth), //kernal width
     .PoolHeight(PoolHeight), //kernal height
@@ -989,6 +1253,29 @@ endgenerate
   assign maxpool_valid = relu_valid;
   assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : op_img_size;
   `endif //POOL
+
+  `ifdef GLOBAL_POOL
+  global_avg_pool #(
+    .DATA_WIDTH(DATA_WIDTH),
+    .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH),
+    .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
+    .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
+    .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+    .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+  ) global_avg_pool_inst(
+    .clk(i_clk),
+    .rst_n(rst&(~iteration_Done)),
+    .ENABLE(maxpool_enable), 
+    .din(relu_output), 
+    .datavalid_in(relu_valid), 
+    .PoolType('h02),  
+    .PoolScale(gbl_pool_scale), 
+    .PoolShift(gbl_pool_shift),   
+    .PoolimageSize(op_img_size), 
+    .dout(maxpool_output), 
+    .datavalid_out(maxpool_valid)
+  );
+  `endif
   
   wire [(DATA_WIDTH_ACC*N_SA)-1 : 0] zp_unquantized_din;
   wire [N_SA-1:0] zp_valid;
@@ -1002,6 +1289,18 @@ endgenerate
 
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : op_img_size;
+  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? (16'd1) : op_img_size);
+  
+  wire [(N_SA*DATA_WIDTH) -1:0] zp_quant_in;
+  wire [N_SA -1:0] zp_quant_valid_in;
+
+  `ifdef MEGA_MAX 
+  assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : ((maxpool_enable) ?maxpool_output : relu_output);
+  assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : ((maxpool_enable) ? maxpool_valid : relu_valid);
+  `else 
+  assign zp_quant_in = (maxpool_enable)? maxpool_output : relu_output;
+  assign zp_quant_valid_in = (maxpool_enable)? maxpool_valid : relu_valid;
+  `endif
 
   //zero padding circuit
   top_zero # (
@@ -1014,8 +1313,8 @@ endgenerate
     .clk(i_clk),
     .rst(rst),
     .i_size(i_img_dim2), // image dimension of quantized o/p (from op block inst.)
-    .data_in(maxpool_output),
-    .i_dv(maxpool_valid),
+    .data_in(zp_quant_in), //maxpool_output
+    .i_dv(zp_quant_valid_in), //maxpool_valid
     .data_out(zp_data),
     .o_dv(zp_valid)
   );

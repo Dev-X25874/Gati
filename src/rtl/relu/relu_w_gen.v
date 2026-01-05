@@ -23,8 +23,8 @@ module relu #(
 (
     input                           clk,
     input                           enable,
-    input signed [LR_NEG_ALPHA_WIDTH-1:0]     lr_neg_alpha,
-    input signed [LR_POS_ALPHA_WIDTH-1:0]     lr_pos_alpha,
+    input [LR_NEG_ALPHA_WIDTH-1:0]  lr_neg_alpha,
+    input [LR_POS_ALPHA_WIDTH-1:0]  lr_pos_alpha,
     input signed [DATA_WIDTH-1:0]   i_data,
     input                           i_valid,
     output signed [DATA_WIDTH-1:0]  o_data,   
@@ -37,12 +37,11 @@ module relu #(
 
     `ifdef GEN_LEAKY_RELU
 
-    assign o_data = ((i_act_type == `ACT_LEAKYRELU) && (o_valid)) ? 
-    {leaky_reg[(DATA_WIDTH + LR_NEG_ALPHA_WIDTH)-1], leaky_reg[DATA_WIDTH-2:0]}:
-    o_data_r;
+    assign o_data = ((i_act_type == `ACT_LEAKYRELU) && o_valid) ? 
+                    leaky_reg[DATA_WIDTH-1:0] : o_data_r;
 
     reg signed [(DATA_WIDTH + LR_NEG_ALPHA_WIDTH)-1:0] leaky_reg; 
-    wire signed [LR_NEG_ALPHA_WIDTH-1:0] selected_alpha;
+    wire [LR_NEG_ALPHA_WIDTH-1:0] selected_alpha;
 
     assign selected_alpha = (i_data[DATA_WIDTH-1] == 1) ? lr_neg_alpha : lr_pos_alpha;
     
@@ -61,8 +60,10 @@ module relu #(
       case (i_act_type)
     
         `ifdef GEN_LEAKY_RELU  
+        // 0 is added in MSB to prevent alpha inputs greater than 2^(LR_NEG_ALPHA_WIDTH-1) getting interpreted as negative value.
+        // Ex.: PosAlpha 524 would turn into -500
         `ACT_LEAKYRELU:begin
-            leaky_reg <= (selected_alpha * i_data) >>> 8;
+            leaky_reg <= ($signed({1'b0, selected_alpha}) * i_data) >>> 8;
         end
         `endif
               

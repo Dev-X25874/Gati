@@ -23,6 +23,7 @@ module top_output_block #(
     input   [                (N)-1:0]     empty_sa,
     input   [                (N)-1:0]     almost_empty_sa,
     input                                 op_full,
+    input                                 istolic_stall,
     // input                             sel_mux,
     output [  (OUT_DATA_WIDTH*N)-1:0] top_data_out,
     input  [      (DATA_WIDTH_ACC*N)-1:0] top_data_in_adder_tree,
@@ -212,7 +213,8 @@ dram_fifo #(
       .data_valid_tree(&(top_in_data_valid)),
       .select(sel),
       .op_full(op_full),
-      .valid_rd_en(w_rd_en)
+      .valid_rd_en(w_rd_en),
+      .istolic_stall(istolic_stall)
   );
   
 

@@ -791,6 +791,7 @@ endgenerate
       .empty_sa(empty_sa),
       .almost_empty_sa(almost_empty_sa),
       .op_full(op_full),
+      .istolic_stall(istolic_stall),
       .top_data_out(output_block_out),
       .top_data_in_adder_tree(data_tail_blk_in), //interconnect data o/p
       .vector_add_enable(vector_add_enable),

@@ -20,6 +20,7 @@ module acc_fifo_rden #(
     input op_full,
     input data_valid_tree,
     input clk,
+    input istolic_stall,
     input enable,
     output [NO_PORT-1:0] select
 
@@ -100,12 +101,27 @@ generate
 
     reg [$clog2(NO_PORT)-1:0] mux_toggle = 0;
     reg [$clog2(NO_PORT)-1:0] rden_toggle = 0;
+    
+    // Signals needed for imagenet_resnet. PSUM FIFO got empty in between running layer, to handle that edge case, below signals are used.
+    reg stall_f1, stall_f2, stall_f3 = 0;
+
+    reg empty_sa_delayed_1,empty_sa_delayed_2,empty_sa_delayed_3,empty_sa_delayed_4, empty_sa_delayed_5;
+    
+    // To sync. with data_valid_tree
+    always @(posedge clk) begin
+      empty_sa_delayed_1 <= empty_sa;
+      empty_sa_delayed_2 <= empty_sa_delayed_1;
+      empty_sa_delayed_3 <= empty_sa_delayed_2;
+      empty_sa_delayed_4 <= empty_sa_delayed_3;
+      empty_sa_delayed_5 <= empty_sa_delayed_4;
+    end
 
     integer i;
     always @(posedge clk) begin
         if (!rst) begin
           rden_toggle <= 0;
           valid_rd_en <= 0;
+          stall_f1  <= 0;
         end else begin
             if ((~|empty_sa) & (enable & (~|empty_fifo)) && (~op_full)) begin
               //valid_rd_en <= ~valid_rd_en;
@@ -125,9 +141,15 @@ generate
                   rden_toggle <= rden_toggle + 1;
                 end
               end
+              stall_f1 <= istolic_stall;
+            end else if(istolic_stall && (&empty_sa) && stall_f1) begin
+              valid_rd_en <= 0;
+              rden_toggle <= rden_toggle + 1;
+              stall_f1 <= 0;
             end else begin
               valid_rd_en <= 0;
               rden_toggle <= rden_toggle;
+              stall_f1 <= stall_f1;
             end
         end
     end
@@ -135,6 +157,8 @@ generate
     always@(posedge clk) begin
       if(!rst) begin
         mux_toggle <= 0;
+        stall_f2 <= 0;
+        stall_f3 <= 0;
       end
       else begin
         if(enable & data_valid_tree) begin
@@ -146,9 +170,27 @@ generate
               mux_toggle <= mux_toggle + 1;
             end
           end
+          stall_f2 <= istolic_stall;
         end
+        else if(istolic_stall && (&empty_sa_delayed_5) && stall_f2) begin
+          mux_toggle <= mux_toggle + 1;
+          stall_f3 <= 1'b1;
+          stall_f2 <= 0;
+        end
+        else if((&empty_sa_delayed_5) && stall_f3) begin
+          mux_toggle <= rden_toggle;
+          stall_f2 <= stall_f2;
+          stall_f3 <= 1'b0;
+        end 
+        else if((&empty_sa_delayed_5)) begin
+          mux_toggle <= mux_toggle;
+          stall_f2 <= stall_f2;
+          stall_f3 <= stall_f3;
+        end 
         else begin
           mux_toggle <= 0;
+          stall_f2 <= stall_f2;
+          stall_f3 <= stall_f3;
         end
       end
     end

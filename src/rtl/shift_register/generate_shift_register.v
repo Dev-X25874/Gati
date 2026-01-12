@@ -1,4 +1,5 @@
 //this block is to generate the main design 4 times, for testing purposes.
+// TODO : what the hell is this comment above , refactor
 
 module generate_shift_register #(parameter N = 4, 
                                 parameter NUM_SHIFT = 4, 

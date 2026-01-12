@@ -37,4 +37,6 @@
 `ifdef TRANSPOSE
 `define ReshapeTranspose (`RightOperand + 1)
 `endif
+`define Concat 13
+
 `endif //portid_vh

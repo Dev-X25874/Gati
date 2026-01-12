@@ -40,7 +40,8 @@ module Top_element_wise#(
     output [((W_ADDR+1)*FIFO_NO)-1:0]RightOperand_fifo_occupants,
     output [ELTWISE_QUANT_SHIFT-1:0]EltWise_fp_cast_shift,
     output EW_done,
-    input op_fifo_empty
+    input op_fifo_empty,
+    input w_one_operand
 );
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_in_reordered,RightOperand_data_in_reordered;
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_out,RightOperand_data_out;
@@ -154,7 +155,8 @@ EltWise_controller #(
     .RightOperand_fifo_data_out(RightOperand_fifo_data_out),
     .EW_done(EW_done),
     .data_valid(data_valid),
-    .op_fifo_empty(op_fifo_empty)
+    .op_fifo_empty(op_fifo_empty),
+    .tanh_switch(w_one_operand)
 );
 
 genvar i;

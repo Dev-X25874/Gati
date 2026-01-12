@@ -98,9 +98,24 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter TRANSPOSE_IW_WIDTH = 12,
     parameter OutputBlock_FlatController_WIDTH = 1,
     parameter OutputBlock_AccumulantReadFirst_WIDTH = 1,
-    parameter OutputBlock_OpWidth_WIDTH = 3      
-) 
-(
+    parameter OutputBlock_OpWidth_WIDTH = 3,
+    // Concat operator 
+    parameter CONCAT_Image1StartAddress_WIDTH = 32,
+    parameter CONCAT_Image2StartAddress_WIDTH = 32,
+    parameter CONCAT_Image3StartAddress_WIDTH = 32,
+    parameter CONCAT_Image4StartAddress_WIDTH = 32,
+    parameter CONCAT_IH1_WIDTH = 10,
+    parameter CONCAT_IH2_WIDTH = 10,
+    parameter CONCAT_IH3_WIDTH = 10,
+    parameter CONCAT_IH4_WIDTH = 10,
+    parameter CONCAT_KN1_WIDTH = 10,
+    parameter CONCAT_KN2_WIDTH = 10,
+    parameter CONCAT_KN3_WIDTH = 10,
+    parameter CONCAT_KN4_WIDTH = 10,
+    parameter CONCAT_InNum_WIDTH = 3
+  
+)      
+    (
     input [(INPUT_WIDTH)-1 : 0] din,
     input start,
     input clk,
@@ -237,7 +252,22 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC,
     `endif //TRANSPOSE
     
-    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController
+    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController,
+    // Concat Operator
+    output [OP_CODE_WIDTH - 1 : 0] opcode_CONCAT,
+    output [CONCAT_InNum_WIDTH -1 : 0] CONCAT_InNum,
+    output [CONCAT_Image1StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_1,
+    output [CONCAT_Image2StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_2,
+    output [CONCAT_Image3StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_3,
+    output [CONCAT_Image4StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_4,
+    output [CONCAT_IH1_WIDTH -1 : 0] CONCAT_IH_1,
+    output [CONCAT_IH2_WIDTH -1 : 0] CONCAT_IH_2,
+    output [CONCAT_IH3_WIDTH -1 : 0] CONCAT_IH_3,
+    output [CONCAT_IH4_WIDTH -1 : 0] CONCAT_IH_4,
+    output [CONCAT_KN1_WIDTH -1 : 0] CONCAT_KN_1,
+    output [CONCAT_KN2_WIDTH -1 : 0] CONCAT_KN_2,
+    output [CONCAT_KN3_WIDTH -1 : 0] CONCAT_KN_3,
+    output [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4
 );
 
     `include "../common/instructions.vh"
@@ -595,5 +625,51 @@ OP_ReshapeTranspose # (
   );
 `endif //TRANSPOSE
 //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
+    OP_Concat #(
+        .OP_CODE_WIDTH(OP_CODE_WIDTH), 
+        .CNT(CNT),
+        .OUTPUT_WIDTH(INPUT_WIDTH),
+        .INPUT_WIDTH(OUTPUT_WIDTH),
+        .CONCAT_Image1StartAddress_WIDTH(CONCAT_Image1StartAddress_WIDTH),
+        .CONCAT_Image2StartAddress_WIDTH(CONCAT_Image2StartAddress_WIDTH),
+        .CONCAT_Image3StartAddress_WIDTH(CONCAT_Image3StartAddress_WIDTH),
+        .CONCAT_Image4StartAddress_WIDTH(CONCAT_Image4StartAddress_WIDTH),
+        .CONCAT_IH1_WIDTH(CONCAT_IH1_WIDTH),
+        .CONCAT_IH2_WIDTH(CONCAT_IH2_WIDTH),
+        .CONCAT_IH3_WIDTH(CONCAT_IH3_WIDTH),
+        .CONCAT_IH4_WIDTH(CONCAT_IH4_WIDTH),
+        .CONCAT_KN1_WIDTH(CONCAT_KN1_WIDTH),
+        .CONCAT_KN2_WIDTH(CONCAT_KN2_WIDTH),
+        .CONCAT_KN3_WIDTH(CONCAT_KN3_WIDTH),
+        .CONCAT_KN4_WIDTH(CONCAT_KN4_WIDTH),
+        .CONCAT_InNum_WIDTH(CONCAT_InNum_WIDTH)
+
+        )
+        OP_CONCAT(
+        .din(dout_top_master),
+        .sel(select_line[`OP_CONCAT]),
+        .write(wr),
+        .done(done_top_master),
+        .clk(clk),
+        .opcode(opcode_CONCAT),
+        .CONCAT_InNum(CONCAT_InNum),
+        .CONCAT_StartAdd_1(CONCAT_StartAdd_1),
+        .CONCAT_StartAdd_2(CONCAT_StartAdd_2),
+        .CONCAT_StartAdd_3(CONCAT_StartAdd_3),
+        .CONCAT_StartAdd_4(CONCAT_StartAdd_4),
+        .CONCAT_IH_1(CONCAT_IH_1),
+        .CONCAT_IH_2(CONCAT_IH_2),
+        .CONCAT_IH_3(CONCAT_IH_3),
+        .CONCAT_IH_4(CONCAT_IH_4),
+        .CONCAT_KN_1(CONCAT_KN_1),
+        .CONCAT_KN_2(CONCAT_KN_2),
+        .CONCAT_KN_3(CONCAT_KN_3),
+        .CONCAT_KN_4(CONCAT_KN_4),
+        .valid(valid[`OP_CONCAT]),
+        .ready(ready[`OP_CONCAT])
+        );
+    
+    
+    //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

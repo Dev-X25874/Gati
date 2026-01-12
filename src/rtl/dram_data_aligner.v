@@ -38,7 +38,8 @@ module dram_data_aligner#(
     output [OP_FIFO-1 : 0] o_op_write_dram_fifo_dv,
 
     output [ACC_OP_DATAWIDTH-1:0] o_acc_onchip_data,
-    output [ACC_OP_FIFO-1:0] o_acc_onchip_data_dv
+    output [ACC_OP_FIFO-1:0] o_acc_onchip_data_dv,
+    output [QUANT_OP_FIFO-1:0] quant_op_fifo_full
 );
     
     localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (AXI_DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
@@ -87,7 +88,7 @@ module dram_data_aligner#(
     );
 
     wire [QUANT_OP_FIFO-1:0] quant_op_fifo_empty, quant_op_fifo_almost_empty;
-    wire [QUANT_OP_FIFO-1:0] quant_op_fifo_full, quant_op_fifo_almost_full;
+    wire [QUANT_OP_FIFO-1:0] quant_op_fifo_almost_full;
     wire [QUANT_OP_FIFO-1:0] quant_op_fifo_dv;
     wire [QUANT_OP_FIFO*AXI_DATA_WIDTH-1:0] quant_op_fifo_data;
     // QUANT_OP_FIFO

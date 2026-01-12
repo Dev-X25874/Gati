@@ -47,7 +47,7 @@ output reg op_done,
 output reg layer_done,
 output reg [ADDR_WIDTH-1:0] r_acc_start_add,
 output [ADDR_WIDTH-1:0] r_acc_stop_add,
-input ksplit
+input ksplit 
 
 );
 
@@ -85,7 +85,6 @@ wire [ADDR_WIDTH-1 : 0] offset1, offset2;
 
 assign offset1 = i_imag_dim * (DATA_WIDTH_ACC/DATA_WIDTH) * N;
 assign offset2 = (OutputBlock_FlatController)? i_imag_dim_2 : (i_imag_dim_2 * N) * OB_OpWidth;
-
 assign r_acc_stop_add = r_acc_next_add + offset1;
 assign r_layer_stop_add = r_layer_next_add + offset2;                    
 

@@ -315,7 +315,10 @@ module Top_CONV_FC #(
     output o_image_fifo_almost_full_flag,
     input istolic_stall,
     input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
-    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip
+    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
+    input  [255:0] o_concat_data,
+    input         o_concat_dv,
+    input         w_one_operand
 
 );
 
@@ -1031,8 +1034,12 @@ always @(posedge i_clk) begin
     .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
     .EW_done(EW_done),
     .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
-    .op_fifo_empty(op_fifo_empty)
+    .op_fifo_empty(op_fifo_empty),
+    .w_one_operand(w_one_operand)
   );
+
+  // TODO: Change name to tail block interconnect  
+
 
   interconnect #(
     .DATA_WIDTH_OB(DATA_WIDTH_OB),
@@ -1050,6 +1057,7 @@ always @(posedge i_clk) begin
     .data_tail_blk_in(data_tail_blk_in),
     .data_tail_blk_vaild(data_tail_blk_vaild)
   );
+
 
   wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; // From here onwards COL_SA or N_SA?:Todo
   wire [N_SA-1:0] vector_valid;
@@ -1194,7 +1202,7 @@ always @(posedge i_clk) begin
       .DATA_WIDTH(DATA_WIDTH),
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .CLIP_WIDTH(RELU_CLIP_WIDTH),
-      .LR_NEG_ALPHA_WIDTH(LR_NEG_ALPHA_WIDTH),
+      .LR_NEG_ALPHA_WIDTH(LR_NEG_ALPHA_WIDTH), 
       .LR_POS_ALPHA_WIDTH(LR_POS_ALPHA_WIDTH)
   ) relu (
       .top_clk(i_clk),
@@ -1345,6 +1353,15 @@ always @(posedge i_clk) begin
   `endif
 
   //zero padding circuit
+
+  // CONCAT : Mux the Tail Pass through here
+
+  //Mux for tail pass through if no tail block is needed then directly send the data to the zero padder and and then write to DRAM the allignment still stays same as conv NSA* DATA_WIDTH
+
+
+  
+
+  
   top_zero # (
     .DW(DATA_WIDTH),
     .COL(N_SA),
@@ -1409,6 +1426,8 @@ always @(posedge i_clk) begin
   /*Quantized output write logic - only qunatized output is passed through shift register
     whereas accumulant output is passed through demux separately
   */
+
+
   generate_shift_register #( 
       .N(N_SA),
       .NUM_SHIFT(SHFT_REG_X),
@@ -1423,8 +1442,8 @@ always @(posedge i_clk) begin
       .data_out(x_final_data)
   );
 
-  assign quant_op_write_data = x_final_data;
-  assign quant_op_wren = (&(x_final_valid)) ? {QUANT_OP_FIFO{1'b1}} : 0;
+  assign quant_op_write_data = (opcode == `OP_CONCAT) ? o_concat_data : x_final_data;
+  assign quant_op_wren = (opcode == `OP_CONCAT) ? {QUANT_OP_FIFO{o_concat_dv}} : ((&(x_final_valid)) ? {QUANT_OP_FIFO{1'b1}} : 0);
 
   // Accumulant output write logic
   localparam DMUX_SEL_WIDTH = (N_DMUX_PORTS > 1)? $clog2(N_DMUX_PORTS) : 1;

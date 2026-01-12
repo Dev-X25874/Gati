@@ -23,6 +23,7 @@ module EltWise_controller#(
     input [FIFO_NO - 1:0] LeftOperand_empty_flag,
     input [FIFO_NO - 1:0] RightOperand_empty_flag,
     input [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
+    input tanh_switch,
 
     output [FIFO_NO - 1:0] element_rd_en,
     output reg [(DATA_WIDTH * N) - 1:0] LeftOperand_fifo_data_out,
@@ -44,8 +45,6 @@ always @(posedge clkin) begin
     r_img_size <= EltWise_IW * EltWise_IH;
 end
 
-wire tanh_switch;
-assign tanh_switch = ((EltWise_type == `ELTWISE_SIG) || (EltWise_type == `ELTWISE_TANH)) ? 1'b1 : 0;
 
 // Status monitoring to read the zeropadded data after the image size is reached
 wire [FIFO_NO-1:0] diff;

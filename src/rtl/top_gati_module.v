@@ -1,7 +1,7 @@
 `include "common/instructions.vh"
 `include "common/portid.vh"
 `include "common/arch_param.vh"
-//`include "instruction.mem"
+
 module top_gati_module #(
    // FIFO Depth varies between operators to avoid overflow and underflow 
     parameter INST_QUEUE_DEPTH    = 256,
@@ -15,6 +15,7 @@ module top_gati_module #(
     parameter QUANT_OP_FIFO_DEPTH = 256,
     parameter OP_WRITE_FIFO_DEPTH = 512,
     parameter ELTWISE_FIFO_DEPTH  = 512,
+    parameter CONCAT_FIFO_DEPTH   = 512,
 
     //Default burst lenghts for various memory request controllers
     parameter CONFIG_REQ_BLEN       = 7,
@@ -26,6 +27,7 @@ module top_gati_module #(
     parameter OP_WRITE_REQ_ACC_BLEN = 15, //burst length for writng accumulants (32-bit) into the DRAM
     parameter OP_WRITE_REQ_QUA_BLEN = 15, //burst length for writng quantized output (8-bit) into the DRAM
     parameter ELEMENT_REQ_BLEN      = 15,
+    parameter CONCAT_REQ_BLEN       = 15,
     //parameters related to DRAM controller
     parameter NUM_PORTS = 13, //Number of read and write requestors
 
@@ -54,35 +56,34 @@ module top_gati_module #(
     parameter CONV_ConvType_WIDTH = `CONV_ConvType_WIDTH,
     parameter OutputBlock_OH_WIDTH = `OutputBlock_OH_WIDTH, // Output block output height
     parameter OutputBlock_OW_WIDTH = `OutputBlock_OW_WIDTH, // Output block output width
-    parameter CONV_STRIDE_WIDTH = `CONV_Stride_WIDTH,
-    
-    parameter CONV_PadLeft_WIDTH = `CONV_PadLeft_WIDTH,
-    parameter CONV_PadRight_WIDTH = `CONV_PadRight_WIDTH,
-    parameter CONV_PadTop_WIDTH = `CONV_PadTop_WIDTH,
-    parameter CONV_PadBottom_WIDTH = `CONV_PadBottom_WIDTH,
+    parameter CONV_STRIDE_WIDTH       = `CONV_Stride_WIDTH,
+    parameter CONV_PadLeft_WIDTH      = `CONV_PadLeft_WIDTH,
+    parameter CONV_PadRight_WIDTH     = `CONV_PadRight_WIDTH,
+    parameter CONV_PadTop_WIDTH       = `CONV_PadTop_WIDTH,
+    parameter CONV_PadBottom_WIDTH    = `CONV_PadBottom_WIDTH,
     parameter CONV_StartRowSkip_WIDTH = `CONV_StartRowSkip_WIDTH, // Start row skip for im2col
     parameter CONV_EndRowSkip_WIDTH = `CONV_EndRowSkip_WIDTH, // End row skip for im2col
     
-    parameter CONV_Im2colPrefetch_WIDTH = `CONV_Im2colPrefetch_WIDTH ,
+    parameter CONV_Im2colPrefetch_WIDTH   = `CONV_Im2colPrefetch_WIDTH ,
     parameter CONV_CHANNELDUPLICATE_WIDTH = `CONV_ChannelDuplicate_WIDTH,
 
     //im2col related param 
-    parameter STRIDE          =  `STRIDE, // From arch_param.vh
-    parameter KERNEL_SIZE     =  3,       //`CONV_KH,
-    parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
-    parameter N_MOD_STAGES    =  9, // Number of stages in mod operator in Im2Col stride handling block   
+    parameter STRIDE                 = `STRIDE, // From arch_param.vh
+    parameter KERNEL_SIZE            = 3,       
+    parameter IM2COL_BOUND_GEN_WIDTH = 16,
+    parameter N_MOD_STAGES           = 9, // Number of stages in mod operator in Im2Col stride handling block   
     
     //SA related param
-    parameter POP_THRESHOLD = (AXI_DATA_BYTES/N_SA) - 3,
-    parameter NSA_DSP       = 3, 
-    parameter NSA_LUT       = 5,
-    parameter N_SA          = NSA_DSP + NSA_LUT,
-    parameter DATA_WIDTH    = 8,
-    parameter COL_SA        = 8,
-    parameter COL_FC        = 32,
-    parameter ROW           = 9,
-    parameter W_PSUM        = 20,
-    parameter DATA_WIDTH_OB = 32,
+    parameter POP_THRESHOLD  = (AXI_DATA_BYTES/N_SA) - 3,
+    parameter NSA_DSP        = 3, 
+    parameter NSA_LUT        = 5,
+    parameter N_SA           = NSA_DSP + NSA_LUT,
+    parameter DATA_WIDTH     = 8,
+    parameter COL_SA         = 8,
+    parameter COL_FC         = 32,
+    parameter ROW            = 9,
+    parameter W_PSUM         = 20,
+    parameter DATA_WIDTH_OB  = 32,
     parameter DATA_WIDTH_ACC = 32,
 
     // FC inst. related params
@@ -91,7 +92,7 @@ module top_gati_module #(
     parameter FC_IMAGE_ROWS_WIDTH   = `FC_InputRows_WIDTH,
     parameter FC_DROPOUT_WIDTH      = `FC_DropoutConstant_WIDTH,
     parameter W_FC_IMAG_DIM         = `FC_ImageDim_WIDTH,
-    parameter W_FC_RW_COUNTER       = `FC_Vec2MatCols_WIDTH, //width of fc r/w address counter
+    parameter W_FC_RW_COUNTER       = `FC_Vec2MatCols_WIDTH, 
     parameter FLATTEN_EN_WIDTH      = `FC_Flatten_WIDTH,
     // FC Engine related parameters
     parameter ACC_DW            = 32,
@@ -120,8 +121,8 @@ module top_gati_module #(
     parameter N_DMUX_PORTS = AXI_DATA_BYTES/(N_SA*(ACC_DW/8)),
 
     //Tail block param
-    parameter ACT_TYPE_WIDTH    = `TailBlock_ActType_WIDTH,
-    parameter RELU_CLIP_WIDTH   = `TailBlock_ActParam_WIDTH, 
+    parameter ACT_TYPE_WIDTH       = `TailBlock_ActType_WIDTH,
+    parameter RELU_CLIP_WIDTH      = `TailBlock_ActParam_WIDTH, 
     parameter LR_NEG_ALPHA_WIDTH   = `TailBlock_NegAlpha_WIDTH,
     parameter LR_POS_ALPHA_WIDTH   = `TailBlock_PosAlpha_WIDTH,  
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
@@ -192,14 +193,30 @@ module top_gati_module #(
     parameter ACC_TOGGLE    = 1,
     parameter NO_PORT_BAFC  = 2,
 
-    //EltWise parameters
-    parameter ELTWISE_FIFO = AXI_DATA_BYTES/N_SA, // Number of element wise fifos
-    parameter ELTWISE_TYPE_WIDTH = `EltWise_EltType_WIDTH, // Width of the element wise
-    parameter ELTWISE_IW_WIDTH = `EltWise_IW_WIDTH, // Width of the input width;
-    parameter ELTWISE_IH_WIDTH = `EltWise_IH_WIDTH, // Width of the input height;
-    parameter ELTWISE_IC_WIDTH = `EltWise_IC_WIDTH, // Width of the output width;
-    parameter ELTWISE_SCALE_WIDTH = `EltWise_AScale_WIDTH,
-    parameter ELTWISE_ZEROPOINT_WIDTH = `EltWise_AZeroPoint_WIDTH
+    //EltWise param
+    parameter ELTWISE_FIFO = AXI_DATA_BYTES/N_SA, // Number of eltwise fifo
+    parameter ELTWISE_TYPE_WIDTH      = `EltWise_EltType_WIDTH,  
+    parameter ELTWISE_IW_WIDTH        = `EltWise_IW_WIDTH, 
+    parameter ELTWISE_IH_WIDTH        = `EltWise_IH_WIDTH,  
+    parameter ELTWISE_IC_WIDTH        = `EltWise_IC_WIDTH,  
+    parameter ELTWISE_SCALE_WIDTH     = `EltWise_AScale_WIDTH,
+    parameter ELTWISE_ZEROPOINT_WIDTH = `EltWise_AZeroPoint_WIDTH,
+    // Concat operator 
+    parameter CONCAT_FIFO = 1,
+    parameter CONCAT_Image1StartAddress_WIDTH = `CONCAT_Image1StartAddress_WIDTH,
+    parameter CONCAT_Image2StartAddress_WIDTH = `CONCAT_Image2StartAddress_WIDTH,
+    parameter CONCAT_Image3StartAddress_WIDTH = `CONCAT_Image3StartAddress_WIDTH,
+    parameter CONCAT_Image4StartAddress_WIDTH = `CONCAT_Image4StartAddress_WIDTH,
+    parameter CONCAT_IH1_WIDTH = `CONCAT_IH1_WIDTH,
+    parameter CONCAT_IH2_WIDTH = `CONCAT_IH2_WIDTH,
+    parameter CONCAT_IH3_WIDTH = `CONCAT_IH3_WIDTH,
+    parameter CONCAT_IH4_WIDTH = `CONCAT_IH4_WIDTH,
+    parameter CONCAT_KN1_WIDTH = `CONCAT_KN1_WIDTH,
+    parameter CONCAT_KN2_WIDTH = `CONCAT_KN2_WIDTH,
+    parameter CONCAT_KN3_WIDTH = `CONCAT_KN3_WIDTH,
+    parameter CONCAT_KN4_WIDTH = `CONCAT_KN4_WIDTH,
+    parameter CONCAT_InNum_WIDTH = `CONCAT_InNum_WIDTH 
+
 ) (
     ///global
     input i_clk,
@@ -286,6 +303,14 @@ module top_gati_module #(
     output mc_ReshapeTranspose_last,
     `endif //TRANSPOSE
     
+    // Concat Operator
+
+    output [7:0] mc_Concat_addr,
+    output mc_Concat_rdreq,
+    output mc_Concat_valid,
+    output [BURST_LENGTH_WIDTH-1 : 0] mc_Concat_bl,
+    output mc_Concat_last,
+    
     /////////////output write ctrl
     output [7:0] mc_op_write_addr,
     output mc_op_writereq,
@@ -362,7 +387,7 @@ module top_gati_module #(
       .LAY_N(LAYERCNT_WIDTH),
       .TOTAL_LAY_N(TOTAL_LAYERCNT_WIDTH)
     ) config_blk_inst (
-	  .clkin(i_clk),
+	    .clkin(i_clk),
       .rst(i_rst),
       .user_start(user_start),
       .valid(dram_rd_datavalid),
@@ -371,7 +396,7 @@ module top_gati_module #(
       .instruction_data(dram_rd_data),
       .dispatch_busy(dispatcher_busy),
 
-	  .memory_read_r(mc_config_rdreq),
+	    .memory_read_r(mc_config_rdreq),
       .memory_valid(mc_config_valid),
       .mem_address(mc_config_addr),
       .mem_last(mc_config_last),
@@ -386,22 +411,22 @@ module top_gati_module #(
     );
   
   //CONV inst. signals
-  wire [OPCODE_WIDTH-1:0] conv_opcode;
-  wire [CONV_IW_WIDTH-1 : 0] input_img_width; 
-  wire [CONV_IH_WIDTH-1 : 0] input_img_height;
+  wire [OPCODE_WIDTH-1:0]           conv_opcode;
+  wire [CONV_IW_WIDTH-1 : 0]        input_img_width; 
+  wire [CONV_IH_WIDTH-1 : 0]        input_img_height;
   wire [OutputBlock_OW_WIDTH-1 : 0] op_width;
   wire [OutputBlock_OH_WIDTH-1 : 0] op_height; 
 
-  wire [CONV_KN_WIDTH-1:0] n_kernels;
-  wire [CONV_KW_WIDTH-1:0] kernel_width;
-  wire [CONV_KH_WIDTH-1:0] kernel_height;
-  wire [CONV_KC_WIDTH-1:0] kernel_channels;
+  wire [CONV_KN_WIDTH-1:0]       n_kernels;
+  wire [CONV_KW_WIDTH-1:0]       kernel_width;
+  wire [CONV_KH_WIDTH-1:0]       kernel_height;
+  wire [CONV_KC_WIDTH-1:0]       kernel_channels;
   wire [CONV_ConvType_WIDTH-1:0] conv_type;
-  wire [CONV_STRIDE_WIDTH-1:0] stride;
+  wire [CONV_STRIDE_WIDTH-1:0]   stride;
   
-  wire [CONV_PadLeft_WIDTH-1:0] conv_pad_left;
-  wire [CONV_PadRight_WIDTH-1:0] conv_pad_right;
-  wire [CONV_PadTop_WIDTH-1:0] conv_pad_top;
+  wire [CONV_PadLeft_WIDTH-1:0]   conv_pad_left;
+  wire [CONV_PadRight_WIDTH-1:0]  conv_pad_right;
+  wire [CONV_PadTop_WIDTH-1:0]    conv_pad_top;
   wire [CONV_PadBottom_WIDTH-1:0] conv_pad_bottom;
 
   wire [CONV_CHANNELDUPLICATE_WIDTH-1:0] CONV_ChannelDuplicate;
@@ -427,20 +452,20 @@ module top_gati_module #(
   `endif //FC
 
   //OP block inst. signals
-  wire [OPCODE_WIDTH-1:0] Op_code_OB;
-  wire [I_ACC_SIZE_WIDTH-1:0] img_dim_Acc;
-  wire [I_OP_SIZE_WIDTH-1:0] img_dim_Op;
-  wire [ACCEN_WIDTH-1:0] ACC_EN;
-  wire [AXI_ADDR_W-1:0] acc_start_address;
-  wire [AXI_ADDR_W-1:0] acc_stop_address;
-  wire [AXI_ADDR_W-1:0] op_start_address;
+  wire [OPCODE_WIDTH-1:0]       Op_code_OB;
+  wire [I_ACC_SIZE_WIDTH-1:0]   img_dim_Acc;
+  wire [I_OP_SIZE_WIDTH-1:0]    img_dim_Op;
+  wire [ACCEN_WIDTH-1:0]        ACC_EN;
+  wire [AXI_ADDR_W-1:0]         acc_start_address;
+  wire [AXI_ADDR_W-1:0]         acc_stop_address;
+  wire [AXI_ADDR_W-1:0]         op_start_address;
   wire [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip;
   wire [OutputBlock_FlatController_WIDTH-1:0] OutputBlock_FlatController;
 
   //Tail inst. signals
-  wire [OPCODE_WIDTH-1:0] Op_code_TB;
-  wire [RELU_CLIP_WIDTH-1:0] relu_clip_value;
-  wire [ACT_TYPE_WIDTH-1:0] relu_act_type;
+  wire [OPCODE_WIDTH-1:0]       Op_code_TB;
+  wire [RELU_CLIP_WIDTH-1:0]    relu_clip_value;
+  wire [ACT_TYPE_WIDTH-1:0]     relu_act_type;
   wire [LR_NEG_ALPHA_WIDTH-1:0] LR_NegAlpha;  
   wire [LR_POS_ALPHA_WIDTH-1:0] LR_PosAlpha;
   wire [W_QUANT_SHIFT-1:0] tail_quantshift;
@@ -461,6 +486,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] bias_stop_address;
 
   //Elementwise inst. signals
+  wire [OPCODE_WIDTH-1:0] opcode_CONCAT;
   wire [OPCODE_WIDTH-1:0] ew_opcode;
   wire [ELTWISE_TYPE_WIDTH-1:0] EltWise_type;
   wire [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale;
@@ -512,6 +538,7 @@ module top_gati_module #(
   assign start_FC = start_block[`OP_FC];
   assign start_EW = start_block[`OP_EltWise];
   assign start_RT = start_block[`OP_TRANSPOSE];
+  assign start_Concat = start_block[`OP_CONCAT];
 
 
   /* always block for the generation of the CONV_FC */
@@ -555,6 +582,8 @@ module top_gati_module #(
 
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
+  assign opcode_hold[(`OP_CONCAT*OPCODE_WIDTH) +:OPCODE_WIDTH] = opcode_CONCAT;
+
 
   `ifdef TRANSPOSE
   assign opcode_hold[(`OP_TRANSPOSE*OPCODE_WIDTH) +:OPCODE_WIDTH] = rt_opcode;
@@ -824,7 +853,20 @@ module top_gati_module #(
   `endif
 
   wire [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth; // output dram data width in bytes 
-
+    wire [CONCAT_InNum_WIDTH -1 : 0] CONCAT_InNum;
+    wire [CONCAT_Image1StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_1;
+    wire [CONCAT_Image2StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_2;
+    wire [CONCAT_Image3StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_3;
+    wire [CONCAT_Image4StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_4;
+    wire [CONCAT_IH1_WIDTH -1 : 0] CONCAT_IH_1;
+    wire [CONCAT_IH2_WIDTH -1 : 0] CONCAT_IH_2;
+    wire [CONCAT_IH3_WIDTH -1 : 0] CONCAT_IH_3;
+    wire [CONCAT_IH4_WIDTH -1 : 0] CONCAT_IH_4;
+    wire [CONCAT_KN1_WIDTH -1 : 0] CONCAT_KN_1;
+    wire [CONCAT_KN2_WIDTH -1 : 0] CONCAT_KN_2;
+    wire [CONCAT_KN3_WIDTH -1 : 0] CONCAT_KN_3;
+    wire [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4;
+    
   // top_master_slave_integrate
   top_master_slave_integrate#(
     .OP_CODE_WIDTH(OPCODE_WIDTH),
@@ -920,9 +962,22 @@ module top_gati_module #(
     .TRANSPOSE_IC_WIDTH(TRANSPOSE_IC_WIDTH),
     .TRANSPOSE_IH_WIDTH(TRANSPOSE_IH_WIDTH),
     .TRANSPOSE_IW_WIDTH(TRANSPOSE_IW_WIDTH),
-    .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
     .OutputBlock_AccumulantReadFirst_WIDTH(OutputBlock_AccumulantReadFirst_WIDTH),
-    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
+    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH),
+    .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
+    .CONCAT_Image1StartAddress_WIDTH(CONCAT_Image1StartAddress_WIDTH),
+    .CONCAT_Image2StartAddress_WIDTH(CONCAT_Image2StartAddress_WIDTH),
+    .CONCAT_Image3StartAddress_WIDTH(CONCAT_Image3StartAddress_WIDTH),
+    .CONCAT_Image4StartAddress_WIDTH(CONCAT_Image4StartAddress_WIDTH),
+    .CONCAT_IH1_WIDTH(CONCAT_IH1_WIDTH),
+    .CONCAT_IH2_WIDTH(CONCAT_IH2_WIDTH),
+    .CONCAT_IH3_WIDTH(CONCAT_IH3_WIDTH),
+    .CONCAT_IH4_WIDTH(CONCAT_IH4_WIDTH),
+    .CONCAT_KN1_WIDTH(CONCAT_KN1_WIDTH),
+    .CONCAT_KN2_WIDTH(CONCAT_KN2_WIDTH),
+    .CONCAT_KN3_WIDTH(CONCAT_KN3_WIDTH),
+    .CONCAT_KN4_WIDTH(CONCAT_KN4_WIDTH),
+    .CONCAT_InNum_WIDTH(CONCAT_InNum_WIDTH)
   )
   bus_inst(
     .din(instruction), //i-wire : instruction from config blk
@@ -1068,9 +1123,31 @@ module top_gati_module #(
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
     .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
-    .BiasEndAddress(bias_stop_address)
+    .BiasEndAddress(bias_stop_address),
+
+    // Concat operator 
+    .opcode_CONCAT(opcode_CONCAT),
+    .CONCAT_InNum(CONCAT_InNum),
+    .CONCAT_StartAdd_1(CONCAT_StartAdd_1),
+    .CONCAT_StartAdd_2(CONCAT_StartAdd_2),
+    .CONCAT_StartAdd_3(CONCAT_StartAdd_3),
+    .CONCAT_StartAdd_4(CONCAT_StartAdd_4),
+    .CONCAT_IH_1(CONCAT_IH_1),
+    .CONCAT_IH_2(CONCAT_IH_2),
+    .CONCAT_IH_3(CONCAT_IH_3),
+    .CONCAT_IH_4(CONCAT_IH_4),
+    .CONCAT_KN_1(CONCAT_KN_1),
+    .CONCAT_KN_2(CONCAT_KN_2),
+    .CONCAT_KN_3(CONCAT_KN_3),
+    .CONCAT_KN_4(CONCAT_KN_4)
+
   );
   
+  wire w_one_operand ;
+
+  assign w_one_operand = (RightOperand_start_address == 32'hFFFFFFFF)? 1'b1:0; 
+
+
   // fifo status signals for memory request controllers
   wire img_fifo_status;
   wire weight_fifo_status;
@@ -1367,10 +1444,151 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .last(mc_RightOperand_last)
   );
 
+  // request controller for concate. 
+
+  // CONCAT : request_controller DRAM 
+
+  localparam STOP_ADD_WIDTH = 32;
+
+    (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_1;
+    (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_2;
+    (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_3;
+    (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_4;
+    
+    wire [AXI_ADDR_W- 1 : 0] concat_req_start_add;
+    wire [AXI_ADDR_W- 1 : 0] concat_req_stop_add;
+    wire req_done;
+
+  request_controller_concat #(                                   
+      .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
+      .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
+      .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
+      .BURST_LENGTH(CONCAT_REQ_BLEN),
+      .AXI_DATA_BYTES(AXI_DATA_BYTES),
+      .CONCAT_InNum_WIDTH(CONCAT_InNum_WIDTH)
+  ) request_controller_concat (
+      .start_addr_1(concat_req_start_add),
+      .stop_addr_1(concat_req_stop_add),
+      .config_start(o_start_en),
+      .fifo_status(Concat_fifo_status), //occupancy check
+      .clk(i_clk),
+      .data_last(),
+      .CONCAT_InNum(CONCAT_InNum), 
+      .addr_out(mc_Concat_addr),
+      .wr_enable(mc_Concat_rdreq), //write-read enable
+      .valid(mc_Concat_valid),
+      .last(mc_Concat_last),
+      .req_done(req_done),
+      .burst_length(mc_Concat_bl)
+  );
+
+
+
+    concat_address_switcher #( 
+      .ADD_WIDTH(AXI_ADDR_W)
+    )
+    concat_address_switcher(
+    .i_clk(i_clk),
+    .i_rst(!i_rst),
+    .i_start_seq(start_Concat),   // 1-cycle pulse to start sequence
+    .i_input_num(CONCAT_InNum),//TODO:Number of valid inputs: 1..4
+    .i_start_add0(CONCAT_StartAdd_1),
+    .i_start_add1(CONCAT_StartAdd_2),
+    .i_start_add2(CONCAT_StartAdd_3),
+    .i_start_add3(CONCAT_StartAdd_4),
+    .i_stop_add0(CONCAT_StopAdd_1),
+    .i_stop_add1(CONCAT_StopAdd_2),
+    .i_stop_add2(CONCAT_StopAdd_3),
+    .i_stop_add3(CONCAT_StopAdd_4),
+    .i_done(req_done), // asserted when current length is done
+    .o_start_en(o_start_en), // 1-cycle pulse
+    .o_start_add(concat_req_start_add),
+    .o_stop_add(concat_req_stop_add),   // latched address 
+    .o_all_done(o_all_done)
+  );
+
+
+
+   // CONCAT : top_concat instantiation 
+
+
+  wire concat_write_enable;
+  wire concat_dv;
+
+  top_concat #( 
+      .OPCODE_WIDTH(OPCODE_WIDTH),
+      .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+      .CONCAT_FIFO_DEPTH(CONCAT_FIFO_DEPTH),
+      .CONCAT_FIFO(CONCAT_FIFO),
+      .DATA_WIDTH(DATA_WIDTH),
+      .CONCAT_Image1StartAddress_WIDTH(CONCAT_Image1StartAddress_WIDTH),
+      .CONCAT_Image2StartAddress_WIDTH(CONCAT_Image2StartAddress_WIDTH),
+      .CONCAT_Image3StartAddress_WIDTH(CONCAT_Image3StartAddress_WIDTH),
+      .CONCAT_Image4StartAddress_WIDTH(CONCAT_Image4StartAddress_WIDTH),
+      .CONCAT_IH1_WIDTH(CONCAT_IH1_WIDTH),
+      .CONCAT_IH2_WIDTH(CONCAT_IH2_WIDTH),
+      .CONCAT_IH3_WIDTH(CONCAT_IH3_WIDTH),
+      .CONCAT_IH4_WIDTH(CONCAT_IH4_WIDTH),
+      .CONCAT_IW1_WIDTH(CONCAT_IH1_WIDTH),
+      .CONCAT_IW2_WIDTH(CONCAT_IH2_WIDTH),
+      .CONCAT_IW3_WIDTH(CONCAT_IH3_WIDTH),
+      .CONCAT_IW4_WIDTH(CONCAT_IH4_WIDTH),
+      .CONCAT_KN1_WIDTH(CONCAT_KN1_WIDTH),
+      .CONCAT_KN2_WIDTH(CONCAT_KN2_WIDTH),
+      .CONCAT_KN3_WIDTH(CONCAT_KN3_WIDTH),
+      .CONCAT_KN4_WIDTH(CONCAT_KN4_WIDTH),
+      .CONCAT_InNum_WIDTH(CONCAT_InNum_WIDTH),
+      .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
+      .QUANT_OP_FIFO(QUANT_OP_FIFO)
+
+  ) Concat_Operator 
+  (
+      .i_clk(i_clk),
+      .i_rst(!i_rst),
+      .opcode(opcode),
+      .CONCAT_StartAdd_1(CONCAT_StartAdd_1),
+      .CONCAT_StartAdd_2(CONCAT_StartAdd_2),
+      .CONCAT_StartAdd_3(CONCAT_StartAdd_3),
+      .CONCAT_StartAdd_4(CONCAT_StartAdd_4),
+      .CONCAT_IH_1(CONCAT_IH_1),
+      .CONCAT_IH_2(CONCAT_IH_2),
+      .CONCAT_IH_3(CONCAT_IH_3),
+      .CONCAT_IH_4(CONCAT_IH_4),
+      .CONCAT_IW_1(CONCAT_IH_1),
+      .CONCAT_IW_2(CONCAT_IH_2),
+      .CONCAT_IW_3(CONCAT_IH_3),
+      .CONCAT_IW_4(CONCAT_IH_4),
+      .CONCAT_KN_1(CONCAT_KN_1),
+      .CONCAT_KN_2(CONCAT_KN_2),
+      .CONCAT_KN_3(CONCAT_KN_3),
+      .CONCAT_KN_4(CONCAT_KN_4),
+      .i_concat_data(i_concat_data),
+      .concat_write_enable(concat_write_enable),
+      .start_Concat(start_Concat),
+      .CONCAT_InNum(CONCAT_InNum),
+      .quant_op_fifo_full(quant_op_fifo_full),
+      .CONCAT_StopAdd_1(CONCAT_StopAdd_1),
+      .CONCAT_StopAdd_2(CONCAT_StopAdd_2),
+      .CONCAT_StopAdd_3(CONCAT_StopAdd_3),    
+      .CONCAT_StopAdd_4(CONCAT_StopAdd_4),
+      .Concat_fifo_occupants(Concat_fifo_occupants),
+      .concat_dv(concat_dv),
+      .o_concat_data(o_concat_data),
+      .o_concat_dv(o_concat_dv),
+      .o_concat_done(w_concat_done)
+
+  );
+
+  wire [AXI_DATA_WIDTH-1:0] o_concat_data ;
+  wire        o_concat_dv;
+  wire        w_concat_done;
+
+
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
   wire op_done;
+  
 
   op_write_req_block#(
     .N(N_SA),
@@ -1388,7 +1606,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     .OutputBlock_FlatController_WIDTH(OutputBlock_FlatController_WIDTH),
     .IMAGE_DIM_WIDTH_ACC(I_ACC_SIZE_WIDTH),
     .IMAGE_DIM_WIDTH_OP(I_OP_SIZE_WIDTH),
-    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH) 
+    .OutputBlock_OpWidth_WIDTH(OutputBlock_OpWidth_WIDTH)
   )
   op_write_mem_req_ctrler(
     .clkin(i_clk),
@@ -1740,6 +1958,41 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   end
 
 
+
+  // CONCAT : virtual ocupents 
+
+    reg [$clog2(CONCAT_FIFO_DEPTH):0] virtual_occ_Concat;
+    wire Concat_fifo_status;
+
+
+    always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ_Concat <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_Concat_last && select[`Concat]) virtual_occ_Concat <= virtual_occ_Concat + mc_Concat_bl;
+        else if(mc_Concat_last)                     virtual_occ_Concat <= virtual_occ_Concat + (mc_Concat_bl+1);
+        else if(select[`Concat])                    virtual_occ_Concat <= virtual_occ_Concat-1;
+        else   virtual_occ_Concat <= virtual_occ_Concat;
+      end
+      else begin
+        virtual_occ_Concat <= 0;
+      end
+    end
+  end
+
+   
+  wire [(($clog2(CONCAT_FIFO_DEPTH)+1)*CONCAT_FIFO)-1:0]Concat_fifo_occupants;
+  wire [$clog2(CONCAT_FIFO_DEPTH):0] Concate_fifo_th;
+
+  assign Concate_fifo_th = ((3*(CONCAT_FIFO_DEPTH[$clog2(CONCAT_FIFO_DEPTH):0]))/4);
+
+  assign Concat_fifo_status = ((Concat_fifo_occupants[$clog2(CONCAT_FIFO_DEPTH):0]+virtual_occ_Concat)<=Concate_fifo_th )? 1 : 0;
+
+
+  // assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
+  // wire [$clog2(BIAS_FIFO_DEPTH):0] bias_fifo_th;
+
+  // TODO : add documentation here.
   assign acc_fifo_status = ((acc_fifo_occupants[$clog2(ACC_FIFO_DEPTH):0]+virtual_occ)<=acc_fifo_th)? 1 : 0;
   assign bias_fifo_status = ((bias_fifo_occupants[$clog2(BIAS_FIFO_DEPTH):0]+virtual_occ_bias)<=bias_fifo_th)? 1 : 0;
 
@@ -1929,6 +2182,44 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
         .o_dram_fifo_wren(dv_RightOperand_data),
         .o_data_last()
   );
+
+
+// CONCAT : mem_read_ctrl 
+
+  wire [AXI_DATA_WIDTH -1:0]i_concat_data;
+  wire [CONCAT_FIFO -1:0] dv_Concat_data;
+
+  Mem_read_ctrl#(
+        .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
+        .N_FIFO(CONCAT_FIFO) // Image FIFOs = 32
+  )concat_read_ctrl(
+        .clk(i_clk),
+        .rst(i_rst),
+        .select(select[`Concat]), // select signal of image fifo blk
+        .i_data_valid(dram_rd_datavalid),
+        .i_data_last(dram_rd_data_last),
+        .i_dram_data(dram_rd_data),
+        .o_dram_data(i_concat_data), 
+        .o_dram_fifo_wren(concat_write_enable),  // to concat Dram fifo
+        .o_data_last()
+  ); 
+
+
+
+  // TODO : Remove this before PR : For debug purposes
+
+  reg [31:0] last_count;
+
+  always @(posedge i_clk)begin
+    if (!i_rst) last_count <= 0;
+    else if (opcode == `OP_CONCAT) begin
+      if (dram_rd_data_last) begin
+        last_count <= last_count+1;
+      end
+      else last_count <= last_count;
+    end
+  end 
+
   // slicing of img_fifo o/p data to store it in data buffers of im2col
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] img_ip_conv;
 
@@ -2276,7 +2567,10 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
       .EltWise_op_en(valid_opcode[`OP_EltWise]),
       .start_row_skip(start_row_skip),
-      .end_row_skip(end_row_skip)
+      .end_row_skip(end_row_skip),
+      .o_concat_data(o_concat_data),
+      .o_concat_dv(o_concat_dv),
+      .w_one_operand(w_one_operand)
   );
 
   `ifdef TRANSPOSE
@@ -2325,6 +2619,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   wire [OP_FIFO-1:0] op_write_fifo_rden;
   wire [OP_FIFO-1:0] op_dram_rden;
   assign op_write_fifo_rden = op_dram_rden;
+  wire [QUANT_OP_FIFO-1:0] quant_op_fifo_full;
 
   interconnect_dram_data_aligner # (
     .QUANT_OP_FIFO(QUANT_OP_FIFO),
@@ -2387,7 +2682,8 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     .o_op_write_dram_fifo_dv(op_write_fifo_dv),
     .o_op_full(op_full),
     .o_acc_onchip_data(vector_add_values_opfifo_acc),
-    .o_acc_onchip_data_dv(vector_add_wren_opfifo_acc)
+    .o_acc_onchip_data_dv(vector_add_wren_opfifo_acc),
+    .quant_op_fifo_full(quant_op_fifo_full)
   );
 
   // DRAM write control for OP_FIFO  
@@ -2453,16 +2749,13 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
         `ifdef MEGA_POOL
         .pool_done(pool_done),
         `endif
-        
+        .i_concat_done(w_concat_done),
         .c_iter(channel_iteration), //channel iteration
         .k_iter(kernel_iteration), //kernel iteration
-
-
-      .o_iter_done(iter_done),
-      .o_c_done(channel_done),
-      .o_layer_done(layer_done),
-      .o_SA_done(SA_done), 
-
+        .o_iter_done(iter_done),
+        .o_c_done(channel_done),
+        .o_layer_done(layer_done),
+        .o_SA_done(SA_done), 
         .BIAS_EN(Bias_En),
         .RELU_EN(ACT_EN),
         .QUANT_EN(QUANT_EN),
@@ -2544,6 +2837,8 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .start_im2col(im2col_global_start)
     );
 
+  // TODO : add these into a debug ifdef 
+
   reg [31:0] debug_counter;
   reg start_en;
   always@(posedge i_clk) begin
@@ -2563,7 +2858,8 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       else start_en <= start_en;
     end
   end
-
+  
+  // TODO : add these into a debug ifdef 
   reg [LAYERCNT_WIDTH-1:0] layer_cntr;
   always@(posedge i_clk) begin
     if(!i_rst) layer_cntr <= 0;
@@ -2575,6 +2871,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     end
   end
 
+  // TODO : add this to the below available ifdef 
   reg inference_done;
   always@(posedge i_clk) begin
     if(!i_rst) inference_done <= 1'b0;
@@ -2595,7 +2892,6 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   `endif //FC
 
   assign fpga2cpu_start_address = op_start_address;
-
   
   /* ----- Additional logic to monitor compute cycles and stall cycles for each layer ----- */
 

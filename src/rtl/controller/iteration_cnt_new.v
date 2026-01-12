@@ -26,7 +26,7 @@ module iteration_cnt #(
     input EW_done,
     input RT_done,
     input pool_done,
-
+    input i_concat_done,
    // input [15:0] img_w, //width of input image matrix
     input [CITER_CNT_WIDTH-1:0] c_iter,
     input [KITER_CNT_WIDTH-1:0] k_iter,
@@ -70,17 +70,19 @@ module iteration_cnt #(
 // assigning the done_input signals\
 // To Add new Mega Block, add the corresponding done_input signal here
 
-    assign done_input[`OP_CONV] = conv_done;
-    assign done_input[`OP_FC] = r_FC_done;
-    assign done_input[`OP_EltWise] = r_EW_done;
-    assign done_input[`OP_TRANSPOSE] = r_RT_done;
-    assign done_input[`OP_TailBlock] = r_Tail_done;
+    assign done_input[`OP_CONV]        = conv_done;
+    assign done_input[`OP_FC]          = r_FC_done;
+    assign done_input[`OP_EltWise]     = r_EW_done;
+    assign done_input[`OP_TRANSPOSE]   = r_RT_done;
+    assign done_input[`OP_TailBlock]   = r_Tail_done;
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
     
     `ifdef MEGA_POOL
     reg r_pool_done;
     assign done_input[`OP_POOL] = r_pool_done; 
     `endif
+    assign done_input[`OP_CONCAT]      = r_concat_done;
+
 
     assign o_SA_done = SA_done;
     assign o_iter_done = iter_done;
@@ -99,6 +101,7 @@ module iteration_cnt #(
     reg r_FC_done;
     reg r_EW_done;
     reg r_RT_done;
+    reg r_concat_done;
 	reg [CITER_CNT_WIDTH-1:0] r_c_iter,sub_iter;
     reg [KITER_CNT_WIDTH-1:0] r_k_iter;
     
@@ -176,6 +179,7 @@ module iteration_cnt #(
         r_pool_done <= pool_done;
         `endif
         
+        r_concat_done <= i_concat_done;
 		r_BIAS_EN<=BIAS_EN;
 		r_RELU_EN<=RELU_EN;
 		r_QUANT_EN<=QUANT_EN;

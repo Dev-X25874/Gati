@@ -324,7 +324,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 14
+`define ISA_VERSION 15
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define ACT_LEAKYRELU 'h02
@@ -360,6 +360,37 @@
 `define CONV_TYPE_REGULAR 0
 `define CONV_TYPE_DW 1
 `define CONV_TYPE_PW 2
+
+`define OP_CONCAT 'h09
+// Opcode
+`define CONCAT_Opcode 3:0
+`define CONCAT_Opcode_WIDTH 4
+`define CONCAT_Image1StartAddress 35:4
+`define CONCAT_Image1StartAddress_WIDTH 32
+`define CONCAT_IH1 45:36
+`define CONCAT_IH1_WIDTH 10
+`define CONCAT_KN1 55:46
+`define CONCAT_KN1_WIDTH 10
+`define CONCAT_Image2StartAddress 87:56
+`define CONCAT_Image2StartAddress_WIDTH 32
+`define CONCAT_IH2 97:88
+`define CONCAT_IH2_WIDTH 10
+`define CONCAT_KN2 107:98
+`define CONCAT_KN2_WIDTH 10
+`define CONCAT_Image3StartAddress 139:108
+`define CONCAT_Image3StartAddress_WIDTH 32
+`define CONCAT_IH3 149:140
+`define CONCAT_IH3_WIDTH 10
+`define CONCAT_KN3 159:150
+`define CONCAT_KN3_WIDTH 10
+`define CONCAT_Image4StartAddress 191:160
+`define CONCAT_Image4StartAddress_WIDTH 32
+`define CONCAT_IH4 201:192
+`define CONCAT_IH4_WIDTH 10
+`define CONCAT_KN4 211:202
+`define CONCAT_KN4_WIDTH 10
+`define CONCAT_InNum 214:212
+`define CONCAT_InNum_WIDTH 3
 
 `define ZerothStartAddress 31:0
 `define ZerothStartAddress_WIDTH 32

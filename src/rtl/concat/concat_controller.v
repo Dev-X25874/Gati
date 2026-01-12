@@ -32,6 +32,8 @@ module concat_controller #
 
   // Total input size alligned to 256 bit in bytes
   
+  // Input total words is calculated based on the KN and OH OW provided from the instruction which might not be aligned to 256 thus those needs to be done as we will read data in 256 bit alignment due to previous layers zero padder.
+
   wire [31:0] total_words ;
   assign total_words = ((i_data_size + 31) >> 5) << 5;
 

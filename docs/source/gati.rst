@@ -18,6 +18,7 @@ Gati
     DWP
     dispatcher
     nms
+    concat
 .. contents:: Table of Contents
    :local:
    :depth: 1
@@ -500,3 +501,8 @@ NMS
 ***
 
 For more info see :ref:`nms`
+
+CONCAT
+******
+
+For info on cancat see :ref:`concat`

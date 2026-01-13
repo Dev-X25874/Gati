@@ -316,8 +316,10 @@ module Top_CONV_FC #(
     input istolic_stall,
     input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
     input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
+    `ifdef CONCAT
     input  [255:0] o_concat_data,
     input         o_concat_dv,
+    `endif 
     input         w_one_operand
 
 );
@@ -1353,15 +1355,6 @@ always @(posedge i_clk) begin
   `endif
 
   //zero padding circuit
-
-  // CONCAT : Mux the Tail Pass through here
-
-  //Mux for tail pass through if no tail block is needed then directly send the data to the zero padder and and then write to DRAM the allignment still stays same as conv NSA* DATA_WIDTH
-
-
-  
-
-  
   top_zero # (
     .DW(DATA_WIDTH),
     .COL(N_SA),
@@ -1442,8 +1435,16 @@ always @(posedge i_clk) begin
       .data_out(x_final_data)
   );
 
+  `ifdef CONCAT
   assign quant_op_write_data = (opcode == `OP_CONCAT) ? o_concat_data : x_final_data;
   assign quant_op_wren = (opcode == `OP_CONCAT) ? {QUANT_OP_FIFO{o_concat_dv}} : ((&(x_final_valid)) ? {QUANT_OP_FIFO{1'b1}} : 0);
+  
+  `else 
+
+  assign quant_op_write_data = x_final_data;
+  assign quant_op_wren = (&(x_final_valid)) ? {QUANT_OP_FIFO{1'b1}} : 0;
+
+  `endif // CONCAT
 
   // Accumulant output write logic
   localparam DMUX_SEL_WIDTH = (N_DMUX_PORTS > 1)? $clog2(N_DMUX_PORTS) : 1;

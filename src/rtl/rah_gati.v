@@ -25,11 +25,12 @@ module rah_gati #(
     parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
-    parameter FIXED_PORTS = 11, //config, img, weights, bias, acc, op_write, Left/RightOperand, mipi_read/write
+    parameter FIXED_PORTS = 10, //config, img, weights, bias, acc, op_write, Left/RightOperand, mipi_read/write
     parameter FC_PORT = `ifdef FC 1 `else 0 `endif, //FC
     parameter BIAS_FC_PORT = `ifdef BIAS_FC 1 `else 0 `endif, //BIAS_FC
     parameter TRANSPOSE_PORT = `ifdef TRANSPOSE 1 `else 0 `endif, //TRANSPOSE
-    parameter NUM_PORTS = FIXED_PORTS + FC_PORT + BIAS_FC_PORT + TRANSPOSE_PORT, //Number of read and write requestors
+    parameter CONCAT_PORT = `ifdef CONCAT 1 `else 0 `endif, 
+    parameter NUM_PORTS = FIXED_PORTS + FC_PORT + BIAS_FC_PORT + TRANSPOSE_PORT+ CONCAT_PORT, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -370,13 +371,15 @@ module rah_gati #(
   wire mc_ReshapeTranspose_last;
   `endif //TRANSPOSE
 
+  `ifdef CONCAT
   // Concat Operator
   wire [7:0] mc_Concat_addr;
   wire mc_Concat_rdreq;
   wire mc_Concat_valid;
   wire [BURST_LENGTH_WIDTH-1 : 0] mc_Concat_bl;
   wire mc_Concat_last;
-  
+  `endif 
+
   /////////////wire write ctrl
   wire [7:0] mc_op_write_addr;
   wire mc_op_writereq;
@@ -494,9 +497,9 @@ module rah_gati #(
     `ifdef BIAS_FC mc_fc_bias_valid, `endif //BIAS_FC
     mc_fpga2cpu_valid,
     mc_LeftOperand_valid,
-    mc_RightOperand_valid,
-    `ifdef TRANSPOSE mc_ReshapeTranspose_valid, `endif //TRANSPOSE
-    mc_Concat_valid
+    mc_RightOperand_valid
+    `ifdef TRANSPOSE ,mc_ReshapeTranspose_valid `endif //TRANSPOSE
+    `ifdef CONCAT    ,mc_Concat_valid `endif
    };
 
    assign in_address = {
@@ -510,9 +513,9 @@ module rah_gati #(
     `ifdef BIAS_FC mc_fc_bias_addr, `endif //BIAS_FC
     mc_fpga2cpu_addr,
     mc_LeftOperand_addr,
-    mc_RightOperand_addr,
-    `ifdef TRANSPOSE mc_ReshapeTranspose_addr, `endif //TRANSPOSE
-    mc_Concat_addr
+    mc_RightOperand_addr
+    `ifdef TRANSPOSE ,mc_ReshapeTranspose_addr `endif //TRANSPOSE
+    `ifdef CONCAT    ,mc_Concat_addr `endif
    };
 
    assign in_BLEN = {
@@ -526,9 +529,9 @@ module rah_gati #(
     `ifdef BIAS_FC mc_fc_bias_bl, `endif //BIAS_FC
     mc_fpga2cpu_bl,
     mc_LeftOperand_bl,
-    mc_RightOperand_bl,
-    `ifdef TRANSPOSE mc_ReshapeTranspose_bl, `endif //TRANSPOSE
-    mc_Concat_bl
+    mc_RightOperand_bl
+    `ifdef TRANSPOSE ,mc_ReshapeTranspose_bl `endif //TRANSPOSE
+    `ifdef CONCAT ,mc_Concat_bl `endif 
    };
 
    assign i_enable = {
@@ -542,9 +545,9 @@ module rah_gati #(
     `ifdef BIAS_FC mc_fc_bias_rdreq, `endif //BIAS_FC
     mc_fpga2cpu_readreq,
     mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq,
-    `ifdef TRANSPOSE mc_ReshapeTranspose_rdreq, `endif //TRANSPOSE
-    mc_Concat_rdreq
+    mc_RightOperand_rdreq
+    `ifdef TRANSPOSE ,mc_ReshapeTranspose_rdreq `endif //TRANSPOSE
+    `ifdef CONCAT ,mc_Concat_rdreq `endif
    };
 
    assign i_last = {
@@ -558,9 +561,9 @@ module rah_gati #(
     `ifdef BIAS_FC mc_fc_bias_last, `endif //BIAS_FC
     mc_fpga2cpu_last,
     mc_LeftOperand_last,
-    mc_RightOperand_last,
-    `ifdef TRANSPOSE mc_ReshapeTranspose_last, `endif //TRANSPOSE
-    mc_Concat_last
+    mc_RightOperand_last
+    `ifdef TRANSPOSE ,mc_ReshapeTranspose_last `endif //TRANSPOSE
+    `ifdef CONCAT ,mc_Concat_last `endif
    };
    
 
@@ -791,11 +794,14 @@ module rah_gati #(
       .mc_ReshapeTranspose_valid(mc_ReshapeTranspose_valid),
       `endif //TRANSPOSE
 
+      `ifdef CONCAT
       .mc_Concat_addr(mc_Concat_addr),
       .mc_Concat_rdreq(mc_Concat_rdreq),
       .mc_Concat_valid(mc_Concat_valid),
       .mc_Concat_bl(mc_Concat_bl),
       .mc_Concat_last(mc_Concat_last),
+      `endif
+
       .select(select_rd|select_wr),
       .dram_rd_datavalid(dram_rd_datavalid),
       .dram_rd_data_last(dram_rd_data_last),

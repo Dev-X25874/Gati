@@ -14,6 +14,7 @@
 `define COL_SA 4
 `define ROW 9
 
+
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care
 /*  
@@ -66,6 +67,9 @@
 // For Generating Reshape-Transpose operation
 
 //define TRANSPOSE 
+
+// To generate CONCAT hardware
+// `define CONCAT 
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

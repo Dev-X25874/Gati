@@ -34,9 +34,17 @@
 `define LeftOperand (`MIPI_Rd + 1)
 `define RightOperand (`LeftOperand + 1)
 
-`ifdef TRANSPOSE
-`define ReshapeTranspose (`RightOperand + 1)
-`endif
-`define Concat 13
+`ifdef CONCAT
+    `ifdef TRANSPOSE
+    `define ReshapeTranspose (`RightOperand + 1)
+    `define Concat (`ReshapeTranspose + 1) 
+    `else
+    `define Concat (`RightOperand + 1)
+    `endif
+`else
+    `ifdef TRANSPOSE
+    `define ReshapeTranspose (`RightOperand + 1)
+    `endif
+`endif // CONCAT
 
 `endif //portid_vh

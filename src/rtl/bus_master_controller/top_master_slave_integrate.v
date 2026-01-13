@@ -252,7 +252,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [TRANSPOSE_IC_WIDTH-1:0] ReshapeTranspose_IC,
     `endif //TRANSPOSE
     
-    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController,
+    `ifdef CONCAT
     // Concat Operator
     output [OP_CODE_WIDTH - 1 : 0] opcode_CONCAT,
     output [CONCAT_InNum_WIDTH -1 : 0] CONCAT_InNum,
@@ -267,7 +267,9 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [CONCAT_KN1_WIDTH -1 : 0] CONCAT_KN_1,
     output [CONCAT_KN2_WIDTH -1 : 0] CONCAT_KN_2,
     output [CONCAT_KN3_WIDTH -1 : 0] CONCAT_KN_3,
-    output [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4
+    output [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4,
+    `endif
+    output [OutputBlock_FlatController_WIDTH-1:0]OutputBlock_FlatController
 );
 
     `include "../common/instructions.vh"
@@ -625,7 +627,8 @@ OP_ReshapeTranspose # (
   );
 `endif //TRANSPOSE
 //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
-    OP_Concat #(
+  `ifdef CONCAT
+  OP_Concat #(
         .OP_CODE_WIDTH(OP_CODE_WIDTH), 
         .CNT(CNT),
         .OUTPUT_WIDTH(INPUT_WIDTH),
@@ -668,8 +671,7 @@ OP_ReshapeTranspose # (
         .valid(valid[`OP_CONCAT]),
         .ready(ready[`OP_CONCAT])
         );
-    
-    
+    `endif
     //assign ready = ({APPEND{1'b0}}, ready_TB, ready_OB, ready_FC, ready_conv);
 
 endmodule

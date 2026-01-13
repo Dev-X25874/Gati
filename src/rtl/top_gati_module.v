@@ -303,14 +303,14 @@ module top_gati_module #(
     output mc_ReshapeTranspose_last,
     `endif //TRANSPOSE
     
+    `ifdef CONCAT
     // Concat Operator
-
     output [7:0] mc_Concat_addr,
     output mc_Concat_rdreq,
     output mc_Concat_valid,
     output [BURST_LENGTH_WIDTH-1 : 0] mc_Concat_bl,
     output mc_Concat_last,
-    
+    `endif
     /////////////output write ctrl
     output [7:0] mc_op_write_addr,
     output mc_op_writereq,
@@ -486,7 +486,6 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] bias_stop_address;
 
   //Elementwise inst. signals
-  wire [OPCODE_WIDTH-1:0] opcode_CONCAT;
   wire [OPCODE_WIDTH-1:0] ew_opcode;
   wire [ELTWISE_TYPE_WIDTH-1:0] EltWise_type;
   wire [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale;
@@ -582,8 +581,12 @@ module top_gati_module #(
 
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
+  
+  `ifdef CONCAT
   assign opcode_hold[(`OP_CONCAT*OPCODE_WIDTH) +:OPCODE_WIDTH] = opcode_CONCAT;
-
+  `else
+  assign opcode_hold[(`OP_CONCAT*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
+  `endif
 
   `ifdef TRANSPOSE
   assign opcode_hold[(`OP_TRANSPOSE*OPCODE_WIDTH) +:OPCODE_WIDTH] = rt_opcode;
@@ -852,21 +855,25 @@ module top_gati_module #(
   wire [(W_POOL_SHIFT - 1) : 0] poolshift;
   `endif
 
-  wire [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth; // output dram data width in bytes 
-    wire [CONCAT_InNum_WIDTH -1 : 0] CONCAT_InNum;
-    wire [CONCAT_Image1StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_1;
-    wire [CONCAT_Image2StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_2;
-    wire [CONCAT_Image3StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_3;
-    wire [CONCAT_Image4StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_4;
-    wire [CONCAT_IH1_WIDTH -1 : 0] CONCAT_IH_1;
-    wire [CONCAT_IH2_WIDTH -1 : 0] CONCAT_IH_2;
-    wire [CONCAT_IH3_WIDTH -1 : 0] CONCAT_IH_3;
-    wire [CONCAT_IH4_WIDTH -1 : 0] CONCAT_IH_4;
-    wire [CONCAT_KN1_WIDTH -1 : 0] CONCAT_KN_1;
-    wire [CONCAT_KN2_WIDTH -1 : 0] CONCAT_KN_2;
-    wire [CONCAT_KN3_WIDTH -1 : 0] CONCAT_KN_3;
-    wire [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4;
-    
+  wire [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth; // output dram data width in bytes
+
+  `ifdef CONCAT
+  wire [CONCAT_InNum_WIDTH -1 : 0] CONCAT_InNum;
+  wire [OPCODE_WIDTH-1:0]          opcode_CONCAT;
+  wire [CONCAT_Image1StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_1;
+  wire [CONCAT_Image2StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_2;
+  wire [CONCAT_Image3StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_3;
+  wire [CONCAT_Image4StartAddress_WIDTH -1 : 0] CONCAT_StartAdd_4;
+  wire [CONCAT_IH1_WIDTH -1 : 0] CONCAT_IH_1;
+  wire [CONCAT_IH2_WIDTH -1 : 0] CONCAT_IH_2;
+  wire [CONCAT_IH3_WIDTH -1 : 0] CONCAT_IH_3;
+  wire [CONCAT_IH4_WIDTH -1 : 0] CONCAT_IH_4;
+  wire [CONCAT_KN1_WIDTH -1 : 0] CONCAT_KN_1;
+  wire [CONCAT_KN2_WIDTH -1 : 0] CONCAT_KN_2;
+  wire [CONCAT_KN3_WIDTH -1 : 0] CONCAT_KN_3;
+  wire [CONCAT_KN4_WIDTH -1 : 0] CONCAT_KN_4;
+  `endif
+
   // top_master_slave_integrate
   top_master_slave_integrate#(
     .OP_CODE_WIDTH(OPCODE_WIDTH),
@@ -1123,8 +1130,8 @@ module top_gati_module #(
     .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
     .BiasWidth(BiasWidth),
     .BiasStartAddress(bias_start_address),
+     `ifdef CONCAT
     .BiasEndAddress(bias_stop_address),
-
     // Concat operator 
     .opcode_CONCAT(opcode_CONCAT),
     .CONCAT_InNum(CONCAT_InNum),
@@ -1140,7 +1147,9 @@ module top_gati_module #(
     .CONCAT_KN_2(CONCAT_KN_2),
     .CONCAT_KN_3(CONCAT_KN_3),
     .CONCAT_KN_4(CONCAT_KN_4)
-
+    `else
+    .BiasEndAddress(bias_stop_address)
+    `endif 
   );
   
   wire w_one_operand ;
@@ -1444,7 +1453,10 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .last(mc_RightOperand_last)
   );
 
-  // request controller for concate. 
+
+  /* ------------ Concat operator -----------------*/
+  `ifdef CONCAT
+  // request controller for concat.
 
   // CONCAT : request_controller DRAM 
 
@@ -1454,12 +1466,12 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_2;
     (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_3;
     (*syn_use_dsp = "no"*) wire [STOP_ADD_WIDTH - 1 : 0] CONCAT_StopAdd_4;
-    
+
     wire [AXI_ADDR_W- 1 : 0] concat_req_start_add;
     wire [AXI_ADDR_W- 1 : 0] concat_req_stop_add;
     wire req_done;
 
-  request_controller_concat #(                                   
+  request_controller_concat #(
       .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
       .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
       .ADDR_OUT_CHUNK_WIDTH(BUS_DATA_OUT),
@@ -1507,9 +1519,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     .o_all_done(o_all_done)
   );
 
-
-
-   // CONCAT : top_concat instantiation 
+  // CONCAT : top_concat instantiation 
 
 
   wire concat_write_enable;
@@ -1583,7 +1593,11 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   wire        o_concat_dv;
   wire        w_concat_done;
 
+ `endif
 
+
+
+  
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
   wire [(($clog2(OP_WRITE_FIFO_DEPTH)+1)*OP_FIFO)-1:0] op_write_dram_fifo_occupants;
   wire data_last_op_write;
@@ -1958,37 +1972,6 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   end
 
 
-
-  // CONCAT : virtual ocupents 
-
-    reg [$clog2(CONCAT_FIFO_DEPTH):0] virtual_occ_Concat;
-    wire Concat_fifo_status;
-
-
-    always @ (posedge i_clk) begin
-    if(!i_rst) virtual_occ_Concat <= 0;
-    else begin
-      if(start_en) begin
-        if(mc_Concat_last && select[`Concat]) virtual_occ_Concat <= virtual_occ_Concat + mc_Concat_bl;
-        else if(mc_Concat_last)                     virtual_occ_Concat <= virtual_occ_Concat + (mc_Concat_bl+1);
-        else if(select[`Concat])                    virtual_occ_Concat <= virtual_occ_Concat-1;
-        else   virtual_occ_Concat <= virtual_occ_Concat;
-      end
-      else begin
-        virtual_occ_Concat <= 0;
-      end
-    end
-  end
-
-   
-  wire [(($clog2(CONCAT_FIFO_DEPTH)+1)*CONCAT_FIFO)-1:0]Concat_fifo_occupants;
-  wire [$clog2(CONCAT_FIFO_DEPTH):0] Concate_fifo_th;
-
-  assign Concate_fifo_th = ((3*(CONCAT_FIFO_DEPTH[$clog2(CONCAT_FIFO_DEPTH):0]))/4);
-
-  assign Concat_fifo_status = ((Concat_fifo_occupants[$clog2(CONCAT_FIFO_DEPTH):0]+virtual_occ_Concat)<=Concate_fifo_th )? 1 : 0;
-
-
   // assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
   // wire [$clog2(BIAS_FIFO_DEPTH):0] bias_fifo_th;
 
@@ -2184,7 +2167,38 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   );
 
 
-// CONCAT : mem_read_ctrl 
+  `ifdef CONCAT
+
+  // CONCAT : virtual ocupents 
+
+    reg [$clog2(CONCAT_FIFO_DEPTH):0] virtual_occ_Concat;
+    wire Concat_fifo_status;
+
+
+    always @ (posedge i_clk) begin
+    if(!i_rst) virtual_occ_Concat <= 0;
+    else begin
+      if(start_en) begin
+        if(mc_Concat_last && select[`Concat]) virtual_occ_Concat <= virtual_occ_Concat + mc_Concat_bl;
+        else if(mc_Concat_last)                     virtual_occ_Concat <= virtual_occ_Concat + (mc_Concat_bl+1);
+        else if(select[`Concat])                    virtual_occ_Concat <= virtual_occ_Concat-1;
+        else   virtual_occ_Concat <= virtual_occ_Concat;
+      end
+      else begin
+        virtual_occ_Concat <= 0;
+      end
+    end
+  end
+
+   
+  wire [(($clog2(CONCAT_FIFO_DEPTH)+1)*CONCAT_FIFO)-1:0]Concat_fifo_occupants;
+  wire [$clog2(CONCAT_FIFO_DEPTH):0] Concate_fifo_th;
+
+  assign Concate_fifo_th = ((3*(CONCAT_FIFO_DEPTH[$clog2(CONCAT_FIFO_DEPTH):0]))/4);
+
+  assign Concat_fifo_status = ((Concat_fifo_occupants[$clog2(CONCAT_FIFO_DEPTH):0]+virtual_occ_Concat)<=Concate_fifo_th )? 1 : 0;
+
+  // CONCAT : mem_read_ctrl 
 
   wire [AXI_DATA_WIDTH -1:0]i_concat_data;
   wire [CONCAT_FIFO -1:0] dv_Concat_data;
@@ -2204,21 +2218,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
         .o_data_last()
   ); 
 
-
-
-  // TODO : Remove this before PR : For debug purposes
-
-  reg [31:0] last_count;
-
-  always @(posedge i_clk)begin
-    if (!i_rst) last_count <= 0;
-    else if (opcode == `OP_CONCAT) begin
-      if (dram_rd_data_last) begin
-        last_count <= last_count+1;
-      end
-      else last_count <= last_count;
-    end
-  end 
+  `endif
 
   // slicing of img_fifo o/p data to store it in data buffers of im2col
   wire [(AXI_DATA_BYTES*DATA_WIDTH)-1:0] img_ip_conv;
@@ -2568,8 +2568,10 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .EltWise_op_en(valid_opcode[`OP_EltWise]),
       .start_row_skip(start_row_skip),
       .end_row_skip(end_row_skip),
+      `ifdef CONCAT
       .o_concat_data(o_concat_data),
       .o_concat_dv(o_concat_dv),
+      `endif
       .w_one_operand(w_one_operand)
   );
 
@@ -2749,7 +2751,9 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
         `ifdef MEGA_POOL
         .pool_done(pool_done),
         `endif
+        `ifdef CONCAT
         .i_concat_done(w_concat_done),
+        `endif
         .c_iter(channel_iteration), //channel iteration
         .k_iter(kernel_iteration), //kernel iteration
         .o_iter_done(iter_done),

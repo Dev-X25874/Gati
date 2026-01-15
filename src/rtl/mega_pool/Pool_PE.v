@@ -1,7 +1,3 @@
-`include "../common/arch_param.vh"
-
-
-`ifdef MEGA_MAX
 module Pool_PE_block#(
     parameter W_DATA = 8
 )(
@@ -34,4 +30,3 @@ end
 assign o_data = {r_o_datavalid, r_o_data};
 
 endmodule
-`endif

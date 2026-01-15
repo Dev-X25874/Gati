@@ -1,6 +1,5 @@
 `include "../common/arch_param.vh"
 
-`ifdef MEGA_MAX
 module top_pool_PE_array#(
     parameter ROW = 9,
     parameter W_DATA = 8,
@@ -154,4 +153,3 @@ generate
 endgenerate
 
 endmodule
-`endif

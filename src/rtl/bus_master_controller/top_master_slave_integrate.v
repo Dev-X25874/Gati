@@ -56,6 +56,7 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter BNCHANNELS_WIDTH = 10,
     parameter BiasWidth_WIDTH = 8,
     
+    `ifdef MEGA_POOL 
     parameter POOL_IW_WIDTH = 10,
     parameter POOL_IH_WIDTH = 10,
     parameter POOL_IC_WIDTH = 10,
@@ -74,6 +75,18 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter POOLPAD_T_WIDTH = 4,
     parameter POOLPAD_B_WIDTH = 4,
     parameter POOL_PREFETCH_WIDTH = 1,
+    `elsif POOL
+    parameter POOLTYPE_WIDTH = 1,
+    parameter POOLWIDTH_WIDTH = 4,
+    parameter POOLHEIGHT_WIDTH = 4,
+    parameter POOLSTRIDE_WIDTH = 4,
+    parameter POOLPAD_WIDTH = 4,
+    parameter POOLCEIL_WIDTH = 4,
+    parameter POOLMODCOUNT_WIDTH = 4,
+    parameter POOLPADSIDES_WIDTH = 4,
+    parameter POOLSCALE_WIDTH = 4,
+    parameter POOLSHIFT_WIDTH = 4,
+    `endif
 
     parameter ELTWISE_TYPE_WIDTH = 4,
     parameter ELTWISE_SCALE_WIDTH = 32,
@@ -154,16 +167,20 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [QUANTEN_WIDTH - 1 : 0] QuantEn,
     output [QUANTSCALE_WIDTH - 1 : 0] quantscale,
     output [QUANTSHIFT_WIDTH - 1 : 0] quantshift,
+
+    `ifdef GLOBAL_POOL 
     output [GBL_POOL_SCALE_WIDTH - 1 : 0] gbl_pool_scale,
     output [GBL_POOL_SHIFT_WIDTH - 1 : 0] gbl_pool_shift,
     output [GBL_POOL_EN_WIDTH - 1 : 0] gbl_pool_en,
+    `endif
+
     output [POOLEN_WIDTH - 1 : 0] PoolEn,
     output [BIASEN_WIDTH - 1 : 0] BiasEn,
     output [BiasWidth_WIDTH - 1 : 0] BiasWidth,
     output [ADDRESS_WIDTH - 1 : 0] BiasStartAddress,
     output [ADDRESS_WIDTH - 1 : 0] BiasEndAddress,
     
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     output [OP_CODE_WIDTH -1 : 0] opcode_pool,
     output [POOL_IW_WIDTH - 1 : 0] pool_iw,
     output [POOL_IH_WIDTH - 1 : 0] pool_ih,
@@ -183,6 +200,17 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [POOLPAD_T_WIDTH - 1 : 0] pool_pad_t,
     output [POOLPAD_B_WIDTH - 1 : 0] pool_pad_b,
     output [POOL_PREFETCH_WIDTH - 1:0] pool_prefetch,
+    `elsif POOL
+    output [POOLTYPE_WIDTH - 1 : 0] pooltype,
+    output [POOLWIDTH_WIDTH - 1 : 0] poolwidth,
+    output [POOLHEIGHT_WIDTH - 1 : 0] poolheight,
+    output [POOLSTRIDE_WIDTH - 1 : 0] poolstride,
+    output [POOLPAD_WIDTH - 1 : 0] poolpadding,
+    output [POOLCEIL_WIDTH - 1 : 0] poolceil,
+    output [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount,
+    output [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides,
+    output [POOLSCALE_WIDTH - 1 : 0] poolscale,
+    output [POOLSHIFT_WIDTH - 1 : 0] poolshift,
     `endif
 
     output [OP_CODE_WIDTH - 1 : 0] opcode_EltWise,
@@ -382,20 +410,27 @@ OP_Tailblock #(.OP_CODE_WIDTH(OP_CODE_WIDTH),
 .QUANTEN_WIDTH(QUANTEN_WIDTH),
 .QUANTSCALE_WIDTH(QUANTSCALE_WIDTH),
 .QUANTSHIFT_WIDTH(QUANTSHIFT_WIDTH),
+
+`ifdef GLOBAL_POOL
 .GBL_POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
 .GBL_POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
 .GBL_POOL_EN_WIDTH(GBL_POOL_EN_WIDTH),
+`endif
+
+`ifdef POOL 
 .POOLEN_WIDTH(POOLEN_WIDTH),
 .POOLTYPE_WIDTH(POOLTYPE_WIDTH),
 .POOLWIDTH_WIDTH(POOLWIDTH_WIDTH),
 .POOLHEIGHT_WIDTH(POOLHEIGHT_WIDTH),
 .POOLSTRIDE_WIDTH(POOLSTRIDE_WIDTH),
-.POOLPADDING_WIDTH(POOLPADDING_WIDTH),
+.POOLPAD_WIDTH(POOLPAD_WIDTH),
 .POOLCEIL_WIDTH(POOLCEIL_WIDTH),
 .POOLMODCOUNT_WIDTH(POOLMODCOUNT_WIDTH),
 .POOLPADSIDES_WIDTH(POOLPADSIDES_WIDTH),
 .POOLSCALE_WIDTH(POOLSCALE_WIDTH),
 .POOLSHIFT_WIDTH(POOLSHIFT_WIDTH),
+`endif
+
 .BIASEN_WIDTH(BIASEN_WIDTH),
 .BNCHANNELS_WIDTH(BNCHANNELS_WIDTH),
 .BiasWidth_WIDTH(BiasWidth_WIDTH)) 
@@ -443,7 +478,7 @@ OP_Tailblock(
     .BiasEndAddress(BiasEndAddress)
 );
 
-`ifdef MEGA_MAX
+`ifdef MEGA_POOL
 OP_POOL#(
 .OP_CODE_WIDTH(OP_CODE_WIDTH), 
 .CNT(CNT),

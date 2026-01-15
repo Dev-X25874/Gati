@@ -39,7 +39,7 @@ module interconnect_sa_pool #(
     input [CONV_STRIDE_WIDTH-1:0] stride_col,
     input [CONV_STRIDE_WIDTH-1:0] stride_row,
     
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     // POOL
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
     input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
@@ -93,7 +93,7 @@ module interconnect_sa_pool #(
                 StrideHeight <= stride_row;
             end
 
-            `ifdef MEGA_MAX
+            `ifdef MEGA_POOL
             `OP_POOL: begin
                 KernelWidth <= PoolWidth;
                 KernelHeight <= PoolHeight;

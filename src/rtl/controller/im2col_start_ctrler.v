@@ -14,8 +14,6 @@ module im2col_start_ctrler#(
     input iter_done,
     input [CITER_CNT_WIDTH-1:0] c_iter,
     input [KITER_CNT_WIDTH-1:0] k_iter,
-    input [CONV_TYPE_WIDTH-1:0] conv_type,
-    input dup_flag,
     
     output reg start_im2col
 );
@@ -25,8 +23,6 @@ reg [KITER_CNT_WIDTH:0] k_ctr = 0; //k_iter
 reg [CITER_CNT_WIDTH:0] c_ctr = 0; //c_iter
 reg [CITER_CNT_WIDTH-1:0] r_c_iter;
 reg [KITER_CNT_WIDTH-1:0] r_k_iter;
-reg [CONV_TYPE_WIDTH-1:0] r_conv_type;
-reg r_dup_flag;
 
 always @ (posedge clk) begin 
 	r_c_iter<=c_iter-1;
@@ -50,8 +46,6 @@ always@(posedge clk) begin
                 k_ctr <= 0;
                 if(start) begin
                     start_im2col <= 0;
-                    r_conv_type <= conv_type;
-                    r_dup_flag <= dup_flag;
                     state <= 1;
                 end
             end

@@ -40,7 +40,7 @@ always @(posedge i_clk) begin
         	    data_count<=img_dim_Op;
         	end
         end
-        `ifdef MEGA_MAX
+        `ifdef MEGA_POOL
         `OP_POOL: begin
             data_count<=img_dim_Op;
         end

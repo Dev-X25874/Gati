@@ -1,7 +1,6 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further tail block(s) operation processing
 `include "../common/arch_param.vh"
 
-`ifdef MEGA_MAX
 module OP_POOL#(parameter OP_CODE_WIDTH = 4, 
     parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
     parameter INPUT_WIDTH = 8,
@@ -120,4 +119,3 @@ always @(posedge clk) begin
 end
 
 endmodule
-`endif

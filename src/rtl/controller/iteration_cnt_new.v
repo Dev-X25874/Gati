@@ -77,7 +77,7 @@ module iteration_cnt #(
     assign done_input[`OP_TailBlock] = r_Tail_done;
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
     
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     reg r_pool_done;
     assign done_input[`OP_POOL] = r_pool_done; 
     `endif
@@ -172,7 +172,7 @@ module iteration_cnt #(
         r_EW_done<=EW_done;
         r_RT_done<=RT_done;
 
-        `ifdef MEGA_MAX
+        `ifdef MEGA_POOL
         r_pool_done <= pool_done;
         `endif
         

@@ -1,4 +1,3 @@
-
 `define OP_CONV 'h00
 // Opcode
 `define CONV_Opcode 3:0
@@ -325,7 +324,7 @@
 `define RESHAPE_ImageStartAddress 67:36
 `define RESHAPE_ImageStartAddress_WIDTH 32
 
-`define ISA_VERSION 13
+`define ISA_VERSION 14
 `define ACT_RELU 'h00
 `define ACT_CLIP 'h01
 `define ACT_LEAKYRELU 'h02
@@ -366,4 +365,3 @@
 `define ZerothStartAddress_WIDTH 32
 `define ZerothEndAddress 63:32
 `define ZerothEndAddress_WIDTH 32
-

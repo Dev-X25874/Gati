@@ -127,11 +127,13 @@ module top_gati_module #(
     parameter W_QUANT_SHIFT     = `TailBlock_QuantShift_WIDTH,
     parameter W_QUANT_SCALE     = `TailBlock_QuantScale_WIDTH, 
 
+    `ifdef GLOBAL_POOL 
     parameter W_GBL_POOL_SCALE = `TailBlock_GblPoolScale_WIDTH,
     parameter W_GBL_POOL_SHIFT = `TailBlock_GblPoolShift_WIDTH,
     parameter W_GBL_POOL_EN    = `TailBlock_GblPoolEn_WIDTH,
+    `endif
 
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     parameter W_POOL_IW         = `POOL_IW_WIDTH,
     parameter W_POOL_IH         = `POOL_IH_WIDTH,
     parameter W_POOL_IC         = `POOL_IC_WIDTH,
@@ -150,7 +152,7 @@ module top_gati_module #(
     parameter W_POOL_PAD_T      = `POOL_PadTop_WIDTH,
     parameter W_POOL_PAD_B      = `POOL_PadBottom_WIDTH,
     parameter W_POOL_PREFETCH   = `POOL_Im2colPrefetch_WIDTH,
-    `else POOL
+    `elsif POOL
     parameter W_POOL_EN         = `TailBlock_PoolEn_WIDTH,
     parameter W_POOL_TYPE       = `TailBlock_PoolType_WIDTH,
     parameter W_POOL_WIDTH      = `TailBlock_PoolWidth_WIDTH,
@@ -566,7 +568,7 @@ module top_gati_module #(
   assign opcode_hold[(`OP_FC*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
   `endif //FC
 
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   assign opcode_hold[(`OP_POOL*OPCODE_WIDTH) +:OPCODE_WIDTH] = pool_opcode;
   `else 
   assign opcode_hold[(`OP_POOL*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
@@ -608,7 +610,7 @@ module top_gati_module #(
   wire [CONV_PadTop_WIDTH-1:0] pad_top;
   wire [CONV_PadLeft_WIDTH-1:0] pad_left;
 
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   assign pad_top = (opcode == `OP_POOL) ? pool_pad_t : conv_pad_top;
   assign pad_left = (opcode == `OP_POOL) ? pool_pad_l : conv_pad_left;
   `else 
@@ -652,7 +654,7 @@ module top_gati_module #(
     wire istolic_stall;
     wire systolic_array_trigger;
 
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     reg sa_start_ctrl_sa_done;
     reg sa_start_ctrl_prefetch;
     reg [CONV_IH_WIDTH-1 : 0] sa_start_ctrl_img_h;
@@ -673,7 +675,7 @@ module top_gati_module #(
         sa_start_ctrl_zeropad <= pool_pad_t;
         sa_start_ctrl_stride_width <= poolstride_w;
         sa_start_ctrl_stride_height <= poolstride_h;
-        sa_start_ctrl_conv_type <= 2'b01;
+        sa_start_ctrl_conv_type <= 2'b01; // DW Conv Type
         sa_start_ctrl_kernel_w <= poolwidth;
         sa_start_ctrl_kernel_h <= poolheight;
       end
@@ -787,7 +789,7 @@ module top_gati_module #(
   end
   `endif //FC
 
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   wire [(OPCODE_WIDTH - 1) : 0] pool_opcode;
   wire [(W_POOL_IW - 1 ): 0] pool_iw;
   wire [(W_POOL_IH - 1) : 0] pool_ih;
@@ -807,7 +809,7 @@ module top_gati_module #(
   wire [(W_POOL_PAD_T - 1) : 0] pool_pad_t;
   wire [(W_POOL_PAD_B - 1) : 0] pool_pad_b;
   wire [(W_POOL_PREFETCH - 1) : 0] pool_prefetch;
-  `elseif POOL
+  `elsif POOL
   wire [(W_POOL_EN - 1) : 0] POOL_EN;
   wire [(W_POOL_TYPE - 1) : 0] pooltype;
   wire [(W_POOL_WIDTH - 1) : 0] poolwidth;
@@ -874,11 +876,12 @@ module top_gati_module #(
     .QUANTSCALE_WIDTH(W_QUANT_SCALE),
     .QUANTSHIFT_WIDTH(W_QUANT_SHIFT),
 
+    `ifdef GLOBAL_POOL 
     .GBL_POOL_SCALE_WIDTH(W_GBL_POOL_SCALE),
     .GBL_POOL_SHIFT_WIDTH(W_GBL_POOL_SHIFT),
     .GBL_POOL_EN_WIDTH(W_GBL_POOL_EN), 
+    `endif
 
-    // MEGA POOL Parameters
     `ifdef MEGA_POOL
     .POOL_IW_WIDTH(W_POOL_IW),
     .POOL_IH_WIDTH(W_POOL_IH),
@@ -898,7 +901,7 @@ module top_gati_module #(
     .POOLPAD_T_WIDTH(W_POOL_PAD_T),
     .POOLPAD_B_WIDTH(W_POOL_PAD_B),
     .POOL_PREFETCH_WIDTH(W_POOL_PREFETCH),
-    `else POOL
+    `elsif POOL
     .POOLTYPE_WIDTH(W_POOL_TYPE),
     .POOLWIDTH_WIDTH(W_POOL_WIDTH),
     .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
@@ -1012,28 +1015,13 @@ module top_gati_module #(
     .OutputBlock_AccumulantReadFirst(OutputBlock_AccumulantReadFirst),
     .OutputBlock_FlatController(OutputBlock_FlatController),
 
-    //Tail inst. signals
-    .opcode_TB(Op_code_TB),
-    .ActEn(ACT_EN),
-    .acttype(relu_act_type),
-    .ActParam(relu_clip_value),
-    .LR_NegAlpha(LR_NegAlpha),
-    .LR_PosAlpha(LR_PosAlpha),
-    .QuantEn(QUANT_EN), // goes to iteration cter
-    .quantscale(tail_quantscale),
-    .quantshift(tail_quantshift),
-    .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
-    .BiasWidth(BiasWidth),
-    .BiasStartAddress(bias_start_address),
-    .BiasEndAddress(bias_stop_address),
-    
     `ifdef GLOBAL_POOL
     .gbl_pool_scale(gbl_pool_scale),
     .gbl_pool_shift(gbl_pool_shift),
     .gbl_pool_en(gbl_pool_en),
     `endif
 
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     .opcode_pool(pool_opcode), 
     .pool_iw(pool_iw),
     .pool_ih(pool_ih),
@@ -1053,7 +1041,7 @@ module top_gati_module #(
     .pool_pad_t(pool_pad_t),
     .pool_pad_b(pool_pad_b),
     .pool_prefetch(pool_prefetch),
-    `elseif POOL
+    `elsif POOL
     .PoolEn(POOL_EN), //goes to iteration cter
     .pooltype(pooltype),
     .poolwidth(poolwidth),
@@ -1064,9 +1052,23 @@ module top_gati_module #(
     .poolModCount(poolModCount),
     .poolpadsides(poolpadsides),
     .poolscale(poolscale),
-    .poolshift(poolshift)
+    .poolshift(poolshift),
     `endif
 
+    //Tail inst. signals
+    .opcode_TB(Op_code_TB),
+    .ActEn(ACT_EN),
+    .acttype(relu_act_type),
+    .ActParam(relu_clip_value),
+    .LR_NegAlpha(LR_NegAlpha),
+    .LR_PosAlpha(LR_PosAlpha),
+    .QuantEn(QUANT_EN), // goes to iteration cter
+    .quantscale(tail_quantscale),
+    .quantshift(tail_quantshift),
+    .BiasEn(BIAS_EN),  //goes to iteration cter and bias req ctrler
+    .BiasWidth(BiasWidth),
+    .BiasStartAddress(bias_start_address),
+    .BiasEndAddress(bias_stop_address)
   );
   
   // fifo status signals for memory request controllers
@@ -1153,7 +1155,7 @@ assign mc_img_valid = (opcode == `OP_CONV) ? mc_img_valid_conv : mc_img_valid_po
 assign mc_img_bl = (opcode == `OP_CONV) ? mc_img_bl_conv : mc_img_bl_pool; 
 assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
 
-  `ifdef MEGA_MAX // This will come in resize also
+  `ifdef MEGA_POOL // This will come in resize also
   request_controller_img_pool#(
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH), 
     .AXI_ADDRESS_WIDTH(AXI_ADDR_W),
@@ -1187,8 +1189,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
     .wr_enable(mc_img_rdreq_pool), //write-read enable
     .valid(mc_img_valid_pool),
     .last(mc_img_last_pool),
-    .burst_length(mc_img_bl_pool)
-);
+    .burst_length(mc_img_bl_pool));
   `endif
 
   //CONV_FC = 1 => FC mode , else CONV mode
@@ -1299,7 +1300,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
   assign Acc_onchip_masked = (kernel_width >= 4)? (1'b0) :(Acc_onchip);
 
   wire ksplit ;
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   assign ksplit = (opcode == `OP_POOL)? 0 : ((kernel_width >= 4)? (1'b1) : (1'b0));
   `else
   assign ksplit = (kernel_width >= 4)? (1'b1) : (1'b0);
@@ -2001,9 +2002,14 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
       .LR_NEG_ALPHA_WIDTH(LR_NEG_ALPHA_WIDTH),
       .LR_POS_ALPHA_WIDTH(LR_POS_ALPHA_WIDTH),
+
+      `ifdef GLOBAL_POOL 
+      .POOLTYPE_WIDTH(3),
       .GBL_POOL_SCALE_WIDTH(W_GBL_POOL_SCALE),
       .GBL_POOL_SHIFT_WIDTH(W_GBL_POOL_SHIFT),
       .GBL_POOL_EN_WIDTH(W_GBL_POOL_EN),
+      `endif
+
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .ACC_TOGGLE(ACC_TOGGLE),
@@ -2022,8 +2028,8 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .POOL_IMG_STA_ADD_WIDTH(W_POOL_IMG_STA_ADD),
       .POOL_IMG_END_ADD_WIDTH(W_POOL_IMG_END_ADD),
       .POOLTYPE_WIDTH(W_POOL_TYPE),
-      .POOLSCALE_WIDTH(W_POOL_SCALE),
-      .POOLSHIFT_WIDTH(W_POOL_SHIFT),
+      .POOL_SCALE_WIDTH(W_POOL_SCALE),
+      .POOL_SHIFT_WIDTH(W_POOL_SHIFT),
       .POOLWIDTH_WIDTH(W_POOL_WIDTH),
       .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
       .POOLSTRIDE_W_WIDTH(W_POOL_STRIDE_W),
@@ -2033,8 +2039,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .POOLPAD_R_WIDTH(W_POOL_PAD_R),
       .POOLPAD_T_WIDTH(W_POOL_PAD_T),
       .POOLPAD_B_WIDTH(W_POOL_PAD_B),
-      .POOL_PREFETCH_WIDTH(W_POOL_PREFETCH),
-      `else POOL
+      `elsif POOL
       .POOL_EN_WIDTH(W_POOL_EN),
       .POOLTYPE_WIDTH(W_POOL_TYPE),
       .POOLWIDTH_WIDTH(W_POOL_WIDTH),
@@ -2044,8 +2049,8 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .POOLCEIL_WIDTH(W_POOL_CEIL),
       .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
       .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
-      .POOLSCALE_WIDTH(W_POOL_SCALE),
-      .POOLSHIFT_WIDTH(W_POOL_SHIFT),
+      .POOL_SCALE_WIDTH(W_POOL_SCALE),
+      .POOL_SHIFT_WIDTH(W_POOL_SHIFT),
       `endif
 
       //FC realated parameters      
@@ -2101,6 +2106,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       //fifo sharing signals
       //.sel_sa_rden(sel_sa_rden),
       .stall_on(stall_on),
+
       `ifdef FC
       .weight_read_en_fc(weight_read_en_fc),
       .weight_occupants_fc(weight_occupants_fc),
@@ -2109,6 +2115,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .weight_dv_fc(weight_dv_fc),
       .weight_data_fc(weight_data_fc),
       `endif //FC
+
       .weight_read_en_sa(weight_read_en_sa),
       .weight_dv_sa(weight_dv_sa),
       .weight_occupants_sa(weight_occupants_sa),
@@ -2116,6 +2123,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .weight_data_sa(weight_data_sa),
       .start_SA(start_SA),
       .p_full_output(psum_full),
+
       `ifdef FC
 	    //Flattening and FC signals
       .flatten_enable(flatten_enable), //comes from FC instruction
@@ -2130,6 +2138,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .FC_done(FC_done), //accumulator valid signal of FC engine
       .FC_layerdone(FC_layerdone),
       `endif //FC 
+
       //vector addition and tail block signals    
       .vector_add_values(vector_add_values),
       .vector_add_wren(vector_add_wren),
@@ -2156,12 +2165,14 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
 
       .image_width(input_img_width),
       .image_height(input_img_height),
-      `ifdef MEGA_MAX
+
+      `ifdef MEGA_POOL
       .start_POOL(start_POOL),
       .valid_img_size_im2col(valid_opcode[`OP_CONV] | valid_opcode[`OP_POOL]), //valid inst conv
       `else
       .valid_img_size_im2col(valid_opcode[`OP_CONV]),
       `endif 
+
       .im2col_global_start(im2col_global_start),
       .img_read_done(img_read_done),
       .image_rden(image_rden),
@@ -2195,27 +2206,27 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .quant_op_write_data(quant_op_write_data),
       .quant_op_wren(quant_op_wren),
 
-      `ifdef MEGA_MAX
-      .opcode_pool(pool_opcode), 
-      .pool_iw(pool_iw),
-      .pool_ih(pool_ih),
-      .pool_ic(pool_ic),
-      .pool_img_sta_add(pool_img_sta_add),
-      .pool_img_end_add(pool_img_end_add),
-      .pooltype(pooltype),
-      .poolscale(poolscale),
-      .poolshift(poolshift),
-      .poolwidth(poolwidth),
-      .poolheight(poolheight),
-      .poolstride_w(poolstride_w),
-      .poolstride_h(poolstride_h),
-      .poolceil(poolceil),
-      .pool_pad_l(pool_pad_l),
-      .pool_pad_r(pool_pad_r),
-      .pool_pad_t(pool_pad_t),
-      .pool_pad_b(pool_pad_b),
-      .pool_prefetch(pool_prefetch),
-      `elseif POOL
+      `ifdef MEGA_POOL
+      .pool_start(pool_start),
+      .pool_stall(pool_stall),
+      .PoolIW(pool_iw),
+      .PoolIH(pool_ih),
+      .PoolIC(pool_ic),
+      .PoolImgStaAdd(pool_img_sta_add),
+      .PoolImgEndAdd(pool_img_end_add),
+      .PoolType(pooltype),
+      .PoolScale(poolscale),
+      .PoolShift(poolshift),
+      .PoolWidth(poolwidth),
+      .PoolHeight(poolheight),
+      .PoolStrideW(poolstride_w),
+      .PoolStrideH(poolstride_h),
+      .PoolCeil(poolceil),
+      .PoolPadL(pool_pad_l),
+      .PoolPadR(pool_pad_r),
+      .PoolPadT(pool_pad_t),
+      .PoolPadB(pool_pad_b),
+      `elsif POOL
       .maxpool_enable(maxpool_enable),
       .PoolType(pooltype),
       .PoolWidth(poolwidth),
@@ -2235,7 +2246,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .Tail_done(Tail_done), // Generated in integration block
       .EW_done(EW_done),
 
-      `ifdef MEGA_MAX
+      `ifdef MEGA_POOL
       .pool_done(pool_done),
       `endif
 
@@ -2439,7 +2450,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
         .RT_done(RT_done),
         `endif //TRANSPOSE
 
-        `ifdef MEGA_MAX
+        `ifdef MEGA_POOL
         .pool_done(pool_done),
         `endif
         
@@ -2458,7 +2469,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
 
         `ifdef GLOBAL_POOL
         .POOL_EN(gbl_pool_en),
-        `elseif POOL
+        `elsif POOL
         .POOL_EN(POOL_EN),
         `else
         .POOL_EN(1'b0),
@@ -2519,7 +2530,7 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .clk(i_clk),
       .rst(i_rst),
 
-      `ifdef MEGA_MAX
+      `ifdef MEGA_POOL
       .start(start_SA | start_POOL), 
       `else
       .start(start_SA),
@@ -2529,8 +2540,6 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .iter_done(iter_done),
       .c_iter(channel_iteration),
       .k_iter(kernel_iteration),
-      .conv_type(conv_type), // Not used inside
-      .dup_flag(CONV_ChannelDuplicate), // Not used inside
 
       .start_im2col(im2col_global_start)
     );

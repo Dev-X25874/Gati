@@ -10,13 +10,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 16
-`define COL_SA 1
-`define ROW 16
-`define FC       //Define this macro to generate hardware for FC in the architecture
-`define POOL     //Define this macro to generate hardware for Pooling operation in the architecture
-// `define BIAS_FC  //Define this macro to generate hardware for BIAS_FC add in the architecture
-`define TRANSPOSE //Define this macro to generate hardware for Reshape Transpose operation in the architecture
+`define N_SA 4
+`define COL_SA 4
+`define ROW 9
 
 // Arch. Parameters for Im2Col
 // Caution: Change these parameters with atmost care
@@ -39,21 +35,35 @@
     STRIDE is the parameter that define the max stride for which the im2col engine will be generated thus if it 4 then it can only handle the stride 4 in input beyond which the system will break thus this can be changes based on the max input stride and should not be kept unnecessary  large thus to reduce the resource usages. 
 */
 
-`define IM2COL_BOUND_GEN_WIDTH 16
-`define N_MOD_STAGES 9
+`define IM2COL_BOUND_GEN_WIDTH 8
+`define N_MOD_STAGES 8
 `define STRIDE 4 
 
 // For Generating Sigmoid/Tanh Eltwise operation
-//`define ELTWISE_SIGMOID_TANH
+`define ELTWISE_SIGMOID_TANH
 
 // For Generating Leaky ReLU functionality in the relu activation block 
-//`define GEN_LEAKY_RELU
+`define GEN_LEAKY_RELU
 
 // For Generating Maxpool as a mega block
-//`define MEGA_MAX
+`define MEGA_POOL
 
 // For Generating Global Average Pool
-//`define GLOBAL_POOL
+// DO NOT GENERATE IF USING MINI POOL
+`define GLOBAL_POOL
+
+// For Generating FC 
+`define FC   
+
+// For Generating Mini Pool in Tail block
+// `define POOL   
+
+// For Generating for BIAS_FC add 
+`define BIAS_FC  
+
+// For Generating Reshape-Transpose operation
+
+//dfine TRANSPOSE 
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

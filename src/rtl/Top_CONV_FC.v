@@ -37,10 +37,14 @@ module Top_CONV_FC #(
     parameter LR_NEG_ALPHA_WIDTH = 10,
     parameter LR_POS_ALPHA_WIDTH = 10,
     
+    `ifdef GLOBAL_POOL 
     parameter GBL_POOL_SCALE_WIDTH = 4,
     parameter GBL_POOL_SHIFT_WIDTH = 4,
     parameter GBL_POOL_EN_WIDTH = 1,
-    
+    `endif
+
+    parameter POOLTYPE_WIDTH = 3,      
+
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter ACC_TOGGLE = 1,
@@ -59,7 +63,6 @@ module Top_CONV_FC #(
     parameter POOL_IC_WIDTH = 10,
     parameter POOL_IMG_STA_ADD_WIDTH = 10,
     parameter POOL_IMG_END_ADD_WIDTH = 10,
-    parameter POOLTYPE_WIDTH = 3,
     parameter POOL_SCALE_WIDTH = 8,
     parameter POOL_SHIFT_WIDTH = 4,
     parameter POOLWIDTH_WIDTH = 4,
@@ -71,9 +74,8 @@ module Top_CONV_FC #(
     parameter POOLPAD_R_WIDTH = 4,
     parameter POOLPAD_T_WIDTH = 4,
     parameter POOLPAD_B_WIDTH = 4,
-    `else POOL
+    `elsif POOL
     parameter POOL_EN_WIDTH = 1,
-    parameter POOLTYPE_WIDTH = 3,
     parameter POOLWIDTH_WIDTH = 4,
     parameter POOLHEIGHT_WIDTH = 4,
     parameter POOLSTRIDE_WIDTH = 4,
@@ -81,8 +83,8 @@ module Top_CONV_FC #(
     parameter POOLCEIL_WIDTH = 4,
     parameter POOLMODCOUNT_WIDTH = 4,
     parameter POOLPADSIDES_WIDTH = 4,
-    parameter POOLSCALE_WIDTH = 4,
-    parameter POOLSHIFT_WIDTH = 4,
+    parameter POOL_SCALE_WIDTH = 4,
+    parameter POOL_SHIFT_WIDTH = 4,
     `endif 
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
@@ -240,17 +242,18 @@ module Top_CONV_FC #(
     input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
     input EltWise_op_en,
     
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
+    input start_POOL,
     input pool_stall,
     input pool_start,
-    input [POOL_IW_WIDTH - 1 : 0] PoolIW, // CONV_KW_WIDTH
-    input [POOL_IH_WIDTH - 1 : 0] PoolIH, // CONV_IH_WIDTH
+    input [POOL_IW_WIDTH - 1 : 0] PoolIW, 
+    input [POOL_IH_WIDTH - 1 : 0] PoolIH, 
     input [POOL_IC_WIDTH - 1 : 0] PoolIC,
     input [POOL_IMG_STA_ADD_WIDTH - 1 : 0] PoolImgStaAdd,
     input [POOL_IMG_END_ADD_WIDTH - 1 : 0] PoolImgEndAdd,
     input [POOLTYPE_WIDTH - 1 : 0] PoolType,
-    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale, // used in glob avg
-    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift, // used in glob avg
+    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale, 
+    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift, 
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
     input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
     input [POOLSTRIDE_W_WIDTH - 1 : 0] PoolStrideW,
@@ -260,13 +263,13 @@ module Top_CONV_FC #(
     input [POOLPAD_R_WIDTH - 1 : 0] PoolPadR,
     input [POOLPAD_T_WIDTH - 1 : 0] PoolPadT,
     input [POOLPAD_B_WIDTH - 1 : 0] PoolPadB,
-    `elseif POOL
+    `elsif POOL
     input maxpool_enable,
     input [POOLTYPE_WIDTH - 1 : 0] PoolType,
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
     input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
     input [POOLSTRIDE_WIDTH - 1 : 0] PoolStride,
-    input [POOLPADDING_WIDTH - 1 : 0] PoolPadding,
+    input [POOLPAD_WIDTH - 1 : 0] PoolPadding,
     input [POOLCEIL_WIDTH - 1 : 0] PoolCeil,
     input [POOLMODCOUNT_WIDTH - 1 : 0] PoolModCount,
     input [POOLPADSIDES_WIDTH - 1 : 0] PoolPadSides,
@@ -296,7 +299,7 @@ module Top_CONV_FC #(
     output pseudo_im2col_done, // output: pseudo im2col done signal
     output SA_psum_fifo_empty,
 
-    `ifdef MEGA_MAX
+    `ifdef MEGA_POOL
     output reg pool_done,
     `endif
 
@@ -394,7 +397,7 @@ module Top_CONV_FC #(
   wire [N_SA-1:0] maxpool_valid;
   wire [(N_SA*DATA_WIDTH) -1:0] maxpool_output;
   
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   wire [N_SA-1:0] pool_o_datavalid;
   wire [(N_SA*DATA_WIDTH) -1:0] pool_o_data;
   `endif
@@ -453,15 +456,7 @@ wire [CONV_STRIDE_WIDTH-1:0] StrideHeight;
 
 interconnect_sa_pool #(
   .OPCODE_WIDTH(OPCODE_WIDTH),
-  .CONV_KW_WIDTH(CONV_KW_WIDTH),
-  .CONV_KH_WIDTH(CONV_KH_WIDTH),
-  .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
-  .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
-  .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
-  .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
-  .CONV_IW_WIDTH(CONV_IW_WIDTH),
-  .CONV_IH_WIDTH(CONV_IH_WIDTH),
-  .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
+  `ifdef MEGA_POOL 
   .POOLWIDTH_WIDTH(POOLWIDTH_WIDTH),
   .POOLHEIGHT_WIDTH(POOLHEIGHT_WIDTH),
   .POOLPAD_L_WIDTH(POOLPAD_L_WIDTH),
@@ -471,7 +466,18 @@ interconnect_sa_pool #(
   .POOL_IW_WIDTH(POOL_IW_WIDTH),
   .POOL_IH_WIDTH(POOL_IH_WIDTH),
   .POOLSTRIDE_W_WIDTH(POOLSTRIDE_W_WIDTH),
-  .POOLSTRIDE_H_WIDTH(POOLSTRIDE_H_WIDTH)
+  .POOLSTRIDE_H_WIDTH(POOLSTRIDE_H_WIDTH),
+  `endif
+  .CONV_KW_WIDTH(CONV_KW_WIDTH),
+  .CONV_KH_WIDTH(CONV_KH_WIDTH),
+  .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+  .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+  .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+  .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+  .CONV_IW_WIDTH(CONV_IW_WIDTH),
+  .CONV_IH_WIDTH(CONV_IH_WIDTH),
+  .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH)
+  
 ) interconnect_sa_pool_inst (
   .clk(i_clk),
   .rst(rst),
@@ -488,7 +494,7 @@ interconnect_sa_pool #(
   .stride_col(stride),
   .stride_row(stride),
 
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   // POOL
   .PoolWidth(PoolWidth),
   .PoolHeight(PoolHeight),
@@ -728,7 +734,7 @@ endgenerate
 
   ); 
 
-  `ifdef MEGA_MAX
+  `ifdef MEGA_POOL
   top_pool_engine#(
     .W_DATA(DATA_WIDTH),
     .ROW(ROW),
@@ -1207,76 +1213,8 @@ always @(posedge i_clk) begin
   (* syn_use_dsp = "no" *) wire [I_ACC_SIZE_WIDTH-1:0] op_img_size;
   assign op_img_size = op_height * op_width;
 
-  `ifdef POOL
-  generalized_pool # (
-    .N_SA(N_SA),
-    .DATA_WIDTH(DATA_WIDTH),
-    .POOL_HEIGHT(POOLHEIGHT_WIDTH), // width of kernal height
-    .POOL_WIDTH(POOLWIDTH_WIDTH), // width of kernal width
-    .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH), //width of Pooling Type
-    .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
-    .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
-    .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
-    .ADDR_WIDTH(9), //Synchronous Fifo depth
-    .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
-  )
-  generalized_pool_inst (
-    .clk(i_clk),
-    .din(relu_output),
-    .rst_n(rst&(~iteration_Done)),
-    .ENABLE(maxpool_enable),
-    .datavalid_in(relu_valid),
-    .PoolType('h02), // Hardcoded for GblAvgPool
-    .PoolStride(PoolStride),
-    .PoolWidth(PoolWidth), //kernal width
-    .PoolHeight(PoolHeight), //kernal height
-    .PoolPadding(PoolPadding),
-    .PoolCeil(PoolCeil),
-    .PoolModCount(PoolModCount),
-    .PoolPadSides(PoolPadSides),
-    .PoolScale(PoolScale),
-    .PoolShift(PoolShift),
-    .PoolimageSize(op_img_size),
-    .OH(op_height),
-    .OW(op_width),
-    .dout(maxpool_output),
-    .done(),
-    .datavalid_out(maxpool_valid)
-  );
-
-  wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
   
-  assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
-  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:op_img_size)>>2) : op_img_size);
-  `else
-  assign maxpool_output = relu_output;
-  assign maxpool_valid = relu_valid;
-  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : op_img_size;
-  `endif //POOL
 
-  `ifdef GLOBAL_POOL
-  global_avg_pool #(
-    .DATA_WIDTH(DATA_WIDTH),
-    .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH),
-    .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
-    .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
-    .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
-    .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
-  ) global_avg_pool_inst(
-    .clk(i_clk),
-    .rst_n(rst&(~iteration_Done)),
-    .ENABLE(maxpool_enable), 
-    .din(relu_output), 
-    .datavalid_in(relu_valid), 
-    .PoolType('h02),  
-    .PoolScale(gbl_pool_scale), 
-    .PoolShift(gbl_pool_shift),   
-    .PoolimageSize(op_img_size), 
-    .dout(maxpool_output), 
-    .datavalid_out(maxpool_valid)
-  );
-  `endif
-  
   wire [(DATA_WIDTH_ACC*N_SA)-1 : 0] zp_unquantized_din;
   wire [N_SA-1:0] zp_valid;
   wire [(N_SA*DATA_WIDTH) -1:0] zp_data;
@@ -1289,17 +1227,121 @@ always @(posedge i_clk) begin
 
 
   assign i_img_dim1 = (CONV_FC)? i_img_dim_Acc : op_img_size;
-  assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? (16'd1) : op_img_size);
-  
+
   wire [(N_SA*DATA_WIDTH) -1:0] zp_quant_in;
   wire [N_SA -1:0] zp_quant_valid_in;
 
-  `ifdef MEGA_MAX 
-  assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : ((maxpool_enable) ?maxpool_output : relu_output);
-  assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : ((maxpool_enable) ? maxpool_valid : relu_valid);
-  `else 
-  assign zp_quant_in = (maxpool_enable)? maxpool_output : relu_output;
-  assign zp_quant_valid_in = (maxpool_enable)? maxpool_valid : relu_valid;
+  `ifdef MEGA_POOL 
+    `ifdef GLOBAL_POOL
+      global_avg_pool_gen #(
+      .N_SA(N_SA),
+      .DATA_WIDTH(DATA_WIDTH),
+      .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH),
+      .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
+      .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
+      .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+      .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+      ) global_avg_pool_gen_inst (
+      .clk(i_clk),
+      .rst_n(rst&(~iteration_Done)),
+      .ENABLE(maxpool_enable), 
+      .din(relu_output), 
+      .datavalid_in(relu_valid), 
+      .PoolType('h02),  
+      .PoolScale(gbl_pool_scale), 
+      .PoolShift(gbl_pool_shift),   
+      .PoolimageSize(op_img_size), 
+      .dout(maxpool_output), 
+      .datavalid_out(maxpool_valid)
+    );
+      assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : maxpool_output;
+      assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : maxpool_valid;
+
+      assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : (maxpool_enable? (16'd1) : op_img_size);
+    `else
+      assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : relu_output;
+      assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : relu_valid;
+
+      assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : op_img_size;
+    `endif
+  `else
+    `ifdef POOL
+      generalized_pool # (
+        .N_SA(N_SA),
+        .DATA_WIDTH(DATA_WIDTH),
+        .POOL_HEIGHT(POOLHEIGHT_WIDTH), // width of kernal height
+        .POOL_WIDTH(POOLWIDTH_WIDTH), // width of kernal width
+        .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH), //width of Pooling Type
+        .POOL_SCALE_WIDTH(POOL_SCALE_WIDTH),
+        .POOL_SHIFT_WIDTH(POOL_SHIFT_WIDTH),
+        .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+        .ADDR_WIDTH(9), //Synchronous Fifo depth
+        .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+      )
+      generalized_pool_inst (
+        .clk(i_clk),
+        .din(relu_output),
+        .rst_n(rst&(~iteration_Done)),
+        .ENABLE(maxpool_enable),
+        .datavalid_in(relu_valid),
+        .PoolType('h02), // Hardcoded for GblAvgPool
+        .PoolStride(PoolStride),
+        .PoolWidth(PoolWidth), //kernal width
+        .PoolHeight(PoolHeight), //kernal height
+        .PoolPadding(PoolPadding),
+        .PoolCeil(PoolCeil),
+        .PoolModCount(PoolModCount),
+        .PoolPadSides(PoolPadSides),
+        .PoolScale(PoolScale),
+        .PoolShift(PoolShift),
+        .PoolimageSize(op_img_size),
+        .OH(op_height),
+        .OW(op_width),
+        .dout(maxpool_output),
+        .done(),
+        .datavalid_out(maxpool_valid)
+      );
+
+      wire [I_ACC_SIZE_WIDTH-1:0] intermediate_1;
+  
+      assign intermediate_1 = (maxpool_threshold-PoolModCount) * (maxpool_threshold-PoolModCount);
+      assign i_img_dim2 = (CONV_FC)? i_img_dim_Op  : (maxpool_enable? ((PoolType == `POOL_GLOBAL_AVG)? (16'd1) : ((PoolModCount!=0)?intermediate_1:op_img_size)>>2) : op_img_size);
+
+      assign zp_quant_in = maxpool_output;
+      assign zp_quant_valid_in = maxpool_valid;
+    `elsif GLOBAL_POOL
+      global_avg_pool_gen #(
+      .N_SA(N_SA),
+      .DATA_WIDTH(DATA_WIDTH),
+      .POOLING_TYPE_WIDTH(POOLTYPE_WIDTH),
+      .POOL_SCALE_WIDTH(GBL_POOL_SCALE_WIDTH),
+      .POOL_SHIFT_WIDTH(GBL_POOL_SHIFT_WIDTH),
+      .OH_WIDTH(W_CONV_OP_IMAGE_DIM),
+      .OW_WIDTH(W_CONV_OP_IMAGE_DIM)
+      ) global_avg_pool_gen_inst (
+      .clk(i_clk),
+      .rst_n(rst&(~iteration_Done)),
+      .ENABLE(maxpool_enable), 
+      .din(relu_output), 
+      .datavalid_in(relu_valid), 
+      .PoolType('h02),  
+      .PoolScale(gbl_pool_scale), 
+      .PoolShift(gbl_pool_shift),   
+      .PoolimageSize(op_img_size), 
+      .dout(maxpool_output), 
+      .datavalid_out(maxpool_valid)
+    );
+
+      assign zp_quant_in = maxpool_output;
+      assign zp_quant_valid_in = maxpool_valid;
+
+      assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : (maxpool_enable? (16'd1) : op_img_size);
+    `else
+      assign zp_quant_in = relu_output;
+      assign zp_quant_valid_in = relu_valid;
+
+      assign i_img_dim2 = (CONV_FC)? i_img_dim_Op : op_img_size;
+    `endif
   `endif
 
   //zero padding circuit

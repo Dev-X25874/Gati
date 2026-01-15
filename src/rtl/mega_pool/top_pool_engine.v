@@ -1,6 +1,3 @@
-`include "../common/arch_param.vh"
-
-`ifdef MEGA_MAX
 module top_pool_engine#(
     parameter W_DATA = 8,
     parameter ROW = 9,
@@ -61,4 +58,3 @@ module top_pool_engine#(
     endgenerate
 
 endmodule
-`endif

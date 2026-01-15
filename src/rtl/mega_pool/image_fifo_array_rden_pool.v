@@ -2,9 +2,6 @@
     When each fifo in the array has a data, 
     the read enable signal of image fifo array is asserted.
 */
-`include "../common/arch_param.vh"
-
-`ifdef MEGA_MAX 
 module image_fifo_array_rden_pool#(
     parameter ROW = 9,
     parameter W_DATA = 8,
@@ -80,4 +77,3 @@ always @(posedge i_clk)begin
     end
 end
 endmodule
-`endif

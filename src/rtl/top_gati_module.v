@@ -1152,10 +1152,6 @@ module top_gati_module #(
     `endif 
   );
   
-  wire w_one_operand ;
-
-  assign w_one_operand = (RightOperand_start_address == 32'hFFFFFFFF)? 1'b1:0; 
-
 
   // fifo status signals for memory request controllers
   wire img_fifo_status;
@@ -2567,12 +2563,14 @@ assign mc_img_last = (opcode == `OP_CONV) ? mc_img_last_conv : mc_img_last_pool;
       .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
       .EltWise_op_en(valid_opcode[`OP_EltWise]),
       .start_row_skip(start_row_skip),
-      .end_row_skip(end_row_skip),
       `ifdef CONCAT
+      .end_row_skip(end_row_skip),
       .o_concat_data(o_concat_data),
-      .o_concat_dv(o_concat_dv),
+      .o_concat_dv(o_concat_dv)
+      `else
+      .end_row_skip(end_row_skip)
       `endif
-      .w_one_operand(w_one_operand)
+
   );
 
   `ifdef TRANSPOSE

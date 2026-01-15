@@ -56,6 +56,7 @@ module Top_CONV_FC #(
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
     parameter N_DMUX_PORTS = DRAM_BW/(N_SA*(ACC_DW/8)),
+    parameter AXI_DATA_WIDTH = 256,
 
     `ifdef MEGA_POOL 
     parameter POOL_IW_WIDTH = 10,
@@ -315,12 +316,13 @@ module Top_CONV_FC #(
     output o_image_fifo_almost_full_flag,
     input istolic_stall,
     input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
-    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
     `ifdef CONCAT
-    input  [255:0] o_concat_data,
-    input         o_concat_dv,
-    `endif 
-    input         w_one_operand
+    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
+    input  [AXI_DATA_WIDTH-1:0] o_concat_data,
+    input                       o_concat_dv
+    `else
+    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip 
+    `endif
 
 );
 
@@ -1036,8 +1038,7 @@ always @(posedge i_clk) begin
     .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
     .EW_done(EW_done),
     .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
-    .op_fifo_empty(op_fifo_empty),
-    .w_one_operand(w_one_operand)
+    .op_fifo_empty(op_fifo_empty)
   );
 
   // TODO: Change name to tail block interconnect  

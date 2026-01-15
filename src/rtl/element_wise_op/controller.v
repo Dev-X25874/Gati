@@ -23,7 +23,6 @@ module EltWise_controller#(
     input [FIFO_NO - 1:0] LeftOperand_empty_flag,
     input [FIFO_NO - 1:0] RightOperand_empty_flag,
     input [ELTWISE_TYPE_WIDTH - 1 : 0] EltWise_type,
-    input tanh_switch,
 
     output [FIFO_NO - 1:0] element_rd_en,
     output reg [(DATA_WIDTH * N) - 1:0] LeftOperand_fifo_data_out,
@@ -90,12 +89,7 @@ always @(posedge clkin) begin
                 state <= 1;
             end
             else begin
-                if (tanh_switch && !LeftOperand_empty_flag[cycle_idx]) begin
-                  fifo_rden <= 1'b1;
-                  rd_counter <= rd_counter + 1;
-                  cycle_idx <= cycle_idx + 1;
-                  state <= 0;
-                end else if(!LeftOperand_empty_flag[cycle_idx] && !RightOperand_empty_flag[cycle_idx]) begin
+                if(!LeftOperand_empty_flag[cycle_idx] && !RightOperand_empty_flag[cycle_idx]) begin
                     fifo_rden <= 1'b1;
                     rd_counter <= rd_counter + 1;
                     cycle_idx <= cycle_idx + 1;
@@ -165,13 +159,7 @@ always @ (posedge clkin) begin
         RightOperand_fifo_data_out <= 0;
     end
     else begin
-          if (tanh_switch && |(LeftOperand_valid_fifo) && ~sig_en) begin
-            LeftOperand_fifo_data_out <= LeftOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
-            RightOperand_fifo_data_out <= 0;
-            data_valid <= 1'b1;
-            cnt1 <= cnt1 + 1;
-            cycle_idx1 <= cycle_idx1 + 1;
-        end else if (|(LeftOperand_valid_fifo) && |(RightOperand_valid_fifo) && ~sig_en) begin
+        if (|(LeftOperand_valid_fifo) && |(RightOperand_valid_fifo) && ~sig_en) begin
             LeftOperand_fifo_data_out <= LeftOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
             RightOperand_fifo_data_out <= RightOperand_data_out[(FIFO_NO - cycle_idx1) * DATA_WIDTH*N - 1 -: DATA_WIDTH*N];
             data_valid <= 1'b1;

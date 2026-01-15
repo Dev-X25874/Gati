@@ -67,6 +67,7 @@ module mul_shift#(
     r_data_valid1 <= r_data_valid;
   end
 
+  // TODO : mention the reason for FP Casting here.
   // Additional logic for floating point casting
   always @(posedge clk) begin
     r_data_valid2 <= r_data_valid1;

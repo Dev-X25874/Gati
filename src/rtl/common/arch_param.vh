@@ -37,33 +37,35 @@
 
 `define IM2COL_BOUND_GEN_WIDTH 8
 `define N_MOD_STAGES 8
-`define STRIDE 4 
+`define STRIDE 4
 
 // For Generating Sigmoid/Tanh Eltwise operation
-`define ELTWISE_SIGMOID_TANH
+//`define ELTWISE_SIGMOID_TANH
 
 // For Generating Leaky ReLU functionality in the relu activation block 
-`define GEN_LEAKY_RELU
+// DO NOT GENERATE IN CASE OF 16 1 16
+//`define GEN_LEAKY_RELU
 
 // For Generating Maxpool as a mega block
-`define MEGA_POOL
+// DO NOT GENERATE IN CASE OF 16 1 16 
+//`define MEGA_POOL
 
 // For Generating Global Average Pool
 // DO NOT GENERATE IF USING MINI POOL
 `define GLOBAL_POOL
 
 // For Generating FC 
-`define FC   
+//`define FC   
 
 // For Generating Mini Pool in Tail block
 // `define POOL   
 
 // For Generating for BIAS_FC add 
-`define BIAS_FC  
+//`define BIAS_FC  
 
 // For Generating Reshape-Transpose operation
 
-//dfine TRANSPOSE 
+//define TRANSPOSE 
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

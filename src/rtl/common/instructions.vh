@@ -110,39 +110,39 @@
 // is field is equal to ImageDimAcc. Additionally, if FlatContr
 // oller flag is set to 1, this field is the product of ceil_mo
 // d(OC*OH*OW, AXI_WIDTH).
-`define OutputBlock_ImageDimOutput 112:93
-`define OutputBlock_ImageDimOutput_WIDTH 20
+`define OutputBlock_ImageDimOutput 124:93
+`define OutputBlock_ImageDimOutput_WIDTH 32
 // Output of the conv operation (HxW)
-`define OutputBlock_ImageDimAcc 132:113
-`define OutputBlock_ImageDimAcc_WIDTH 20
+`define OutputBlock_ImageDimAcc 156:125
+`define OutputBlock_ImageDimAcc_WIDTH 32
 // For layer with fewer channels than number of columns in the 
 // systolic array, accumulation of partial sums across iteratio
 // ns is disabled
-`define OutputBlock_AccEn 133:133
+`define OutputBlock_AccEn 157:157
 `define OutputBlock_AccEn_WIDTH 1
 // If this layer's output is supposed to be sent back to the CP
 // U, this flag is set
-`define OutputBlock_DispatchEn 134:134
+`define OutputBlock_DispatchEn 158:158
 `define OutputBlock_DispatchEn_WIDTH 1
 // This is a integrity id that the FPGA should attach to the Ad
 // dr part of the receiving DWP packet.
-`define OutputBlock_DispatchID 166:135
+`define OutputBlock_DispatchID 190:159
 `define OutputBlock_DispatchID_WIDTH 32
 // If output dimensions of a conv operation can fit on the FPGA
 //  output buffers, they should not be sent to the DRAM, all of
 //  the conv can happen on chip saving latency. This flag sets 
 // that bit.
-`define OutputBlock_OnChipAcc 167:167
+`define OutputBlock_OnChipAcc 191:191
 `define OutputBlock_OnChipAcc_WIDTH 1
-`define OutputBlock_OH 177:168
+`define OutputBlock_OH 201:192
 `define OutputBlock_OH_WIDTH 10
-`define OutputBlock_OW 187:178
+`define OutputBlock_OW 211:202
 `define OutputBlock_OW_WIDTH 10
 // If 1, treat outputs from the megablock as flat bytes, not as
 //  aligned bytes with zeros in it
-`define OutputBlock_FlatController 188:188
+`define OutputBlock_FlatController 212:212
 `define OutputBlock_FlatController_WIDTH 1
-`define OutputBlock_OpWidth 191:189
+`define OutputBlock_OpWidth 215:213
 `define OutputBlock_OpWidth_WIDTH 3
 
 `define OP_FC 'h03

@@ -10,9 +10,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 4
-`define COL_SA 4
-`define ROW 9
+`define N_SA 16
+`define COL_SA 1
+`define ROW 16
 
 
 // Arch. Parameters for Im2Col
@@ -36,8 +36,8 @@
     STRIDE is the parameter that define the max stride for which the im2col engine will be generated thus if it 4 then it can only handle the stride 4 in input beyond which the system will break thus this can be changes based on the max input stride and should not be kept unnecessary  large thus to reduce the resource usages. 
 */
 
-`define IM2COL_BOUND_GEN_WIDTH 8
-`define N_MOD_STAGES 8
+`define IM2COL_BOUND_GEN_WIDTH 16
+`define N_MOD_STAGES 10
 `define STRIDE 4
 
 // For Generating Sigmoid/Tanh Eltwise operation
@@ -66,10 +66,10 @@
 
 // For Generating Reshape-Transpose operation
 
-//define TRANSPOSE 
+`define TRANSPOSE 
 
 // To generate CONCAT hardware
-// `define CONCAT 
+//`define CONCAT 
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

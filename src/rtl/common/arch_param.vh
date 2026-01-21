@@ -52,11 +52,11 @@
 
 // For Generating Maxpool as a mega block
 // DO NOT GENERATE IN CASE OF 16 1 16 
-`define MEGA_POOL
+// `define MEGA_POOL
 
 // For Generating Global Average Pool
 // DO NOT GENERATE IF USING MINI POOL
-// `define GLOBAL_POOL
+ `define GLOBAL_POOL
 
 // For Generating FC 
 // `define FC   
@@ -75,7 +75,7 @@
 `define CONCAT 
 
 // For Generating resize operator
- `define RESIZE
+`define RESIZE
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

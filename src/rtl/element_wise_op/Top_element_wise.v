@@ -40,7 +40,8 @@ module Top_element_wise#(
     output [((W_ADDR+1)*FIFO_NO)-1:0]RightOperand_fifo_occupants,
     output [ELTWISE_QUANT_SHIFT-1:0]EltWise_fp_cast_shift,
     output EW_done,
-    input op_fifo_empty
+    input op_fifo_empty,
+    input w_one_operand
 );
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_in_reordered,RightOperand_data_in_reordered;
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_out,RightOperand_data_out;
@@ -59,8 +60,8 @@ reg [ELTWISE_QUANT_SHIFT-1:0] eltwise_fp_bit_shift_;
 
 always@(EltWise_type) begin
     case (EltWise_type)
-        `ELTWISE_SIG, `ELTWISE_TANH, `ELTWISE_MUL: eltwise_fp_bit_shift_ <= 16;
-        `ELTWISE_ADD, `ELTWISE_SUB: eltwise_fp_bit_shift_ <= ELTWISE_FP_BIT_SHIFT;
+        `ELTWISE_SIG, `ELTWISE_TANH: eltwise_fp_bit_shift_ <= 16;
+        `ELTWISE_ADD, `ELTWISE_SUB, `ELTWISE_MUL: eltwise_fp_bit_shift_ <= ELTWISE_FP_BIT_SHIFT;
         default: eltwise_fp_bit_shift_ <= ELTWISE_FP_BIT_SHIFT;
     endcase
 end
@@ -165,6 +166,9 @@ generate
             .DATA_WIDTH(DATA_WIDTH),
             .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
             .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+            `ifdef ELTWISE_MULT_HW
+                .ELTWISE_QUANT_SHIFT(ELTWISE_QUANT_SHIFT),
+            `endif
             .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
             .DATA_WIDTH_OB(DATA_WIDTH_OB)
         ) ew_op (
@@ -175,6 +179,9 @@ generate
             .data_valid(data_valid),
             .LeftOperand_Scale(LeftOperand_Scale),
             .RightOperand_Scale(RightOperand_Scale),
+            `ifdef ELTWISE_MULT_HW
+                .fp_cast_shift(EltWise_fp_cast_shift),
+            `endif
             .LeftOperand_zero_point(LeftOperand_zero_point),
             .RightOperand_zero_point(RightOperand_zero_point),
             .EltWise_type(EltWise_type),
@@ -188,6 +195,9 @@ generate
             .DATA_WIDTH(DATA_WIDTH),
             .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
             .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
+            `ifdef ELTWISE_MULT_HW
+                .ELTWISE_QUANT_SHIFT(ELTWISE_QUANT_SHIFT),
+            `endif
             .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
             .DATA_WIDTH_OB(DATA_WIDTH_OB)
         ) ew_op_lut (
@@ -198,6 +208,9 @@ generate
             .data_valid(data_valid),
             .LeftOperand_Scale(LeftOperand_Scale),
             .RightOperand_Scale(RightOperand_Scale),
+            `ifdef ELTWISE_MULT_HW
+                .fp_cast_shift(EltWise_fp_cast_shift),
+            `endif
             .LeftOperand_zero_point(LeftOperand_zero_point),
             .RightOperand_zero_point(RightOperand_zero_point),
             .EltWise_type(EltWise_type),

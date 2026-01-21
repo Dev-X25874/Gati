@@ -91,11 +91,13 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     parameter ELTWISE_TYPE_WIDTH = 4,
     parameter ELTWISE_SCALE_WIDTH = 32,
     parameter ELTWISE_ZEROPOINT_WIDTH = 8,
+    `ifdef RESIZE
     parameter RESIZE_IW_WIDTH = 10,
     parameter RESIZE_IH_WIDTH = 10,
     parameter RESIZE_IC_WIDTH = 10,
     parameter RESIZE_IMG_STA_ADD_WIDTH = 10, 
     parameter RESIZE_IMG_END_ADD_WIDTH = 10,
+    `endif
     parameter CONV_StartRowSkip_WIDTH = 4,
     parameter CONV_EndRowSkip_WIDTH = 4,
     parameter TRANSPOSE_IC_WIDTH = 12,
@@ -246,12 +248,14 @@ module top_master_slave_integrate #(parameter OP_CODE_WIDTH = 4,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_StartAddress,
     output [ADDRESS_WIDTH - 1 : 0] LeftOperand_EndAddress,
     output [ADDRESS_WIDTH - 1 : 0] RightOperand_EndAddress,
+    `ifdef RESIZE
     output [OP_CODE_WIDTH -1 : 0] opcode_resize,
     output [RESIZE_IW_WIDTH - 1 : 0] resize_iw,
     output [RESIZE_IH_WIDTH - 1 : 0] resize_ih,
     output [RESIZE_IC_WIDTH - 1 : 0] resize_ic,
     output [RESIZE_IMG_STA_ADD_WIDTH - 1 : 0] resize_img_sta_add,
     output [RESIZE_IMG_END_ADD_WIDTH - 1 : 0] resize_img_end_add,
+    `endif
     output [OutputBlock_AccumulantReadFirst_WIDTH-1:0]OutputBlock_AccumulantReadFirst,
     output [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth,
 
@@ -610,7 +614,7 @@ OP_EltWise(
     .valid(valid[`OP_EltWise]),
     .ready(ready[`OP_EltWise])
     );
-
+`ifdef RESIZE
 OP_Resize #(
 .OP_CODE_WIDTH(OP_CODE_WIDTH),
 .CNT(CNT),
@@ -638,7 +642,7 @@ OP_RESIZE(
     .valid(valid[`OP_RESIZE]),
     .ready(ready[`OP_RESIZE])
 );
-    
+`endif
 
 `ifdef TRANSPOSE
 OP_ReshapeTranspose # (

@@ -4,6 +4,9 @@ module element_wise_op#(
   parameter DATA_WIDTH = 8,
   parameter ELTWISE_TYPE_WIDTH = 4,
   parameter ELTWISE_SCALE_WIDTH = 32,
+  `ifdef ELTWISE_MULT_HW
+    parameter ELTWISE_QUANT_SHIFT = 8,
+  `endif
   parameter ELTWISE_ZEROPOINT_WIDTH = 8,
   parameter DATA_WIDTH_OB = 32
 )
@@ -16,6 +19,10 @@ module element_wise_op#(
 
   input [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale,
   input [ELTWISE_SCALE_WIDTH-1:0] RightOperand_Scale,
+
+  `ifdef ELTWISE_MULT_HW
+    input [ELTWISE_QUANT_SHIFT-1:0] fp_cast_shift,
+  `endif
   
   input [ELTWISE_ZEROPOINT_WIDTH-1:0] LeftOperand_zero_point,
   input [ELTWISE_ZEROPOINT_WIDTH-1:0] RightOperand_zero_point,
@@ -102,7 +109,7 @@ begin
         `ELTWISE_SUB  : r_EltWise_out <= LeftOperand_scaled - RightOperand_scaled;  // Subtraction
       `endif
       `ifdef ELTWISE_MULT_HW
-        `ELTWISE_MULT : r_EltWise_out <= LeftOperand_scaled * RightOperand_scaled;  // Multiplication (signed)
+        `ELTWISE_MULT : r_EltWise_out <= ((LeftOperand_scaled * RightOperand_scaled) + (1<<(fp_cast_shift-1))) >>> fp_cast_shift;  // Multiplication (signed)
       `endif
       default: r_EltWise_out <= 0;  // Default case to handle unexpected values
     endcase
@@ -121,6 +128,9 @@ module element_wise_op_lut#(
   parameter DATA_WIDTH = 8,
   parameter ELTWISE_TYPE_WIDTH = 4,
   parameter ELTWISE_SCALE_WIDTH = 32,
+  `ifdef ELTWISE_MULT_HW
+    parameter ELTWISE_QUANT_SHIFT = 8,
+  `endif
   parameter ELTWISE_ZEROPOINT_WIDTH = 8,
   parameter DATA_WIDTH_OB = 32
 )
@@ -133,6 +143,10 @@ module element_wise_op_lut#(
 
   input [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale,
   input [ELTWISE_SCALE_WIDTH-1:0] RightOperand_Scale,
+
+  `ifdef ELTWISE_MULT_HW
+    input [ELTWISE_QUANT_SHIFT-1:0] fp_cast_shift,
+  `endif
   
   input [ELTWISE_ZEROPOINT_WIDTH-1:0] LeftOperand_zero_point,
   input [ELTWISE_ZEROPOINT_WIDTH-1:0] RightOperand_zero_point,
@@ -219,7 +233,7 @@ begin
         `ELTWISE_SUB  : r_EltWise_out <= LeftOperand_scaled - RightOperand_scaled;  // Subtraction
       `endif
       `ifdef ELTWISE_MULT_HW
-        `ELTWISE_MULT : r_EltWise_out <= LeftOperand_scaled * RightOperand_scaled;  // Multiplication (signed)
+        `ELTWISE_MULT : r_EltWise_out <= ((LeftOperand_scaled * RightOperand_scaled) + (1<<(fp_cast_shift-1))) >>> fp_cast_shift;  // Multiplication (signed)
       `endif
       default: r_EltWise_out <= 0;  // Default case to handle unexpected values
     endcase
@@ -233,4 +247,3 @@ end
 assign EltWise_out = $signed(r_EltWise_out[DATA_WIDTH_OB-1:0]);
 
 endmodule
-

@@ -64,7 +64,7 @@ module iteration_cnt #(
 
     reg [2:0] state = 0;
 
-    reg [NUM_INSTRUCTIONS-1:0] done_reg;
+    reg  [NUM_INSTRUCTIONS-1:0] done_reg;
     wire [NUM_INSTRUCTIONS-1:0] done_input;
 
 
@@ -76,22 +76,22 @@ module iteration_cnt #(
     assign done_input[`OP_EltWise]     = r_EW_done;
     assign done_input[`OP_TRANSPOSE]   = r_RT_done;
     assign done_input[`OP_TailBlock]   = r_Tail_done;
-    assign done_input[`OP_RESIZE] = r_resize_done;
+    assign done_input[`OP_RESIZE]      = r_resize_done;
     assign done_input[`OP_OutputBlock] = r_op_fifo_empty;
     
     `ifdef MEGA_POOL
     reg r_pool_done;
-    assign done_input[`OP_POOL] = r_pool_done; 
+    assign done_input[`OP_POOL]   = r_pool_done; 
     `endif
-    assign done_input[`OP_CONCAT]      = r_concat_done;
+    assign done_input[`OP_CONCAT] = r_concat_done;
 
 
-    assign o_SA_done = SA_done;
-    assign o_iter_done = iter_done;
-    assign o_layer_done = r_layer_done;
-    assign o_c_done = c_done;
+    assign o_SA_done     = SA_done;
+    assign o_iter_done   = iter_done;
+    assign o_layer_done  = r_layer_done;
+    assign o_c_done      = c_done;
 
-    assign kernal_count =  k_ctr [6:0]; // represents the current kernal iteration number
+    assign kernal_count  =  k_ctr [6:0]; // represents the current kernal iteration number
     assign channel_count =  c_ctr [6:0]; // represents the current channel iteration number
 
     reg r_i_start;
@@ -126,39 +126,39 @@ module iteration_cnt #(
 
     always @(posedge i_clk) begin
         if(!rst) begin
-            conv_done <= 0;
+            conv_done       <= 0;
             state_conv_done <= 2'b00;
-            SA_done <= 0;
+            SA_done         <= 0;
         end
         else begin
             case(state_conv_done)
             2'b00: begin
                 if(r_im2col_done) begin
                     state_conv_done <= 2'b01;
-                    SA_done <= 0;
+                    SA_done         <= 0;
                 end
                 else begin
-                    conv_done <= 0;
+                    conv_done       <= 0;
                     state_conv_done <= 2'b00;
-                    SA_done <= 0;
+                    SA_done         <= 0;
                 end
             end
             2'b01: begin
                 if(r_SA_psum_fifo_empty) begin
                     state_conv_done <= 2'b00;
-                    conv_done <= 1; // set conv_done
-                    SA_done <= 1;
+                    conv_done       <= 1; // set conv_done
+                    SA_done         <= 1;
                 end
                 else begin
-                    conv_done <= 0;
+                    conv_done       <= 0;
                     state_conv_done <= 2'b01;
-                    SA_done <= 0;
+                    SA_done         <= 0;
                 end
             end
 
             default : begin
                 state_conv_done <= 2'b00;
-                conv_done <= 0; // reset conv_done
+                conv_done       <= 0; // reset conv_done
             end
 
             endcase  
@@ -169,55 +169,55 @@ module iteration_cnt #(
     reg r_layer_done;
     //always@(posedge i_clk) r_iter_done <= iter_done;
 	always@(posedge i_clk) begin 
-		r_i_start<=i_start;
-		r_CONV_FC<=CONV_FC;
-		r_im2col_done<=im2col_done;       	
-        r_SA_psum_fifo_empty<=SA_psum_fifo_empty;
-        r_op_fifo_empty<=op_fifo_empty;
-        r_FC_done<=FC_done;
-        r_EW_done<=EW_done;
-        r_RT_done<=RT_done;
+        r_i_start            <= i_start;
+        r_CONV_FC            <= CONV_FC;
+        r_im2col_done        <= im2col_done;       	
+        r_SA_psum_fifo_empty <= SA_psum_fifo_empty;
+        r_op_fifo_empty      <= op_fifo_empty;
+        r_FC_done            <= FC_done;
+        r_EW_done            <= EW_done;
+        r_RT_done            <= RT_done;
 
         `ifdef MEGA_POOL
-        r_pool_done <= pool_done;
+        r_pool_done          <= pool_done;
         `endif
         
-        r_concat_done <= i_concat_done;
-        r_resize_done <= resize_done;
-		r_BIAS_EN<=BIAS_EN;
-		r_RELU_EN<=RELU_EN;
-		r_QUANT_EN<=QUANT_EN;
-		r_POOL_EN<=POOL_EN;
-		r_ACC_EN<=ACC_EN;
-		r_FC_BIAS_EN<=FC_BIAS_EN;
-        r_Tail_done <= Tail_done;
+        r_concat_done        <= i_concat_done;
+        r_resize_done        <= resize_done;
+        r_BIAS_EN            <= BIAS_EN;
+        r_RELU_EN            <= RELU_EN;
+        r_QUANT_EN           <= QUANT_EN;
+        r_POOL_EN            <= POOL_EN;
+        r_ACC_EN             <= ACC_EN;
+        r_FC_BIAS_EN         <= FC_BIAS_EN;
+        r_Tail_done          <= Tail_done;
 	end
 
 
     integer i;
     always@(posedge i_clk) begin
         if(!rst) begin
-            c_ctr <= 0;
-            k_ctr <= 0;
-            state <= 0;
-    		iter_done <= 0;
-            c_done <= 0;
-            r_layer_done <= 0;
+            c_ctr          <= 0;
+            k_ctr          <= 0;
+            state          <= 0;
+            iter_done      <= 0;
+            c_done         <= 0;
+            r_layer_done   <= 0;
             r_valid_opcode <= 0;
         end
         else begin
             case(state)
             3'd0:begin
                 if(r_i_start) begin
-                    state <= 3'd1;
-                    r_c_iter<=c_iter-1;
-    		        r_k_iter<=k_iter;
+                    state          <= 3'd1;
+                    r_c_iter       <= c_iter-1;
+    		            r_k_iter       <= k_iter;
                     r_valid_opcode <= valid_opcode;
                 end
-    			c_ctr <= 0;
-                k_ctr <= 0;
-    			r_layer_done <= 1'b0;
-                done_reg <= 0; //reset done_reg
+    			      c_ctr        <= 0;
+                k_ctr        <= 0;
+    			      r_layer_done <= 1'b0;
+                done_reg     <= 0; //reset done_reg
             end
         
             3'd1: begin
@@ -225,19 +225,19 @@ module iteration_cnt #(
                 if(r_k_iter==0) state <= 0;
                 else begin
                     if(k_ctr==r_k_iter) begin
-                        k_ctr <= 0;
-                        c_ctr <= 0;
-                        state <= 3'd0;
-                        r_layer_done <= 1'b1;
-                        done_reg <= 0; //reset done_reg
+                        k_ctr          <= 0;
+                        c_ctr          <= 0;
+                        state          <= 3'd0;
+                        r_layer_done   <= 1'b1;
+                        done_reg       <= 0; //reset done_reg
                         r_valid_opcode <= 0; //reset valid_opcode
                     end 
                 
                     else begin
                         if (r_valid_opcode == done_reg) begin 
-                            state <= 3'd2;
+                            state     <= 3'd2;
                             iter_done <= 1;
-                            done_reg <= 0; //reset done_reg
+                            done_reg  <= 0; //reset done_reg
                         end 
                         else begin
                             for (i = 0 ; i < NUM_INSTRUCTIONS ; i = i+1) begin

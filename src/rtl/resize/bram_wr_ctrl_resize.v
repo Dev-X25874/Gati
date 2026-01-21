@@ -87,34 +87,50 @@ module bram_wr_ctrl_resize #(
               end
 
             WRITE: begin
-                o_busy      <= 1'b1;  // busy when a row is being written
-                o_wr_en     <= 1'b1;
-                o_wr_data   <= data_latch[((MOD2-byte_cnt)*DATA_WIDTH) -1 -: DATA_WIDTH];
-                o_wr_addr   <= o_wr_addr + 1;
-                byte_cnt    <= byte_cnt + 1;
                 if((row_counter == i_image_height-1) && (col_counter == i_image_width)) begin
                   o_done    <= 1'b1;
                   state     <= IDLE;
                   o_wr_en   <= 1'b0;
-                end 
-                // all the bytes from present input have been written       
-                else if(byte_cnt == MOD2) begin
-                  state             <= WAIT;
-                  byte_cnt          <= 0;
-                  o_wr_en           <= 1'b0;
-                  o_wr_addr         <= o_wr_addr;
-                  if(col_counter == i_image_width) begin
-                    col_counter     <= 0;
-                    row_counter     <= row_counter + 1;
-                  end 
-                  else col_counter  <= col_counter + 1;
+                end     
+                else begin
+                    o_busy    <= 1'b1;
+                    if(col_counter < i_image_width) begin
+                        row_counter <= row_counter;
+                        if(byte_cnt < MOD2) begin
+                            o_wr_en         <= 1'b1;
+                            o_wr_data       <= data_latch[((MOD2-byte_cnt)*DATA_WIDTH) -1 -: DATA_WIDTH];
+                            o_wr_addr       <= o_wr_addr + 1;
+                            byte_cnt        <= byte_cnt + 1;
+                            state           <= WRITE;
+                            col_counter     <= col_counter + 1;
+                        end
+                        else begin
+                            state           <= WAIT;
+                            byte_cnt        <= 0;
+                            col_counter     <= col_counter;
+                            o_wr_en         <= 1'b0;
+                            o_wr_addr       <= o_wr_addr;
+                        end
+                    end
+                    else begin
+                        row_counter    <= row_counter + 1;
+                        if(byte_cnt < MOD2) begin
+                            o_wr_en         <= 1'b1;
+                            o_wr_data       <= data_latch[((MOD2-byte_cnt)*DATA_WIDTH) -1 -: DATA_WIDTH];
+                            o_wr_addr       <= o_wr_addr + 1;
+                            byte_cnt        <= byte_cnt + 1;
+                            col_counter     <= 'd1;
+                            state           <= WRITE;
+                        end
+                        else begin
+                            state           <= WAIT;
+                            byte_cnt        <= 0;
+                            col_counter     <= 0;
+                            o_wr_en         <= 1'b0;
+                            o_wr_addr       <= o_wr_addr;
+                        end
+                    end
                 end
-
-                else if(col_counter == i_image_width) begin
-                  col_counter       <= 0;
-                  row_counter       <= row_counter + 1;
-                end
-                else col_counter    <= col_counter + 1;
             end
 
             default: state <= IDLE;

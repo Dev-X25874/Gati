@@ -35,10 +35,10 @@ module top_resize_block#(
     wire [DATA_WIDTH-1:0] bram_rd_data;
     wire                  w_done;
 
-    gen_bram #(
+    gen_bram_resize #(
         .W_DATA(DATA_WIDTH),
         .W_ADDR(W_ADDR)
-    ) gen_bram_inst (
+    ) gen_bram_resize_inst (
         .clk(i_clk),
         .wr_en(w_wr_en),
         .wr_addr(w_wr_addr),

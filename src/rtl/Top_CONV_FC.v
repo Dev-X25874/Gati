@@ -211,9 +211,10 @@ module Top_CONV_FC #(
 	  input stall_on,
     input img_read_done,
      // signals for resize block 
+    `ifdef RESIZE
     input [N_SA-1:0] resize_valid,
     input [N_SA*DATA_WIDTH-1:0] resize_op,
-   
+    `endif
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -1357,8 +1358,18 @@ always @(posedge i_clk) begin
     `endif
   `endif
 
-  assign zp_quant_in = (opcode == `OP_POOL) ? pool_o_data : ((maxpool_enable) ?maxpool_output : ((opcode == `OP_RESIZE) ? resize_op : relu_output));
-  assign zp_quant_valid_in = (opcode == `OP_POOL) ? pool_o_datavalid : ((maxpool_enable) ? maxpool_valid : ((opcode == `OP_RESIZE) ? resize_valid : relu_valid));
+  wire [(N_SA*DATA_WIDTH) -1:0] zp_quant_in_mux;
+  wire [N_SA -1:0] zp_quant_valid_in_mux; 
+ 
+ 
+  `ifdef RESIZE
+    assign zp_quant_in_mux       = (opcode == `OP_RESIZE) ? resize_op    : zp_quant_in;
+    assign zp_quant_valid_in_mux = (opcode == `OP_RESIZE) ? resize_valid : zp_quant_valid_in;
+  `else 
+    assign zp_quant_in_mux       = zp_quant_in;
+    assign zp_quant_valid_in_mux = zp_quant_valid_in;
+  `endif
+
   //zero padding circuit
   top_zero # (
     .DW(DATA_WIDTH),
@@ -1370,8 +1381,8 @@ always @(posedge i_clk) begin
     .clk(i_clk),
     .rst(rst),
     .i_size(i_img_dim2), // image dimension of quantized o/p (from op block inst.)
-    .data_in(zp_quant_in), //maxpool_output
-    .i_dv(zp_quant_valid_in), //maxpool_valid
+    .data_in(zp_quant_in_mux), //maxpool_output
+    .i_dv(zp_quant_valid_in_mux), //maxpool_valid
     .data_out(zp_data),
     .o_dv(zp_valid)
   );

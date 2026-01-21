@@ -1,5 +1,5 @@
 
-module gen_bram #(
+module gen_bram_resize #(
     parameter W_DATA = 8,
     parameter W_ADDR = 6
 )(

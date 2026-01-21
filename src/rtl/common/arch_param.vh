@@ -10,9 +10,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 16
-`define COL_SA 1
-`define ROW 16
+`define N_SA 4
+`define COL_SA 4
+`define ROW 9
 
 
 // Arch. Parameters for Im2Col
@@ -40,12 +40,11 @@
 `define N_MOD_STAGES 10
 `define STRIDE 4
 
-// For generating eltwise multiplication operation
-// `define ELTWISE_MULT_HW
-
 // For Generating Sigmoid/Tanh Eltwise operation
-//`define ELTWISE_SIGMOID_TANH
+`define ELTWISE_SIGMOID_TANH
 
+// For generating eltwise multiplication operation
+`define ELTWISE_MULT_HW
 
 // For Generating Leaky ReLU functionality in the relu activation block 
 // DO NOT GENERATE IN CASE OF 16 1 16
@@ -53,14 +52,14 @@
 
 // For Generating Maxpool as a mega block
 // DO NOT GENERATE IN CASE OF 16 1 16 
-//`define MEGA_POOL
+`define MEGA_POOL
 
 // For Generating Global Average Pool
 // DO NOT GENERATE IF USING MINI POOL
-`define GLOBAL_POOL
+// `define GLOBAL_POOL
 
 // For Generating FC 
-//`define FC   
+// `define FC   
 
 // For Generating Mini Pool in Tail block
 // `define POOL   
@@ -70,10 +69,13 @@
 
 // For Generating Reshape-Transpose operation
 
-`define TRANSPOSE 
+// `define TRANSPOSE 
 
 // To generate CONCAT hardware
-//`define CONCAT 
+`define CONCAT 
+
+// For Generating resize operator
+ `define RESIZE
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 

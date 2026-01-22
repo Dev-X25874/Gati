@@ -27,6 +27,16 @@ module top_resize_block#(
     output                                            o_wr_done
 );
 
+    /*  The upsampling operation is done in 2 steps:
+     1. Write the input data into BRAMs
+        * Each element is written in the BRAMs sequentially.
+        * The write controller is independent of the read controller.
+     2. Read data from BRAMs 
+        * Each element is read twice from the same address from BRAMs.
+        * Once a row is read, the address is reset to the address of the first
+          element, to read the row again, thus replicating the upsample/resize operation.
+    */
+
     wire                  w_wr_en;
     wire [W_ADDR-1:0]     w_wr_addr;
     wire [DATA_WIDTH-1:0] w_wr_data;

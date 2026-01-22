@@ -53,7 +53,7 @@ dram_fifo_resize#(
     .i_resize_done(o_done),
     .i_send_read(&w_send_read)
 );
-
+// Generates N_SA resize blocks for channel-wise upsampling. 
 genvar i;
 generate
   for (i = 0; i < N_SA; i = i + 1) begin : GEN_RESIZE

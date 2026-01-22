@@ -58,6 +58,11 @@ end
 reg signed [(DATA_WIDTH + SHIFT_BITS)-1:0] LeftOperand_scaled;
 reg signed [(DATA_WIDTH + SHIFT_BITS)-1:0] RightOperand_scaled;
 reg data_valid_scaled;
+    
+/* For ELTWISE_MULT type, each operand is being multiplied with scale
+   value, resulting in a result that is scaled twice of what is required. 
+   A shift operation has been done below to compensate this extra scaling. */ 
+
 always @(posedge clkin) begin
   if (data_valid_shifted) begin
     LeftOperand_scaled   <= $signed(LeftOperand_shifted) * $signed(LeftOperand_Scale[SHIFT_BITS-1:0]);
@@ -109,7 +114,11 @@ begin
         `ELTWISE_SUB  : r_EltWise_out <= LeftOperand_scaled - RightOperand_scaled;  // Subtraction
       `endif
       `ifdef ELTWISE_MULT_HW
-        `ELTWISE_MULT : r_EltWise_out <= ((LeftOperand_scaled * RightOperand_scaled) + (1<<(fp_cast_shift-1))) >>> fp_cast_shift;  // Multiplication (signed)
+        
+        /* the result is being shifted by fp_cast_bits to compensate the scale
+           Multiplication of each operand */
+
+        `ELTWISE_MULT : r_EltWise_out <= ((LeftOperand_scaled * RightOperand_scaled) + (1<<(fp_cast_shift-1))) >>> fp_cast_shift;
       `endif
       default: r_EltWise_out <= 0;  // Default case to handle unexpected values
     endcase

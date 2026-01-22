@@ -1270,16 +1270,16 @@ wire [BURST_LENGTH_WIDTH-1 : 0] mc_img_bl_conv;
 wire mc_img_last_conv;
 
 // mux for image request controller output
-assign img_read_done = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? img_read_done_pool_resize : img_read_done_conv; 
-assign mc_img_addr   = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_addr_pool_resize   : mc_img_addr_conv; 
-assign mc_img_rdreq  = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_rdreq_pool_resize  : mc_img_rdreq_conv; 
-assign mc_img_valid  = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_valid_pool_resize  : mc_img_valid_conv; 
-assign mc_img_bl     = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_bl_pool_resize     : mc_img_bl_conv; 
-assign mc_img_last   = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_last_pool_resize   : mc_img_last_conv; 
+assign img_read_done = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? img_read_done_pool_resize : img_read_done_conv; 
+assign mc_img_addr   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_addr_pool_resize   : mc_img_addr_conv; 
+assign mc_img_rdreq  = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_rdreq_pool_resize  : mc_img_rdreq_conv; 
+assign mc_img_valid  = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_valid_pool_resize  : mc_img_valid_conv; 
+assign mc_img_bl     = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_bl_pool_resize     : mc_img_bl_conv; 
+assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_last_pool_resize   : mc_img_last_conv; 
 
 
 
-  `ifdef MEGA_POOL // This will come in resize also
+  `ifdef MEGA_POOL
   `ifdef RESIZE
   wire [(W_POOL_IMG_STA_ADD - 1) : 0] pool_resize_img_sta_add;
   wire [(W_POOL_IH - 1 ): 0] pool_resize_ih;
@@ -1874,13 +1874,13 @@ assign mc_img_last   = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_la
       .i_clk(i_clk),
       .i_rst(i_rst),
       .i_data(image_data_out),
-      .i_read_enable(img_fifo_rden), // mux here for resize
+      .i_read_enable(img_fifo_rden),
       .i_write_enable({AXI_DATA_BYTES{image_data_out_dv}}),
-      .o_data(fifo_imgo_data), // demux here for resize 
+      .o_data(fifo_imgo_data),
       .o_fifo_empty(image_fifo_empty),
       .o_fifo_full(),
       .o_fifo_dv(img_fifo_dv),
-      .o_occupants(img_fifo_occupants) // use this for resize
+      .o_occupants(img_fifo_occupants)
   );
   
   //fifo weight 
@@ -2859,9 +2859,11 @@ assign mc_img_last   = (opcode == `OP_POOL) | (opcode == `OP_RESIZE) ? mc_img_la
     .o_busy(),
     .o_fifo_rden(resize_fifo_rden),
     .o_done(resize_done),
+    // w_resize_kernel_start provides a pulse for every kernel iteration
     .i_resize_start(w_resize_kernel_start | start_RESIZE)
   );
   `endif
+  
   // DRAM write control for OP_FIFO  
   Mem_write_ctrl#(
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),

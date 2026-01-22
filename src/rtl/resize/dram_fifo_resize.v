@@ -1,4 +1,3 @@
-
 module dram_fifo_resize #(
     parameter AXI_DATA_BYTES = 32,
     parameter W_ADDR = 6,
@@ -18,6 +17,12 @@ module dram_fifo_resize #(
     output reg                        o_fire,
     input                             i_send_read
 );
+    /*  This module handles the read enable signals sent to the dram_fifos.
+        For the initial start_RESIZE pulse (from start_block), the
+        controller checks for rd_threshold number of occupants, i.e, 
+        (input_width * AXI_DATA_BYTES)/ N_SA. For next iterations, it simply
+        checks if the bram_wr_ctrl_resize module is busy. 
+    */ 
 
     wire w_ready = &(~i_busy);
     wire [W_ADDR:0] rd_threshold;

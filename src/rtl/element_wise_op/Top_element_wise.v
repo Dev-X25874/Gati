@@ -40,8 +40,7 @@ module Top_element_wise#(
     output [((W_ADDR+1)*FIFO_NO)-1:0]RightOperand_fifo_occupants,
     output [ELTWISE_QUANT_SHIFT-1:0]EltWise_fp_cast_shift,
     output EW_done,
-    input op_fifo_empty,
-    input w_one_operand
+    input op_fifo_empty
 );
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_in_reordered,RightOperand_data_in_reordered;
 wire [(DATA_WIDTH*FIFO_NO*N)-1:0] LeftOperand_data_out,RightOperand_data_out;
@@ -54,7 +53,7 @@ wire data_valid;
 reg [ELTWISE_TYPE_WIDTH-1:0] r_EltWise_type;
 
 localparam ELTWISE_FP_BIT_SHIFT = 10; //Todo: Should be replaced with parameter depending on the precision required for floating point
-// assign EltWise_fp_cast_shift = ELTWISE_FP_BIT_SHIFT;
+
 `ifdef ELTWISE_SIGMOID_TANH
 reg [ELTWISE_QUANT_SHIFT-1:0] eltwise_fp_bit_shift_;
 

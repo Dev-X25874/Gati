@@ -14,6 +14,7 @@ Gati
     mega_pool
     transpose
     Sigmoid
+    Resize
     eltwise_op
     DWP
     dispatcher
@@ -167,6 +168,12 @@ The current supported element wise operations include:
 4. Sigmoid/Tanh (Refer to :ref:`Sigmoid` for more info.)
 
 For more info on Element wise operation megablock, refer :ref:`eltwise_op`
+
+
+Resize Operator
+**************
+
+Refer :ref:`Resize`.
 
 Quantization
 ============

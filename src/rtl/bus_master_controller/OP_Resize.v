@@ -1,10 +1,11 @@
+`include "../common/instructions.vh"
+
 module OP_Resize#(
     parameter OP_CODE_WIDTH = 4, 
     parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
     parameter INPUT_WIDTH = 8,
     parameter OUTPUT_WIDTH = 256,
     parameter ADDRESS_WIDTH = 32,
-
     parameter RESIZE_IW_WIDTH = 10,
     parameter RESIZE_IH_WIDTH = 10,
     parameter RESIZE_IC_WIDTH = 10,
@@ -26,7 +27,6 @@ module OP_Resize#(
     output reg [RESIZE_IMG_END_ADD_WIDTH - 1 : 0] resize_img_end_add
 );
 
-`include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

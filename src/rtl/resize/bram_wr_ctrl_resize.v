@@ -23,6 +23,11 @@ module bram_wr_ctrl_resize #(
     output reg                        o_send_read,
     output                            o_start_rd
 );
+    /* The write controller sends o_busy signal to dram_fifo_resize to halt
+       rden signals to the fifo.
+       This is asserted while the FSM is in the write state, i.e, 
+       the input byte being written into BRAMs.
+    */ 
 
 
     localparam IDLE       = 2'd0;
@@ -37,7 +42,7 @@ module bram_wr_ctrl_resize #(
     reg [RESIZE_IW_WIDTH-1:0]   col_counter;
     reg [RESIZE_IH_WIDTH-1:0]   row_counter;
     
-    // start pulse for read controller when 1 row has been written into BRAM.
+    // start pulse for read controller when at least one row has been written into BRAM.
      assign o_start_rd = (row_counter == 1);
 
     always @(posedge clk) begin
@@ -69,6 +74,8 @@ module bram_wr_ctrl_resize #(
 
                 end
             end
+            /* The o_send_read is asserted for one cycle to ensure rden to the
+               dram_fifos is sent for only one cycle */ 
 
             WAIT: begin
                 o_busy      <= 1'b0;

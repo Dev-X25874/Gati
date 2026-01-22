@@ -26,6 +26,7 @@ module bram_rd_ctrl_resize #(
   reg [1:0] state;
   reg r_element_rep = 0;
   reg r_row_rep = 0;
+  // counters to track the number of elements being read
   reg [RESIZE_IW_WIDTH-1:0] col_counter = 0;
   reg [RESIZE_IH_WIDTH-1:0] row_counter = 0;
 
@@ -56,7 +57,7 @@ module bram_rd_ctrl_resize #(
       
       READ: begin
         o_rd_en <= 1'b1;
-        if(!r_element_rep) begin
+        if(!r_element_rep) begin // to read each element twice
           r_element_rep <= 1'b1;
         end 
         else begin

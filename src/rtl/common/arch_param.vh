@@ -1,4 +1,5 @@
  // arch_param.vh
+`include "gen_hardware.vh" 
 
 /*
     These are Systolic array architecture related parameter by changing these the corresponding sa arch can be generated currently supported arch are 
@@ -10,9 +11,9 @@
     If any value other then these three arch is passed to parameters the rtl would not synthesize.
 */
 
-`define N_SA 16
-`define COL_SA 1
-`define ROW 16
+`define N_SA 4
+`define COL_SA 4
+`define ROW 9
 
 
 // Arch. Parameters for Im2Col
@@ -36,9 +37,24 @@
     STRIDE is the parameter that define the max stride for which the im2col engine will be generated thus if it 4 then it can only handle the stride 4 in input beyond which the system will break thus this can be changes based on the max input stride and should not be kept unnecessary  large thus to reduce the resource usages. 
 */
 
-`define IM2COL_BOUND_GEN_WIDTH 16
-`define N_MOD_STAGES 10
+// `define IM2COL_BOUND_GEN_WIDTH 16
+// `define N_MOD_STAGES 10
 `define STRIDE 4
+
+/*
+Hardware Generation Options:
+
+1. ELTWISE_SIGMOID_TANH - For Generating Sigmoid/Tanh Eltwise operation
+2. GEN_LEAKY_RELU       - For Generating Leaky ReLU functionality in the relu activation block. DO NOT GENERATE IN CASE OF 16 1 16.
+3. MEGA_POOL            - For Generating Maxpool as a mega block. DO NOT GENERATE IN CASE OF 16 1 16. 
+4. GLOBAL_POOL          - For Generating Global Average Pool. DO NOT GENERATE IF USING MINI POOL.
+5. FC                   - For Generating FC 
+6. POOL                 - For Generating MINI POOL in Tail block
+7. BIAS_FC              - For Generating BIAS_FC addition 
+8. TRANSPOSE            - For Generating Reshape-Transpose hardware
+9. CONCAT               - For Generating CONCAT hardware
+
+*/
 
 // For Generating Sigmoid/Tanh Eltwise operation
 //`define ELTWISE_SIGMOID_TANH
@@ -53,7 +69,7 @@
 
 // For Generating Global Average Pool
 // DO NOT GENERATE IF USING MINI POOL
-`define GLOBAL_POOL
+// `define GLOBAL_POOL
 
 // For Generating FC 
 //`define FC   
@@ -66,7 +82,7 @@
 
 // For Generating Reshape-Transpose operation
 
-`define TRANSPOSE 
+// `define TRANSPOSE 
 
 // To generate CONCAT hardware
 //`define CONCAT 

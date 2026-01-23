@@ -12,7 +12,7 @@ Gati
     DRAM-controller
     adder_tree
     mega_pool
-    transpose
+    reshape_transpose
     Sigmoid
     Resize
     eltwise_op
@@ -276,7 +276,7 @@ occured is 0.5 to 1.0% of the original which should be acceptable.
 Transpose
 *********
 
-See: :ref:`transpose`
+See: :ref:`reshape_transpose`
 
 DRAM
 ****

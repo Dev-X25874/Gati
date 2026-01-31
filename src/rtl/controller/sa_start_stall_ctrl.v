@@ -35,7 +35,7 @@ module sa_start_stall_ctrl #(
     input [      CONV_KW_WIDTH-1:0] kernel_width,
     input [      CONV_KH_WIDTH-1:0] kernel_height,
 
-    output reg istolic_stall,
+    output reg sa_stall,
     output reg systolic_array_trigger
 );
 
@@ -218,10 +218,10 @@ module sa_start_stall_ctrl #(
 
   always @(posedge i_clk) begin
     if (!i_rst) begin
-      istolic_stall <= 0;
+      sa_stall <= 0;
     end else begin
-      if (istolic_array_stall) istolic_stall <= 1;
-      else istolic_stall <= 0;
+      if (istolic_array_stall) sa_stall <= 1;
+      else sa_stall <= 0;
     end
 
   end

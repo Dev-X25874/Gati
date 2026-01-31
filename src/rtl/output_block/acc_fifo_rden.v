@@ -20,7 +20,7 @@ module acc_fifo_rden #(
     input op_full,
     input data_valid_tree,
     input clk,
-    input istolic_stall,
+    input sa_stall,
     input enable,
     output [NO_PORT-1:0] select
 
@@ -141,8 +141,8 @@ generate
                   rden_toggle <= rden_toggle + 1;
                 end
               end
-              stall_f1 <= istolic_stall;
-            end else if(istolic_stall && (&empty_sa) && stall_f1) begin
+              stall_f1 <= sa_stall;
+            end else if(sa_stall && (&empty_sa) && stall_f1) begin
               valid_rd_en <= 0;
               rden_toggle <= rden_toggle + 1;
               stall_f1 <= 0;
@@ -170,9 +170,9 @@ generate
               mux_toggle <= mux_toggle + 1;
             end
           end
-          stall_f2 <= istolic_stall;
+          stall_f2 <= sa_stall;
         end
-        else if(istolic_stall && (&empty_sa_delayed_5) && stall_f2) begin
+        else if(sa_stall && (&empty_sa_delayed_5) && stall_f2) begin
           mux_toggle <= mux_toggle + 1;
           stall_f3 <= 1'b1;
           stall_f2 <= 0;

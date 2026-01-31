@@ -1,6 +1,7 @@
 `include "../common/instructions.vh"
 `include "../common/arch_param.vh"
-module Top_element_wise#(
+
+module top_element_wise#(
     parameter DATA_WIDTH            = 8,
     parameter ELTWISE_TYPE_WIDTH    = 4,
     parameter ELTWISE_SCALE_WIDTH   = 32,

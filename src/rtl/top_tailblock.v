@@ -168,16 +168,6 @@ module top_tailblock #(
 
   localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (DRAM_BW*DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
 
-//   // Generation of local 'rst' signal
-//   wire rst;
-//   reg [1:0] r_rst = 0;
-//   always @(posedge i_clk) begin
-//     r_rst [0] <= i_rst;
-//     r_rst [1] <= r_rst [0];
-//   end
-//   assign rst = r_rst[1];
- 
-
   wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; 
   wire [N_SA-1:0] vector_valid;
 

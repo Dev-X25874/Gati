@@ -12,8 +12,6 @@ module Top_CONV_FC #(
     parameter ROW = 9,
     parameter DRAM_BW = 32,
     parameter W_PSUM = 20,
-    parameter MOD1 = 2,
-    parameter MOD2 = DRAM_BW/N_SA,
     parameter DATA_WIDTH_OB = 32, //data width for vector add and bias blocks
     parameter DATA_WIDTH_ACC = 32, //data width of intermediate accumulants(SA)
     parameter W_CONV_IMAGE_DIM = 10,
@@ -32,36 +30,20 @@ module Top_CONV_FC #(
     parameter NSA_DSP = 4,
     parameter N_FC_MUX = N_SA,
     parameter NO_PORT_FC = COL_FC/N_SA,
-    parameter RELU_CLIP_WIDTH = 8,
-    parameter ACT_TYPE_WIDTH = 4,
-    parameter LR_NEG_ALPHA_WIDTH = 10,
-    parameter LR_POS_ALPHA_WIDTH = 10,
-    
-    `ifdef GLOBAL_POOL 
-    parameter GBL_POOL_SCALE_WIDTH = 4,
-    parameter GBL_POOL_SHIFT_WIDTH = 4,
-    `endif
 
     parameter POOLTYPE_WIDTH = 3,      
 
     parameter NSA_LUT = 0,
     parameter BIAS_FIFO_FC=32, // Number of FC_bias fifos
     parameter ACC_TOGGLE = 1,
-    parameter NO_PORT_VA=2,
-    parameter NO_PORT_BAC=2,
-    parameter NO_PORT_BAFC=8,
     parameter POP_THRESHOLD=(DRAM_BW/N_SA) - 2,
     parameter I_ACC_SIZE_WIDTH = 16, 
     parameter I_OP_SIZE_WIDTH = 16,
-    parameter N_DMUX_PORTS = DRAM_BW/(N_SA*(ACC_DW/8)),
     parameter AXI_DATA_WIDTH = 256,
 
     `ifdef MEGA_POOL 
     parameter POOL_IW_WIDTH = 10,
     parameter POOL_IH_WIDTH = 10,
-    parameter POOL_IC_WIDTH = 10,
-    parameter POOL_IMG_STA_ADD_WIDTH = 10,
-    parameter POOL_IMG_END_ADD_WIDTH = 10,
     parameter POOL_SCALE_WIDTH = 8,
     parameter POOL_SHIFT_WIDTH = 4,
     parameter POOLWIDTH_WIDTH = 4,
@@ -73,17 +55,9 @@ module Top_CONV_FC #(
     parameter POOLPAD_R_WIDTH = 4,
     parameter POOLPAD_T_WIDTH = 4,
     parameter POOLPAD_B_WIDTH = 4,
-    `elsif POOL
-    parameter POOLWIDTH_WIDTH = 4,
-    parameter POOLHEIGHT_WIDTH = 4,
-    parameter POOLSTRIDE_WIDTH = 4,
-    parameter POOLPAD_WIDTH = 4,
-    parameter POOLCEIL_WIDTH = 4,
-    parameter POOLMODCOUNT_WIDTH = 4,
-    parameter POOLPADSIDES_WIDTH = 4,
-    parameter POOL_SCALE_WIDTH = 4,
-    parameter POOL_SHIFT_WIDTH = 4,
     `endif 
+
+
     //FC realated parameters
     parameter FC_IMAGE_ROWS_WIDTH = 16,
     parameter ACC_DW = 32,
@@ -95,7 +69,6 @@ module Top_CONV_FC #(
     parameter W_FC_IMAG_DIM = 20,
     // im2col_v1 parameter
 
-    parameter KERNEL_SIZE = 4,  // im2col kernal size,  NOT USED
     parameter STRIDE      = 3,  // im2col MAX STRIDE parameter  
     parameter CONV_STRIDE_WIDTH = 2,
     parameter CONV_KW_WIDTH = 4,
@@ -113,6 +86,7 @@ module Top_CONV_FC #(
     parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
     parameter N_MOD_STAGES = 9, // Number of stages in mod operator in Im2Col stride handling block
     
+    // MANTRA ELTWISE NOT USED
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
@@ -120,17 +94,17 @@ module Top_CONV_FC #(
     parameter ELTWISE_IC_WIDTH = 10, // Width of the output width;
     parameter ELTWISE_SCALE_WIDTH = 32, // Width of the scale value
     parameter ELTWISE_ZEROPOINT_WIDTH = 8, // Width of the zero point value
+
+
     parameter CONV_TYPE_WIDTH = 2, //CONV type width
 
     parameter ACC_DATA_REORDER = ((COL_FC/(ACC_DW/8)) > COL_SA)? 1:0 //parameter to specify FC o/p data reordering is required or not
 ) (
 
-   
     input i_clk,
     input s_clk,
     input i_rst,
     input [DRAM_BW-1:0] image_fifo_empty,
-    input CONV_FC,
     input [OPCODE_WIDTH-1:0] opcode,
     input op_full,
     input [(DRAM_BW*DATA_WIDTH) -1:0] fifo_o, //Data from DRAM Image FIFO to im2col buffers and then to SA engines
@@ -167,23 +141,10 @@ module Top_CONV_FC #(
     output FC_done, //accumulator valid signal of FC computing engine
     output FC_layerdone,
     `endif //FC
-
-    //vector addition signals
-    input [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values,
-    input [ACC_FIFO-1:0] vector_add_wren,
     
-    input [W_CONV_OP_IMAGE_DIM-1:0] maxpool_threshold, //CONV output (OW) width
     input layer_done,
     input iteration_Done,
-    input channel_done,
-    input [N_SA-1:0] shift_reg_sel, // MANTRA NOT USED
     input systolic_array_trigger,
-    input [(RELU_CLIP_WIDTH)-1:0] relu_clip_value,
-    input [ACT_TYPE_WIDTH-1:0] relu_act_type,
-    input [LR_NEG_ALPHA_WIDTH-1:0] lr_neg_alpha,
-    input [LR_POS_ALPHA_WIDTH-1:0] lr_pos_alpha,
-    input bias_enable,
-    input quant_enable,
     input [CONV_PadLeft_WIDTH-1:0] conv_pad_left,
     input [CONV_PadRight_WIDTH-1:0] conv_pad_right,
     input [CONV_PadTop_WIDTH-1:0] conv_pad_top,
@@ -206,36 +167,11 @@ module Top_CONV_FC #(
 	  input stall_on,
     input img_read_done,
      
-    //tail block signals
-    input relu_enable,
-    input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
-    input [BIAS_FIFO -1:0] bias_wren,
-    input [(QUANT_SHIFT) -1:0] shift_value,
-    input [(QUANT_SCALE)-1:0] quant_scale,
     input vector_add_enable,
-    input [I_ACC_SIZE_WIDTH-1:0] i_img_dim_Acc,
     input [I_OP_SIZE_WIDTH-1:0] i_img_dim_Op,
     input [CONV_STRIDE_WIDTH-1:0] stride, // im2col input stride 
     input [CONV_KW_WIDTH-1:0] kernel_width,
     input [CONV_KH_WIDTH-1:0] kernel_height,
-    input [OutputBlock_OW_WIDTH-1 : 0] op_width,
-    input [OutputBlock_OH_WIDTH-1 : 0] op_height, // MANTRA used in vector addition
-   
-    //EltWise operation signals
-    input op_fifo_empty,
-    input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] LeftOperand_data_in,
-    input [(ELTWISE_FIFO*DATA_WIDTH*N_SA)-1:0] RightOperand_data_in,
-    input [(ELTWISE_TYPE_WIDTH-1):0] EltWise_type,
-    input [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale,
-    input [ELTWISE_SCALE_WIDTH-1:0] RightOperand_Scale,
-    input [ELTWISE_ZEROPOINT_WIDTH-1:0] LeftOperand_zero_point,
-    input [ELTWISE_ZEROPOINT_WIDTH-1:0] RightOperand_zero_point,
-    input [ELTWISE_IW_WIDTH-1:0] EltWise_IW,
-    input [ELTWISE_IH_WIDTH-1:0] EltWise_IH,
-    input [ELTWISE_IC_WIDTH-1:0] EltWise_IC,
-    input [ELTWISE_FIFO-1:0] LeftOperand_wr_en,
-    input [ELTWISE_FIFO-1:0] RightOperand_wr_en,
-    input EltWise_op_en,
     
     `ifdef MEGA_POOL
     input start_POOL,
@@ -243,46 +179,20 @@ module Top_CONV_FC #(
     input pool_start,
     input [POOL_IW_WIDTH - 1 : 0] PoolIW, 
     input [POOL_IH_WIDTH - 1 : 0] PoolIH, 
-    input [POOL_IC_WIDTH - 1 : 0] PoolIC, // MANTRA NOT USED
-    input [POOL_IMG_STA_ADD_WIDTH - 1 : 0] PoolImgStaAdd, // MANTRA NOT USED
-    input [POOL_IMG_END_ADD_WIDTH - 1 : 0] PoolImgEndAdd, // MANTRA NOT USED
     input [POOLTYPE_WIDTH - 1 : 0] PoolType,
-    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale, // MANTRA NOT USED IN MEGA_POOL, MIGHT BE USED IN GBL AVG POOL 
-    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift, // MANTRA NOT USED IN MPOOL, MIGHT BE USED IN GBL AVG POOL 
+    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale, 
+    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift, 
     input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
     input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
     input [POOLSTRIDE_W_WIDTH - 1 : 0] PoolStrideW,
     input [POOLSTRIDE_H_WIDTH - 1 : 0] PoolStrideH,
-    input [POOLCEIL_WIDTH - 1 : 0] PoolCeil, // MANTRA NOT USED IN MEGA POOL
     input [POOLPAD_L_WIDTH - 1 : 0] PoolPadL,
     input [POOLPAD_R_WIDTH - 1 : 0] PoolPadR,
     input [POOLPAD_T_WIDTH - 1 : 0] PoolPadT,
     input [POOLPAD_B_WIDTH - 1 : 0] PoolPadB,
-    `elsif POOL
-    input maxpool_enable,
-    input [POOLTYPE_WIDTH - 1 : 0] PoolType,
-    input [POOLWIDTH_WIDTH - 1 : 0] PoolWidth,
-    input [POOLHEIGHT_WIDTH - 1 : 0] PoolHeight,
-    input [POOLSTRIDE_WIDTH - 1 : 0] PoolStride,
-    input [POOLPAD_WIDTH - 1 : 0] PoolPadding,
-    input [POOLCEIL_WIDTH - 1 : 0] PoolCeil,
-    input [POOLMODCOUNT_WIDTH - 1 : 0] PoolModCount,
-    input [POOLPADSIDES_WIDTH - 1 : 0] PoolPadSides,
-    input [POOL_SCALE_WIDTH - 1 : 0] PoolScale,
-    input [POOL_SHIFT_WIDTH - 1 : 0] PoolShift,
+    output [N_SA-1:0] pool_o_datavalid,
+    output [(N_SA*DATA_WIDTH) -1:0] pool_o_data,
     `endif
-    
-    `ifdef GLOBAL_POOL
-    input maxpool_enable, 
-    input [GBL_POOL_SCALE_WIDTH-1:0] gbl_pool_scale,
-    input [GBL_POOL_SHIFT_WIDTH-1:0] gbl_pool_shift,
-    `endif
-    // accumulant output write signals
-    output [ACC_OP_DATAWIDTH -1:0] acc_op_write_data,
-    output [ACC_OP_FIFO-1:0] acc_op_wren,
-    // quantized output write signals
-    output [(DATA_WIDTH*N_SA*SHFT_REG_X*(QUANT_OP_FIFO)) -1:0] quant_op_write_data,
-    output [QUANT_OP_FIFO-1:0] quant_op_wren,
     
     //operator status signals
     output  [W_CONV_IMAGE_DIM-1:0]      row,    
@@ -297,18 +207,12 @@ module Top_CONV_FC #(
     output reg pool_done,
     `endif
 
-    output Tail_done,
 	  output p_full_output,
-  	output EW_done,
-    //FIFO status signals for memory request controllers
-    // output [(($clog2(ACC_FIFO_DEPTH)+1)*ACC_FIFO)-1:0] acc_fifo_occupants,
-    output [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO)-1:0] bias_fifo_occupants,
-    output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] LeftOperand_fifo_occupants,
-    output [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants,
+
     output o_image_fifo_almost_empty_flag,
     output o_image_fifo_almost_full_flag,
     input sa_stall,
-    input  [CONV_StartRowSkip_WIDTH-1:0]   start_row_skip,
+    input [CONV_StartRowSkip_WIDTH-1:0] start_row_skip,
     
     // MANTRA NEW OPs for idk
     output [N_SA-1:0] valid_SA,
@@ -323,23 +227,7 @@ module Top_CONV_FC #(
     output [(N_SA)-1:0] almost_empty_sa,
 
     input [I_ACC_SIZE_WIDTH-1:0] op_img_size,
-
-
-
-    `ifdef MEGA_POOL
-    output [N_SA-1:0] pool_o_datavalid,
-    output [(N_SA*DATA_WIDTH) -1:0] pool_o_data,
-    `endif
-
-
-
-    `ifdef CONCAT
-    input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip,
-    input  [AXI_DATA_WIDTH-1:0] o_concat_data,
-    input                       o_concat_dv
-    `else
     input  [CONV_EndRowSkip_WIDTH-1:0]   end_row_skip 
-    `endif
 
 );
 
@@ -354,9 +242,6 @@ module Top_CONV_FC #(
     r_rst [1] <= r_rst [0];
   end
   assign rst = r_rst[1];
-
-  wire [N_SA -1:0] relu_valid;
-  wire [(N_SA*DATA_WIDTH) -1:0] relu_output;
 
   wire read_buf_data;
   wire [(N_SA*DATA_WIDTH) -1:0] buff_out;
@@ -540,24 +425,24 @@ interconnect_sa_pool #(
 );
 
 // im2col version 1 instance 
-  top_im2col_v1 # (.UPPER_BOUND(W_CONV_IMAGE_DIM),
-                .LOWER_BOUND(1),
-                .N_MOD_STAGES(N_MOD_STAGES),
-                .DATA_WIDTH(IM2COL_BOUND_GEN_WIDTH),
-                .CONV_KH_WIDTH(CONV_KH_WIDTH),
-                .CONV_KW_WIDTH(CONV_KW_WIDTH),
-                .STRIDE(STRIDE),
-                .STRIDE_COL(CONV_STRIDE_WIDTH),
-                .STRIDE_ROW(CONV_STRIDE_WIDTH),
-                .ROW(ROW),
-                .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
-                .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
-                .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
-                .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
-                .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
-                .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH)
-    )
-    im2col_v1 (
+  top_im2col_v1 # (
+      .UPPER_BOUND(W_CONV_IMAGE_DIM),
+      .LOWER_BOUND(1),
+      .N_MOD_STAGES(N_MOD_STAGES),
+      .DATA_WIDTH(IM2COL_BOUND_GEN_WIDTH),
+      .CONV_KH_WIDTH(CONV_KH_WIDTH),
+      .CONV_KW_WIDTH(CONV_KW_WIDTH),
+      .STRIDE(STRIDE),
+      .STRIDE_COL(CONV_STRIDE_WIDTH),
+      .STRIDE_ROW(CONV_STRIDE_WIDTH),
+      .ROW(ROW),
+      .CONV_PadLeft_WIDTH(CONV_PadLeft_WIDTH),
+      .CONV_PadRight_WIDTH(CONV_PadRight_WIDTH),
+      .CONV_PadTop_WIDTH(CONV_PadTop_WIDTH),
+      .CONV_PadBottom_WIDTH(CONV_PadBottom_WIDTH),
+      .CONV_StartRowSkip_WIDTH(CONV_StartRowSkip_WIDTH),
+      .CONV_EndRowSkip_WIDTH(CONV_EndRowSkip_WIDTH)
+  ) im2col_v1 (
       .clk_in(i_clk),
       .rstn(rst),
       .valid_mat_size(valid_img_size_im2col),
@@ -588,7 +473,7 @@ interconnect_sa_pool #(
       .real_col(real_col),
       .real_row(real_row),
       .pseudo_im2col_done(pseudo_im2col_done) // output: pseudo im2col done signal
-    ); 
+  ); 
 
 
   // Parameters will change for top_SA (for CONV opeartion)
@@ -597,7 +482,6 @@ interconnect_sa_pool #(
   wire [(COL_SA*W_PSUM)*N_SA-1:0] o_psum_ff_array;
   wire [N_SA-1:0] valid_psum;
 
-  wire [(N_SA*COL_SA)-1:0] psum_fifo_almost_full, psum_fifo_almost_empty;
 
   wire [(N_SA*ROW) -1:0] sa_image_fifo_almost_empty; 
   // systolic array image fifo almost empty
@@ -609,22 +493,21 @@ interconnect_sa_pool #(
 
   assign o_image_fifo_almost_empty_flag = |(sa_image_fifo_almost_empty);
   assign o_image_fifo_almost_full_flag = |(sa_image_fifo_almost_full);
-
   
-wire [(N_SA * ROW)-1 : 0] read_rden_ctrl_image_ff_array_delayed;
-wire [(N_SA * ROW)-1 : 0] pool_img_fifo_rd_en;
-wire [(N_SA * ROW)-1 : 0] sa_img_fifo_rd_en;
+  wire [(N_SA * ROW)-1 : 0] read_rden_ctrl_image_ff_array_delayed;
+  wire [(N_SA * ROW)-1 : 0] pool_img_fifo_rd_en;
+  wire [(N_SA * ROW)-1 : 0] sa_img_fifo_rd_en;
 
-assign read_rden_ctrl_image_ff_array_delayed = (opcode == `OP_POOL) ? pool_img_fifo_rd_en : sa_img_fifo_rd_en ;
+  assign read_rden_ctrl_image_ff_array_delayed = (opcode == `OP_POOL) ? pool_img_fifo_rd_en : sa_img_fifo_rd_en ;
 
-wire [(N_SA * ROW)-1 : 0] empty_image_ff_array_rden_ctrl;
-wire [(N_SA * ROW)-1 : 0]  almost_empty_image_ff_array_rden_ctrl;
-wire [(N_SA * ROW)-1 : 0] dv_image_ff_array_append_dv;
+  wire [(N_SA * ROW)-1 : 0] empty_image_ff_array_rden_ctrl;
+  wire [(N_SA * ROW)-1 : 0]  almost_empty_image_ff_array_rden_ctrl;
+  wire [(N_SA * ROW)-1 : 0] dv_image_ff_array_append_dv;
 
-reg [DATA_WIDTH * N_SA * ROW-1:0] r_image_fifo_array_data;
-wire [DATA_WIDTH * N_SA * ROW-1:0] data_image_ff_array_append_dv;
+  reg [DATA_WIDTH * N_SA * ROW-1:0] r_image_fifo_array_data;
+  wire [DATA_WIDTH * N_SA * ROW-1:0] data_image_ff_array_append_dv;
 
-localparam IMG_FF_ADDR = $clog2(IM2COL_FIFO_DEPTH);
+  localparam IMG_FF_ADDR = $clog2(IM2COL_FIFO_DEPTH);
 
 genvar k;
 generate
@@ -995,7 +878,6 @@ always @(posedge i_clk) begin
 
   assign op_data_mux_FC = 0;
   assign valid_out_FC = 0;
-  `endif //FC
-  
+  `endif //FC  
 
 endmodule

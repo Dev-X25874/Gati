@@ -57,14 +57,14 @@ Hardware Generation Options:
 */
 
 // For Generating Sigmoid/Tanh Eltwise operation
-//`define ELTWISE_SIGMOID_TANH
+// `define ELTWISE_SIGMOID_TANH
 
 // For generating eltwise multiplication operation
-//`define ELTWISE_MULT_HW
+// `define ELTWISE_MULT_HW
 
 // For Generating Leaky ReLU functionality in the relu activation block 
 // DO NOT GENERATE IN CASE OF 16 1 16
-//`define GEN_LEAKY_RELU
+// `define GEN_LEAKY_RELU
 
 // For Generating Maxpool as a mega block
 // DO NOT GENERATE IN CASE OF 16 1 16 
@@ -81,26 +81,26 @@ Hardware Generation Options:
 // `define POOL   
 
 // For Generating for BIAS_FC add 
-//`define BIAS_FC  
+// `define BIAS_FC  
 
 // For Generating Reshape-Transpose operation
-
 // `define TRANSPOSE 
 
-// To generate CONCAT hardware
-//`define CONCAT 
+// For generating Concat hardware
+// `define CONCAT 
 
-// For Generating resize operator
-//`define RESIZE
+// For Generating Resize operator
+// `define RESIZE
 
 // Macros for Debugging
 /* These should be remained commented until the GATI need's to be synthesized in the debug mode to reduce the resources used and thus reduce the critical timings 
 */
 
 // To monitor Layer wise compute cycles
-
-//`define MONITOR_LAYER_CYCLES
+// `define MONITOR_LAYER_CYCLES
 
 // To monitor stall cycles of SA (psum_stall, sa_stall, im2col_stall)\
+// `define MONITOR_STALL_CYLES
 
-//`define MONITOR_STALL_CYLES
+// To monitor count of image_rden for im2col
+// `define IMAGE_RDEN_COUNTER_DEBUG

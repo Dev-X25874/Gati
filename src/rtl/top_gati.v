@@ -2418,8 +2418,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .ROW(ROW),
       .DRAM_BW(AXI_DATA_BYTES),
       .W_PSUM(W_PSUM),
-      .MOD1(MOD1),
-      .MOD2(MOD2),
       .DATA_WIDTH_OB(DATA_WIDTH_OB),
       .DATA_WIDTH_ACC(DATA_WIDTH_ACC),
       .W_CONV_IMAGE_DIM(CONV_IW_WIDTH),
@@ -2437,34 +2435,17 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .NSA_DSP(NSA_DSP),
       .N_FC_MUX(N_FC_MUX),
       .NO_PORT_FC(NO_PORT_FC),
-      .RELU_CLIP_WIDTH(RELU_CLIP_WIDTH),
-      .ACT_TYPE_WIDTH(ACT_TYPE_WIDTH),
-      .LR_NEG_ALPHA_WIDTH(LR_NEG_ALPHA_WIDTH),
-      .LR_POS_ALPHA_WIDTH(LR_POS_ALPHA_WIDTH),
-
-      `ifdef GLOBAL_POOL 
-      .POOLTYPE_WIDTH(3),
-      .GBL_POOL_SCALE_WIDTH(W_GBL_POOL_SCALE),
-      .GBL_POOL_SHIFT_WIDTH(W_GBL_POOL_SHIFT),
-      `endif
 
       .NSA_LUT(NSA_LUT),
       .BIAS_FIFO_FC(BIAS_FIFO_FC),
       .ACC_TOGGLE(ACC_TOGGLE),
-      .NO_PORT_VA(NO_PORT_VA),
-      .NO_PORT_BAC(NO_PORT_BAC),
-      .NO_PORT_BAFC(NO_PORT_BAFC),
       .POP_THRESHOLD(POP_THRESHOLD),
       .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
       .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
-      .N_DMUX_PORTS(N_DMUX_PORTS),
 
       `ifdef MEGA_POOL
       .POOL_IW_WIDTH(W_POOL_IW),
       .POOL_IH_WIDTH(W_POOL_IH),
-      .POOL_IC_WIDTH(W_POOL_IC),
-      .POOL_IMG_STA_ADD_WIDTH(W_POOL_IMG_STA_ADD),
-      .POOL_IMG_END_ADD_WIDTH(W_POOL_IMG_END_ADD),
       .POOLTYPE_WIDTH(W_POOL_TYPE),
       .POOL_SCALE_WIDTH(W_POOL_SCALE),
       .POOL_SHIFT_WIDTH(W_POOL_SHIFT),
@@ -2472,23 +2453,10 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
       .POOLSTRIDE_W_WIDTH(W_POOL_STRIDE_W),
       .POOLSTRIDE_H_WIDTH(W_POOL_STRIDE_H),
-      .POOLCEIL_WIDTH(W_POOL_CEIL),
       .POOLPAD_L_WIDTH(W_POOL_PAD_L),
       .POOLPAD_R_WIDTH(W_POOL_PAD_R),
       .POOLPAD_T_WIDTH(W_POOL_PAD_T),
       .POOLPAD_B_WIDTH(W_POOL_PAD_B),
-      `elsif POOL
-      .POOL_EN_WIDTH(W_POOL_EN),
-      .POOLTYPE_WIDTH(W_POOL_TYPE),
-      .POOLWIDTH_WIDTH(W_POOL_WIDTH),
-      .POOLHEIGHT_WIDTH(W_POOL_HEIGHT),
-      .POOLSTRIDE_WIDTH(W_POOL_STRIDE),
-      .POOLPAD_WIDTH(W_POOL_PAD),
-      .POOLCEIL_WIDTH(W_POOL_CEIL),
-      .POOLMODCOUNT_WIDTH(W_POOL_MODCOUNT),
-      .POOLPADSIDES_WIDTH(W_POOL_PADSIDES),
-      .POOL_SCALE_WIDTH(W_POOL_SCALE),
-      .POOL_SHIFT_WIDTH(W_POOL_SHIFT),
       `endif
 
       //FC realated parameters      
@@ -2503,7 +2471,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .ACC_DATA_REORDER(ACC_DATA_REORDER),
       // for im2col_v1
       .STRIDE(STRIDE),
-      .KERNEL_SIZE(KERNEL_SIZE),
       .CONV_STRIDE_WIDTH(CONV_STRIDE_WIDTH),
       .CONV_KW_WIDTH(CONV_KW_WIDTH),
       .CONV_KH_WIDTH(CONV_KH_WIDTH),
@@ -2533,10 +2500,8 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   ) top_CONV_FC_Block (
       .i_clk(i_clk),
       .s_clk(s_clk),
-      .i_img_dim_Acc(img_dim_Acc), // image dimension of accumulant o/p
       .i_img_dim_Op(img_dim_Op), // image dimension of quantized o/p
       .image_fifo_empty(image_fifo_empty),
-      .CONV_FC(CONV_FC),
       .opcode(opcode),
       .op_full(op_full),
       .fifo_o(fifo_imgo_data),
@@ -2577,25 +2542,11 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .FC_layerdone(FC_layerdone),
       `endif //FC 
 
-      //vector addition and tail block signals    
-      .vector_add_values(vector_add_values),
-      .vector_add_wren(vector_add_wren),
-      .maxpool_threshold(op_width), //output matrix width of SA engine
-      .op_height(op_height),
-      .op_width(op_width),
       .op_img_size(op_img_size),
       .layer_done(layer_done),
       .iteration_Done(iter_done),
-      .channel_done(channel_done),
-      .shift_reg_sel(shift_reg_sel),
       .systolic_array_trigger(systolic_array_trigger),
       .i_rst(i_rst),
-      .relu_clip_value(relu_clip_value),
-      .relu_act_type(relu_act_type),
-      .lr_neg_alpha(LR_NegAlpha),
-      .lr_pos_alpha(LR_PosAlpha),
-      .bias_enable(bias_enable),
-      .quant_enable(quant_enable),
       .conv_pad_left(conv_pad_left),
       .conv_pad_right(conv_pad_right),
       .conv_pad_top(conv_pad_top),
@@ -2619,9 +2570,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .col(col),
       .real_col(real_col),
       .real_row(real_row),
-      .relu_enable(relu_enable),
-      .bias_data_in(bias_data_in),
-      .bias_wren(bias_wren),
 
       `ifdef BIAS_FC
       .bias_fc_enable(bias_fc_enable),
@@ -2630,29 +2578,13 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .fc_bias_fifo_occupants(fc_bias_fifo_occupants),
       `endif //BIAS_FC
 
-      .shift_value(({COL_SA{tail_quantshift}})),
-      .quant_scale(({COL_SA{tail_quantscale}})),
       .vector_add_enable(vector_add_enable),
-  
-      // `ifdef GLOBAL_POOL
-      // .maxpool_enable(maxpool_enable),
-      // .gbl_pool_scale(gbl_pool_scale),
-      // .gbl_pool_shift(gbl_pool_shift),
-      // `endif
-
-      // .acc_op_write_data(acc_op_write_data),
-      // .acc_op_wren(acc_op_wren),
-      // .quant_op_write_data(quant_op_write_data),
-      // .quant_op_wren(quant_op_wren),
 
       `ifdef MEGA_POOL
       .pool_start(pool_start),
       .pool_stall(pool_stall),
       .PoolIW(pool_iw),
       .PoolIH(pool_ih),
-      .PoolIC(pool_ic),
-      .PoolImgStaAdd(pool_img_sta_add),
-      .PoolImgEndAdd(pool_img_end_add),
       .PoolType(pooltype),
       .PoolScale(poolscale),
       .PoolShift(poolshift),
@@ -2660,7 +2592,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .PoolHeight(poolheight),
       .PoolStrideW(poolstride_w),
       .PoolStrideH(poolstride_h),
-      .PoolCeil(poolceil),
       .PoolPadL(pool_pad_l),
       .PoolPadR(pool_pad_r),
       .PoolPadT(pool_pad_t),
@@ -2669,31 +2600,14 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .pool_o_data(pool_o_data),
       `endif
 
-      // `elsif POOL
-      // .maxpool_enable(maxpool_enable),
-      // .PoolType(pooltype),
-      // .PoolWidth(poolwidth),
-      // .PoolHeight(poolheight),
-      // .PoolStride(poolstride),
-      // .PoolPadding(poolpadding),
-      // .PoolCeil(poolceil),
-      // .PoolModCount(poolModCount),
-      // .PoolPadSides(poolpadsides),
-      // .PoolScale(poolscale),
-      // .PoolShift(poolshift),
-      // `endif
-
       .im2col_done(im2col_done),
       .pseudo_im2col_done(pseudo_im2col_done),
       .SA_psum_fifo_empty(SA_psum_fifo_empty),
-      .Tail_done(Tail_done), // Generated in integration block
 
       `ifdef MEGA_POOL
       .pool_done(pool_done),
       `endif
 
-      // .acc_fifo_occupants(acc_fifo_occupants),
-      .bias_fifo_occupants(bias_fifo_occupants),
       .stride(stride),
       .kernel_width(kernel_width),
       .kernel_height(kernel_height),
@@ -2701,22 +2615,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .o_image_fifo_almost_full_flag(sa_image_fifo_almost_full_flag),
       .sa_stall(sa_stall),
       
-      .op_fifo_empty(op_done),
-      // .LeftOperand_data_in(LeftOperand_in_data),
-      // .RightOperand_data_in(RightOperand_in_data),
-      // .LeftOperand_wr_en(dv_LeftOperand_data),
-      // .RightOperand_wr_en(dv_RightOperand_data),
-      // .LeftOperand_Scale(LeftOperand_Scale),
-      // .LeftOperand_zero_point(LeftOperand_zero_point),
-      // .RightOperand_Scale(RightOperand_Scale),
-      // .RightOperand_zero_point(RightOperand_zero_point),
-      // .EltWise_type(EltWise_type),
-      // .EltWise_IW(EltWise_IW),
-      // .EltWise_IH(EltWise_IH),
-      // .EltWise_IC(EltWise_IC),
-      // .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
-      // .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
-      // .EltWise_op_en(valid_opcode[`OP_EltWise]),
       .start_row_skip(start_row_skip),
 
       .valid_SA(valid_SA),
@@ -2727,15 +2625,9 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .empty_vector(empty_vector),
       .almost_empty_vector(almost_empty_vector),
       .empty_sa(empty_sa),
-      .almost_empty_sa(almost_empty_sa)
+      .almost_empty_sa(almost_empty_sa),
 
-      `ifdef CONCAT
-      ,
-      .end_row_skip(end_row_skip),
-      .o_concat_data(o_concat_data),
-      .o_concat_dv(o_concat_dv)
-      `endif
-
+      .end_row_skip(end_row_skip)
       
   );
 

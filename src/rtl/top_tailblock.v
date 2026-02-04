@@ -57,7 +57,7 @@ module top_tailblock #(
   parameter ACC_OP_FIFO = 2 // Number of accumulant o/p fifos
 ) (
   input i_clk,
-  input i_rst,
+  input rst,
 
   input [(N_SA*DATA_WIDTH_OB) -1:0] data_tail_blk_in,
   input [N_SA-1:0] data_tail_blk_vaild,
@@ -109,6 +109,12 @@ module top_tailblock #(
   input [ACT_TYPE_WIDTH-1:0] relu_act_type,
   input [LR_NEG_ALPHA_WIDTH-1:0] lr_neg_alpha,
   input [LR_POS_ALPHA_WIDTH-1:0] lr_pos_alpha,
+
+  // signals for resize block 
+  `ifdef RESIZE
+  input [N_SA-1:0] resize_valid,
+  input [N_SA*DATA_WIDTH-1:0] resize_op,
+  `endif
 
   `ifdef POOL
   input maxpool_enable,
@@ -162,14 +168,14 @@ module top_tailblock #(
 
   localparam ACC_OP_DATAWIDTH = ((N_SA*DATA_WIDTH_ACC) < (DRAM_BW*DATA_WIDTH)) ? (N_SA*DATA_WIDTH_ACC*ACC_OP_FIFO) : (N_SA*DATA_WIDTH_ACC);
 
-  // Generation of local 'rst' signal
-  wire rst;
-  reg [1:0] r_rst = 0;
-  always @(posedge i_clk) begin
-    r_rst [0] <= i_rst;
-    r_rst [1] <= r_rst [0];
-  end
-  assign rst = r_rst[1];
+//   // Generation of local 'rst' signal
+//   wire rst;
+//   reg [1:0] r_rst = 0;
+//   always @(posedge i_clk) begin
+//     r_rst [0] <= i_rst;
+//     r_rst [1] <= r_rst [0];
+//   end
+//   assign rst = r_rst[1];
  
 
   wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; 
@@ -464,6 +470,18 @@ module top_tailblock #(
   wire [(DATA_WIDTH_ACC*N_SA) -1:0] zp_unquant_data;
   wire [N_SA -1:0] zp_unquant_dv;
 
+   wire [(N_SA*DATA_WIDTH) -1:0] zp_quant_in_mux;
+  wire [N_SA -1:0] zp_quant_valid_in_mux; 
+ 
+ 
+  `ifdef RESIZE
+    assign zp_quant_in_mux       = (opcode == `OP_RESIZE) ? resize_op    : zp_quant_in;
+    assign zp_quant_valid_in_mux = (opcode == `OP_RESIZE) ? resize_valid : zp_quant_valid_in;
+  `else 
+    assign zp_quant_in_mux       = zp_quant_in;
+    assign zp_quant_valid_in_mux = zp_quant_valid_in;
+  `endif
+
   // Zero Padding
   // QUANT
   top_zero # (
@@ -475,8 +493,8 @@ module top_tailblock #(
       .clk(i_clk),
       .rst(rst),
       .i_size(i_img_dim2), // image dimension of quantized o/p (from op block inst.)
-      .data_in(zp_quant_in), //maxpool_output
-      .i_dv(zp_quant_valid_in), //maxpool_valid
+      .data_in(zp_quant_in_mux), //maxpool_output
+      .i_dv(zp_quant_valid_in_mux), //maxpool_valid
       .data_out(zp_data),
       .o_dv(zp_valid)
   );

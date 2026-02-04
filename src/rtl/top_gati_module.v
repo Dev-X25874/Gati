@@ -2727,7 +2727,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .empty_vector(empty_vector),
       .almost_empty_vector(almost_empty_vector),
       .empty_sa(empty_sa),
-      .almost_empty_sa(almost_empty_sa),
+      .almost_empty_sa(almost_empty_sa)
 
       `ifdef CONCAT
       ,
@@ -2736,11 +2736,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .o_concat_dv(o_concat_dv)
       `endif
 
-      `ifdef RESIZE
-      ,
-      .resize_valid(resize_valid),
-      .resize_op(resize_op)
-      `endif
+      
   );
 
 
@@ -2790,6 +2786,15 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   wire [N_SA-1:0] EltWise_data_out_valid;
   wire [W_QUANT_SHIFT-1:0] EltWise_fp_cast_shift;
   wire EW_done;
+
+   // Generation of local 'rst' signal
+  wire rst;
+  reg [1:0] r_rst = 0;
+  always @(posedge i_clk) begin
+    r_rst [0] <= i_rst;
+    r_rst [1] <= r_rst [0];
+  end
+  assign rst = r_rst[1];
 
   top_element_wise #(
       .DATA_WIDTH(DATA_WIDTH),   
@@ -2929,7 +2934,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .ACC_OP_FIFO(ACC_OP_FIFO)
   ) top_tailblock_inst (
       .i_clk(i_clk),
-      .i_rst(i_rst),
+      .rst(rst),
 
       .opcode(opcode),
       .i_img_dim_Op(img_dim_Op),
@@ -3019,6 +3024,12 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .quant_op_wren(quant_op_wren),
       .acc_op_wren(acc_op_wren),
       .acc_op_write_data(acc_op_write_data)
+
+      `ifdef RESIZE
+      ,
+      .resize_valid(resize_valid),
+      .resize_op(resize_op)
+      `endif
   );
 
 

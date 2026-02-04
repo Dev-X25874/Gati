@@ -205,11 +205,7 @@ module Top_CONV_FC #(
     output [DRAM_BW-1:0] image_rden,
 	  input stall_on,
     input img_read_done,
-     // signals for resize block 
-    `ifdef RESIZE
-    input [N_SA-1:0] resize_valid,
-    input [N_SA*DATA_WIDTH-1:0] resize_op,
-    `endif
+     
     //tail block signals
     input relu_enable,
     input [(BIAS_FIFO*DATA_WIDTH_OB)-1:0] bias_data_in,
@@ -1001,111 +997,5 @@ always @(posedge i_clk) begin
   assign valid_out_FC = 0;
   `endif //FC
   
-  // EltWise Operation
-  // wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
-  // wire [N_SA-1:0] EltWise_data_out_valid;
-  // wire [QUANT_SHIFT-1:0] EltWise_fp_cast_shift;
-
-  // MANTRA moved this to top_gati
-  // Top_element_wise  #(
-  //   .DATA_WIDTH(DATA_WIDTH),   
-  //   .N(N_SA),          
-  //   .MOD(MOD2),
-  //   .FIFO_NO(ELTWISE_FIFO),       
-  //   .W_ADDR($clog2(ELTWISE_FIFO_DEPTH)),
-  //   .ELTWISE_TYPE_WIDTH(ELTWISE_TYPE_WIDTH),
-  //   .ELTWISE_SCALE_WIDTH(ELTWISE_SCALE_WIDTH),
-  //   .ELTWISE_ZEROPOINT_WIDTH(ELTWISE_ZEROPOINT_WIDTH),
-  //   .ELTWISE_QUANT_SHIFT(QUANT_SHIFT),
-  //   .DATA_WIDTH_OB(DATA_WIDTH_OB),
-  //   .I_OP_SIZE_WIDTH(I_OP_SIZE_WIDTH),
-  //   .ELTWISE_IW_WIDTH(ELTWISE_IW_WIDTH),
-  //   .ELTWISE_IH_WIDTH(ELTWISE_IH_WIDTH),
-  //   .ELTWISE_IC_WIDTH(ELTWISE_IC_WIDTH)
-  // )top_element_wise(
-  //   .clkin(i_clk),
-  //   .rst(rst),
-  //   .EltWise_op_en(EltWise_op_en), 
-  //   .img_dim_Op(i_img_dim_Op), //input: image dimension of the output
-  //   .LeftOperand_wr_en(LeftOperand_wr_en), //from ddr
-  //   .RightOperand_wr_en(RightOperand_wr_en), //from ddr
-  //   .LeftOperand_data_in(LeftOperand_data_in), //from ddr
-  //   .RightOperand_data_in(RightOperand_data_in), //from ddr
-  //   .EltWise_type(EltWise_type),
-  //   .LeftOperand_Scale(LeftOperand_Scale),
-  //   .LeftOperand_zero_point(LeftOperand_zero_point),
-  //   .RightOperand_Scale(RightOperand_Scale),
-  //   .RightOperand_zero_point(RightOperand_zero_point),
-  //   .EltWise_IW(EltWise_IW),
-  //   .EltWise_IH(EltWise_IH),
-  //   .EltWise_IC(EltWise_IC),
-  
-  //   .EltWise_data_out(EltWise_data_out), //output
-  //   .EltWise_data_out_valid(EltWise_data_out_valid), //output valid
-  //   .LeftOperand_fifo_occupants(LeftOperand_fifo_occupants),
-  //   .RightOperand_fifo_occupants(RightOperand_fifo_occupants),
-  //   .EW_done(EW_done),
-  //   .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
-  //   .op_fifo_empty(op_fifo_empty)
-  // );  
-
-
-  // wire [(DATA_WIDTH_OB*N_SA) -1:0] output_block_out; // From here onwards COL_SA or N_SA?:Todo
-  // wire [N_SA-1:0] vector_valid;
-
-  // // Vector addition block for addition of psum accumulants
-  // top_output_block #(
-  //     .DRAM_BW(DRAM_BW),
-  //     .DATA_WIDTH_ACC(DATA_WIDTH_OB),
-  //     .W_ADDR($clog2(ACC_FIFO_DEPTH)), //W_ADDR = $clog2(ACC_FIFO_DEPTH)
-  //     .N(N_SA),
-  //     .COL_SA(COL_SA),
-  //     .TOGGLE(ACC_TOGGLE),
-  //     .FIFO_NO(ACC_FIFO),
-  //     .OUT_DATA_WIDTH(DATA_WIDTH_OB),
-  //     .NO_PORT(NO_PORT_VA),
-  //     .I_ACC_SIZE_WIDTH(I_ACC_SIZE_WIDTH),
-  //     .OH_WIDTH(OutputBlock_OH_WIDTH),
-  //     .OW_WIDTH(OutputBlock_OW_WIDTH)
-  // ) vector_addition (
-  //     .top_clk(i_clk),
-  //     .OH(op_height),
-  //     .OW(op_width),
-  //     .i_img_dim_Acc(i_img_dim_Acc),
-  //     .top_wr_en(vector_add_wren), //input: comes from ddr
-  //     .rst(rst),
-  //     .Iteration_Done(iteration_Done), //input: for resetting the acc_fifo_rden_ctrl
-  //     .top_data_in(vector_add_values), // input: comes from ddr
-  //     .w_empty_flag(empty_vector),
-  //     .w_almost_empty_flag(almost_empty_vector),
-  //     .empty_sa(empty_sa),
-  //     .almost_empty_sa(almost_empty_sa),
-  //     .op_full(op_full),
-  //     .sa_stall(sa_stall),
-  //     .top_data_out(output_block_out),
-  //     .top_data_in_adder_tree(data_tail_blk_in), //interconnect data o/p
-  //     .vector_add_enable(vector_add_enable),
-  //     .top_in_data_valid(data_tail_blk_vaild), //interconnect datavalid
-  //     .top_out_data_valid(vector_valid),
-  //     .fifo_occupants(acc_fifo_occupants)
-  // );
-
-
-  
-  // Quantization Block Interconnect
-
-  // MANTRA sent this top_gati
-  // wire [QUANT_SHIFT-1:0] fp_cast_shift;
-  // wire fp_cast;
-  // quant_interconnect # (
-  //   .SHIFT_WIDTH(QUANT_SHIFT),
-  //   .OPCODE_WIDTH(OPCODE_WIDTH)
-  // )
-  // quant_interconnect_inst (
-  //   .opcode(opcode),
-  //   .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
-  //   .fp_cast(fp_cast),
-  //   .fp_cast_shift(fp_cast_shift)
-  // );
 
 endmodule

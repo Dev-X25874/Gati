@@ -31,6 +31,8 @@
 `endif //FC
 
 `define OPWrite (`Acc + 1)
+
+`ifdef ELTWISE 
 `define LeftOperand (`MIPI_Rd + 1)
 `define RightOperand (`LeftOperand + 1)
 
@@ -46,5 +48,21 @@
     `define ReshapeTranspose (`RightOperand + 1)
     `endif
 `endif // CONCAT
+
+`else 
+
+`ifdef CONCAT
+    `ifdef TRANSPOSE
+    `define ReshapeTranspose (`MIPI_Rd + 1)
+    `define Concat (`ReshapeTranspose + 1) 
+    `else
+    `define Concat (`MIPI_Rd + 1)
+    `endif
+`else
+    `ifdef TRANSPOSE
+    `define ReshapeTranspose (`MIPI_Rd + 1)
+    `endif
+`endif // CONCAT
+`endif
 
 `endif //portid_vh

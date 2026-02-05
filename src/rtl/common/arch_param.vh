@@ -44,6 +44,7 @@
 /*
 Hardware Generation Options:
 
+1. ELTWISE              - For Generating Element Wise (EltWise) hardware
 1. ELTWISE_SIGMOID_TANH - For Generating Sigmoid/Tanh Eltwise operation
 2. GEN_LEAKY_RELU       - For Generating Leaky ReLU functionality in the relu activation block. DO NOT GENERATE IN CASE OF 16 1 16.
 3. MEGA_POOL            - For Generating Maxpool as a mega block. DO NOT GENERATE IN CASE OF 16 1 16. 
@@ -56,10 +57,15 @@ Hardware Generation Options:
 
 */
 
+// For Generating Element-Wise block
+// `define ELTWISE
+
 // For Generating Sigmoid/Tanh Eltwise operation
+// NEED TO GENERATE ELTWISE FIRST
 // `define ELTWISE_SIGMOID_TANH
 
 // For generating eltwise multiplication operation
+// NEED TO GENERATE ELTWISE FIRST
 // `define ELTWISE_MULT_HW
 
 // For Generating Leaky ReLU functionality in the relu activation block 

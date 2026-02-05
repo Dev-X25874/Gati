@@ -287,6 +287,7 @@ module top_gati_module #(
     output [BURST_LENGTH_WIDTH-1: 0] mc_acc_bl,
     output mc_acc_last,
 
+    `ifdef ELTWISE 
     ///////////////LeftOperand
     output [7:0] mc_LeftOperand_addr,
     output mc_LeftOperand_rdreq,
@@ -300,6 +301,7 @@ module top_gati_module #(
     output mc_RightOperand_valid,   
     output [BURST_LENGTH_WIDTH-1 : 0] mc_RightOperand_bl,
     output mc_RightOperand_last,
+    `endif //ELTWISE
 
     `ifdef TRANSPOSE
     ///////////////ReshapeTranspose
@@ -504,6 +506,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] bias_stop_address;
 
   //Elementwise inst. signals
+  `ifdef ELTWISE 
   wire [OPCODE_WIDTH-1:0] ew_opcode;
   wire [ELTWISE_TYPE_WIDTH-1:0] EltWise_type;
   wire [ELTWISE_SCALE_WIDTH-1:0] LeftOperand_Scale;
@@ -517,6 +520,7 @@ module top_gati_module #(
   wire [AXI_ADDR_W-1:0] RightOperand_start_address;
   wire [AXI_ADDR_W-1:0] LeftOperand_stop_address;
   wire [AXI_ADDR_W-1:0] RightOperand_stop_address;
+  `endif //ELTWISE
 
   `ifdef TRANSPOSE
   //Reshape Transpose inst. signals
@@ -599,8 +603,13 @@ module top_gati_module #(
   wire [(NUM_INSTRUCTIONS*OPCODE_WIDTH)-1:0] opcode_hold;
 
   assign opcode_hold[(`OP_CONV*OPCODE_WIDTH) +:OPCODE_WIDTH] = conv_opcode;
+
+  `ifdef ELTWISE 
   assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = ew_opcode;
-  
+  `else
+  assign opcode_hold[(`OP_EltWise*OPCODE_WIDTH) +:OPCODE_WIDTH] = 0;
+  `endif //ELTWISE
+
   `ifdef CONCAT
   assign opcode_hold[(`OP_CONCAT*OPCODE_WIDTH) +:OPCODE_WIDTH] = opcode_CONCAT;
   `else
@@ -1068,6 +1077,7 @@ module top_gati_module #(
     `endif //FC
 
     //Elementwise inst. signals
+    `ifdef ELTWISE
     .opcode_EltWise(ew_opcode),
     .EltWise_type(EltWise_type),
     .LeftOperand_Scale(LeftOperand_Scale),
@@ -1081,6 +1091,7 @@ module top_gati_module #(
     .LeftOperand_EndAddress(LeftOperand_stop_address),
     .RightOperand_StartAddress(RightOperand_start_address),
     .RightOperand_EndAddress(RightOperand_stop_address),
+    `endif //ELTWISE
 
     `ifdef TRANSPOSE
     //Reshape Transpose inst. signals
@@ -1208,8 +1219,10 @@ module top_gati_module #(
   wire fc_img_fifo_status;
   `endif //FC
 
+  `ifdef ELTWISE 
   wire LeftOperand_fifo_status;
   wire RightOperand_fifo_status;
+  `endif
   
   wire iter_done;
   wire channel_done;
@@ -1529,6 +1542,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .last(mc_acc_last)
   );
 
+  `ifdef ELTWISE 
   request_controller_EltWiseOperand #(
       .BURST_LENGTH(ELEMENT_REQ_BLEN),
       .AXI_DATA_BYTES(AXI_DATA_BYTES),
@@ -1568,7 +1582,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .burst_length(mc_RightOperand_bl),
       .last(mc_RightOperand_last)
   );
-
+  `endif
 
   /* ------------ Concat operator -----------------*/
   `ifdef CONCAT
@@ -1609,7 +1623,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .req_done(req_done),
       .burst_length(mc_Concat_bl)
   );
-
 
 
     concat_address_switcher #( 
@@ -1710,8 +1723,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   wire        w_concat_done;
 
  `endif
-
-
 
   
   wire [OP_FIFO-1:0] op_dram_fifo_empty;
@@ -2031,21 +2042,25 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   wire [(($clog2(BIAS_FIFO_DEPTH)+1)*BIAS_FIFO_FC)-1:0] fc_bias_fifo_occupants;
   `endif //BIAS_FC
 
+  `ifdef ELTWISE 
   wire [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] LeftOperand_fifo_occupants;
   wire [(($clog2(ELTWISE_FIFO_DEPTH)+1)*ELTWISE_FIFO)-1:0] RightOperand_fifo_occupants;
+  `endif //ELTWISE
+
   //occupants of acc_fifo,bias_fifo and fc_bias_fifo comes from top_conv_sa block
   wire [$clog2(ACC_FIFO_DEPTH):0] acc_fifo_th;
   wire [$clog2(BIAS_FIFO_DEPTH):0] bias_fifo_th;
-  wire [$clog2(ELTWISE_FIFO_DEPTH):0] eltwise_fifo_th;
 
   assign acc_fifo_th = ((ACC_FIFO_DEPTH[$clog2(ACC_FIFO_DEPTH):0])/2);
   assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
+
+  `ifdef ELTWISE 
+  wire [$clog2(ELTWISE_FIFO_DEPTH):0] eltwise_fifo_th;
   assign eltwise_fifo_th = ((3*(ELTWISE_FIFO_DEPTH[$clog2(ELTWISE_FIFO_DEPTH):0]))/4);
+  `endif  //ELTWISE
   
   reg [$clog2(ACC_FIFO_DEPTH):0] virtual_occ;
   reg [$clog2(BIAS_FIFO_DEPTH):0] virtual_occ_bias;
-  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_LeftOperand;
-  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_RightOperand;
 
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ <= 0;
@@ -2077,6 +2092,10 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
     end
   end
 
+  `ifdef ELTWISE 
+  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_LeftOperand;
+  reg [$clog2(ELTWISE_FIFO_DEPTH):0] virtual_occ_RightOperand;
+
   always @ (posedge i_clk) begin
     if(!i_rst) virtual_occ_LeftOperand <= 0;
     else begin
@@ -2106,6 +2125,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       end
     end
   end
+  `endif //ELTWISE
 
 
   // assign bias_fifo_th = ((3*(BIAS_FIFO_DEPTH[$clog2(BIAS_FIFO_DEPTH):0]))/4);
@@ -2119,8 +2139,10 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   assign fc_bias_fifo_status = (fc_bias_fifo_occupants<={BIAS_FIFO_FC{COL_FC[$clog2(BIAS_FIFO_DEPTH):0]}})? 1 : 0;
   `endif //BIAS_FC
 
+  `ifdef ELTWISE 
   assign LeftOperand_fifo_status = ((LeftOperand_fifo_occupants[$clog2(ELTWISE_FIFO_DEPTH):0]+virtual_occ_LeftOperand)<=eltwise_fifo_th)? 1 : 0;
   assign RightOperand_fifo_status = ((RightOperand_fifo_occupants[$clog2(ELTWISE_FIFO_DEPTH):0]+virtual_occ_RightOperand)<=eltwise_fifo_th)? 1 : 0;
+  `endif //ELTWISE
 
   // Data from DRAM
   wire [(ACC_FIFO*DATA_WIDTH_ACC)-1:0] vector_add_values_dram;
@@ -2267,6 +2289,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   );
   `endif //FC
 
+  `ifdef ELTWISE 
   wire [AXI_DATA_WIDTH -1:0]LeftOperand_in_data;
   wire [AXI_DATA_WIDTH -1:0]RightOperand_in_data;
   wire [ELTWISE_FIFO -1:0] dv_LeftOperand_data;
@@ -2301,6 +2324,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
         .o_dram_fifo_wren(dv_RightOperand_data),
         .o_data_last()
   );
+  `endif //ELTWISE
 
 
   `ifdef CONCAT
@@ -2674,11 +2698,6 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
   `endif //TRANSPOSE
 
 
-  wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
-  wire [N_SA-1:0] EltWise_data_out_valid;
-  wire [W_QUANT_SHIFT-1:0] EltWise_fp_cast_shift;
-  wire EW_done;
-
    // Generation of local 'rst' signal
   wire rst;
   reg [1:0] r_rst = 0;
@@ -2687,6 +2706,12 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
     r_rst [1] <= r_rst [0];
   end
   assign rst = r_rst[1];
+
+  `ifdef ELTWISE 
+  wire [(DATA_WIDTH_OB*N_SA)-1:0] EltWise_data_out;
+  wire [N_SA-1:0] EltWise_data_out_valid;
+  wire [W_QUANT_SHIFT-1:0] EltWise_fp_cast_shift;
+  wire EW_done;
 
   top_element_wise #(
       .DATA_WIDTH(DATA_WIDTH),   
@@ -2729,6 +2754,7 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
       .EW_done(EW_done),
       .EltWise_fp_cast_shift(EltWise_fp_cast_shift)
   );
+  `endif
 
   wire [N_SA-1:0] valid_SA;
   wire [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA;
@@ -2762,7 +2788,12 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
     .OPCODE_WIDTH(OPCODE_WIDTH)
   ) quant_interconnect_inst (
     .opcode(opcode),
+
+    `ifdef ELTWISE 
     .EltWise_fp_cast_shift(EltWise_fp_cast_shift),
+    `else
+    .EltWise_fp_cast_shift(0),
+    `endif
 
     .fp_cast(fp_cast),
     .fp_cast_shift(fp_cast_shift)
@@ -3085,7 +3116,9 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
         .FC_done(FC_done),
         `endif //FC
 
+        `ifdef ELTWISE 
         .EW_done(EW_done),
+        `endif //ELTWISE
 
         `ifdef TRANSPOSE
         .RT_done(RT_done),
@@ -3094,11 +3127,13 @@ assign mc_img_last   = ((opcode == `OP_POOL) | (opcode == `OP_RESIZE)) ? mc_img_
         `ifdef MEGA_POOL
         .pool_done(pool_done),
         `endif
+
         `ifdef CONCAT
         .i_concat_done(w_concat_done),
-        `endif
-        .c_iter(channel_iteration), //channel iteration
-        .k_iter(kernel_iteration), //kernel iteration
+        `endif //CONCAT
+
+        .c_iter(channel_iteration), 
+        .k_iter(kernel_iteration),
         .o_iter_done(iter_done),
         .o_c_done(channel_done),
         .o_layer_done(layer_done),

@@ -25,12 +25,13 @@ module rah_gati #(
     parameter CPU_DISPATCH_REQ_BLEN = 15,
 
     //parameters related to DRAM controller
-    parameter FIXED_PORTS = 10, //config, img, weights, bias, acc, op_write, Left/RightOperand, mipi_read/write
+    parameter FIXED_PORTS = 8, //config, img, weights, bias, acc, op_write, mipi_read/write
+    parameter ELTWISE = `ifdef ELTWISE 2 `else 0 `endif, // ELTWISE
     parameter FC_PORT = `ifdef FC 1 `else 0 `endif, //FC
     parameter BIAS_FC_PORT = `ifdef BIAS_FC 1 `else 0 `endif, //BIAS_FC
     parameter TRANSPOSE_PORT = `ifdef TRANSPOSE 1 `else 0 `endif, //TRANSPOSE
     parameter CONCAT_PORT = `ifdef CONCAT 1 `else 0 `endif, 
-    parameter NUM_PORTS = FIXED_PORTS + FC_PORT + BIAS_FC_PORT + TRANSPOSE_PORT+ CONCAT_PORT, //Number of read and write requestors
+    parameter NUM_PORTS = FIXED_PORTS + ELTWISE + FC_PORT + BIAS_FC_PORT + TRANSPOSE_PORT+ CONCAT_PORT, //Number of read and write requestors
 
     //parameters related to AXI
     parameter AXI_DATA_WIDTH = 256,
@@ -348,6 +349,7 @@ module rah_gati #(
   wire [BURST_LENGTH_WIDTH-1:0] mc_acc_bl;
   wire mc_acc_last;
 
+  `ifdef ELTWISE 
   /////////////LeftOperand
   wire [7:0] mc_LeftOperand_addr;
   wire mc_LeftOperand_rdreq;
@@ -361,6 +363,7 @@ module rah_gati #(
   wire mc_RightOperand_valid;
   wire [BURST_LENGTH_WIDTH-1:0] mc_RightOperand_bl;
   wire mc_RightOperand_last;
+  `endif //ELTWISE
 
   `ifdef TRANSPOSE
   ///////////////ReshapeTranspose
@@ -495,9 +498,8 @@ module rah_gati #(
     mc_acc_valid,
     mc_op_write_valid,
     `ifdef BIAS_FC mc_fc_bias_valid, `endif //BIAS_FC
-    mc_fpga2cpu_valid,
-    mc_LeftOperand_valid,
-    mc_RightOperand_valid
+    mc_fpga2cpu_valid
+    `ifdef ELTWISE ,mc_LeftOperand_valid, mc_RightOperand_valid `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_valid `endif //TRANSPOSE
     `ifdef CONCAT    ,mc_Concat_valid `endif
    };
@@ -511,9 +513,8 @@ module rah_gati #(
     mc_acc_addr,
     mc_op_write_addr,
     `ifdef BIAS_FC mc_fc_bias_addr, `endif //BIAS_FC
-    mc_fpga2cpu_addr,
-    mc_LeftOperand_addr,
-    mc_RightOperand_addr
+    mc_fpga2cpu_addr
+    `ifdef ELTWISE ,mc_LeftOperand_addr, mc_RightOperand_addr `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_addr `endif //TRANSPOSE
     `ifdef CONCAT    ,mc_Concat_addr `endif
    };
@@ -527,9 +528,8 @@ module rah_gati #(
     mc_acc_bl,
     mc_op_write_bl,
     `ifdef BIAS_FC mc_fc_bias_bl, `endif //BIAS_FC
-    mc_fpga2cpu_bl,
-    mc_LeftOperand_bl,
-    mc_RightOperand_bl
+    mc_fpga2cpu_bl
+    `ifdef ELTWISE ,mc_LeftOperand_bl, mc_RightOperand_bl `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_bl `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_bl `endif 
    };
@@ -543,9 +543,8 @@ module rah_gati #(
     mc_acc_rdreq,
     mc_op_writereq,
     `ifdef BIAS_FC mc_fc_bias_rdreq, `endif //BIAS_FC
-    mc_fpga2cpu_readreq,
-    mc_LeftOperand_rdreq,
-    mc_RightOperand_rdreq
+    mc_fpga2cpu_readreq
+    `ifdef ELTWISE ,mc_LeftOperand_rdreq, mc_RightOperand_rdreq `endif //ELTWSIE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_rdreq `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_rdreq `endif
    };
@@ -559,9 +558,8 @@ module rah_gati #(
     mc_acc_last,
     mc_op_write_last,
     `ifdef BIAS_FC mc_fc_bias_last, `endif //BIAS_FC
-    mc_fpga2cpu_last,
-    mc_LeftOperand_last,
-    mc_RightOperand_last
+    mc_fpga2cpu_last
+    `ifdef ELTWISE ,mc_LeftOperand_last, mc_RightOperand_last `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_last `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_last `endif
    };
@@ -775,6 +773,8 @@ module rah_gati #(
       .mc_op_write_valid(mc_op_write_valid),
       .mc_op_write_bl(mc_op_write_bl),
       .mc_op_write_last(mc_op_write_last),
+
+      `ifdef ELTWISE 
       .mc_LeftOperand_addr(mc_LeftOperand_addr),
       .mc_LeftOperand_rdreq(mc_LeftOperand_rdreq),
       .mc_LeftOperand_valid(mc_LeftOperand_valid),
@@ -785,6 +785,7 @@ module rah_gati #(
       .mc_RightOperand_valid(mc_RightOperand_valid),
       .mc_RightOperand_bl(mc_RightOperand_bl),
       .mc_RightOperand_last(mc_RightOperand_last),
+      `endif
 
       `ifdef TRANSPOSE
       .mc_ReshapeTranspose_addr(mc_ReshapeTranspose_addr),

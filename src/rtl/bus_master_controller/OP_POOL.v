@@ -1,7 +1,8 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further tail block(s) operation processing
-`include "../common/arch_param.vh"
+`include "../common/instructions.vh"
 
-module OP_POOL#(parameter OP_CODE_WIDTH = 4, 
+module OP_POOL#(
+    parameter OP_CODE_WIDTH = 4, 
     parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
     parameter INPUT_WIDTH = 8,
     parameter OUTPUT_WIDTH = 256,
@@ -52,9 +53,8 @@ module OP_POOL#(parameter OP_CODE_WIDTH = 4,
     output reg [POOLPAD_T_WIDTH - 1 : 0] pool_pad_t,
     output reg [POOLPAD_B_WIDTH - 1 : 0] pool_pad_b,
     output reg [POOL_PREFETCH_WIDTH - 1 : 0] pool_prefetch
-);
+    );
 
-    `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

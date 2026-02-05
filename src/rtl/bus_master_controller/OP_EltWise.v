@@ -1,5 +1,6 @@
 //this module is the slave block, it handles the operations for convolution block
 //when this module will be selected it will receive data from the master block and gives output for further convolution operation processing 
+`include "../common/instructions.vh"
 
 module OP_EltWise #(parameter OP_CODE_WIDTH = 4, 
     parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
@@ -36,7 +37,6 @@ module OP_EltWise #(parameter OP_CODE_WIDTH = 4,
     output reg ready = 0
 );
 
-`include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

@@ -1,39 +1,42 @@
 //this module is a slave module, that when selected receives data from the master block and gives output for further fully-connected operation processing
+`include "../common/instructions.vh"
 
-module OP_FC #(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256,
-            parameter ADDRESS_WIDTH = 32,
-            parameter WEIGHTROWS_WIDTH = 16,
-            parameter WEIGHTCOLS_WIDTH = 16,
-            parameter INPUTROWS_WIDTH = 16,
-            parameter DROPOUTCONSTANT_WIDTH = 8,
-            parameter FLATTEN_WIDTH = 1,
-            parameter IMAGEDIN_WIDTH = 20,
-            parameter FC_VEC2MATCOL_WIDTH = 16)(
-                input [(INPUT_WIDTH)-1 : 0] din,
-                input sel,
-                input write,
-                input done,
-                input clk,
-                output reg valid,
-                output reg ready = 0,
-                output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
-                output reg [WEIGHTROWS_WIDTH - 1 : 0] weightrows = 0,
-                output reg [WEIGHTCOLS_WIDTH - 1 : 0] weightcols = 0,
-                output reg [INPUTROWS_WIDTH - 1 : 0] inputrows = 0,
-                output reg [DROPOUTCONSTANT_WIDTH -1 : 0] dropoutconstant = 0,
-                output reg [FLATTEN_WIDTH -1 : 0] flatten = 0,
-                output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
-                output reg [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols = 0
-            );
+module OP_FC #(
+    parameter OP_CODE_WIDTH = 4, 
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+    parameter WEIGHTROWS_WIDTH = 16,
+    parameter WEIGHTCOLS_WIDTH = 16,
+    parameter INPUTROWS_WIDTH = 16,
+    parameter DROPOUTCONSTANT_WIDTH = 8,
+    parameter FLATTEN_WIDTH = 1,
+    parameter IMAGEDIN_WIDTH = 20,
+    parameter FC_VEC2MATCOL_WIDTH = 16
+    
+    )(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg valid,
+    output reg ready = 0,
+    output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+    output reg [WEIGHTROWS_WIDTH - 1 : 0] weightrows = 0,
+    output reg [WEIGHTCOLS_WIDTH - 1 : 0] weightcols = 0,
+    output reg [INPUTROWS_WIDTH - 1 : 0] inputrows = 0,
+    output reg [DROPOUTCONSTANT_WIDTH -1 : 0] dropoutconstant = 0,
+    output reg [FLATTEN_WIDTH -1 : 0] flatten = 0,
+    output reg [IMAGEDIN_WIDTH -1 : 0] imagedim = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] ImageStartAddress = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] ImageEndAddr = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] WeightStartAddress = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] WeightEndAddress = 0,
+    output reg [FC_VEC2MATCOL_WIDTH -1 : 0] FC_Vec2MatCols = 0
+    );
 
-            `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -49,18 +52,6 @@ always @(posedge clk) begin
         data_instruction <= 0;
         valid <= 0;
         ready <= 0;
-        // opcode <= 0;
-        // weightrows <= 0;
-        // weightcols <= 0;
-        // inputrows <= 0;
-        // dropoutconstant <= 0;
-        // flatten <= 0;
-        // imagedim <= 0;
-        // ImageStartAddress <= 0;
-        // ImageEndAddr <= 0;
-        // WeightStartAddress <= 0;
-        // WeightEndAddress <= 0;
-        // FC_Vec2MatCols <= 0;
         count <= 0;
         state <= REGISTER;
     end

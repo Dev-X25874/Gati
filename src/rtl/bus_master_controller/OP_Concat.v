@@ -1,6 +1,5 @@
 // CONCAT Mega block 
 
-
 `include "../common/instructions.vh"
 
 module OP_Concat #(

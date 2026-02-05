@@ -1,30 +1,31 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further transpose and reshape operation processing 
+`include "../common/instructions.vh"
 
-module OP_ReshapeTranspose #(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256,
-            parameter ADDRESS_WIDTH = 32,
-            parameter IW_WIDTH = 10,
-            parameter IH_WIDTH = 10,
-            parameter IC_WIDTH = 10
-            )
-            (
-                input [(INPUT_WIDTH)-1 : 0] din,
-                input sel,
-                input write,
-                input done,
-                input clk,
-                output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
-                output reg [IW_WIDTH - 1 : 0] ReshapeTranspose_IW,
-                output reg [IH_WIDTH - 1 : 0] ReshapeTranspose_IH,
-                output reg [IC_WIDTH - 1 : 0] ReshapeTranspose_IC,   
-                output reg [ADDRESS_WIDTH - 1 : 0] ReshapeTranspose_StartAddress,
-                output reg valid,
-                output reg ready = 0
-            );
+module OP_ReshapeTranspose #(
+    parameter OP_CODE_WIDTH = 4, 
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+    parameter IW_WIDTH = 10,
+    parameter IH_WIDTH = 10,
+    parameter IC_WIDTH = 10
+    
+    )(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+    output reg [IW_WIDTH - 1 : 0] ReshapeTranspose_IW,
+    output reg [IH_WIDTH - 1 : 0] ReshapeTranspose_IH,
+    output reg [IC_WIDTH - 1 : 0] ReshapeTranspose_IC,   
+    output reg [ADDRESS_WIDTH - 1 : 0] ReshapeTranspose_StartAddress,
+    output reg valid,
+    output reg ready = 0
+    );
 
-            `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;

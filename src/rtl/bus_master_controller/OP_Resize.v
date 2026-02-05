@@ -25,7 +25,7 @@ module OP_Resize#(
     output reg [RESIZE_IC_WIDTH - 1 : 0] resize_ic,
     output reg [RESIZE_IMG_STA_ADD_WIDTH - 1 : 0] resize_img_sta_add,
     output reg [RESIZE_IMG_END_ADD_WIDTH - 1 : 0] resize_img_end_add
-);
+    );
 
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;

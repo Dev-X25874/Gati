@@ -1,88 +1,90 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further tail block(s) operation processing
 `include "../common/arch_param.vh"
+`include "../common/instructions.vh"
 
-module OP_Tailblock#(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256,
-            parameter ADDRESS_WIDTH = 32,
-            parameter ACTEN_WIDTH = 1,
-            parameter ACTTYPE_WIDTH = 4,
-            parameter ACTPARAM_WIDTH = 8,
-            parameter LR_NEG_ALPHA_WIDTH = 10,
-            parameter LR_POS_ALPHA_WIDTH = 10,
-            parameter QUANTEN_WIDTH = 1,
-            parameter QUANTSCALE_WIDTH = 16,
-            parameter QUANTSHIFT_WIDTH = 5,
+module OP_Tailblock#(
+    parameter OP_CODE_WIDTH = 4, 
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+    parameter ACTEN_WIDTH = 1,
+    parameter ACTTYPE_WIDTH = 4,
+    parameter ACTPARAM_WIDTH = 8,
+    parameter LR_NEG_ALPHA_WIDTH = 10,
+    parameter LR_POS_ALPHA_WIDTH = 10,
+    parameter QUANTEN_WIDTH = 1,
+    parameter QUANTSCALE_WIDTH = 16,
+    parameter QUANTSHIFT_WIDTH = 5,
 
-            `ifdef GLOBAL_POOL 
-            parameter GBL_POOL_SCALE_WIDTH = 4, 
-            parameter GBL_POOL_SHIFT_WIDTH = 4,
-            parameter GBL_POOL_EN_WIDTH = 1,
-            `endif
+    `ifdef GLOBAL_POOL 
+    parameter GBL_POOL_SCALE_WIDTH = 4, 
+    parameter GBL_POOL_SHIFT_WIDTH = 4,
+    parameter GBL_POOL_EN_WIDTH = 1,
+    `endif
 
-            `ifdef POOL
-            parameter POOLEN_WIDTH = 1,
-            parameter POOLTYPE_WIDTH = 3,
-            parameter POOLWIDTH_WIDTH = 4,
-            parameter POOLHEIGHT_WIDTH = 4,
-            parameter POOLSTRIDE_WIDTH = 4,
-            parameter POOLPAD_WIDTH = 4,
-            parameter POOLCEIL_WIDTH = 1,
-            parameter POOLMODCOUNT_WIDTH = 4,
-            parameter POOLPADSIDES_WIDTH = 4,
-            parameter POOLSCALE_WIDTH = 8,
-            parameter POOLSHIFT_WIDTH = 4,
-            `endif
+    `ifdef POOL
+    parameter POOLEN_WIDTH = 1,
+    parameter POOLTYPE_WIDTH = 3,
+    parameter POOLWIDTH_WIDTH = 4,
+    parameter POOLHEIGHT_WIDTH = 4,
+    parameter POOLSTRIDE_WIDTH = 4,
+    parameter POOLPAD_WIDTH = 4,
+    parameter POOLCEIL_WIDTH = 1,
+    parameter POOLMODCOUNT_WIDTH = 4,
+    parameter POOLPADSIDES_WIDTH = 4,
+    parameter POOLSCALE_WIDTH = 8,
+    parameter POOLSHIFT_WIDTH = 4,
+    `endif
 
-            parameter BIASEN_WIDTH = 1,
-            parameter BNCHANNELS_WIDTH = 10,
-            parameter BiasWidth_WIDTH = 8)
-            (
-                input [(INPUT_WIDTH)-1 : 0] din,
-                input sel,
-                input write,
-                input done,
-                input clk,
-                output reg ready = 0,
-                output reg valid,
-                output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
-                output reg [ACTEN_WIDTH - 1 : 0] ActEn = 0,
-                output reg [ACTTYPE_WIDTH - 1 : 0] acttype = 0,
-                output reg [ACTPARAM_WIDTH - 1 : 0] ActParam = 0,
-                output reg [LR_NEG_ALPHA_WIDTH - 1 : 0] NegAlpha = 0,
-                output reg [LR_POS_ALPHA_WIDTH - 1 : 0] PosAlpha = 0,
-                output reg [QUANTEN_WIDTH - 1 : 0] QuantEn = 0,
-                output reg [QUANTSCALE_WIDTH - 1 : 0] quantscale = 0,
-                output reg [QUANTSHIFT_WIDTH - 1 : 0] quantshift = 0,
-                
-                `ifdef GLOBAL_POOL 
-                output reg [GBL_POOL_SCALE_WIDTH - 1 : 0] gbl_pool_scale = 0,
-                output reg [GBL_POOL_SHIFT_WIDTH - 1 : 0] gbl_pool_shift = 0,
-                output reg [GBL_POOL_EN_WIDTH - 1 : 0] gbl_pool_en = 0,
-                `endif
+    parameter BIASEN_WIDTH = 1,
+    parameter BNCHANNELS_WIDTH = 10,
+    parameter BiasWidth_WIDTH = 8
+    
+    )(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg ready = 0,
+    output reg valid,
+    output reg [OP_CODE_WIDTH - 1 : 0] opcode = 0,
+    output reg [ACTEN_WIDTH - 1 : 0] ActEn = 0,
+    output reg [ACTTYPE_WIDTH - 1 : 0] acttype = 0,
+    output reg [ACTPARAM_WIDTH - 1 : 0] ActParam = 0,
+    output reg [LR_NEG_ALPHA_WIDTH - 1 : 0] NegAlpha = 0,
+    output reg [LR_POS_ALPHA_WIDTH - 1 : 0] PosAlpha = 0,
+    output reg [QUANTEN_WIDTH - 1 : 0] QuantEn = 0,
+    output reg [QUANTSCALE_WIDTH - 1 : 0] quantscale = 0,
+    output reg [QUANTSHIFT_WIDTH - 1 : 0] quantshift = 0,
+    
+    `ifdef GLOBAL_POOL 
+    output reg [GBL_POOL_SCALE_WIDTH - 1 : 0] gbl_pool_scale = 0,
+    output reg [GBL_POOL_SHIFT_WIDTH - 1 : 0] gbl_pool_shift = 0,
+    output reg [GBL_POOL_EN_WIDTH - 1 : 0] gbl_pool_en = 0,
+    `endif
 
-                `ifdef POOL 
-                output reg [POOLEN_WIDTH - 1 : 0] PoolEn = 0,
-                output reg [POOLTYPE_WIDTH - 1 : 0] pooltype = 0,
-                output reg [POOLWIDTH_WIDTH - 1 : 0] poolwidth = 0,
-                output reg [POOLHEIGHT_WIDTH - 1 : 0] poolheight = 0,
-                output reg [POOLSTRIDE_WIDTH - 1 : 0] poolstride = 0,
-                output reg [POOLPAD_WIDTH - 1 : 0] poolpadding = 0,
-                output reg [POOLCEIL_WIDTH - 1 : 0] poolceil = 0,
-                output reg [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount = 0,
-                output reg [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides = 0,
-                output reg [POOLSCALE_WIDTH - 1 : 0] poolscale = 0,
-                output reg [POOLSHIFT_WIDTH - 1 : 0] poolshift = 0,
-                `endif
+    `ifdef POOL 
+    output reg [POOLEN_WIDTH - 1 : 0] PoolEn = 0,
+    output reg [POOLTYPE_WIDTH - 1 : 0] pooltype = 0,
+    output reg [POOLWIDTH_WIDTH - 1 : 0] poolwidth = 0,
+    output reg [POOLHEIGHT_WIDTH - 1 : 0] poolheight = 0,
+    output reg [POOLSTRIDE_WIDTH - 1 : 0] poolstride = 0,
+    output reg [POOLPAD_WIDTH - 1 : 0] poolpadding = 0,
+    output reg [POOLCEIL_WIDTH - 1 : 0] poolceil = 0,
+    output reg [POOLMODCOUNT_WIDTH - 1 : 0] poolModCount = 0,
+    output reg [POOLPADSIDES_WIDTH - 1 : 0] poolpadsides = 0,
+    output reg [POOLSCALE_WIDTH - 1 : 0] poolscale = 0,
+    output reg [POOLSHIFT_WIDTH - 1 : 0] poolshift = 0,
+    `endif
 
-                output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
-                output reg [BiasWidth_WIDTH - 1 : 0] BiasWidth = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0
-        );
+    output reg [BIASEN_WIDTH - 1 : 0] BiasEn = 0,
+    output reg [BiasWidth_WIDTH - 1 : 0] BiasWidth = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] BiasStartAddress = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] BiasEndAddress = 0
+    );
 
-        `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -98,26 +100,6 @@ always @(posedge clk) begin
         data_instruction <= 0;
         ready <= 0;
         valid <= 0;
-        // opcode <= 0;
-        // BNchannels <= 0;
-        // BNStartAddress <= 0;
-        // BNEndAddress <= 0;
-        // ActEn <= 0;
-        // ActParam <= 0;
-        // acttype <= 0;
-        // QuantEn <= 0;
-        // quantscale <= 0;
-        // quantshift <= 0;
-        // PoolEn <= 0;
-        // pooltype <= 0;
-        // poolwidth <= 0;
-        // poolheight <= 0;
-        // poolstride <= 0;
-        // poolpadding <= 0;
-        // BiasEn <= 0;
-        // FCBiasEn <= 0;
-        // BiasStartAddress <= 0;
-        // BiasEndAddress <= 0;
         count <= 0;
         state <= REGISTER;
     end

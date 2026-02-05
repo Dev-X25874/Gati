@@ -1,51 +1,52 @@
 //this module is a slave module, that when selected receives data from the master block and gives outputs for further output block operation processing
+`include "../common/instructions.vh"
 
-module OP_Outputblock #(parameter OP_CODE_WIDTH = 4, 
-            parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
-            parameter INPUT_WIDTH = 8,
-            parameter OUTPUT_WIDTH = 256,
-            parameter ADDRESS_WIDTH = 32,
-            parameter CHANNELITR_WIDTH = 12,
-            parameter KERNELITR_WIDTH = 12,
-            parameter IMAGEDIMOUTPUT_WIDTH = 16,
-            parameter IMAGEDIMACC_WIDTH = 16,
-            parameter ACCEN_WIDTH = 1,
-            parameter DISPATCH_ID_WIDTH = 32,
-            parameter DISPATCHEN_WIDTH = 1,
-            parameter ACC_ONCHIP_WIDTH = 1,
-            parameter OH_WIDTH = 10,
-            parameter OW_WIDTH = 10,
-            parameter OutputBlock_OpWidth_WIDTH = 3,
-            parameter OutputBlock_FlatController_WIDTH = 1,
-            parameter OutputBlock_AccumulantReadFirst_WIDTH = 1
-            )
-            (
-                input [(INPUT_WIDTH)-1 : 0] din,
-                input sel,
-                input write,
-                input done,
-                input clk,
-                output reg valid,
-                output reg ready = 0,
-                output reg [OP_CODE_WIDTH -1 : 0] opcode = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] accumulantaddr = 0,
-                output reg [ADDRESS_WIDTH - 1 : 0] outputaddr = 0,
-                output reg [CHANNELITR_WIDTH -1 : 0] channelItr = 0,
-                output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
-                output reg [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput = 0,
-                output reg [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc = 0,
-                output reg [ACCEN_WIDTH -1 : 0] AccEn = 0,
-                output reg [DISPATCHEN_WIDTH-1 : 0] DispatchEn = 0,
-                output reg [DISPATCH_ID_WIDTH-1 :0] DispatchId = 0,
-                output reg [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip = 0,
-                output reg [OH_WIDTH-1 : 0] OB_OH = 0,
-                output reg [OW_WIDTH-1 : 0] OB_OW = 0,
-                output reg [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth =0,
-                output reg [OutputBlock_FlatController_WIDTH-1:0] OutputBlock_FlatController = 0,
-                output reg [OutputBlock_AccumulantReadFirst_WIDTH-1 : 0] OutputBlock_AccumulantReadFirst = 0
-            );
+module OP_Outputblock #(
+    parameter OP_CODE_WIDTH = 4, 
+    parameter CNT = (OUTPUT_WIDTH/INPUT_WIDTH),
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 256,
+    parameter ADDRESS_WIDTH = 32,
+    parameter CHANNELITR_WIDTH = 12,
+    parameter KERNELITR_WIDTH = 12,
+    parameter IMAGEDIMOUTPUT_WIDTH = 16,
+    parameter IMAGEDIMACC_WIDTH = 16,
+    parameter ACCEN_WIDTH = 1,
+    parameter DISPATCH_ID_WIDTH = 32,
+    parameter DISPATCHEN_WIDTH = 1,
+    parameter ACC_ONCHIP_WIDTH = 1,
+    parameter OH_WIDTH = 10,
+    parameter OW_WIDTH = 10,
+    parameter OutputBlock_OpWidth_WIDTH = 3,
+    parameter OutputBlock_FlatController_WIDTH = 1,
+    parameter OutputBlock_AccumulantReadFirst_WIDTH = 1
+    
+    )(
+    input [(INPUT_WIDTH)-1 : 0] din,
+    input sel,
+    input write,
+    input done,
+    input clk,
+    output reg valid,
+    output reg ready = 0,
+    output reg [OP_CODE_WIDTH -1 : 0] opcode = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] accumulantaddr = 0,
+    output reg [ADDRESS_WIDTH - 1 : 0] outputaddr = 0,
+    output reg [CHANNELITR_WIDTH -1 : 0] channelItr = 0,
+    output reg [KERNELITR_WIDTH - 1 : 0] kernelItr = 0,
+    output reg [IMAGEDIMOUTPUT_WIDTH -1 : 0] ImageDimOutput = 0,
+    output reg [IMAGEDIMACC_WIDTH -1 : 0] ImageDimAcc = 0,
+    output reg [ACCEN_WIDTH -1 : 0] AccEn = 0,
+    output reg [DISPATCHEN_WIDTH-1 : 0] DispatchEn = 0,
+    output reg [DISPATCH_ID_WIDTH-1 :0] DispatchId = 0,
+    output reg [ACC_ONCHIP_WIDTH-1 : 0] Acc_onchip = 0,
+    output reg [OH_WIDTH-1 : 0] OB_OH = 0,
+    output reg [OW_WIDTH-1 : 0] OB_OW = 0,
+    output reg [OutputBlock_OpWidth_WIDTH-1:0] OB_OpWidth =0,
+    output reg [OutputBlock_FlatController_WIDTH-1:0] OutputBlock_FlatController = 0,
+    output reg [OutputBlock_AccumulantReadFirst_WIDTH-1 : 0] OutputBlock_AccumulantReadFirst = 0
+    );
 
-            `include "../common/instructions.vh"
 
 reg [(OUTPUT_WIDTH)-1 : 0] data_instruction = 0;
 reg [2:0] state = 0;
@@ -62,14 +63,6 @@ always @(posedge clk) begin
         data_instruction <= 0;
         ready <= 0;
         valid <= 0;
-        // opcode <= 0;
-        // accumulantaddr <= 0;
-        // outputaddr <= 0;
-        // channelItr <= 0;
-        // kernelItr <= 0;
-        // ImageDimOutput <= 0;
-        // ImageDimAcc <= 0;
-        // AccEn <= 0;
         count <= 0;
         state <= REGISTER;
     end

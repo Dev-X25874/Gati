@@ -25,7 +25,7 @@ module config_blk #(
     input sel,
     input [INST_W-1:0]instruction_data,
     input done,//from bus master
-    input dispatch_busy, //from fpga2cpu module
+    input dispatch_busy, //from dispatch module
     output memory_read_r,memory_valid,
     output [7:0]mem_address,
     output mem_last,

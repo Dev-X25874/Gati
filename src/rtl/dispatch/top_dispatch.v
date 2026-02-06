@@ -1,4 +1,4 @@
-module top_fpga2cpu #(
+module top_dispatch #(
 parameter ADDR_W = 32, //AXI Address width
 parameter DATA_SIZE = 20, //Input data_size width
 parameter ID = 10, //Dispatch ID Width

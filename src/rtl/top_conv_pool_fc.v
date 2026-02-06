@@ -1,7 +1,7 @@
 `include "common/instructions.vh"
 `include "common/arch_param.vh"
 
-module Top_CONV_FC #(
+module top_conv_pool_fc #(
     parameter OPCODE_WIDTH = 4,
     parameter N_SA = NSA_DSP + NSA_LUT,
 	  parameter DATA_WIDTH = 8,
@@ -86,7 +86,6 @@ module Top_CONV_FC #(
     parameter IM2COL_BOUND_GEN_WIDTH = 16, // Data width for bound generation registers of Im2Col Engine
     parameter N_MOD_STAGES = 9, // Number of stages in mod operator in Im2Col stride handling block
     
-    // MANTRA ELTWISE NOT USED
     parameter ELTWISE_FIFO = 8, // Number of element wise fifos
     parameter ELTWISE_TYPE_WIDTH = 4, // Width of the element wise
     parameter ELTWISE_IW_WIDTH = 10, // Width of the input width;
@@ -214,7 +213,6 @@ module Top_CONV_FC #(
     input sa_stall,
     input [CONV_StartRowSkip_WIDTH-1:0] start_row_skip,
     
-    // MANTRA NEW OPs for idk
     output [N_SA-1:0] valid_SA,
     output [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA,
 
@@ -324,7 +322,7 @@ module Top_CONV_FC #(
   //Debug flag to check correctness of image_rden_counter
   localparam BYTES_PER_SA = DRAM_BW/N_SA;
   wire img_rden_counter_flag;
-  assign img_rden_counter_flag = (im2col_done) ? ((img_rden_counter == (image_width * image_height)/(BYTES_PER_SA))? 1'b1 : 1'b0) : 1'b0; // MANTRA Can use image size here from top_gati, mentioned in the issue of reducing mults and luts
+  assign img_rden_counter_flag = (im2col_done) ? ((img_rden_counter == (image_width * image_height)/(BYTES_PER_SA))? 1'b1 : 1'b0) : 1'b0; 
 `endif
 
 //im2col block
@@ -709,13 +707,8 @@ always @(posedge i_clk) begin
     .almost_empty_sa(almost_empty_sa),
     .op_full(op_full),
     .vector_enable(vector_add_enable),
-    .opsum_rden(psum_rden) // MANTRA USED FOR SYSTOLIC CONV
+    .opsum_rden(psum_rden) 
   );
-
-  
-  //////// Adder Tree ///////////////
-  // wire [N_SA-1:0] valid_SA;
-  // wire [(N_SA*DATA_WIDTH_OB)-1:0] dataout_SA;
   
   genvar a;
   generate

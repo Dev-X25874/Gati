@@ -71,7 +71,7 @@ module rah_gati #(
     parameter WEIGHT_FIFO_DEPTH   = 512,
     
     parameter CPU_DISPATCH_REQ_FIFO_DEPTH = 8,
-    parameter FPGA2CPU_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
+    parameter DISPATCH_FIFO_DEPTH = 256, //FIFO Depth of data FIFO in CPU dispatch module 
     parameter DATA_WIDTH    = 8,
     parameter COL_FC        = 32,
     parameter W_PSUM        = 20,
@@ -390,12 +390,12 @@ module rah_gati #(
   wire [BURST_LENGTH_WIDTH-1 : 0] mc_op_write_bl;
   wire mc_op_write_last;
 
-  ///////////fpga2cpu dispatch req ctrl
-  wire [7:0] mc_fpga2cpu_addr;
-  wire mc_fpga2cpu_readreq;
-  wire mc_fpga2cpu_valid;
-  wire [BURST_LENGTH_WIDTH-1 : 0] mc_fpga2cpu_bl;
-  wire mc_fpga2cpu_last;
+  /////////// dispatch req ctrl
+  wire [7:0] mc_dispatch_addr;
+  wire mc_dispatch_readreq;
+  wire mc_dispatch_valid;
+  wire [BURST_LENGTH_WIDTH-1 : 0] mc_dispatch_bl;
+  wire mc_dispatch_last;
 
   ///////////////////////operators data
 
@@ -498,7 +498,7 @@ module rah_gati #(
     mc_acc_valid,
     mc_op_write_valid,
     `ifdef BIAS_FC mc_fc_bias_valid, `endif //BIAS_FC
-    mc_fpga2cpu_valid
+    mc_dispatch_valid
     `ifdef ELTWISE ,mc_LeftOperand_valid, mc_RightOperand_valid `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_valid `endif //TRANSPOSE
     `ifdef CONCAT    ,mc_Concat_valid `endif
@@ -513,7 +513,7 @@ module rah_gati #(
     mc_acc_addr,
     mc_op_write_addr,
     `ifdef BIAS_FC mc_fc_bias_addr, `endif //BIAS_FC
-    mc_fpga2cpu_addr
+    mc_dispatch_addr
     `ifdef ELTWISE ,mc_LeftOperand_addr, mc_RightOperand_addr `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_addr `endif //TRANSPOSE
     `ifdef CONCAT    ,mc_Concat_addr `endif
@@ -528,7 +528,7 @@ module rah_gati #(
     mc_acc_bl,
     mc_op_write_bl,
     `ifdef BIAS_FC mc_fc_bias_bl, `endif //BIAS_FC
-    mc_fpga2cpu_bl
+    mc_dispatch_bl
     `ifdef ELTWISE ,mc_LeftOperand_bl, mc_RightOperand_bl `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_bl `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_bl `endif 
@@ -543,7 +543,7 @@ module rah_gati #(
     mc_acc_rdreq,
     mc_op_writereq,
     `ifdef BIAS_FC mc_fc_bias_rdreq, `endif //BIAS_FC
-    mc_fpga2cpu_readreq
+    mc_dispatch_readreq
     `ifdef ELTWISE ,mc_LeftOperand_rdreq, mc_RightOperand_rdreq `endif //ELTWSIE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_rdreq `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_rdreq `endif
@@ -558,7 +558,7 @@ module rah_gati #(
     mc_acc_last,
     mc_op_write_last,
     `ifdef BIAS_FC mc_fc_bias_last, `endif //BIAS_FC
-    mc_fpga2cpu_last
+    mc_dispatch_last
     `ifdef ELTWISE ,mc_LeftOperand_last, mc_RightOperand_last `endif //ELTWISE
     `ifdef TRANSPOSE ,mc_ReshapeTranspose_last `endif //TRANSPOSE
     `ifdef CONCAT ,mc_Concat_last `endif
@@ -645,8 +645,8 @@ module rah_gati #(
     .bready(bready)
   );
 
-  wire [AXI_ADDR_W-1:0] fpga2cpu_start_address;
-  wire [2*I_OP_SIZE_WIDTH-1:0] datasize_fpga2cpu;
+  wire [AXI_ADDR_W-1:0] dispatch_start_address;
+  wire [2*I_OP_SIZE_WIDTH-1:0] datasize_dispatch;
   wire [DISPATCH_ID_WIDTH-1:0] dispatch_id;
   wire [DISPATCHEN_WIDTH-1:0] dispatch_cpu_en;
 
@@ -818,8 +818,8 @@ module rah_gati #(
       .layer_done(layer_done),
       .dispatch_id(dispatch_id),
       .dispatch_cpu_en(dispatch_cpu_en),
-      .datasize_fpga2cpu(datasize_fpga2cpu),
-      .fpga2cpu_start_address(fpga2cpu_start_address),
+      .datasize_dispatch(datasize_dispatch),
+      .dispatch_start_address(dispatch_start_address),
        
        // io signals to the board gpio 
       .kernal_count(kernal_count), // current kernal iteration number 
@@ -830,13 +830,13 @@ module rah_gati #(
   );
  
   
-  //FPGA2CPU (CPU Dispatch) Module to transfer the layer output to CPU for debugging
+  //DISPATCH (CPU Dispatch) Module to transfer the layer output to CPU for debugging
   
-  top_fpga2cpu # (
+  top_dispatch # (
     .ADDR_W(AXI_ADDR_W),
     .DATA_SIZE(2*I_OP_SIZE_WIDTH),
     .ID(DISPATCH_ID_WIDTH),
-    .W_ADDR($clog2(FPGA2CPU_FIFO_DEPTH)),
+    .W_ADDR($clog2(DISPATCH_FIFO_DEPTH)),
     .BURST_LEN(CPU_DISPATCH_REQ_BLEN),
     .BURST_LENGTH_WIDTH(BURST_LENGTH_WIDTH),
     .AXI_DATA_WIDTH(AXI_DATA_WIDTH),
@@ -845,22 +845,22 @@ module rah_gati #(
     .MIPI_FIFO_DEPTH(MIPI_FIFO_DEPTH),
     .REQ_FIFO_DEPTH(CPU_DISPATCH_REQ_FIFO_DEPTH)
   )
-  top_fpga2cpu_inst (
+  top_dispatch_inst (
     .clk(i_clk),
     .clk_81mhz(c_81_clk),
     .rst(i_rst),
-    .i_addr(fpga2cpu_start_address), // comes from OP_Block instruction
-    .i_data_size(datasize_fpga2cpu), //i_img_dim_op*no.of kernels - for conv, i_img_dim_op*
+    .i_addr(dispatch_start_address), // comes from OP_Block instruction
+    .i_data_size(datasize_dispatch), //i_img_dim_op*no.of kernels - for conv, i_img_dim_op*
     .i_id(dispatch_id), //comes from OP_Block instruction
     .dispatch_cpu(dispatch_cpu_en), // DispatchEn signal comes from OP_Block instruction
     .layer_done(layer_done), // from Iteration cnter module
     .i_start(start), // start signal from config block
     .dispatcher_busy(dispatcher_busy), //goes to config blk to hold the schedule of next instruction
-    .read_write(mc_fpga2cpu_readreq), // next 5 signals are DRAM read request signals
-    .o_valid(mc_fpga2cpu_valid),
-    .o_last(mc_fpga2cpu_last),
-    .o_addr(mc_fpga2cpu_addr),
-    .o_blen(mc_fpga2cpu_bl),
+    .read_write(mc_dispatch_readreq), // next 5 signals are DRAM read request signals
+    .o_valid(mc_dispatch_valid),
+    .o_last(mc_dispatch_last),
+    .o_addr(mc_dispatch_addr),
+    .o_blen(mc_dispatch_bl),
     .sel(select_rd[`MIPI_Rd]), //from DRAM controller
     .i_data_in(dram_rd_data), 
     .i_data_last(dram_rd_data_last),

@@ -202,11 +202,11 @@ module top_tailblock #(
       .vector_add_enable(vector_add_enable),
       .top_in_data_valid(data_tail_blk_vaild), //interconnect datavalid
 
-      .w_empty_flag(empty_vector), // MANTRA output
-      .w_almost_empty_flag(almost_empty_vector), // MANTRA output
-      .top_data_out(output_block_out), // MANTRA output
-      .top_out_data_valid(vector_valid), // MANTRA output
-      .fifo_occupants(acc_fifo_occupants) // MANTRA output
+      .w_empty_flag(empty_vector), 
+      .w_almost_empty_flag(almost_empty_vector), 
+      .top_data_out(output_block_out), 
+      .top_out_data_valid(vector_valid), 
+      .fifo_occupants(acc_fifo_occupants) 
   );
 
 
@@ -232,10 +232,10 @@ module top_tailblock #(
       .vector_add_enable(bias_enable), //from iteration cnter
       .top_in_data_valid(vector_valid),
 
-      .top_data_out(bias_output), // MANTRA output
-      .w_empty_flag(), // MANTRA output
-      .top_out_data_valid(bias_valid), // MANTRA output
-      .fifo_occupants(bias_fifo_occupants) // MANTRA output
+      .top_data_out(bias_output), 
+      .w_empty_flag(), 
+      .top_out_data_valid(bias_valid), 
+      .fifo_occupants(bias_fifo_occupants) 
   );
 
 

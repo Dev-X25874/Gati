@@ -48,13 +48,7 @@ Refer to the guides present on the webpages of each program to learn more.
 
 ### Linting 
 
-Further, it is recommended to use a
-[lint](https://en.wikipedia.org/wiki/Lint_(software)) software to check programs
-for common bugs that may occur. Verilator provides an option to lint programs:
-
-```
-verilator --top ${TOP_MODULE} --lint-only -Wall <source files>
-```
+For detailed linting guide, refer to [this](docs/Linting_using_verilator.md).
 
 ### Formatting
 

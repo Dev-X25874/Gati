@@ -26,9 +26,9 @@ module interpolator_engine#(
 
     initial begin
         // Initialize data_samples, slope_values, and tanh_values
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/interpolation_points.txt", data_samples_lut,0,128);
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/slope_values.txt", slope_values_lut,0,128);
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/tanh_values.txt", tanh_values_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/interpolation_points.txt", data_samples_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/slope_values.txt", slope_values_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/tanh_values.txt", tanh_values_lut,0,128);
     end
 
     /*
@@ -206,9 +206,9 @@ module interpolator_engine_lut#(
 
     initial begin
         // Initialize data_samples, slope_values, and tanh_values
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/interpolation_points.txt", data_samples_lut,0,128);
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/slope_values.txt", slope_values_lut,0,128);
-        $readmemh("rtl/Gati/src/rtl/tanh_sigmoid/tanh_values.txt", tanh_values_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/interpolation_points.txt", data_samples_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/slope_values.txt", slope_values_lut,0,128);
+        $readmemh("../gati/src/rtl/tanh_sigmoid/tanh_values.txt", tanh_values_lut,0,128);
     end
 
     /*

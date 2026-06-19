@@ -137,7 +137,7 @@ generate
         .lr_pos_alpha(top_lr_pos_alpha[i*LR_POS_ALPHA_WIDTH+:LR_POS_ALPHA_WIDTH]),
         .o_valid (top_o_valid[i]),
         .i_clip  (top_i_clip[i*CLIP_WIDTH+:CLIP_WIDTH]),
-        .i_act_type(top_i_acttype[i*ACT_TYPE_WIDTH+ :ACT_TYPE_WIDTH])
+        .i_act_type(top_i_acttype[i*ACT_TYPE_WIDTH+:ACT_TYPE_WIDTH])
         );
     end
 endgenerate

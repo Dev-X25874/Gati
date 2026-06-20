@@ -37,10 +37,11 @@ module relu #(
 
     `ifdef GEN_LEAKY_RELU
 
-    assign o_data = ((i_act_type == `ACT_LEAKYRELU) && o_valid) ? 
+    assign o_data = ((act_type_r == `ACT_LEAKYRELU) && o_valid) ? 
                     leaky_reg[DATA_WIDTH-1:0] : o_data_r;
 
     reg signed [(DATA_WIDTH + LR_NEG_ALPHA_WIDTH)-1:0] leaky_reg; 
+    reg [ACT_TYPE_WIDTH-1:0] act_type_r = 0;
     wire [LR_NEG_ALPHA_WIDTH-1:0] selected_alpha;
 
     assign selected_alpha = (i_data[DATA_WIDTH-1] == 1) ? lr_neg_alpha : lr_pos_alpha;
@@ -57,6 +58,9 @@ module relu #(
   always @(posedge clk) begin
     if (i_valid & enable) begin
       o_valid_r <= i_valid;
+      `ifdef GEN_LEAKY_RELU
+      act_type_r <= i_act_type;
+      `endif
       case (i_act_type)
     
         `ifdef GEN_LEAKY_RELU  
@@ -89,6 +93,9 @@ module relu #(
     end else if(i_valid & ~enable) begin
       o_data_r <= i_data;
       o_valid_r <= i_valid;
+      `ifdef GEN_LEAKY_RELU
+      act_type_r <= `ACT_RELU;
+      `endif
     end else begin
       o_valid_r <= 0;
     end
